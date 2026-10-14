@@ -1,18 +1,20 @@
 import logging
 from typing import List, Optional
-from sqlalchemy import select, delete, or_
+
+from sqlalchemy import delete, or_, select
 
 from app.db.session import async_session_factory
 from app.models.question import QuestionModel
-from app.schemas import Question, OptionChoice, ReviewScore
+from app.schemas import OptionChoice, Question, ReviewScore
 
 logger = logging.getLogger(__name__)
+
 
 def _model_to_schema(m: QuestionModel) -> Question:
     """Converts a SQLAlchemy QuestionModel to a Pydantic Question schema."""
     options = [OptionChoice(**o) for o in m.options]
     rubric = ReviewScore(**m.review_rubric) if m.review_rubric else None
-    
+
     return Question(
         id=m.id,
         run_id=m.run_id,
@@ -47,8 +49,9 @@ def _model_to_schema(m: QuestionModel) -> Question:
         passage_required=m.passage_required,
         passage_questions=m.passage_questions,
         visual_type=m.visual_type or "None",
-        stage_outcomes=m.stage_outcomes or {}
+        stage_outcomes=m.stage_outcomes or {},
     )
+
 
 async def save_question(q: Question) -> Question:
     """Inserts or updates a question in PostgreSQL using native JSONB columns."""
@@ -90,21 +93,22 @@ async def save_question(q: Question) -> Question:
             passage_required=q.passage_required,
             passage_questions=q.passage_questions,
             visual_type=q.visual_type,
-            stage_outcomes=q.stage_outcomes
+            stage_outcomes=q.stage_outcomes,
         )
 
         await session.merge(model)
         await session.commit()
         return q
 
+
 async def get_questions(
-    section: Optional[str] = None,
-    difficulty: Optional[str] = None,
-    search: Optional[str] = None,
-    combination_id: Optional[str] = None,
-    run_id: Optional[str] = None,
-    batch_id: Optional[str] = None
-) -> List[Question]:
+    section: str | None = None,
+    difficulty: str | None = None,
+    search: str | None = None,
+    combination_id: str | None = None,
+    run_id: str | None = None,
+    batch_id: str | None = None,
+) -> list[Question]:
     """Retrieves questions from PostgreSQL with optional filtering and full-text search."""
     async with async_session_factory() as session:
         stmt = select(QuestionModel)
@@ -129,7 +133,7 @@ async def get_questions(
                     QuestionModel.combination_id.ilike(wildcard),
                     QuestionModel.content_domain.ilike(wildcard),
                     QuestionModel.run_id.ilike(wildcard),
-                    QuestionModel.batch_id.ilike(wildcard)
+                    QuestionModel.batch_id.ilike(wildcard),
                 )
             )
 
@@ -138,13 +142,15 @@ async def get_questions(
         models = result.scalars().all()
         return [_model_to_schema(m) for m in models]
 
-async def get_question_by_id(question_id: str) -> Optional[Question]:
+
+async def get_question_by_id(question_id: str) -> Question | None:
     """Retrieves a single question by primary key ID."""
     async with async_session_factory() as session:
         model = await session.get(QuestionModel, question_id)
         if not model:
             return None
         return _model_to_schema(model)
+
 
 async def delete_question(question_id: str) -> bool:
     """Deletes a question by primary key ID."""

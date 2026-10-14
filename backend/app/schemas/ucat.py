@@ -1,11 +1,13 @@
 from enum import Enum
 
+
 class UCATSection(str, Enum):
     VERBAL_REASONING = "verbal_reasoning"
     DECISION_MAKING = "decision_making"
     QUANTITATIVE_REASONING = "quantitative_reasoning"
     ABSTRACT_REASONING = "abstract_reasoning"
     SITUATIONAL_JUDGEMENT = "situational_judgement"
+
 
 UCAT_SECTION_LABELS = {
     UCATSection.VERBAL_REASONING: "Verbal Reasoning",
@@ -20,41 +22,43 @@ UCAT_SUBTOPICS = {
         "Critical Reading & Inferences",
         "Direct Fact Retrieval",
         "Author Tone & Argumentation",
-        "Comparative Evaluation"
+        "Comparative Evaluation",
     ],
     UCATSection.DECISION_MAKING: [
         "Logical Syllogisms",
         "Venn Diagrams & Set Logic",
         "Probabilistic Reasoning",
         "Argument Evaluation",
-        "Recognising Assumptions"
+        "Recognising Assumptions",
     ],
     UCATSection.QUANTITATIVE_REASONING: [
         "Rates, Work & Concentration",
         "Percentage Yield & Margins",
         "Geometric & Clinical Scaling",
         "Statistical Tables & Data Interpretation",
-        "Currency & Unit Conversions"
+        "Currency & Unit Conversions",
     ],
     UCATSection.ABSTRACT_REASONING: [
         "Set A vs Set B Patterns",
         "Transformation & Reflection",
         "Counting, Number & Geometry",
-        "Arrangement & Conditional Shading"
+        "Arrangement & Conditional Shading",
     ],
     UCATSection.SITUATIONAL_JUDGEMENT: [
         "Patient Safety & Escalation",
         "Patient Autonomy & Consent",
         "Team Dynamics & Whistleblowing",
         "Academic & Professional Integrity",
-        "Confidentiality & Social Media"
-    ]
+        "Confidentiality & Social Media",
+    ],
 }
+
 
 class Difficulty(str, Enum):
     EASY = "easy"
     MEDIUM = "medium"
     HARD = "hard"
+
 
 SECTION_CODE_MAP = {
     "VR": UCATSection.VERBAL_REASONING,
@@ -68,6 +72,7 @@ SECTION_CODE_MAP = {
     "abstract_reasoning": UCATSection.ABSTRACT_REASONING,
     "situational_judgement": UCATSection.SITUATIONAL_JUDGEMENT,
 }
+
 
 def normalize_section(val: str) -> UCATSection:
     """Normalizes 'VR', 'DM', 'QR', 'AR', 'SJT' or long section names into UCATSection."""
@@ -84,6 +89,7 @@ def normalize_section(val: str) -> UCATSection:
         return SECTION_CODE_MAP[lower]
     return UCATSection.VERBAL_REASONING
 
+
 CONTENT_DOMAINS = [
     "Science",
     "Healthcare",
@@ -92,7 +98,7 @@ CONTENT_DOMAINS = [
     "Ethics",
     "Clinical_Governance",
     "Business",
-    "Education"
+    "Education",
 ]
 
 QUESTION_TYPES = [
@@ -101,7 +107,7 @@ QUESTION_TYPES = [
     "Syllogism_Yes_No",
     "Assumption_Evaluation",
     "Data_Calculation",
-    "Pattern_Set_A_B"
+    "Pattern_Set_A_B",
 ]
 
 PRIMARY_TRAPS = [
@@ -111,6 +117,5 @@ PRIMARY_TRAPS = [
     "Correlation_vs_Causation",
     "Scope_Shift",
     "Half_Truth",
-    "Out_of_Scope"
+    "Out_of_Scope",
 ]
-

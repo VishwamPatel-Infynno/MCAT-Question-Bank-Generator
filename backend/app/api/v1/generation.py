@@ -1,4 +1,5 @@
 import logging
+
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
@@ -8,6 +9,7 @@ from app.workflow.graph import run_workflow_stream
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Multi-Agent Generation"])
+
 
 @router.post("/generate")
 async def generate_ucat_question(req: GenerationRequest):
@@ -21,6 +23,6 @@ async def generate_ucat_question(req: GenerationRequest):
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
-            "X-Accel-Buffering": "no"
-        }
+            "X-Accel-Buffering": "no",
+        },
     )

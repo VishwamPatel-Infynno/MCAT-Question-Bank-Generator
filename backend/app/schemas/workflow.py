@@ -1,36 +1,52 @@
 import uuid
 from datetime import datetime
-from typing import Optional, Dict, Any, Union
+from typing import Any, Dict, Optional, Union
+
 from pydantic import BaseModel, Field, field_validator
 
-from app.schemas.ucat import UCATSection, Difficulty, normalize_section
+from app.schemas.ucat import Difficulty, UCATSection, normalize_section
+
 
 class GenerationRequest(BaseModel):
     section: UCATSection
-    subtopic: Optional[str] = None
+    subtopic: str | None = None
     difficulty: Difficulty = Difficulty.MEDIUM
     require_image: bool = False
-    custom_prompt: Optional[str] = None
-    model_name: Optional[str] = None
-    api_key: Optional[str] = None
+    custom_prompt: str | None = None
+    model_name: str | None = None
+    api_key: str | None = None
 
     # Execution & Batch UUID Identifiers
-    run_id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique execution run UUID4")
-    batch_id: Optional[str] = Field(None, description="Optional batch run UUID4 binding multiple questions")
+    run_id: str = Field(
+        default_factory=lambda: str(uuid.uuid4()), description="Unique execution run UUID4"
+    )
+    batch_id: str | None = Field(
+        None, description="Optional batch run UUID4 binding multiple questions"
+    )
 
     # Manager Combination Matrix attributes
-    combination_id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), description="Combination UUID4 or custom code e.g. CMB00001")
-    subcategory: Optional[str] = Field(None, description="e.g. Inference")
-    content_domain: Optional[str] = Field(None, description="e.g. Science, Healthcare")
-    question_type: Optional[str] = Field(None, description="e.g. Passage_MCQ, True_False_Cant_Tell")
-    interaction_type: Optional[str] = Field("single_choice", description="single_choice, multi_choice, drag_drop")
-    primary_trap: Optional[str] = Field(None, description="e.g. Keyword_Trap, Partial_Match")
-    passage_required: Optional[Union[str, bool]] = Field(None, description="Yes or No")
-    passage_questions: Optional[int] = Field(None, description="Number of passage questions e.g. 3, 4")
-    image_required: Optional[Union[str, bool]] = Field(None, description="Yes or No")
-    visual_type: Optional[str] = Field("None", description="e.g. None, SVG_Diagram, AI_FLUX_Image")
-    questions_to_generate: Optional[int] = Field(1, description="Quantity to generate from this combination")
-    auto_save: bool = Field(False, description="Whether to automatically persist candidate in PostgreSQL (default: False for admin review)")
+    combination_id: str | None = Field(
+        default_factory=lambda: str(uuid.uuid4()),
+        description="Combination UUID4 or custom code e.g. CMB00001",
+    )
+    subcategory: str | None = Field(None, description="e.g. Inference")
+    content_domain: str | None = Field(None, description="e.g. Science, Healthcare")
+    question_type: str | None = Field(None, description="e.g. Passage_MCQ, True_False_Cant_Tell")
+    interaction_type: str | None = Field(
+        "single_choice", description="single_choice, multi_choice, drag_drop"
+    )
+    primary_trap: str | None = Field(None, description="e.g. Keyword_Trap, Partial_Match")
+    passage_required: str | bool | None = Field(None, description="Yes or No")
+    passage_questions: int | None = Field(None, description="Number of passage questions e.g. 3, 4")
+    image_required: str | bool | None = Field(None, description="Yes or No")
+    visual_type: str | None = Field("None", description="e.g. None, SVG_Diagram, AI_FLUX_Image")
+    questions_to_generate: int | None = Field(
+        1, description="Quantity to generate from this combination"
+    )
+    auto_save: bool = Field(
+        False,
+        description="Whether to automatically persist candidate in PostgreSQL (default: False for admin review)",
+    )
 
     @field_validator("combination_id", mode="before")
     @classmethod
@@ -59,13 +75,15 @@ class GenerationRequest(BaseModel):
                 return Difficulty.HARD
         return v
 
+
 class WorkflowEvent(BaseModel):
-    event_id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique SSE event UUID4")
-    run_id: Optional[str] = Field(None, description="Execution run UUID4")
-    batch_id: Optional[str] = Field(None, description="Batch execution UUID4")
+    event_id: str = Field(
+        default_factory=lambda: str(uuid.uuid4()), description="Unique SSE event UUID4"
+    )
+    run_id: str | None = Field(None, description="Execution run UUID4")
+    batch_id: str | None = Field(None, description="Batch execution UUID4")
     event_type: str  # 'workflow_start', 'agent_start', 'agent_complete', 'workflow_complete', 'workflow_rejected', 'workflow_error'
     agent_name: str  # 'Question Generator', 'Question Reviewer', 'Question Re-Generator', 'Image Generator', 'Quality Gate', 'System'
     message: str
-    data: Optional[Dict[str, Any]] = None
+    data: dict[str, Any] | None = None
     timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
-

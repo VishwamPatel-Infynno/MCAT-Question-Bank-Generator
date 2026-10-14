@@ -283,13 +283,16 @@ backend/app/
 ├── workflow/            # Orchestration Engine
 │   ├── state.py         # AgentWorkflowState typed dict
 │   └── graph.py         # LangGraph StateGraph with conditional quality routing
-└── api/                 # Modular API Routers
-    ├── router.py        # Central API v1 router aggregator
-    └── v1/
-        ├── generation.py # SSE streaming question generator endpoint
-        ├── questions.py  # Question Bank CRUD & JSON/CSV exports
-        ├── config.py     # DeepInfra configuration & model settings
-        └── health.py     # DB connectivity & system health checks
+├── api/                 # Modular API Routers
+│   ├── router.py        # Central API v1 router aggregator
+│   └── v1/
+│       ├── generation.py # SSE streaming question generator endpoint
+│       ├── questions.py  # Question Bank CRUD, Admin Approval & JSON/CSV exports
+│       ├── config.py     # DeepInfra configuration & model settings
+│       └── health.py     # DB connectivity & system health checks
+├── config.py            # Backward-compatibility facade (deprecated -> app.core.config)
+├── database.py          # Backward-compatibility facade (deprecated -> app.db / app.repositories)
+└── main.py              # FastAPI application entrypoint with security headers & CORS
 ```
 
 ### 7.2 Frontend Domain-Driven Architecture
@@ -306,10 +309,11 @@ frontend/src/
 │   ├── index.js         # Barrel exports for clean component imports
 │   ├── layout/          # Layout components (Navbar)
 │   ├── generator/       # Question generation studio (Panel, Visualizer, RejectionCard)
-│   ├── question/        # Candidate question display & review (QuestionCard, ReviewAuditView)
+│   ├── question/        # Candidate question review & audit (QuestionCard, ReviewAuditView, StageJsonInspector)
+│   ├── matrix/          # Combinations matrix & batch generation studio (MatrixRunner)
 │   ├── bank/            # Question repository (QuestionBank)
 │   └── modals/          # Dialog modals (SettingsModal, UCATGuide)
 └── services/
-    └── api.js           # SSE event reader & REST API client
+    └── api.js           # SSE event reader, candidate approval & REST API client
 ```
 

@@ -1,12 +1,15 @@
 import logging
+
 from fastapi import APIRouter
+
 from app.core.config import config
 from app.db.session import check_db_health
-from app.schemas.ucat import UCATSection, UCAT_SECTION_LABELS, UCAT_SUBTOPICS
+from app.schemas.ucat import UCAT_SECTION_LABELS, UCAT_SUBTOPICS, UCATSection
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Health & Metadata"])
+
 
 @router.get("/health")
 async def health_check():
@@ -29,19 +32,16 @@ async def health_check():
         "image_width": config.IMAGE_WIDTH,
         "image_height": config.IMAGE_HEIGHT,
         "image_iters": config.IMAGE_ITERS,
-        "current_image_cost_usd": config.calculate_flux_image_cost()
+        "current_image_cost_usd": config.calculate_flux_image_cost(),
     }
+
 
 @router.get("/sections")
 async def get_sections():
     """Returns official UK UCAT sections and their categorized subtopics."""
     return {
         "sections": [
-            {
-                "id": sec.value,
-                "label": UCAT_SECTION_LABELS[sec],
-                "subtopics": UCAT_SUBTOPICS[sec]
-            }
+            {"id": sec.value, "label": UCAT_SECTION_LABELS[sec], "subtopics": UCAT_SUBTOPICS[sec]}
             for sec in UCATSection
         ]
     }

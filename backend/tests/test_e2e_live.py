@@ -1,13 +1,15 @@
-import json
 import csv
 import io
-import pytest
+import json
+
 import httpx
+import pytest
 from app.core.config import config
-from app.workflow.graph import route_after_review, reject_node
-from app.schemas import ReviewScore, QuestionDraft
+from app.schemas import QuestionDraft, ReviewScore
+from app.workflow.graph import reject_node, route_after_review
 
 BASE_URL = "http://127.0.0.1:8000/api"
+
 
 @pytest.mark.asyncio
 async def test_e2e_health_and_db_connectivity():
@@ -19,13 +21,13 @@ async def test_e2e_health_and_db_connectivity():
         resp = await client.get("/health")
         assert resp.status_code == 200, f"Health check failed: {resp.text}"
         data = resp.json()
-        
+
         # Verify database
         assert data["status"] == "healthy"
         assert data["database"] == "postgresql"
         assert data["database_connected"] is True
         assert "PostgreSQL 16" in data["database_version"]
-        
+
         # Verify inference models and pricing
         assert data["default_text_model"] == "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo"
         assert data["default_image_model"] == "deepinfra/black-forest-labs/FLUX-1-schnell"
@@ -34,6 +36,7 @@ async def test_e2e_health_and_db_connectivity():
         assert data["cost_per_million_output"] == 0.32
         assert data["passing_threshold"] == 90
         assert data["max_regenerations"] == 3
+
 
 @pytest.mark.asyncio
 async def test_e2e_all_five_sections_metadata():
@@ -46,20 +49,21 @@ async def test_e2e_all_five_sections_metadata():
         data = resp.json()
         sections = data.get("sections", [])
         assert len(sections) == 5, f"Expected 5 sections, got {len(sections)}"
-        
+
         expected_sections = {
             "verbal_reasoning",
             "decision_making",
             "quantitative_reasoning",
             "abstract_reasoning",
-            "situational_judgement"
+            "situational_judgement",
         }
         actual_sections = {s["id"] for s in sections}
         assert actual_sections == expected_sections
-        
+
         for sec in sections:
             assert len(sec.get("subtopics", [])) >= 4, f"Section {sec['id']} missing subtopics"
             assert "label" in sec
+
 
 @pytest.mark.asyncio
 async def test_e2e_config_endpoint():
@@ -75,6 +79,7 @@ async def test_e2e_config_endpoint():
         assert cfg["passing_threshold"] == 90
         assert cfg["current_image_cost_usd"] == 0.002
 
+
 @pytest.mark.asyncio
 async def test_e2e_live_generation_sse_stream():
     """
@@ -87,7 +92,7 @@ async def test_e2e_live_generation_sse_stream():
         "section": "verbal_reasoning",
         "subtopic": "Critical Reading & Inferences",
         "difficulty": "medium",
-        "require_image": False
+        "require_image": False,
     }
 
     events = []
@@ -141,6 +146,7 @@ async def test_e2e_live_generation_sse_stream():
     assert completed_question.get("total_tokens", 0) > 0
     assert completed_question.get("cost_usd", 0.0) > 0.0
 
+
 @pytest.mark.asyncio
 async def test_e2e_question_bank_crud_and_filtering():
     """
@@ -154,7 +160,7 @@ async def test_e2e_question_bank_crud_and_filtering():
         data = resp.json()
         questions = data.get("questions", [])
         assert len(questions) > 0, "Question bank should contain saved questions"
-        
+
         sample_q = questions[0]
         q_id = sample_q["id"]
 
@@ -188,6 +194,7 @@ async def test_e2e_question_bank_crud_and_filtering():
         search_results = resp_search.json().get("questions", [])
         assert len(search_results) >= 1
 
+
 @pytest.mark.asyncio
 async def test_e2e_export_json_and_csv():
     """
@@ -216,6 +223,7 @@ async def test_e2e_export_json_and_csv():
         assert "Difficulty" in header
         assert "Final Score" in header
 
+
 @pytest.mark.asyncio
 async def test_e2e_strict_threshold_rejection_boundary():
     """
@@ -223,8 +231,8 @@ async def test_e2e_strict_threshold_rejection_boundary():
     When a draft scores <= 90 after max attempts, it must be rejected
     and produce diagnostic payload without being saved to database.
     """
-    from app.schemas import GenerationRequest, UCATSection, Difficulty
     from app.agents.generator import get_mock_draft
+    from app.schemas import Difficulty, GenerationRequest, UCATSection
 
     req = GenerationRequest(section=UCATSection.DECISION_MAKING, difficulty=Difficulty.HARD)
     draft = get_mock_draft(req)
@@ -236,14 +244,14 @@ async def test_e2e_strict_threshold_rejection_boundary():
         clarity_score=21,
         distractor_score=21,
         explanation_score=21,
-        recommendations=["Distractor B is too obvious and tone lacks clinical rigor."]
+        recommendations=["Distractor B is too obvious and tone lacks clinical rigor."],
     )
 
     state_failing = {
         "request": req.model_dump(),
         "current_draft": draft.model_dump(),
         "current_review": failing_review.model_dump(),
-        "iteration_count": config.MAX_REGENERATION_ATTEMPTS
+        "iteration_count": config.MAX_REGENERATION_ATTEMPTS,
     }
 
     # Route after review must select reject
@@ -256,13 +264,14 @@ async def test_e2e_strict_threshold_rejection_boundary():
     assert reject_res["rejection_data"]["final_score"] == 84
     assert "reason" in reject_res["rejection_data"]
 
+
 @pytest.mark.asyncio
 async def test_e2e_manager_combination_matrix_and_stage_outcomes():
     """
     E2E Test 8: Verify manager combination matrix attributes (CMB00001)
     and full multi-stage outcomes JSON recording (drafting, quality_audit, polish_refine, visual_stimulus, final_payload).
     """
-    from app.schemas import GenerationRequest, Difficulty
+    from app.schemas import Difficulty, GenerationRequest
     from app.workflow.graph import run_workflow
 
     req = GenerationRequest(
@@ -278,7 +287,7 @@ async def test_e2e_manager_combination_matrix_and_stage_outcomes():
         passage_questions=3,
         image_required="No",
         visual_type="None",
-        questions_to_generate=4
+        questions_to_generate=4,
     )
 
     result = await run_workflow(req)
@@ -326,6 +335,7 @@ async def test_e2e_manager_combination_matrix_and_stage_outcomes():
             assert "Content_Domain" in header
             assert "Primary_Trap" in header
 
+
 @pytest.mark.asyncio
 async def test_e2e_uuid_architecture():
     """
@@ -338,7 +348,8 @@ async def test_e2e_uuid_architecture():
     6. Database filtering by batch_id and run_id.
     """
     import uuid
-    from app.schemas import GenerationRequest, Difficulty
+
+    from app.schemas import Difficulty, GenerationRequest
     from app.workflow.graph import run_workflow_stream
 
     test_batch_id = str(uuid.uuid4())
@@ -348,7 +359,7 @@ async def test_e2e_uuid_architecture():
         section="VR",
         subtopic="Critical Reading & Inferences",
         difficulty=Difficulty.EASY,
-        batch_id=test_batch_id
+        batch_id=test_batch_id,
     )
 
     # 1. Assert combination_id was auto-populated with valid UUID4
@@ -394,8 +405,14 @@ async def test_e2e_uuid_architecture():
             assert "audit_id" in review
             assert uuid.UUID(review["audit_id"], version=4)
 
-        # 6. Test API filtering by batch_id and run_id
+        # 6. Admin Review Approval Gate: approve candidate into Question Bank
         async with httpx.AsyncClient(base_url=BASE_URL, timeout=10.0) as client:
+            resp_approve = await client.post("/questions", json=final_question)
+            assert resp_approve.status_code == 200, (
+                f"Candidate approval failed: {resp_approve.text}"
+            )
+            assert resp_approve.json().get("success") is True
+
             # Query by batch_id
             resp_batch = await client.get(f"/questions?batch_id={test_batch_id}")
             assert resp_batch.status_code == 200
@@ -416,4 +433,5 @@ async def test_e2e_uuid_architecture():
             assert "Run_ID" in header
             assert "Batch_ID" in header
 
-
+            # Clean up approved test question
+            await client.delete(f"/questions/{final_question['id']}")

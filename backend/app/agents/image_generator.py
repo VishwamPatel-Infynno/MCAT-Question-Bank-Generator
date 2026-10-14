@@ -1,17 +1,20 @@
-import os
 import logging
-from typing import Optional, Tuple, Dict, Any
+import os
+from typing import Any, Dict, Optional, Tuple
+
 import httpx
-from app.config import config
-from app.schemas import QuestionDraft, GenerationRequest, UCATSection
+
+from app.core.config import config
+from app.schemas import GenerationRequest, QuestionDraft, UCATSection
 
 logger = logging.getLogger(__name__)
 
+
 def calculate_flux_image_cost(
-    width: Optional[int] = None,
-    height: Optional[int] = None,
-    iters: Optional[int] = None,
-    base_rate: Optional[float] = None
+    width: int | None = None,
+    height: int | None = None,
+    iters: int | None = None,
+    base_rate: float | None = None,
 ) -> float:
     """
     Calculates DeepInfra FLUX-1-schnell image generation cost using official formula:
@@ -23,13 +26,10 @@ def calculate_flux_image_cost(
     rate = base_rate if base_rate is not None else config.IMAGE_COST_PER_BASE_UNIT
     return round(rate * (w / 1024.0) * (h / 1024.0) * it, 6)
 
+
 async def call_deepinfra_flux(
-    prompt: str,
-    width: int,
-    height: int,
-    iters: int,
-    api_key: str
-) -> Optional[str]:
+    prompt: str, width: int, height: int, iters: int, api_key: str
+) -> str | None:
     """
     Calls DeepInfra API for black-forest-labs/FLUX-1-schnell image generation.
     Supports both native inference endpoint and OpenAI-compatible endpoint.
@@ -42,12 +42,10 @@ async def call_deepinfra_flux(
                 "prompt": prompt,
                 "width": width,
                 "height": height,
-                "num_inference_steps": iters
+                "num_inference_steps": iters,
             }
             res = await client.post(
-                native_url,
-                json=payload,
-                headers={"Authorization": f"Bearer {api_key}"}
+                native_url, json=payload, headers={"Authorization": f"Bearer {api_key}"}
             )
             if res.status_code == 200:
                 data = res.json()
@@ -65,12 +63,10 @@ async def call_deepinfra_flux(
                 "model": "black-forest-labs/FLUX-1-schnell",
                 "prompt": prompt,
                 "size": f"{width}x{height}",
-                "n": 1
+                "n": 1,
             }
             res = await client.post(
-                openai_url,
-                json=payload,
-                headers={"Authorization": f"Bearer {api_key}"}
+                openai_url, json=payload, headers={"Authorization": f"Bearer {api_key}"}
             )
             if res.status_code == 200:
                 data = res.json()
@@ -86,9 +82,10 @@ async def call_deepinfra_flux(
 
     return None
 
+
 def generate_abstract_reasoning_svg(title: str = "Abstract Reasoning - Pattern Sets") -> str:
     """Generates an authentic, crisp light-mode SVG diagram for Abstract Reasoning Set A / Set B."""
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="100%" height="100%" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;">
+    return """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="100%" height="100%" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;">
   <defs>
     <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
       <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
@@ -144,9 +141,10 @@ def generate_abstract_reasoning_svg(title: str = "Abstract Reasoning - Pattern S
   </g>
 </svg>"""
 
+
 def generate_venn_diagram_svg(title: str = "Decision Making - Set Deductions") -> str:
     """Generates an authentic light-mode Venn diagram for Decision Making syllogisms."""
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 320" width="100%" height="100%" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;">
+    return """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 320" width="100%" height="100%" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;">
   <text x="340" y="32" fill="#0f172a" font-size="13" font-weight="700" text-anchor="middle" letter-spacing="1">LOGICAL DEDUCTIONS &amp; SET RELATIONSHIPS</text>
 
   <!-- Left Set: Neurologists -->
@@ -169,9 +167,10 @@ def generate_venn_diagram_svg(title: str = "Decision Making - Set Deductions") -
   <text x="340" y="295" fill="#64748b" font-size="11" font-weight="500" text-anchor="middle">No Neurologist (MRI Certified) may administer psychometric battery tests.</text>
 </svg>"""
 
+
 def generate_quantitative_chart_svg(title: str = "Dosage & Volume Distribution") -> str:
     """Generates an authentic light-mode clinical dosage table visual for Quantitative Reasoning."""
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 300" width="100%" height="100%" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;">
+    return """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 300" width="100%" height="100%" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;">
   <text x="340" y="32" fill="#0f172a" font-size="13" font-weight="700" text-anchor="middle" letter-spacing="1">CLINICAL DOSAGE &amp; INFUSION SCHEDULE</text>
 
   <!-- Data Grid Container -->
@@ -208,10 +207,10 @@ def generate_quantitative_chart_svg(title: str = "Dosage & Volume Distribution")
   </g>
 </svg>"""
 
+
 async def generate_image_stimulus(
-    draft: QuestionDraft,
-    req: GenerationRequest
-) -> Tuple[Optional[str], Optional[str], Optional[str], Dict[str, Any]]:
+    draft: QuestionDraft, req: GenerationRequest
+) -> tuple[str | None, str | None, str | None, dict[str, Any]]:
     """
     Invokes the Image Generator Agent:
     1. If DEEPINFRA_API_KEY is present, uses black-forest-labs/FLUX-1-schnell via DeepInfra API.
@@ -229,18 +228,14 @@ async def generate_image_stimulus(
             draft.image_prompt_or_type
             or f"UK UCAT clinical medical aptitude exam stimulus diagram for {req.section.value}: {draft.question_stem}"
         )
-        flux_prompt = (
-            f"Medical educational test diagram on clean white background, high contrast, clear labeling for UK UCAT medical test: {prompt_for_image}"
-        )
-        logger.info(
-            f"Generating AI image with FLUX-1-schnell ({width}x{height}, {iters} iters)..."
-        )
+        flux_prompt = f"Medical educational test diagram on clean white background, high contrast, clear labeling for UK UCAT medical test: {prompt_for_image}"
+        logger.info(f"Generating AI image with FLUX-1-schnell ({width}x{height}, {iters} iters)...")
         img_data = await call_deepinfra_flux(
             prompt=flux_prompt,
             width=width,
             height=height,
             iters=iters,
-            api_key=config.DEEPINFRA_API_KEY
+            api_key=config.DEEPINFRA_API_KEY,
         )
         if img_data:
             cost = calculate_flux_image_cost(width, height, iters)
@@ -257,12 +252,14 @@ async def generate_image_stimulus(
                     "height": height,
                     "iters": iters,
                     "cost_formula": "$0.0005 * (width/1024) * (height/1024) * iters",
-                    "type": "ai_generated_image"
-                }
+                    "type": "ai_generated_image",
+                },
             }
             return (img_data, None, prompt_for_image, usage_dict)
         else:
-            logger.warning("FLUX-1-schnell call failed or returned empty image, falling back to SVG")
+            logger.warning(
+                "FLUX-1-schnell call failed or returned empty image, falling back to SVG"
+            )
 
     # SVG Fallback
     svg_usage = {
@@ -272,10 +269,7 @@ async def generate_image_stimulus(
         "completion_tokens": 0,
         "total_tokens": 0,
         "cost_usd": 0.0,
-        "details": {
-            "type": "programmatic_svg",
-            "note": "Free high-contrast vector diagram"
-        }
+        "details": {"type": "programmatic_svg", "note": "Free high-contrast vector diagram"},
     }
 
     if req.section == UCATSection.ABSTRACT_REASONING:

@@ -1,26 +1,27 @@
-from typing import List, Dict, Any, Optional, TypedDict
+from typing import Any, Dict, List, Optional, TypedDict
+
 
 class AgentWorkflowState(TypedDict, total=False):
-    request: Dict[str, Any]
-    current_draft: Optional[Dict[str, Any]]
-    current_review: Optional[Dict[str, Any]]
+    request: dict[str, Any]
+    current_draft: dict[str, Any] | None
+    current_review: dict[str, Any] | None
     iteration_count: int
-    iterations_history: List[Dict[str, Any]]
-    image_url: Optional[str]
-    image_svg: Optional[str]
-    image_description: Optional[str]
-    final_question: Optional[Dict[str, Any]]
-    rejection_data: Optional[Dict[str, Any]]
+    iterations_history: list[dict[str, Any]]
+    image_url: str | None
+    image_svg: str | None
+    image_description: str | None
+    final_question: dict[str, Any] | None
+    rejection_data: dict[str, Any] | None
     status: str
     active_agent: str
-    log_messages: List[str]
+    log_messages: list[str]
     # Token usage & cost tracking
     total_tokens: int
     total_prompt_tokens: int
     total_completion_tokens: int
     total_cost_usd: float
-    agent_usage_breakdown: List[Dict[str, Any]]
-    latest_usage: Optional[Dict[str, Any]]
-    stage_outcomes: Dict[str, Any]
+    agent_usage_breakdown: list[dict[str, Any]]
+    latest_usage: dict[str, Any] | None
+    stage_outcomes: dict[str, Any]
     run_id: str
-    batch_id: Optional[str]
+    batch_id: str | None

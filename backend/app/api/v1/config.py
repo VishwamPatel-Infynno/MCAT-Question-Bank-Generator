@@ -1,10 +1,13 @@
 import logging
+
 from fastapi import APIRouter
+
 from app.core.config import config
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Configuration & Settings"])
+
 
 @router.get("/config")
 async def get_settings():
@@ -25,8 +28,9 @@ async def get_settings():
         "image_height": config.IMAGE_HEIGHT,
         "image_iters": config.IMAGE_ITERS,
         "image_cost_base_rate": config.IMAGE_COST_PER_BASE_UNIT,
-        "current_image_cost_usd": config.calculate_flux_image_cost()
+        "current_image_cost_usd": config.calculate_flux_image_cost(),
     }
+
 
 @router.post("/config")
 async def update_settings(payload: dict):

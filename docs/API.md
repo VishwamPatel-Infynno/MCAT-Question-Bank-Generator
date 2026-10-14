@@ -8,7 +8,7 @@ This document provides a complete reference for all REST endpoints and Server-Se
 
 - **Base URL**: `http://localhost:8000` (or configured deployment host)
 - **Content Type**: `application/json` (REST endpoints), `text/event-stream` (Live generation)
-- **CORS Policy**: Configured to accept all origins (`*`) during local development.
+- **CORS Policy & Security Headers**: Restricted to trusted origins (`http://localhost:5173`, etc.) with OWASP headers (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`).
 
 ---
 
@@ -16,7 +16,9 @@ This document provides a complete reference for all REST endpoints and Server-Se
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `POST` | `/api/generate` | Triggers multi-agent workflow and streams real-time SSE events |
+| `POST` | `/api/generate` | Triggers multi-agent workflow and streams real-time SSE events (Candidate Staged) |
+| `POST` | `/api/questions` | **Admin Review Gate**: Persists an approved candidate question into PostgreSQL |
+| `POST` | `/api/questions/batch` | **Admin Review Gate**: Bulk-persists an array of approved candidates into PostgreSQL |
 | `GET` | `/api/questions` | Lists saved questions with filtering, search, and repository token metrics |
 | `GET` | `/api/questions/{id}` | Retrieves a single question by UUID4 primary key |
 | `DELETE` | `/api/questions/{id}` | Deletes a question by UUID4 primary key |
@@ -209,7 +211,54 @@ curl -X GET "http://localhost:8000/api/questions?section=verbal_reasoning&diffic
 
 ---
 
-### 3.3 Get Single Question
+### 3.3 Approve and Persist Candidate Question (Admin Review Gate)
+`POST /api/questions`
+
+Persists an approved candidate question into the PostgreSQL 16 Question Bank.
+
+#### Request Body
+Accepts a full candidate `Question` schema object.
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "message": "Question successfully approved and saved to Question Bank",
+  "question": {
+    "id": "e3b0c442-98fc-1c14-9afb-4c8996fb9242",
+    "section": "verbal_reasoning",
+    "final_score": 95,
+    "saved_at": "2026-10-14T12:00:00"
+  }
+}
+```
+
+---
+
+### 3.4 Batch Approve and Persist Candidate Questions (Admin Review Gate)
+`POST /api/questions/batch`
+
+Bulk-persists an array of approved candidate questions into PostgreSQL 16 in a single atomic transaction.
+
+#### Request Body
+Array of candidate `Question` schema objects (`[ { ... }, { ... } ]`).
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "saved_count": 5,
+  "message": "Successfully approved and saved 5 questions to Question Bank",
+  "question_ids": [
+    "e3b0c442-98fc-1c14-9afb-4c8996fb9242",
+    "3f92b96e-57b1-419b-a0ee-65ea7424619b"
+  ]
+}
+```
+
+---
+
+### 3.5 Get Single Question
 `GET /api/questions/{question_id}`
 
 Retrieves full details, 100-point rubric, evolution diffs, and itemized token tracking for a specific question.

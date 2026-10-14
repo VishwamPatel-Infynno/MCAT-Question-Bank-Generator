@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uk-ucat-question-bank-generator"
+version = "1.0.0"
+description = "Autonomous Multi-Agent AI System for Psychometric UK UCAT Question Generation, Admin Review, and Bank Persistence"
+readme = "README.md"
+requires-python = ">=3.11"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (import sorting)
+    "UP",  # pyupgrade (modern python 3.11 idioms)
+]
+ignore = [
+    "E501",  # line length handled by ruff format
+    "F401",  # unused imports in __init__.py facades
+    "UP042", # preserve (str, Enum) for pydantic serialization
+    "UP035", # allow typing.Dict, typing.List, typing.Tuple
+    "W291",  # trailing whitespace in multiline prompts
+    "W293",  # blank line whitespace in multiline SVG strings
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+pythonpath = ["backend"]
+testpaths = ["backend/tests"]

@@ -1,8 +1,9 @@
 """Isolated mock drafts and heuristic evaluation fixtures for offline testing and graceful fallback."""
 
-from app.schemas.ucat import UCATSection, Difficulty
-from app.schemas.question import QuestionDraft, OptionChoice, ReviewScore
+from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
+from app.schemas.ucat import Difficulty, UCATSection
 from app.schemas.workflow import GenerationRequest
+
 
 def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
     """Provides high-caliber, authentic fallback UCAT questions across all 5 subtests."""
@@ -24,10 +25,22 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
             ),
             question_stem="Which of the following inferences is most strongly supported by the passage?",
             options=[
-                OptionChoice(id="A", text="Adult hippocampal neurogenesis is the primary physiological mechanism driving motor recovery following constraint-induced movement therapy."),
-                OptionChoice(id="B", text="Chronological age above 78 years entirely eliminates the brain's capacity for functional cortical reorganisation."),
-                OptionChoice(id="C", text="Patients receiving CIMT showed higher rates of functional independence, but age over 78 was associated with diminished neuroplastic response."),
-                OptionChoice(id="D", text="Standard occupational rehabilitation achieves functional independence in a majority of acute ischemic stroke patients.")
+                OptionChoice(
+                    id="A",
+                    text="Adult hippocampal neurogenesis is the primary physiological mechanism driving motor recovery following constraint-induced movement therapy.",
+                ),
+                OptionChoice(
+                    id="B",
+                    text="Chronological age above 78 years entirely eliminates the brain's capacity for functional cortical reorganisation.",
+                ),
+                OptionChoice(
+                    id="C",
+                    text="Patients receiving CIMT showed higher rates of functional independence, but age over 78 was associated with diminished neuroplastic response.",
+                ),
+                OptionChoice(
+                    id="D",
+                    text="Standard occupational rehabilitation achieves functional independence in a majority of acute ischemic stroke patients.",
+                ),
             ],
             correct_answer_id="C",
             explanation=(
@@ -38,7 +51,7 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
                 "- Option B is INCORRECT (Extreme quantifier trap): The passage states gains were 'significantly attenuated' (weakened), not 'entirely eliminated'.\n"
                 "- Option D is INCORRECT (Contradicted by data): Only 28% of controls achieved functional independence, which is a minority, not a majority."
             ),
-            image_needed=False
+            image_needed=False,
         )
 
     elif sec == UCATSection.DECISION_MAKING:
@@ -52,10 +65,22 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
             ),
             question_stem="Which of the following conclusions must follow logically from the premises provided?",
             options=[
-                OptionChoice(id="A", text="Some clinical research fellows are permitted to prescribe off-label psychotropics without ethics committee approval."),
-                OptionChoice(id="B", text="All medical practitioners with training in clinical psychometrics are consultant neurologists."),
-                OptionChoice(id="C", text="No consultant neurologist is permitted to prescribe off-label psychotropics without ethics committee approval."),
-                OptionChoice(id="D", text="All clinical research fellows are certified in advanced neuroimaging interpretation.")
+                OptionChoice(
+                    id="A",
+                    text="Some clinical research fellows are permitted to prescribe off-label psychotropics without ethics committee approval.",
+                ),
+                OptionChoice(
+                    id="B",
+                    text="All medical practitioners with training in clinical psychometrics are consultant neurologists.",
+                ),
+                OptionChoice(
+                    id="C",
+                    text="No consultant neurologist is permitted to prescribe off-label psychotropics without ethics committee approval.",
+                ),
+                OptionChoice(
+                    id="D",
+                    text="All clinical research fellows are certified in advanced neuroimaging interpretation.",
+                ),
             ],
             correct_answer_id="C",
             explanation=(
@@ -71,7 +96,7 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
                 "Option D overgeneralises Premise 3 ('Some' cannot be upgraded to 'All')."
             ),
             image_needed=req.require_image,
-            image_prompt_or_type="Venn diagram illustrating sets of Neurologists, Neuroimaging certified, Psychometrics trained, and Prescribing permissions."
+            image_prompt_or_type="Venn diagram illustrating sets of Neurologists, Neuroimaging certified, Psychometrics trained, and Prescribing permissions.",
         )
 
     elif sec == UCATSection.QUANTITATIVE_REASONING:
@@ -86,7 +111,7 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
                 OptionChoice(id="A", text="12.4 mL"),
                 OptionChoice(id="B", text="14.4 mL"),
                 OptionChoice(id="C", text="16.2 mL"),
-                OptionChoice(id="D", text="43.2 mL")
+                OptionChoice(id="D", text="43.2 mL"),
             ],
             correct_answer_id="B",
             explanation=(
@@ -99,7 +124,7 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
                 "Distractor notes: 43.2 mL corresponds to the full daily volume without dividing by 3."
             ),
             image_needed=req.require_image,
-            image_prompt_or_type="Dosage calculation summary chart showing patient weight, dose per kg, and concentration vial."
+            image_prompt_or_type="Dosage calculation summary chart showing patient weight, dose per kg, and concentration vial.",
         )
 
     elif sec == UCATSection.ABSTRACT_REASONING:
@@ -115,7 +140,7 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
                 OptionChoice(id="A", text="Set A"),
                 OptionChoice(id="B", text="Set B"),
                 OptionChoice(id="C", text="Neither Set A nor Set B"),
-                OptionChoice(id="D", text="Both Set A and Set B")
+                OptionChoice(id="D", text="Both Set A and Set B"),
             ],
             correct_answer_id="A",
             explanation=(
@@ -127,7 +152,7 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
                 "Therefore, the Test Shape belongs definitively to Set A (Option A)."
             ),
             image_needed=True,
-            image_prompt_or_type="Abstract geometric test pattern containing 2 black circles and 3 white equilateral triangles."
+            image_prompt_or_type="Abstract geometric test pattern containing 2 black circles and 3 white equilateral triangles.",
         )
 
     else:  # SITUATIONAL_JUDGEMENT
@@ -143,7 +168,7 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
                 OptionChoice(id="A", text="A very appropriate thing to do"),
                 OptionChoice(id="B", text="Appropriate, but not ideal"),
                 OptionChoice(id="C", text="Inappropriate, but not awful"),
-                OptionChoice(id="D", text="A very inappropriate thing to do")
+                OptionChoice(id="D", text="A very inappropriate thing to do"),
             ],
             correct_answer_id="A",
             explanation=(
@@ -153,10 +178,13 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
                 "3. Clear escalation: If he refuses, immediate escalation to the consultant on-call ensures supervisory intervention.\n"
                 "Therefore, this action is 'A very appropriate thing to do' (Option A)."
             ),
-            image_needed=False
+            image_needed=False,
         )
 
-def evaluate_heuristically(draft: QuestionDraft, req: GenerationRequest, iteration: int) -> ReviewScore:
+
+def evaluate_heuristically(
+    draft: QuestionDraft, req: GenerationRequest, iteration: int
+) -> ReviewScore:
     """Provides authentic mock evaluation for test suites and offline resilience."""
     if iteration == 1:
         # Intentionally scores 88 (<= 90) on iteration 1 to activate Re-Generator loop
@@ -168,17 +196,17 @@ def evaluate_heuristically(draft: QuestionDraft, req: GenerationRequest, iterati
             total_score=88,
             strengths=[
                 "Authentic clinical vignette structure conforming to UK UCAT standards",
-                "Question stem is clear and unambiguous"
+                "Question stem is clear and unambiguous",
             ],
             weaknesses=[
                 "Distractor options could feature deeper cognitive traps",
-                "Explanation could further elaborate on why each distractor is definitively ruled out"
+                "Explanation could further elaborate on why each distractor is definitively ruled out",
             ],
             recommendations=[
                 "Elevate distractor sophistication by incorporating realistic calculation or logical traps",
-                "Explicitly refute all 3 incorrect choices in the pedagogical explanation"
+                "Explicitly refute all 3 incorrect choices in the pedagogical explanation",
             ],
-            passed=False
+            passed=False,
         )
     else:
         # Iteration 2+ scores 95 (> 90) to certify publication quality
@@ -191,14 +219,17 @@ def evaluate_heuristically(draft: QuestionDraft, req: GenerationRequest, iterati
             strengths=[
                 "Distractors refined into sophisticated cognitive traps",
                 "Comprehensive step-by-step proof with distractor counter-analysis",
-                "Flawless adherence to UK medical conventions"
+                "Flawless adherence to UK medical conventions",
             ],
             weaknesses=[],
             recommendations=[],
-            passed=True
+            passed=True,
         )
 
-def improve_draft_heuristically(draft: QuestionDraft, review: ReviewScore, iteration: int) -> QuestionDraft:
+
+def improve_draft_heuristically(
+    draft: QuestionDraft, review: ReviewScore, iteration: int
+) -> QuestionDraft:
     """Enhances draft for offline mock remediation cycles."""
     enhanced_explanation = (
         f"{draft.explanation}\n\n"
@@ -221,5 +252,5 @@ def improve_draft_heuristically(draft: QuestionDraft, review: ReviewScore, itera
         correct_answer_id=draft.correct_answer_id,
         explanation=enhanced_explanation,
         image_needed=draft.image_needed,
-        image_prompt_or_type=draft.image_prompt_or_type
+        image_prompt_or_type=draft.image_prompt_or_type,
     )
