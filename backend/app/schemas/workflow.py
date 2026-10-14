@@ -73,6 +73,9 @@ class GenerationRequest(BaseModel):
                 return Difficulty.MEDIUM
             if lower in ["hard", "top percentile", "mastery"]:
                 return Difficulty.HARD
+            raise ValueError(
+                f"Invalid difficulty '{v}'. Difficulty must strictly be one of: easy, medium, hard."
+            )
         return v
 
 

@@ -170,6 +170,12 @@ export default function MatrixRunner({ onOpenSettings }) {
     }
   };
 
+  const handleUpdateRowDifficulty = (idx, newDiff, e) => {
+    if (e) e.stopPropagation();
+    const updated = combinations.map((c, i) => (i === idx ? { ...c, Difficulty: newDiff } : c));
+    setCombinations(updated);
+  };
+
   const handleImportTSV = () => {
     if (!tsvInput.trim()) return;
     try {
@@ -189,6 +195,17 @@ export default function MatrixRunner({ onOpenSettings }) {
           if (!rowObj.Combination_ID || !rowObj.Combination_ID.trim()) {
             rowObj.Combination_ID = crypto.randomUUID();
           }
+
+          // Normalize Difficulty strictly to Easy, Medium, Hard
+          const rawDiff = (rowObj.Difficulty || '').trim().toLowerCase();
+          if (rawDiff.startsWith('e') || rawDiff === 'foundational') {
+            rowObj.Difficulty = 'Easy';
+          } else if (rawDiff.startsWith('h') || rawDiff.includes('hard') || rawDiff.includes('mastery')) {
+            rowObj.Difficulty = 'Hard';
+          } else {
+            rowObj.Difficulty = 'Medium';
+          }
+
           parsed.push(rowObj);
         }
       }
@@ -370,11 +387,35 @@ export default function MatrixRunner({ onOpenSettings }) {
                   <td style={{ padding: '10px' }}>
                     <span className="badge badge-cyan">{comb.Section}</span>
                   </td>
-                  <td style={{ padding: '10px', fontWeight: 600 }}>{comb.Subcategory}</td>
-                  <td style={{ padding: '10px' }}>
-                    <span className={`badge ${comb.Difficulty?.toLowerCase() === 'easy' ? 'badge-emerald' : 'badge-amber'}`}>
-                      {comb.Difficulty}
-                    </span>
+                  <td style={{ padding: '8px 10px' }} onClick={(e) => e.stopPropagation()}>
+                    <select
+                      value={comb.Difficulty || 'Medium'}
+                      onChange={(e) => handleUpdateRowDifficulty(idx, e.target.value, e)}
+                      style={{
+                        padding: '3px 8px',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--border-medium)',
+                        background:
+                          (comb.Difficulty || '').toLowerCase() === 'easy'
+                            ? 'var(--status-success-bg)'
+                            : (comb.Difficulty || '').toLowerCase() === 'hard'
+                            ? 'var(--status-danger-bg)'
+                            : 'var(--status-warning-bg)',
+                        color:
+                          (comb.Difficulty || '').toLowerCase() === 'easy'
+                            ? '#047857'
+                            : (comb.Difficulty || '').toLowerCase() === 'hard'
+                            ? '#be123c'
+                            : '#b45309',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="Easy">Easy</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Hard">Hard</option>
+                    </select>
                   </td>
                   <td style={{ padding: '10px', fontWeight: 600, color: 'var(--text-primary)' }}>
                     {comb.Content_Domain}

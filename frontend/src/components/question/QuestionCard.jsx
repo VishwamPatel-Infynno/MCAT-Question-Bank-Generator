@@ -74,8 +74,12 @@ export default function QuestionCard({
           )}
 
           <span className="badge badge-cyan">{question.section_label || question.section}</span>
-          <span className="badge badge-purple">{question.subtopic}</span>
-          <span className="badge badge-amber">{question.difficulty}</span>
+          <span
+            className={`badge ${(question.difficulty || '').toLowerCase() === 'easy' ? 'badge-emerald' : (question.difficulty || '').toLowerCase() === 'hard' ? 'badge-rose' : 'badge-amber'}`}
+            style={{ textTransform: 'capitalize' }}
+          >
+            {question.difficulty}
+          </span>
 
           <span className="badge badge-emerald" style={{ fontSize: '0.78rem', padding: '4px 10px', fontWeight: 700 }}>
             <Award size={13} /> {question.final_score}/100 Quality

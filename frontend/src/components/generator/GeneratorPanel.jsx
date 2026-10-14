@@ -35,16 +35,6 @@ export default function GeneratorPanel({
   const subtopics = currentSectionObj?.subtopics || [];
   const pacing = PACING_INFO[selectedSection] || PACING_INFO.verbal_reasoning;
 
-  // Presets mapping
-  const presets = [
-    { id: 'standard', label: 'Exam Standard', icon: Target, diff: 'medium', desc: 'Real exam difficulty & pacing' },
-    { id: 'speed', label: 'Speed Drill', icon: Zap, diff: 'easy', desc: 'Fast pattern recognition' },
-    { id: 'mastery', label: 'Hard Mastery', icon: Flame, diff: 'hard', desc: '9th decile top-percentile traps' }
-  ];
-
-  const handlePresetClick = (preset) => {
-    setDifficulty(preset.diff);
-  };
 
   return (
     <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
@@ -153,7 +143,7 @@ export default function GeneratorPanel({
 
       <hr style={{ border: 'none', borderTop: '1px solid var(--border-light)' }} />
 
-      {/* Step 2: Difficulty & Quick Presets */}
+      {/* Step 2: Target Difficulty Level */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
           <h2 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -163,63 +153,100 @@ export default function GeneratorPanel({
               borderRadius: '50%',
               background: 'var(--brand-primary)',
               color: '#ffffff',
-              fontSize: '0.75rem',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
+              fontSize: '0.75rem',
               fontWeight: 800
             }}>2</span>
-            Difficulty &amp; Practice Mode
+            Target Difficulty Level
           </h2>
         </div>
-        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '10px' }}>
-          Pick a 1-click preset or select your target difficulty.
+        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+          Select target question difficulty (Easy, Medium, Hard).
         </p>
 
-        {/* 1-Click Presets */}
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-          {presets.map(p => {
-            const Icon = p.icon;
-            const isActive = difficulty === p.diff;
+        {/* 3-Segment Difficulty Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+          {[
+            {
+              id: 'easy',
+              label: 'Easy',
+              icon: Zap,
+              desc: 'Foundational & Direct',
+              color: '#059669',
+              activeBg: '#ecfdf5',
+              activeBorder: '#10b981'
+            },
+            {
+              id: 'medium',
+              label: 'Medium',
+              icon: Target,
+              desc: 'Official Exam Standard',
+              color: '#d97706',
+              activeBg: '#fffbeb',
+              activeBorder: '#f59e0b'
+            },
+            {
+              id: 'hard',
+              label: 'Hard',
+              icon: Flame,
+              desc: 'High-Decile & Traps',
+              color: '#e11d48',
+              activeBg: '#fff1f2',
+              activeBorder: '#f43f5e'
+            }
+          ].map(opt => {
+            const Icon = opt.icon;
+            const isSel = difficulty === opt.id;
             return (
               <button
-                key={p.id}
+                key={opt.id}
                 type="button"
-                className={`preset-chip ${isActive ? 'active' : ''}`}
-                onClick={() => handlePresetClick(p)}
-                title={p.desc}
-              >
-                <Icon size={14} color={isActive ? 'var(--brand-primary)' : 'inherit'} />
-                <span>{p.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Difficulty Selector */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-          {['easy', 'medium', 'hard'].map(d => {
-            const isSel = difficulty === d;
-            return (
-              <button
-                key={d}
-                type="button"
-                onClick={() => setDifficulty(d)}
+                id={`btn-diff-${opt.id}`}
+                onClick={() => setDifficulty(opt.id)}
                 style={{
-                  padding: '8px 4px',
+                  padding: '12px 10px',
                   borderRadius: 'var(--radius-md)',
-                  border: isSel ? '2px solid var(--brand-primary)' : '1px solid var(--border-light)',
-                  background: isSel ? 'var(--brand-primary-light)' : '#ffffff',
-                  color: isSel ? 'var(--brand-primary)' : 'var(--text-secondary)',
-                  fontWeight: 700,
-                  fontSize: '0.775rem',
-                  textTransform: 'capitalize',
+                  border: isSel ? `2px solid ${opt.activeBorder}` : '1px solid var(--border-light)',
+                  background: isSel ? opt.activeBg : '#ffffff',
+                  boxShadow: isSel ? `0 2px 8px ${opt.activeBorder}25` : 'var(--shadow-sm)',
                   cursor: 'pointer',
                   textAlign: 'center',
-                  transition: 'all 0.15s ease'
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '5px',
+                  transition: 'all 0.18s ease'
                 }}
               >
-                {d === 'easy' ? 'Foundational' : d === 'medium' ? 'Standard Exam' : 'Top Decile (Hard)'}
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  background: isSel ? '#ffffff' : '#f8fafc',
+                  color: isSel ? opt.color : 'var(--text-secondary)'
+                }}>
+                  <Icon size={16} color={isSel ? opt.color : 'currentColor'} />
+                </div>
+                <span style={{
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  color: isSel ? opt.color : 'var(--text-primary)'
+                }}>
+                  {opt.label}
+                </span>
+                <span style={{
+                  fontSize: '0.675rem',
+                  color: isSel ? opt.color : 'var(--text-muted)',
+                  fontWeight: 500,
+                  lineHeight: 1.2
+                }}>
+                  {opt.desc}
+                </span>
               </button>
             );
           })}

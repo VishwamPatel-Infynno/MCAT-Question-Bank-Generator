@@ -216,7 +216,12 @@ export default function QuestionBank({ onSelectQuestion }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span className="badge badge-cyan">{q.section_label || q.section}</span>
                   <span className="badge badge-purple">{q.subtopic}</span>
-                  <span className="badge badge-amber">{q.difficulty}</span>
+                  <span
+                    className={`badge ${(q.difficulty || '').toLowerCase() === 'easy' ? 'badge-emerald' : (q.difficulty || '').toLowerCase() === 'hard' ? 'badge-rose' : 'badge-amber'}`}
+                    style={{ textTransform: 'capitalize' }}
+                  >
+                    {q.difficulty}
+                  </span>
                   <span className="badge badge-emerald">
                     <Award size={12} /> {q.final_score}/100
                   </span>
