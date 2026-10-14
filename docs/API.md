@@ -1,0 +1,369 @@
+# UK UCAT Question Bank Generator — REST & SSE API Reference
+
+This document provides a complete reference for all REST endpoints and Server-Sent Events (SSE) streaming protocols exposed by the FastAPI backend on port `8000`.
+
+---
+
+## 1. Base URL & Protocol Information
+
+- **Base URL**: `http://localhost:8000` (or configured deployment host)
+- **Content Type**: `application/json` (REST endpoints), `text/event-stream` (Live generation)
+- **CORS Policy**: Configured to accept all origins (`*`) during local development.
+
+---
+
+## 2. API Endpoints Summary
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/generate` | Triggers multi-agent workflow and streams real-time SSE events |
+| `GET` | `/api/questions` | Lists saved questions with filtering, search, and repository token metrics |
+| `GET` | `/api/questions/{id}` | Retrieves a single question by UUID4 primary key |
+| `DELETE` | `/api/questions/{id}` | Deletes a question by UUID4 primary key |
+| `GET` | `/api/export` | Exports repository in JSON or CSV format |
+| `GET` | `/api/health` | Service health, PostgreSQL connectivity, active models, and pricing |
+| `GET` | `/api/config` | Retrieves active model configuration and provider credentials |
+| `POST` | `/api/config` | Dynamically updates runtime model and provider settings |
+| `GET` | `/api/sections` | Returns official UK UCAT subtests and categorized syllabus topics |
+
+---
+
+## 3. Endpoints Specification
+
+### 3.1 Start Multi-Agent Generation (SSE Stream)
+`POST /api/generate`
+
+Initiates the multi-agent generation and psychometric evaluation workflow. Returns a live Server-Sent Events stream delivering step-by-step agent telemetry, intermediate drafts, review rubrics, token usage, and final question payloads.
+
+#### Request Headers
+```http
+Content-Type: application/json
+Accept: text/event-stream
+```
+
+#### Request Body
+```json
+{
+  "section": "verbal_reasoning",
+  "subtopic": "Critical Reading & Inferences",
+  "difficulty": "medium",
+  "require_image": false,
+  "custom_prompt": "Focus on NHS junior doctor triage ethics in a busy A&E department.",
+  "model_name": "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo",
+  "api_key": null
+}
+```
+
+| Field | Type | Required | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `section` | `string` | **Yes** | — | `verbal_reasoning`, `decision_making`, `quantitative_reasoning`, `abstract_reasoning`, `situational_judgement` |
+| `subtopic` | `string` | No | `null` | Categorized syllabus topic |
+| `difficulty` | `string` | No | `"medium"` | `easy`, `medium`, `hard` |
+| `require_image` | `boolean` | No | `false` | Set `true` to force visual stimulus generation |
+| `custom_prompt` | `string` | No | `null` | Contextual steer or clinical vignette guidance |
+| `model_name` | `string` | No | `DEFAULT_TEXT_MODEL` | Custom LiteLLM model identifier |
+| `api_key` | `string` | No | `null` | Ephemeral API key override |
+
+#### SSE Event Format
+Events are formatted as Server-Sent Events lines: `data: {JSON_PAYLOAD}\n\n`
+
+```json
+{
+  "event_type": "agent_complete",
+  "agent_name": "Question Reviewer",
+  "message": "Review completed. Score: 94/100 (1,340 tokens, $0.00031)...",
+  "data": {
+    "review": {
+      "authenticity_score": 24,
+      "clarity_score": 23,
+      "distractor_score": 23,
+      "explanation_score": 24,
+      "total_score": 94,
+      "strengths": ["Clear syllogistic structure"],
+      "weaknesses": [],
+      "recommendations": [],
+      "passed": true
+    },
+    "latest_usage": {
+      "prompt_tokens": 820,
+      "completion_tokens": 520,
+      "total_tokens": 1340,
+      "cost_usd": 0.0002484
+    },
+    "cumulative_usage": {
+      "total_tokens": 2850,
+      "total_prompt_tokens": 1720,
+      "total_completion_tokens": 1130,
+      "total_cost_usd": 0.0005336
+    }
+  },
+  "timestamp": "2026-10-14T09:30:00.000000"
+}
+```
+
+#### Event Types
+- `workflow_start`: Workflow begins execution.
+- `agent_start`: Specific agent initiates task (`Question Generator`, `Question Reviewer`, `Question Re-Generator`, `Image Generator`).
+- `agent_complete`: Agent finished step; contains draft/review data and `latest_usage` & `cumulative_usage`.
+- `workflow_complete`: Workflow verified score $> 90$ and saved question to PostgreSQL.
+- `workflow_rejected`: Strict Quality Gate tripped (score $\le 90$ after 3 attempts). Question discarded from DB.
+- `workflow_error`: System error during workflow.
+
+#### cURL Example
+```bash
+curl -N -X POST http://localhost:8000/api/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "section": "quantitative_reasoning",
+    "subtopic": "Rates, Work & Concentration",
+    "difficulty": "medium",
+    "require_image": false
+  }'
+```
+
+---
+
+### 3.2 List Questions with Repository Token Metrics
+`GET /api/questions`
+
+Retrieves saved questions from PostgreSQL with optional filtering, full-text search, and aggregated repository-wide token consumption and expenditure statistics.
+
+#### Query Parameters
+| Parameter | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `section` | `string` | No | Filter by subtest enum (e.g. `verbal_reasoning`) |
+| `difficulty` | `string` | No | Filter by difficulty (`easy`, `medium`, `hard`) |
+| `search` | `string` | No | Substring match in question stem, stimulus, or subtopic |
+
+#### Response (`200 OK`)
+```json
+{
+  "questions": [
+    {
+      "id": "e3b0c442-98fc-1c14-9afb-4c8996fb9242",
+      "section": "verbal_reasoning",
+      "section_label": "Verbal Reasoning",
+      "subtopic": "Critical Reading & Inferences",
+      "difficulty": "medium",
+      "stimulus_text": "Recent clinical trials investigating neurodegenerative markers...",
+      "question_stem": "Which of the following statements must be true according to the passage?",
+      "options": [
+        {"id": "A", "text": "Biomarker X elevation precedes cognitive decline by at least 5 years."},
+        {"id": "B", "text": "All patients with elevated amyloid exhibit tau phosphorylation."},
+        {"id": "C", "text": "Early interventions showed a statistically significant reduction in symptom progression."},
+        {"id": "D", "text": "MRI volumetric changes are superior to fluid biomarkers in early detection."}
+      ],
+      "correct_answer_id": "C",
+      "explanation": "Option C is directly supported by paragraph 3...",
+      "image_url": null,
+      "image_svg": null,
+      "image_description": null,
+      "final_score": 94,
+      "review_rubric": {
+        "authenticity_score": 24,
+        "clarity_score": 24,
+        "distractor_score": 23,
+        "explanation_score": 23,
+        "total_score": 94,
+        "strengths": ["Authentic medical journal tone"],
+        "weaknesses": [],
+        "recommendations": [],
+        "passed": true
+      },
+      "iteration_count": 2,
+      "iterations_history": [...],
+      "total_tokens": 2850,
+      "prompt_tokens": 1720,
+      "completion_tokens": 1130,
+      "cost_usd": 0.0005336,
+      "token_usage_details": [
+        {
+          "agent": "Question Generator",
+          "iteration": 1,
+          "prompt_tokens": 450,
+          "completion_tokens": 320,
+          "total_tokens": 770,
+          "cost_usd": 0.0001474
+        },
+        {
+          "agent": "Question Reviewer",
+          "iteration": 1,
+          "prompt_tokens": 380,
+          "completion_tokens": 210,
+          "total_tokens": 590,
+          "cost_usd": 0.0001052
+        }
+      ],
+      "created_at": "2026-10-14T09:30:15.123456"
+    }
+  ],
+  "total_tokens": 14250,
+  "total_cost_usd": 0.00267
+}
+```
+
+#### cURL Example
+```bash
+curl -X GET "http://localhost:8000/api/questions?section=verbal_reasoning&difficulty=medium"
+```
+
+---
+
+### 3.3 Get Single Question
+`GET /api/questions/{question_id}`
+
+Retrieves full details, 100-point rubric, evolution diffs, and itemized token tracking for a specific question.
+
+#### Response (`200 OK`)
+Returns the complete `Question` schema shown above.
+
+#### Response (`404 Not Found`)
+```json
+{
+  "detail": "Question not found"
+}
+```
+
+#### cURL Example
+```bash
+curl -X GET http://localhost:8000/api/questions/e3b0c442-98fc-1c14-9afb-4c8996fb9242
+```
+
+---
+
+### 3.4 Delete Question
+`DELETE /api/questions/{question_id}`
+
+Deletes a question from PostgreSQL.
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true
+}
+```
+
+#### cURL Example
+```bash
+curl -X DELETE http://localhost:8000/api/questions/e3b0c442-98fc-1c14-9afb-4c8996fb9242
+```
+
+---
+
+### 3.5 Export Question Bank
+`GET /api/export`
+
+Downloads the entire Question Bank as an attachment in JSON or CSV format.
+
+#### Query Parameters
+| Parameter | Type | Required | Values | Default |
+| :--- | :--- | :--- | :--- | :--- |
+| `format` | `string` | No | `json`, `csv` | `json` |
+
+#### cURL Example
+```bash
+# Export as JSON
+curl -O -J http://localhost:8000/api/export?format=json
+
+# Export as CSV
+curl -O -J http://localhost:8000/api/export?format=csv
+```
+
+---
+
+### 3.6 Service Health Check
+`GET /api/health`
+
+Reports backend status, PostgreSQL database connection, database version, active models, and official pricing rate constants.
+
+#### Response (`200 OK`)
+```json
+{
+  "status": "healthy",
+  "database": "postgresql",
+  "database_connected": true,
+  "database_version": "PostgreSQL 16.15 on aarch64-unknown-linux-musl...",
+  "default_text_model": "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo",
+  "default_image_model": "black-forest-labs/FLUX-1-schnell",
+  "has_deepinfra_key": true,
+  "has_gemini_key": false,
+  "has_openai_key": false,
+  "max_regenerations": 3,
+  "passing_threshold": 90,
+  "cost_per_million_input": 0.10,
+  "cost_per_million_output": 0.32,
+  "image_width": 1024,
+  "image_height": 1024,
+  "image_iters": 4,
+  "current_image_cost_usd": 0.002
+}
+```
+
+#### cURL Example
+```bash
+curl -X GET http://localhost:8000/api/health
+```
+
+---
+
+### 3.7 Configuration & Runtime Settings
+`GET /api/config` | `POST /api/config`
+
+Enables reading and dynamically updating API keys and model choices without restarting the backend process.
+
+#### Read Configuration (`GET /api/config`)
+```bash
+curl -X GET http://localhost:8000/api/config
+```
+
+#### Update Configuration (`POST /api/config`)
+```bash
+curl -X POST http://localhost:8000/api/config \
+  -H "Content-Type: application/json" \
+  -d '{
+    "default_text_model": "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    "default_image_model": "black-forest-labs/FLUX-1-schnell",
+    "deepinfra_api_key": "your_deepinfra_key_here",
+    "image_width": 1024,
+    "image_height": 1024,
+    "image_iters": 4,
+    "max_regenerations": 3
+  }'
+```
+
+---
+
+### 3.8 List UCAT Sections & Subtopics
+`GET /api/sections`
+
+Returns the official 5 UK UCAT subtests with their syllabus topics.
+
+#### Response (`200 OK`)
+```json
+{
+  "sections": [
+    {
+      "id": "verbal_reasoning",
+      "label": "Verbal Reasoning",
+      "subtopics": [
+        "Critical Reading & Inferences",
+        "Direct Fact Retrieval",
+        "Author Tone & Argumentation",
+        "Comparative Evaluation"
+      ]
+    },
+    {
+      "id": "decision_making",
+      "label": "Decision Making",
+      "subtopics": [
+        "Logical Syllogisms",
+        "Venn Diagrams & Set Logic",
+        "Probabilistic Reasoning",
+        "Argument Evaluation",
+        "Recognising Assumptions"
+      ]
+    },
+    ...
+  ]
+}
+```

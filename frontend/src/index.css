@@ -1,0 +1,252 @@
+/* Industry-Standard Light Theme Design System for UK UCAT Question Bank */
+:root {
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Surfaces & Canvas */
+  --bg-app: #f8fafc;              /* Slate 50 canvas */
+  --bg-surface: #ffffff;          /* Pure white card surface */
+  --bg-surface-elevated: #f1f5f9; /* Slate 100 secondary */
+  --bg-surface-subtle: #f8fafc;   /* Slate 50 subtle container */
+
+  /* Borders & Dividers */
+  --border-light: #e2e8f0;        /* Slate 200 border */
+  --border-medium: #cbd5e1;       /* Slate 300 active */
+  --border-brand: #93c5fd;        /* Blue 300 accent */
+
+  /* Text Hierarchy (High Contrast WCAG AAA) */
+  --text-primary: #0f172a;        /* Slate 900 headings */
+  --text-secondary: #334155;      /* Slate 700 body text */
+  --text-muted: #64748b;          /* Slate 500 captions/meta */
+  --text-dim: #94a3b8;            /* Slate 400 dividers/subtle */
+
+  /* Clinical Brand Accents (Medical Sapphire & Royal Blue) */
+  --brand-primary: #0284c7;       /* Medical Sapphire */
+  --brand-hover: #0369a1;         /* Deep Sapphire */
+  --brand-light: #e0f2fe;         /* Sky 100 active */
+  --brand-indigo: #4f46e5;        /* Royal Indigo */
+
+  /* Functional Status Colors */
+  --status-success: #059669;      /* Emerald 600 */
+  --status-success-bg: #ecfdf5;   /* Emerald 50 */
+  --status-success-border: #a7f3d0;
+  
+  --status-warning: #d97706;      /* Amber 600 */
+  --status-warning-bg: #fffbeb;   /* Amber 50 */
+  --status-warning-border: #fde68a;
+
+  --status-danger: #e11d48;       /* Rose 600 */
+  --status-danger-bg: #fff1f2;    /* Rose 50 */
+  --status-danger-border: #fecdd3;
+
+  --status-purple: #7c3aed;       /* Violet 600 */
+  --status-purple-bg: #f5f3ff;    /* Violet 50 */
+  --status-purple-border: #ddd6fe;
+
+  /* Modern Clean Elevation */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 2px 8px 0 rgb(15 23 42 / 0.06), 0 1px 3px 0 rgb(15 23 42 / 0.04);
+  --shadow-lg: 0 10px 15px -3px rgb(15 23 42 / 0.08), 0 4px 6px -4px rgb(15 23 42 / 0.04);
+  
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 9999px;
+
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+  background-image: 
+    radial-gradient(circle at 10% 10%, rgba(2, 132, 199, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(79, 70, 229, 0.03) 0%, transparent 45%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-app);
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Card Surfaces */
+.glass-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.glass-panel:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 14px 0 rgb(15 23 42 / 0.08);
+}
+
+/* Primary Action Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(2, 132, 199, 0.2);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.28);
+  transition: all var(--transition-fast);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+/* Secondary Buttons */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #ffffff;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: var(--text-primary);
+}
+
+/* Modern Light Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.badge-cyan { background: var(--brand-light); color: #0369a1; border: 1px solid #bae6fd; }
+.badge-emerald { background: var(--status-success-bg); color: #047857; border: 1px solid var(--status-success-border); }
+.badge-amber { background: var(--status-warning-bg); color: #b45309; border: 1px solid var(--status-warning-border); }
+.badge-purple { background: var(--status-purple-bg); color: #6d28d9; border: 1px solid var(--status-purple-border); }
+.badge-rose { background: var(--status-danger-bg); color: #be123c; border: 1px solid var(--status-danger-border); }
+
+/* Animated Pulsing Ring */
+@keyframes agent-pulse-light {
+  0% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.5); }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(2, 132, 199, 0); }
+  100% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+}
+
+.pulse-active {
+  animation: agent-pulse-light 2s infinite;
+}
+
+/* Light Input Styles */
+input, select, textarea {
+  font-family: var(--font-sans);
+  background: #ffffff;
+  border: 1px solid var(--border-medium);
+  color: var(--text-primary);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  outline: none;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+/* Interactive Radio Question Cards */
+.radio-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.radio-card:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.radio-card.selected {
+  background: #f0f9ff;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+.radio-card.correct-answer {
+  background: #ecfdf5;
+  border-color: var(--status-success);
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+}
+
+.radio-card.wrong-answer {
+  background: #fff1f2;
+  border-color: var(--status-danger);
+  box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.2);
+}

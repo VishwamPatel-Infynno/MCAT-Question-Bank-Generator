@@ -1,0 +1,23 @@
+# Set default behavior to automatically normalize line endings to LF
+* text=auto eol=lf
+
+# Explicit syntax and diff attributes
+*.py text diff=python eol=lf
+*.js text diff=javascript eol=lf
+*.jsx text diff=javascript eol=lf
+*.json text eol=lf
+*.css text diff=css eol=lf
+*.html text diff=html eol=lf
+*.md text diff=markdown eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.svg text eol=lf
+*.sh text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
