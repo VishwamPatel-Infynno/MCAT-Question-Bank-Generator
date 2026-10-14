@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Database, Settings, BookOpen, Cpu } from 'lucide-react';
+import { Sparkles, Database, Settings, BookOpen, Cpu, Layers } from 'lucide-react';
 
 export default function Navbar({ activeTab, setActiveTab, onOpenSettings, backendStatus }) {
   return (
@@ -67,6 +67,28 @@ export default function Navbar({ activeTab, setActiveTab, onOpenSettings, backen
         >
           <Sparkles size={16} />
           Generator Studio
+        </button>
+
+        <button
+          id="nav-tab-matrix"
+          onClick={() => setActiveTab('matrix')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            borderRadius: 'var(--radius-md)',
+            background: activeTab === 'matrix' ? 'var(--brand-primary-light)' : 'transparent',
+            border: activeTab === 'matrix' ? '1px solid var(--brand-primary)' : '1px solid transparent',
+            color: activeTab === 'matrix' ? 'var(--brand-primary)' : 'var(--text-secondary)',
+            fontWeight: 600,
+            fontSize: '0.875rem',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+        >
+          <Layers size={16} />
+          Batch Matrix
         </button>
 
         <button

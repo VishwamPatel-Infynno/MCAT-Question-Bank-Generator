@@ -4,6 +4,7 @@ import {
   GeneratorPanel,
   AgentVisualizer,
   QuestionCard,
+  MatrixRunner,
   QuestionBank,
   ReviewAuditView,
   SettingsModal,
@@ -22,6 +23,15 @@ export default function App() {
   const [difficulty, setDifficulty] = useState('medium');
   const [requireImage, setRequireImage] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
+
+  // Manager Combination Matrix Parameters
+  const [combinationId, setCombinationId] = useState('');
+  const [contentDomain, setContentDomain] = useState('');
+  const [questionType, setQuestionType] = useState('');
+  const [primaryTrap, setPrimaryTrap] = useState('');
+  const [passageRequired, setPassageRequired] = useState('');
+  const [visualType, setVisualType] = useState('');
+
 
   // Modals & Status
   const [auditQuestion, setAuditQuestion] = useState(null);
@@ -73,7 +83,13 @@ export default function App() {
       subtopic: selectedSubtopic,
       difficulty,
       require_image: requireImage || selectedSection === 'abstract_reasoning',
-      custom_prompt: customPrompt.trim() || undefined
+      custom_prompt: customPrompt.trim() || undefined,
+      combination_id: combinationId?.trim() || undefined,
+      content_domain: contentDomain || undefined,
+      question_type: questionType || undefined,
+      primary_trap: primaryTrap || undefined,
+      passage_required: passageRequired || undefined,
+      visual_type: visualType || undefined
     };
     startGeneration(payload);
   };
@@ -83,6 +99,12 @@ export default function App() {
     if (q.section) setSelectedSection(q.section);
     if (q.subtopic) setSelectedSubtopic(q.subtopic);
     if (q.difficulty) setDifficulty(q.difficulty);
+    if (q.combination_id) setCombinationId(q.combination_id);
+    if (q.content_domain) setContentDomain(q.content_domain);
+    if (q.question_type) setQuestionType(q.question_type);
+    if (q.primary_trap) setPrimaryTrap(q.primary_trap);
+    if (q.passage_required) setPassageRequired(q.passage_required);
+    if (q.visual_type) setVisualType(q.visual_type);
     setActiveTab('generator');
   };
 
@@ -112,6 +134,18 @@ export default function App() {
                 setRequireImage={setRequireImage}
                 customPrompt={customPrompt}
                 setCustomPrompt={setCustomPrompt}
+                combinationId={combinationId}
+                setCombinationId={setCombinationId}
+                contentDomain={contentDomain}
+                setContentDomain={setContentDomain}
+                questionType={questionType}
+                setQuestionType={setQuestionType}
+                primaryTrap={primaryTrap}
+                setPrimaryTrap={setPrimaryTrap}
+                passageRequired={passageRequired}
+                setPassageRequired={setPassageRequired}
+                visualType={visualType}
+                setVisualType={setVisualType}
                 onGenerate={handleGenerate}
                 isGenerating={isGenerating}
               />
@@ -179,6 +213,16 @@ export default function App() {
               )}
             </div>
           </div>
+        )}
+
+        {activeTab === 'matrix' && (
+          <MatrixRunner
+            onOpenSettings={() => setShowSettings(true)}
+            onSelectQuestion={(q) => {
+              setActiveQuestion(q);
+              setActiveTab('generator');
+            }}
+          />
         )}
 
         {activeTab === 'bank' && (

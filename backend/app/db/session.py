@@ -112,7 +112,18 @@ async def init_db():
             await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS completion_tokens INTEGER DEFAULT 0;"))
             await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS cost_usd DOUBLE PRECISION DEFAULT 0.0;"))
             await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS token_usage_details JSONB;"))
-        logger.info("PostgreSQL tables verified / created successfully with token tracking columns.")
+
+            # Safe schema update for Manager Combination Matrix columns
+            await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS combination_id VARCHAR(64);"))
+            await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS content_domain VARCHAR(128);"))
+            await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS question_type VARCHAR(128);"))
+            await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS interaction_type VARCHAR(64);"))
+            await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS primary_trap VARCHAR(128);"))
+            await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS passage_required VARCHAR(16);"))
+            await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS passage_questions INTEGER;"))
+            await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS visual_type VARCHAR(64);"))
+            await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS stage_outcomes JSONB;"))
+        logger.info("PostgreSQL tables verified / created successfully with matrix columns and token tracking.")
         await auto_migrate_sqlite_if_needed()
     except Exception as e:
         logger.error(f"Failed to initialize PostgreSQL: {e}")

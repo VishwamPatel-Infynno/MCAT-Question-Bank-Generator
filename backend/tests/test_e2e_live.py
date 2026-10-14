@@ -255,5 +255,74 @@ async def test_e2e_strict_threshold_rejection_boundary():
     assert reject_res["status"] == "rejected_below_threshold"
     assert reject_res["rejection_data"]["final_score"] == 84
     assert "reason" in reject_res["rejection_data"]
-    assert reject_res["rejection_data"]["final_score"] == 84
-    assert "reason" in reject_res["rejection_data"]
+
+@pytest.mark.asyncio
+async def test_e2e_manager_combination_matrix_and_stage_outcomes():
+    """
+    E2E Test 8: Verify manager combination matrix attributes (CMB00001)
+    and full multi-stage outcomes JSON recording (drafting, quality_audit, polish_refine, visual_stimulus, final_payload).
+    """
+    from app.schemas import GenerationRequest, Difficulty
+    from app.workflow.graph import run_workflow
+
+    req = GenerationRequest(
+        combination_id="CMB00001",
+        section="VR",
+        subtopic="Inference",
+        difficulty=Difficulty.EASY,
+        content_domain="Science",
+        question_type="Passage_MCQ",
+        interaction_type="single_choice",
+        primary_trap="Keyword_Trap",
+        passage_required="Yes",
+        passage_questions=3,
+        image_required="No",
+        visual_type="None",
+        questions_to_generate=4
+    )
+
+    result = await run_workflow(req)
+    assert result.status in ["approved", "rejected_below_threshold"]
+
+    if result.status == "approved" and result.question:
+        q = result.question
+        assert q.combination_id == "CMB00001"
+        assert q.content_domain == "Science"
+        assert q.question_type == "Passage_MCQ"
+        assert q.primary_trap == "Keyword_Trap"
+        assert q.passage_required == "Yes"
+
+        # Verify Stage Outcomes JSON recording
+        assert q.stage_outcomes is not None
+        assert "drafting" in q.stage_outcomes
+        assert "quality_audit" in q.stage_outcomes
+        assert "polish_refine" in q.stage_outcomes
+        assert "visual_stimulus" in q.stage_outcomes
+        assert "final_payload" in q.stage_outcomes
+
+        # Verify drafting stage payload
+        assert "question_stem" in q.stage_outcomes["drafting"]
+        assert "options" in q.stage_outcomes["drafting"]
+        assert len(q.stage_outcomes["drafting"]["options"]) == 4
+
+        # Verify quality audit stage payload
+        assert "total_score" in q.stage_outcomes["quality_audit"]
+        assert q.stage_outcomes["quality_audit"]["total_score"] >= 90
+
+        # Verify API query filtering by combination_id
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=10.0) as client:
+            resp = await client.get("/questions?combination_id=CMB00001")
+            assert resp.status_code == 200
+            data = resp.json()
+            questions = data.get("questions", [])
+            assert any(item["combination_id"] == "CMB00001" for item in questions)
+
+            # Verify CSV export contains the manager columns
+            resp_csv = await client.get("/export?format=csv")
+            assert resp_csv.status_code == 200
+            csv_lines = resp_csv.text.splitlines()
+            header = csv_lines[0].split(",")
+            assert "Combination_ID" in header
+            assert "Content_Domain" in header
+            assert "Primary_Trap" in header
+

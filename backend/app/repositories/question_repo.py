@@ -36,7 +36,16 @@ def _model_to_schema(m: QuestionModel) -> Question:
         prompt_tokens=m.prompt_tokens or 0,
         completion_tokens=m.completion_tokens or 0,
         cost_usd=float(m.cost_usd) if m.cost_usd is not None else 0.0,
-        token_usage_details=m.token_usage_details or []
+        token_usage_details=m.token_usage_details or [],
+        combination_id=m.combination_id,
+        content_domain=m.content_domain,
+        question_type=m.question_type,
+        interaction_type=m.interaction_type or "single_choice",
+        primary_trap=m.primary_trap,
+        passage_required=m.passage_required,
+        passage_questions=m.passage_questions,
+        visual_type=m.visual_type or "None",
+        stage_outcomes=m.stage_outcomes or {}
     )
 
 async def save_question(q: Question) -> Question:
@@ -68,7 +77,16 @@ async def save_question(q: Question) -> Question:
             prompt_tokens=q.prompt_tokens,
             completion_tokens=q.completion_tokens,
             cost_usd=q.cost_usd,
-            token_usage_details=q.token_usage_details
+            token_usage_details=q.token_usage_details,
+            combination_id=q.combination_id,
+            content_domain=q.content_domain,
+            question_type=q.question_type,
+            interaction_type=q.interaction_type,
+            primary_trap=q.primary_trap,
+            passage_required=q.passage_required,
+            passage_questions=q.passage_questions,
+            visual_type=q.visual_type,
+            stage_outcomes=q.stage_outcomes
         )
 
         await session.merge(model)
@@ -78,7 +96,8 @@ async def save_question(q: Question) -> Question:
 async def get_questions(
     section: Optional[str] = None,
     difficulty: Optional[str] = None,
-    search: Optional[str] = None
+    search: Optional[str] = None,
+    combination_id: Optional[str] = None
 ) -> List[Question]:
     """Retrieves questions from PostgreSQL with optional filtering and full-text search."""
     async with async_session_factory() as session:
@@ -88,13 +107,17 @@ async def get_questions(
             stmt = stmt.where(QuestionModel.section == section)
         if difficulty:
             stmt = stmt.where(QuestionModel.difficulty == difficulty)
+        if combination_id:
+            stmt = stmt.where(QuestionModel.combination_id == combination_id)
         if search:
             wildcard = f"%{search}%"
             stmt = stmt.where(
                 or_(
                     QuestionModel.question_stem.ilike(wildcard),
                     QuestionModel.stimulus_text.ilike(wildcard),
-                    QuestionModel.subtopic.ilike(wildcard)
+                    QuestionModel.subtopic.ilike(wildcard),
+                    QuestionModel.combination_id.ilike(wildcard),
+                    QuestionModel.content_domain.ilike(wildcard)
                 )
             )
 

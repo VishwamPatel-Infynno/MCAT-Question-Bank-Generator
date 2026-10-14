@@ -19,10 +19,11 @@ router = APIRouter(tags=["Question Bank"])
 async def list_questions(
     section: Optional[str] = Query(None),
     difficulty: Optional[str] = Query(None),
-    search: Optional[str] = Query(None)
+    search: Optional[str] = Query(None),
+    combination_id: Optional[str] = Query(None)
 ):
     """Lists saved questions from the PostgreSQL Question Bank along with aggregated metrics."""
-    questions = await get_questions(section=section, difficulty=difficulty, search=search)
+    questions = await get_questions(section=section, difficulty=difficulty, search=search, combination_id=combination_id)
     dumped = [q.model_dump() for q in questions]
     
     total_tokens = sum(q.total_tokens or 0 for q in questions)
@@ -50,7 +51,7 @@ async def remove_question(question_id: str):
 
 @router.get("/export")
 async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
-    """Exports Question Bank in JSON or CSV format."""
+    """Exports Question Bank in JSON or CSV format including manager matrix fields."""
     questions = await get_questions()
     
     if format == "json":
@@ -63,17 +64,25 @@ async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow([
-            "ID", "Section", "Subtopic", "Difficulty", "Stimulus", "Question Stem",
-            "Option A", "Option B", "Option C", "Option D",
+            "ID", "Combination_ID", "Section", "Subcategory", "Difficulty", "Content_Domain",
+            "Question_Type", "Interaction_Type", "Primary_Trap", "Passage_Required", "Visual_Type",
+            "Stimulus", "Question Stem", "Option A", "Option B", "Option C", "Option D",
             "Correct Answer", "Explanation", "Final Score", "Cycles", "Created At"
         ])
         for q in questions:
             opts = {opt.id: opt.text for opt in q.options}
             writer.writerow([
                 q.id,
+                q.combination_id or "",
                 q.section_label,
                 q.subtopic,
                 q.difficulty,
+                q.content_domain or "",
+                q.question_type or "",
+                q.interaction_type or "single_choice",
+                q.primary_trap or "",
+                q.passage_required or "",
+                q.visual_type or "None",
                 q.stimulus_text or "",
                 q.question_stem,
                 opts.get("A", ""),

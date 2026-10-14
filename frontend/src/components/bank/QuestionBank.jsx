@@ -220,6 +220,21 @@ export default function QuestionBank({ onSelectQuestion }) {
                   <span className="badge badge-emerald">
                     <Award size={12} /> {q.final_score}/100
                   </span>
+                  {q.combination_id && (
+                    <span className="badge badge-cyan" style={{ fontFamily: 'monospace', fontWeight: 700 }} title="Manager Combination ID">
+                      {q.combination_id}
+                    </span>
+                  )}
+                  {q.content_domain && (
+                    <span className="badge badge-purple" title="Content Domain">
+                      {q.content_domain}
+                    </span>
+                  )}
+                  {q.primary_trap && (
+                    <span className="badge badge-rose" title="Primary Trap">
+                      Trap: {q.primary_trap}
+                    </span>
+                  )}
                   {q.total_tokens !== undefined && q.total_tokens > 0 && (
                     <span className="badge badge-cyan" style={{ fontSize: '0.7rem' }}>
                       <Coins size={11} /> {q.total_tokens.toLocaleString()} tok &bull; ${q.cost_usd?.toFixed(5)}

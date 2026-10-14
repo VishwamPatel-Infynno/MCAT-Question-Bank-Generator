@@ -23,6 +23,18 @@ Subtopic: {req.subtopic or 'Core Syllabus Focus'}
 Target Difficulty: {req.difficulty.value}
 Image Required: {'Yes - formulate visual pattern requirements' if req.require_image or req.section == UCATSection.ABSTRACT_REASONING else 'No'}
 """
+    if req.combination_id:
+        user_prompt += f"\nCombination ID: {req.combination_id}"
+    if req.content_domain:
+        user_prompt += f"\nContent Domain: {req.content_domain}"
+    if req.question_type:
+        user_prompt += f"\nQuestion Type Format: {req.question_type}"
+    if req.primary_trap:
+        user_prompt += f"\nPrimary Distractor Trap to Emphasize: {req.primary_trap}"
+    if req.passage_required:
+        user_prompt += f"\nPassage Required: {req.passage_required}"
+    if req.visual_type and req.visual_type != "None":
+        user_prompt += f"\nVisual Stimulus Type: {req.visual_type}"
     if req.custom_prompt:
         user_prompt += f"\nCustom Focus Context: {req.custom_prompt}"
 

@@ -21,3 +21,4 @@ class AgentWorkflowState(TypedDict, total=False):
     total_cost_usd: float
     agent_usage_breakdown: List[Dict[str, Any]]
     latest_usage: Optional[Dict[str, Any]]
+    stage_outcomes: Dict[str, Any]

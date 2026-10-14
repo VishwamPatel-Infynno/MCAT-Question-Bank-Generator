@@ -17,6 +17,8 @@ import {
   ArrowRight,
   Sparkles
 } from 'lucide-react';
+import StageJsonInspector from './StageJsonInspector';
+
 
 const SECTION_SECONDS_MAP = {
   verbal_reasoning: 28,
@@ -118,6 +120,26 @@ export default function QuestionCard({ question, onOpenAudit, onNextQuestion }) 
           <span className="badge badge-emerald" style={{ fontSize: '0.75rem', padding: '3px 10px' }}>
             <Award size={13} /> {question.final_score}/100
           </span>
+          {question.combination_id && (
+            <span className="badge badge-cyan" style={{ fontFamily: 'monospace', fontWeight: 700 }} title="Manager Combination ID">
+              {question.combination_id}
+            </span>
+          )}
+          {question.content_domain && (
+            <span className="badge badge-purple" title="Content Domain">
+              {question.content_domain}
+            </span>
+          )}
+          {question.primary_trap && (
+            <span className="badge badge-rose" title="Primary Trap">
+              Trap: {question.primary_trap}
+            </span>
+          )}
+          {question.question_type && (
+            <span className="badge badge-cyan" title="Question Type">
+              {question.question_type}
+            </span>
+          )}
         </div>
 
         {/* Live Practice Timer Pill */}
@@ -361,6 +383,9 @@ export default function QuestionCard({ question, onOpenAudit, onNextQuestion }) 
           </div>
         </div>
       )}
+
+      {/* Multi-Stage Outcomes JSON Inspector (Drafting -> Quality Audit -> Polish -> Stimulus -> Final) */}
+      <StageJsonInspector question={question} />
     </div>
   );
 }

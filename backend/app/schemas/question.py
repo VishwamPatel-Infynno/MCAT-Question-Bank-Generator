@@ -51,3 +51,16 @@ class Question(BaseModel):
     cost_usd: float = Field(0.0, description="Total estimated cost in USD based on exact model rates")
     token_usage_details: Optional[Union[List[Dict[str, Any]], Dict[str, Any]]] = Field(default_factory=list, description="Per-agent granular token and cost breakdown")
     created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+
+    # Manager Combination Matrix attributes
+    combination_id: Optional[str] = Field(None, description="e.g. CMB00001")
+    content_domain: Optional[str] = Field(None, description="e.g. Science, Healthcare")
+    question_type: Optional[str] = Field(None, description="e.g. Passage_MCQ, True_False_Cant_Tell")
+    interaction_type: Optional[str] = Field("single_choice", description="single_choice, multi_choice, drag_drop")
+    primary_trap: Optional[str] = Field(None, description="e.g. Keyword_Trap, Partial_Match")
+    passage_required: Optional[str] = Field(None, description="Yes or No")
+    passage_questions: Optional[int] = Field(None, description="Number of passage questions e.g. 3, 4")
+    visual_type: Optional[str] = Field("None", description="e.g. None, SVG_Diagram, AI_FLUX_Image")
+
+    # Multi-Stage Raw Outcome JSON
+    stage_outcomes: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Raw outcome JSON of all agent workflow stages")

@@ -33,3 +33,16 @@ class QuestionModel(Base):
     completion_tokens: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, default=0)
     cost_usd: Mapped[Optional[float]] = mapped_column(Float, nullable=True, default=0.0)
     token_usage_details: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSONB, nullable=True)
+
+    # Manager Combination Matrix attributes
+    combination_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
+    content_domain: Mapped[Optional[str]] = mapped_column(String(128), nullable=True, index=True)
+    question_type: Mapped[Optional[str]] = mapped_column(String(128), nullable=True, index=True)
+    interaction_type: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    primary_trap: Mapped[Optional[str]] = mapped_column(String(128), nullable=True, index=True)
+    passage_required: Mapped[Optional[str]] = mapped_column(String(16), nullable=True)
+    passage_questions: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    visual_type: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+
+    # Multi-Stage Raw Outcome JSON
+    stage_outcomes: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSONB, nullable=True)

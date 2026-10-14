@@ -71,3 +71,33 @@ export const UCAT_SECTIONS_FALLBACK = [
     ]
   }
 ];
+
+export const CONTENT_DOMAINS = [
+  'Science',
+  'Healthcare',
+  'Social_Science',
+  'History',
+  'Ethics',
+  'Clinical_Governance',
+  'Business',
+  'Education'
+];
+
+export const QUESTION_TYPES = [
+  'Passage_MCQ',
+  'True_False_Cant_Tell',
+  'Syllogism_Yes_No',
+  'Assumption_Evaluation',
+  'Data_Calculation',
+  'Pattern_Set_A_B'
+];
+
+export const PRIMARY_TRAPS = [
+  'Keyword_Trap',
+  'Partial_Match',
+  'Extreme_Language',
+  'Correlation_vs_Causation',
+  'Scope_Shift',
+  'Half_Truth',
+  'Out_of_Scope'
+];

@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Dict, Any, AsyncGenerator
+from typing import Dict, Any, AsyncGenerator, Optional
 from langgraph.graph import StateGraph, END
 from app.config import config
 from app.schemas import (
@@ -38,6 +38,9 @@ async def generator_node(state: AgentWorkflowState) -> Dict[str, Any]:
     t_tokens = state.get("total_tokens", 0) + usage.total_tokens
     t_cost = round(state.get("total_cost_usd", 0.0) + usage.cost_usd, 7)
     
+    outcomes = dict(state.get("stage_outcomes", {}))
+    outcomes["drafting"] = draft.model_dump()
+    
     return {
         "current_draft": draft.model_dump(),
         "active_agent": "Question Generator",
@@ -48,7 +51,8 @@ async def generator_node(state: AgentWorkflowState) -> Dict[str, Any]:
         "total_completion_tokens": c_tokens,
         "total_cost_usd": t_cost,
         "agent_usage_breakdown": breakdown,
-        "latest_usage": usage.model_dump()
+        "latest_usage": usage.model_dump(),
+        "stage_outcomes": outcomes
     }
 
 async def reviewer_node(state: AgentWorkflowState) -> Dict[str, Any]:
@@ -84,6 +88,9 @@ async def reviewer_node(state: AgentWorkflowState) -> Dict[str, Any]:
     
     existing_history = list(state.get("iterations_history", []))
     existing_history.append(history_entry)
+
+    outcomes = dict(state.get("stage_outcomes", {}))
+    outcomes["quality_audit"] = review.model_dump()
     
     return {
         "current_review": review.model_dump(),
@@ -95,7 +102,8 @@ async def reviewer_node(state: AgentWorkflowState) -> Dict[str, Any]:
         "total_completion_tokens": c_tokens,
         "total_cost_usd": t_cost,
         "agent_usage_breakdown": breakdown,
-        "latest_usage": usage.model_dump()
+        "latest_usage": usage.model_dump(),
+        "stage_outcomes": outcomes
     }
 
 async def regenerator_node(state: AgentWorkflowState) -> Dict[str, Any]:
@@ -122,6 +130,13 @@ async def regenerator_node(state: AgentWorkflowState) -> Dict[str, Any]:
     c_tokens = state.get("total_completion_tokens", 0) + usage.completion_tokens
     t_tokens = state.get("total_tokens", 0) + usage.total_tokens
     t_cost = round(state.get("total_cost_usd", 0.0) + usage.cost_usd, 7)
+
+    outcomes = dict(state.get("stage_outcomes", {}))
+    outcomes["polish_refine"] = {
+        "iteration": next_iteration,
+        "improved_draft": new_draft.model_dump(),
+        "usage": usage.model_dump()
+    }
     
     return {
         "current_draft": new_draft.model_dump(),
@@ -133,7 +148,8 @@ async def regenerator_node(state: AgentWorkflowState) -> Dict[str, Any]:
         "total_completion_tokens": c_tokens,
         "total_cost_usd": t_cost,
         "agent_usage_breakdown": breakdown,
-        "latest_usage": usage.model_dump()
+        "latest_usage": usage.model_dump(),
+        "stage_outcomes": outcomes
     }
 
 def route_after_review(state: AgentWorkflowState) -> str:
@@ -224,6 +240,14 @@ async def image_node(state: AgentWorkflowState) -> Dict[str, Any]:
     if usage:
         usage_list.append(usage)
     
+    outcomes = dict(state.get("stage_outcomes", {}))
+    outcomes["visual_stimulus"] = {
+        "image_url": img_url,
+        "image_svg": img_svg,
+        "image_description": img_desc,
+        "usage": usage
+    }
+
     return {
         "image_url": img_url,
         "image_svg": img_svg,
@@ -232,7 +256,8 @@ async def image_node(state: AgentWorkflowState) -> Dict[str, Any]:
         "status": "image_generated",
         "total_cost_usd": new_total_cost,
         "agent_usage_breakdown": usage_list,
-        "latest_usage": usage
+        "latest_usage": usage,
+        "stage_outcomes": outcomes
     }
 
 async def finalize_node(state: AgentWorkflowState) -> Dict[str, Any]:
@@ -243,6 +268,34 @@ async def finalize_node(state: AgentWorkflowState) -> Dict[str, Any]:
     options = [OptionChoice(**o) if isinstance(o, dict) else o for o in draft.options]
     section_label = UCAT_SECTION_LABELS.get(req.section, req.section.value)
     
+    outcomes = dict(state.get("stage_outcomes", {}))
+    if "polish_refine" not in outcomes:
+        outcomes["polish_refine"] = {
+            "status": "bypassed",
+            "reason": f"Draft achieved passing quality score ({review.total_score if review else 95}/100) on initial audit; regeneration loop was not required."
+        }
+    if "visual_stimulus" not in outcomes:
+        outcomes["visual_stimulus"] = {
+            "status": "bypassed",
+            "reason": f"No visual stimulus needed (image_required='{req.image_required or 'No'}', visual_type='{req.visual_type or 'None'}')."
+        }
+    outcomes["final_payload"] = {
+        "section": req.section.value,
+        "section_label": section_label,
+        "combination_id": req.combination_id,
+        "content_domain": req.content_domain,
+        "question_type": req.question_type,
+        "interaction_type": req.interaction_type or "single_choice",
+        "primary_trap": req.primary_trap,
+        "passage_required": str(req.passage_required) if req.passage_required is not None else None,
+        "passage_questions": req.passage_questions,
+        "visual_type": req.visual_type or "None",
+        "final_score": review.total_score if review else 95,
+        "correct_answer_id": draft.correct_answer_id,
+        "total_tokens": state.get("total_tokens", 0),
+        "cost_usd": state.get("total_cost_usd", 0.0)
+    }
+
     final_q = Question(
         section=req.section.value,
         section_label=section_label,
@@ -264,7 +317,16 @@ async def finalize_node(state: AgentWorkflowState) -> Dict[str, Any]:
         prompt_tokens=state.get("total_prompt_tokens", 0),
         completion_tokens=state.get("total_completion_tokens", 0),
         cost_usd=state.get("total_cost_usd", 0.0),
-        token_usage_details=state.get("agent_usage_breakdown", [])
+        token_usage_details=state.get("agent_usage_breakdown", []),
+        combination_id=req.combination_id,
+        content_domain=req.content_domain,
+        question_type=req.question_type,
+        interaction_type=req.interaction_type or "single_choice",
+        primary_trap=req.primary_trap,
+        passage_required=str(req.passage_required) if req.passage_required is not None else None,
+        passage_questions=req.passage_questions,
+        visual_type=req.visual_type or "None",
+        stage_outcomes=outcomes
     )
     
     # Persist in PostgreSQL
@@ -274,7 +336,8 @@ async def finalize_node(state: AgentWorkflowState) -> Dict[str, Any]:
     return {
         "final_question": final_q.model_dump(),
         "status": "completed",
-        "active_agent": "Completed"
+        "active_agent": "Completed",
+        "stage_outcomes": outcomes
     }
 
 def create_ucat_graph() -> StateGraph:
@@ -498,6 +561,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             message=f"Multi-Agent workflow successfully finished! Question verified > 90 and saved to Question Bank. Total: {final_tokens} tokens (${final_cost:.5f}).",
             data={
                 "question": state["final_question"],
+                "stage_outcomes": state.get("stage_outcomes", {}),
                 "cumulative_usage": {
                     "total_tokens": final_tokens,
                     "total_prompt_tokens": state.get("total_prompt_tokens", 0),
@@ -518,3 +582,33 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             data={"error": err_msg}
         )
         yield f"data: {error_evt.model_dump_json()}\n\n"
+
+class WorkflowRunResult:
+    def __init__(self, status: str, data: Optional[Dict[str, Any]] = None):
+        self.status = status
+        self.data = data or {}
+        raw_q = self.data.get("question")
+        self.question = Question(**raw_q) if raw_q else None
+        self.stage_outcomes = self.data.get("stage_outcomes", {})
+        self.rejection_data = self.data.get("rejection_data")
+
+async def run_workflow(req: GenerationRequest) -> WorkflowRunResult:
+    """Non-streaming execution of the multi-agent workflow."""
+    status = "failed"
+    final_data = {}
+    async for raw_chunk in run_workflow_stream(req):
+        line = raw_chunk.strip()
+        if line.startswith("data: "):
+            evt = json.loads(line[6:])
+            etype = evt.get("event_type")
+            if etype == "workflow_complete":
+                status = "approved"
+                final_data = evt.get("data", {})
+            elif etype == "workflow_rejected":
+                status = "rejected_below_threshold"
+                final_data = evt.get("data", {})
+            elif etype == "workflow_error":
+                status = "error"
+                final_data = evt.get("data", {})
+    return WorkflowRunResult(status, final_data)
+
