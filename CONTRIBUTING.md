@@ -58,7 +58,7 @@ cd frontend && npm run build
 1. **Strict Quality Threshold**: Questions scoring $\le 90$ must be regenerated up to 3 times by the Re-Generator agent. If still below 90, the workflow must halt and reject the question from the Question Bank.
 2. **Deterministic Token & Cost Math**: All costs must be computed via official DeepInfra rates:
    - Text: $0.10 input / $0.32 output per 1M tokens.
-   - Image: $\$0.0005 \times (\text{width}/1024) \times (\text{height}/1024) \times \text{iters}$.
+   - Image: $0.0005 \times (\text{width}/1024) \times (\text{height}/1024) \times \text{iters}$ (USD).
 3. **Modular Layer Separation**:
    - Routing: `backend/app/api/v1/`
    - Business/Agent Logic: `backend/app/agents/`

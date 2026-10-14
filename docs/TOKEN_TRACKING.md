@@ -15,8 +15,8 @@ The primary LLM driving the multi-agent system is **Meta Llama 3.3 70B Instruct 
 ### Official DeepInfra Rate Card
 
 $$\begin{aligned}
-\mathbf{Input\ (Prompt)\ Tokens} &: \mathbf{\$0.10}\text{ per 1,000,000 tokens}\ (\text{\$0.00000010 per token}) \\
-\mathbf{Output\ (Completion)\ Tokens} &: \mathbf{\$0.32}\text{ per 1,000,000 tokens}\ (\text{\$0.00000032 per token})
+\text{Input (Prompt) Tokens} &: \text{0.10 USD per 1,000,000 tokens} \\
+\text{Output (Completion) Tokens} &: \text{0.32 USD per 1,000,000 tokens}
 \end{aligned}$$
 
 ---
@@ -60,7 +60,7 @@ For visual question stimuli, the system integrates **`black-forest-labs/FLUX-1-s
 
 ### Official DeepInfra Image Pricing Formula
 
-$$\mathbf{Price}_{\text{USD}} = \mathbf{\$0.0005} \times \left(\frac{\mathbf{width}}{1024}\right) \times \left(\frac{\mathbf{height}}{1024}\right) \times \mathbf{iters}$$
+$$\text{Price (USD)} = 0.0005 \times \left(\frac{\text{width}}{1024}\right) \times \left(\frac{\text{height}}{1024}\right) \times \text{iters}$$
 
 Where:
 * **$\text{width}$**: Pixel width of the generated image (normalized against a $1024$ baseline).
@@ -71,11 +71,11 @@ Where:
 
 | Resolution (W × H) | Inference Steps (`iters`) | Scaling Factor | Unit Calculation | Cost per Image (USD) |
 | :--- | :---: | :---: | :--- | :---: |
-| **1024 × 1024 (Standard)** | **4 steps** | $1.0 \times 1.0$ | $\$0.0005 \times 1 \times 1 \times 4$ | **$0.002000** |
-| **1024 × 1024 (Rapid)** | **1 step** | $1.0 \times 1.0$ | $\$0.0005 \times 1 \times 1 \times 1$ | **$0.000500** |
-| **768 × 768 (Balanced)** | **4 steps** | $0.75 \times 0.75$ | $\$0.0005 \times 0.5625 \times 4$ | **$0.001125** |
-| **512 × 512 (Fast)** | **4 steps** | $0.5 \times 0.5$ | $\$0.0005 \times 0.25 \times 4$ | **$0.000500** |
-| **512 × 512 (Draft)** | **1 step** | $0.5 \times 0.5$ | $\$0.0005 \times 0.25 \times 1$ | **$0.000125** |
+| **1024 × 1024 (Standard)** | **4 steps** | $1.0 \times 1.0$ | $0.0005 \times 1 \times 1 \times 4$ | **$0.002000** |
+| **1024 × 1024 (Rapid)** | **1 step** | $1.0 \times 1.0$ | $0.0005 \times 1 \times 1 \times 1$ | **$0.000500** |
+| **768 × 768 (Balanced)** | **4 steps** | $0.75 \times 0.75$ | $0.0005 \times 0.5625 \times 4$ | **$0.001125** |
+| **512 × 512 (Fast)** | **4 steps** | $0.5 \times 0.5$ | $0.0005 \times 0.25 \times 4$ | **$0.000500** |
+| **512 × 512 (Draft)** | **1 step** | $0.5 \times 0.5$ | $0.0005 \times 0.25 \times 1$ | **$0.000125** |
 | **Programmatic SVG Fallback** | — | — | Offline vector diagram | **$0.000000** |
 
 ---
@@ -161,7 +161,7 @@ Token and cost data is surfaced across 4 distinct user interfaces in the fronten
 
 ### 1. Multi-Agent State Graph (`AgentVisualizer.jsx`)
 - **Cumulative Header Badge**: Displays running totals during live generation:
-  $$\text{🪙 2,850 tokens} \quad \bullet \quad \mathbf{\$0.00053}$$
+  `🪙 2,850 tokens • $0.00053`
 - **Per-Agent Step Badges**: Each agent card shows its specific cycle tokens and cost:
   `450 tok • $0.00015`
 

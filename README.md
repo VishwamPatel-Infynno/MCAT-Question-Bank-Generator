@@ -45,7 +45,7 @@ graph LR
   - **Input Tokens**: **$0.10** per 1,000,000 tokens
   - **Output Tokens**: **$0.32** per 1,000,000 tokens
 - **Micro-Dollar Tracking**: Every LLM request computes exact USD costs:
-  $$\text{Cost} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times \$0.10\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times \$0.32\right)$$
+  $$\text{Cost (USD)} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times 0.10\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times 0.32\right)$$
 - **Granular Observability**:
   - Live State Graph header counter (`🪙 2,850 tokens • $0.00053`) and per-agent step pills.
   - QuestionCard badge displaying total tokens and cost.
