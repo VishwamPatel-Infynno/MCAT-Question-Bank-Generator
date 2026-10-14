@@ -220,9 +220,34 @@ export default function QuestionBank({ onSelectQuestion }) {
                   <span className="badge badge-emerald">
                     <Award size={12} /> {q.final_score}/100
                   </span>
+                  {q.id && (
+                    <span
+                      className="badge badge-cyan"
+                      style={{ fontFamily: 'monospace', fontSize: '0.7rem', cursor: 'pointer' }}
+                      title={`Question UUID: ${q.id} (Click to copy)`}
+                      onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(q.id); }}
+                    >
+                      ID: {q.id.slice(0, 8)}...
+                    </span>
+                  )}
+                  {q.batch_id && (
+                    <span
+                      className="badge badge-purple"
+                      style={{ fontFamily: 'monospace', fontSize: '0.7rem', cursor: 'pointer' }}
+                      title={`Batch UUID: ${q.batch_id} (Click to copy)`}
+                      onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(q.batch_id); }}
+                    >
+                      Batch: {q.batch_id.slice(0, 8)}...
+                    </span>
+                  )}
                   {q.combination_id && (
-                    <span className="badge badge-cyan" style={{ fontFamily: 'monospace', fontWeight: 700 }} title="Manager Combination ID">
-                      {q.combination_id}
+                    <span
+                      className="badge badge-cyan"
+                      style={{ fontFamily: 'monospace', fontWeight: 700, cursor: 'pointer' }}
+                      title={`Combination ID: ${q.combination_id} (Click to copy)`}
+                      onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(q.combination_id); }}
+                    >
+                      {q.combination_id.length > 12 ? `Comb: ${q.combination_id.slice(0, 8)}...` : q.combination_id}
                     </span>
                   )}
                   {q.content_domain && (

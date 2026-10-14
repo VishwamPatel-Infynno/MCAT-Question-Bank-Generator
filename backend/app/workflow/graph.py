@@ -280,6 +280,9 @@ async def finalize_node(state: AgentWorkflowState) -> Dict[str, Any]:
             "reason": f"No visual stimulus needed (image_required='{req.image_required or 'No'}', visual_type='{req.visual_type or 'None'}')."
         }
     outcomes["final_payload"] = {
+        "id": draft.question_stem[:12], # placeholder until final_q created below
+        "run_id": req.run_id,
+        "batch_id": req.batch_id,
         "section": req.section.value,
         "section_label": section_label,
         "combination_id": req.combination_id,
@@ -297,6 +300,8 @@ async def finalize_node(state: AgentWorkflowState) -> Dict[str, Any]:
     }
 
     final_q = Question(
+        run_id=req.run_id,
+        batch_id=req.batch_id,
         section=req.section.value,
         section_label=section_label,
         subtopic=req.subtopic or "Core Syllabus",
@@ -328,6 +333,7 @@ async def finalize_node(state: AgentWorkflowState) -> Dict[str, Any]:
         visual_type=req.visual_type or "None",
         stage_outcomes=outcomes
     )
+    outcomes["final_payload"]["id"] = final_q.id
     
     # Persist in PostgreSQL
     await save_question(final_q)
@@ -379,10 +385,22 @@ ucat_graph = create_ucat_graph()
 async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, None]:
     """
     Streams multi-agent workflow events in real time as Server-Sent Events (SSE).
-    Each event carries agent name, status, step-by-step progress, token usage metrics, and partial/final data.
+    Each event carries unique event_id, run_id, batch_id, status, step progress, token usage metrics, and payload data.
     """
+    def make_event(event_type: str, agent_name: str, message: str, data: Optional[Dict[str, Any]] = None) -> WorkflowEvent:
+        return WorkflowEvent(
+            run_id=req.run_id,
+            batch_id=req.batch_id,
+            event_type=event_type,
+            agent_name=agent_name,
+            message=message,
+            data=data
+        )
+
     initial_state: AgentWorkflowState = {
         "request": req.model_dump(),
+        "run_id": req.run_id,
+        "batch_id": req.batch_id,
         "iteration_count": 1,
         "iterations_history": [],
         "log_messages": [],
@@ -390,12 +408,13 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         "total_prompt_tokens": 0,
         "total_completion_tokens": 0,
         "total_cost_usd": 0.0,
-        "agent_usage_breakdown": []
+        "agent_usage_breakdown": [],
+        "stage_outcomes": {}
     }
     
     try:
         # Yield initial start event
-        start_evt = WorkflowEvent(
+        start_evt = make_event(
             event_type="workflow_start",
             agent_name="System",
             message=f"Starting UK UCAT Generation Workflow for {req.section.value} ({req.difficulty.value}) using {req.model_name or config.DEFAULT_TEXT_MODEL}..."
@@ -405,7 +424,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         state = initial_state
         
         # Step 1: Generator
-        gen_evt = WorkflowEvent(
+        gen_evt = make_event(
             event_type="agent_start",
             agent_name="Question Generator",
             message="Synthesizing UCAT stimulus passage and 4-option draft..."
@@ -416,7 +435,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         state.update(gen_res)
         
         gen_usage = state.get("latest_usage", {})
-        gen_done_evt = WorkflowEvent(
+        gen_done_evt = make_event(
             event_type="agent_complete",
             agent_name="Question Generator",
             message=f"Draft v1 generated ({gen_usage.get('total_tokens', 0)} tokens, ${gen_usage.get('cost_usd', 0.0):.5f}). Passing to Question Reviewer.",
@@ -437,7 +456,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         while True:
             iteration = state.get("iteration_count", 1)
             
-            rev_start_evt = WorkflowEvent(
+            rev_start_evt = make_event(
                 event_type="agent_start",
                 agent_name="Question Reviewer",
                 message=f"Auditing draft (Iteration {iteration}) against 100-point UCAT rubric..."
@@ -451,7 +470,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             score = review["total_score"]
             rev_usage = state.get("latest_usage", {})
             
-            rev_done_evt = WorkflowEvent(
+            rev_done_evt = make_event(
                 event_type="agent_complete",
                 agent_name="Question Reviewer",
                 message=f"Review completed. Score: {score}/100 ({rev_usage.get('total_tokens', 0)} tokens, ${rev_usage.get('cost_usd', 0.0):.5f}). Authenticity: {review['authenticity_score']}/25, Clarity: {review['clarity_score']}/25, Distractors: {review['distractor_score']}/25, Explanation: {review['explanation_score']}/25.",
@@ -472,7 +491,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             # Route
             next_step = route_after_review(state)
             if next_step == "regenerator":
-                regen_start_evt = WorkflowEvent(
+                regen_start_evt = make_event(
                     event_type="agent_start",
                     agent_name="Question Re-Generator",
                     message=f"Score {score} <= {config.PASSING_SCORE_THRESHOLD}! Initiating Re-Generator Agent to remediate identified flaws..."
@@ -483,7 +502,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 state.update(regen_res)
                 
                 regen_usage = state.get("latest_usage", {})
-                regen_done_evt = WorkflowEvent(
+                regen_done_evt = make_event(
                     event_type="agent_complete",
                     agent_name="Question Re-Generator",
                     message=f"Re-generation complete (Draft v{state['iteration_count']} • {regen_usage.get('total_tokens', 0)} tokens, ${regen_usage.get('cost_usd', 0.0):.5f}). Resubmitting to Reviewer...",
@@ -505,7 +524,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 rej_res = await reject_node(state)
                 state.update(rej_res)
                 
-                rej_evt = WorkflowEvent(
+                rej_evt = make_event(
                     event_type="workflow_rejected",
                     agent_name="Quality Gate",
                     message=f"Strict Quality Halt: Score {score}/100 did not exceed {config.PASSING_SCORE_THRESHOLD} after {iteration} iteration attempts. Halting workflow and discarding question from database.",
@@ -526,7 +545,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         )
         
         if requires_image:
-            img_start_evt = WorkflowEvent(
+            img_start_evt = make_event(
                 event_type="agent_start",
                 agent_name="Image Generator",
                 message="Generating visual stimulus diagram..."
@@ -536,7 +555,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             img_res = await image_node(state)
             state.update(img_res)
             
-            img_done_evt = WorkflowEvent(
+            img_done_evt = make_event(
                 event_type="agent_complete",
                 agent_name="Image Generator",
                 message="Visual stimulus created and linked.",
@@ -555,7 +574,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         final_tokens = state.get("total_tokens", 0)
         final_cost = state.get("total_cost_usd", 0.0)
         
-        complete_evt = WorkflowEvent(
+        complete_evt = make_event(
             event_type="workflow_complete",
             agent_name="System",
             message=f"Multi-Agent workflow successfully finished! Question verified > 90 and saved to Question Bank. Total: {final_tokens} tokens (${final_cost:.5f}).",
@@ -575,13 +594,14 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
     except Exception as e:
         logger.error(f"Workflow stream error: {e}")
         err_msg = str(e)
-        error_evt = WorkflowEvent(
+        error_evt = make_event(
             event_type="workflow_error",
             agent_name="System Error",
             message=err_msg,
             data={"error": err_msg}
         )
         yield f"data: {error_evt.model_dump_json()}\n\n"
+
 
 class WorkflowRunResult:
     def __init__(self, status: str, data: Optional[Dict[str, Any]] = None):

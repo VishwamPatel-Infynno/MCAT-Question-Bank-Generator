@@ -120,9 +120,34 @@ export default function QuestionCard({ question, onOpenAudit, onNextQuestion }) 
           <span className="badge badge-emerald" style={{ fontSize: '0.75rem', padding: '3px 10px' }}>
             <Award size={13} /> {question.final_score}/100
           </span>
+          {question.id && (
+            <span
+              className="badge badge-cyan"
+              style={{ fontFamily: 'monospace', fontSize: '0.7rem', cursor: 'pointer' }}
+              title={`Question UUID: ${question.id} (Click to copy)`}
+              onClick={() => navigator.clipboard.writeText(question.id)}
+            >
+              ID: {question.id.slice(0, 8)}...
+            </span>
+          )}
+          {question.batch_id && (
+            <span
+              className="badge badge-purple"
+              style={{ fontFamily: 'monospace', fontSize: '0.7rem', cursor: 'pointer' }}
+              title={`Batch UUID: ${question.batch_id} (Click to copy)`}
+              onClick={() => navigator.clipboard.writeText(question.batch_id)}
+            >
+              Batch: {question.batch_id.slice(0, 8)}...
+            </span>
+          )}
           {question.combination_id && (
-            <span className="badge badge-cyan" style={{ fontFamily: 'monospace', fontWeight: 700 }} title="Manager Combination ID">
-              {question.combination_id}
+            <span
+              className="badge badge-cyan"
+              style={{ fontFamily: 'monospace', fontWeight: 700, cursor: 'pointer' }}
+              title={`Combination ID: ${question.combination_id} (Click to copy)`}
+              onClick={() => navigator.clipboard.writeText(question.combination_id)}
+            >
+              {question.combination_id.length > 12 ? `Comb: ${question.combination_id.slice(0, 8)}...` : question.combination_id}
             </span>
           )}
           {question.content_domain && (

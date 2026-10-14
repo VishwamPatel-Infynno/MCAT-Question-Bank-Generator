@@ -326,3 +326,94 @@ async def test_e2e_manager_combination_matrix_and_stage_outcomes():
             assert "Content_Domain" in header
             assert "Primary_Trap" in header
 
+@pytest.mark.asyncio
+async def test_e2e_uuid_architecture():
+    """
+    E2E Test 9: Verify end-to-end UUID architecture:
+    1. Automatic UUID4 generation for combination_id when omitted.
+    2. Unique run_id per execution.
+    3. batch_id propagation across workflow, events, and persistence.
+    4. audit_id assigned to psychometric reviews.
+    5. event_id assigned to all SSE events.
+    6. Database filtering by batch_id and run_id.
+    """
+    import uuid
+    from app.schemas import GenerationRequest, Difficulty
+    from app.workflow.graph import run_workflow_stream
+
+    test_batch_id = str(uuid.uuid4())
+
+    # Request with omitted combination_id
+    req = GenerationRequest(
+        section="VR",
+        subtopic="Critical Reading & Inferences",
+        difficulty=Difficulty.EASY,
+        batch_id=test_batch_id
+    )
+
+    # 1. Assert combination_id was auto-populated with valid UUID4
+    assert req.combination_id is not None
+    assert uuid.UUID(req.combination_id, version=4)
+
+    # 2. Assert run_id was auto-generated with valid UUID4
+    assert req.run_id is not None
+    assert uuid.UUID(req.run_id, version=4)
+    assert req.batch_id == test_batch_id
+
+    # 3. Stream workflow and verify all events contain event_id and run_id
+    events_received = []
+    final_question = None
+
+    async for raw_line in run_workflow_stream(req):
+        line = raw_line.strip()
+        if line.startswith("data: "):
+            payload = json.loads(line[6:])
+            events_received.append(payload)
+
+            # Assert event_id is valid UUID4
+            assert "event_id" in payload
+            assert uuid.UUID(payload["event_id"], version=4)
+            assert payload.get("run_id") == req.run_id
+            assert payload.get("batch_id") == test_batch_id
+
+            if payload.get("event_type") == "workflow_complete":
+                final_question = payload.get("data", {}).get("question")
+
+    assert len(events_received) >= 4, "Should receive at least 4 workflow events"
+
+    if final_question:
+        # 4. Assert Question UUID identifiers
+        assert uuid.UUID(final_question["id"], version=4)
+        assert final_question["run_id"] == req.run_id
+        assert final_question["batch_id"] == test_batch_id
+        assert uuid.UUID(final_question["combination_id"], version=4)
+
+        # 5. Assert audit_id in review rubric
+        review = final_question.get("review_rubric")
+        if review:
+            assert "audit_id" in review
+            assert uuid.UUID(review["audit_id"], version=4)
+
+        # 6. Test API filtering by batch_id and run_id
+        async with httpx.AsyncClient(base_url=BASE_URL, timeout=10.0) as client:
+            # Query by batch_id
+            resp_batch = await client.get(f"/questions?batch_id={test_batch_id}")
+            assert resp_batch.status_code == 200
+            batch_qs = resp_batch.json().get("questions", [])
+            assert any(q["id"] == final_question["id"] for q in batch_qs)
+
+            # Query by run_id
+            resp_run = await client.get(f"/questions?run_id={req.run_id}")
+            assert resp_run.status_code == 200
+            run_qs = resp_run.json().get("questions", [])
+            assert any(q["id"] == final_question["id"] for q in run_qs)
+
+            # Export CSV includes Run_ID and Batch_ID
+            resp_csv = await client.get("/export?format=csv")
+            assert resp_csv.status_code == 200
+            csv_lines = resp_csv.text.splitlines()
+            header = csv_lines[0].split(",")
+            assert "Run_ID" in header
+            assert "Batch_ID" in header
+
+

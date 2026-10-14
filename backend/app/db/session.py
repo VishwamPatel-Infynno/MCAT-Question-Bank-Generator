@@ -123,6 +123,12 @@ async def init_db():
             await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS passage_questions INTEGER;"))
             await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS visual_type VARCHAR(64);"))
             await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS stage_outcomes JSONB;"))
+
+            # Safe schema update for Run and Batch UUID columns
+            await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS run_id VARCHAR(64);"))
+            await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS batch_id VARCHAR(64);"))
+            await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_questions_run_id ON questions (run_id);"))
+            await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_questions_batch_id ON questions (batch_id);"))
         logger.info("PostgreSQL tables verified / created successfully with matrix columns and token tracking.")
         await auto_migrate_sqlite_if_needed()
     except Exception as e:

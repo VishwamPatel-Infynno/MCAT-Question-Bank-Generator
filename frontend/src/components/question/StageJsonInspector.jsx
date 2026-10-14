@@ -35,6 +35,8 @@ export default function StageJsonInspector({ question }) {
       icon: ShieldCheck,
       agent: 'Question Reviewer',
       data: stageOutcomes.quality_audit || question.review_rubric || {
+        audit_id: question.review_rubric?.audit_id,
+        evaluated_at: question.review_rubric?.evaluated_at,
         total_score: question.final_score,
         passed: question.final_score > 90,
         authenticity_score: 24,
@@ -76,6 +78,8 @@ export default function StageJsonInspector({ question }) {
       agent: 'System / Database Record',
       data: stageOutcomes.final_payload || {
         id: question.id,
+        run_id: question.run_id,
+        batch_id: question.batch_id,
         combination_id: question.combination_id,
         section: question.section,
         section_label: question.section_label,

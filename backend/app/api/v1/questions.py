@@ -20,10 +20,19 @@ async def list_questions(
     section: Optional[str] = Query(None),
     difficulty: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
-    combination_id: Optional[str] = Query(None)
+    combination_id: Optional[str] = Query(None),
+    run_id: Optional[str] = Query(None),
+    batch_id: Optional[str] = Query(None)
 ):
     """Lists saved questions from the PostgreSQL Question Bank along with aggregated metrics."""
-    questions = await get_questions(section=section, difficulty=difficulty, search=search, combination_id=combination_id)
+    questions = await get_questions(
+        section=section,
+        difficulty=difficulty,
+        search=search,
+        combination_id=combination_id,
+        run_id=run_id,
+        batch_id=batch_id
+    )
     dumped = [q.model_dump() for q in questions]
     
     total_tokens = sum(q.total_tokens or 0 for q in questions)
@@ -51,7 +60,7 @@ async def remove_question(question_id: str):
 
 @router.get("/export")
 async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
-    """Exports Question Bank in JSON or CSV format including manager matrix fields."""
+    """Exports Question Bank in JSON or CSV format including manager matrix fields and UUIDs."""
     questions = await get_questions()
     
     if format == "json":
@@ -64,7 +73,7 @@ async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow([
-            "ID", "Combination_ID", "Section", "Subcategory", "Difficulty", "Content_Domain",
+            "ID", "Run_ID", "Batch_ID", "Combination_ID", "Section", "Subcategory", "Difficulty", "Content_Domain",
             "Question_Type", "Interaction_Type", "Primary_Trap", "Passage_Required", "Visual_Type",
             "Stimulus", "Question Stem", "Option A", "Option B", "Option C", "Option D",
             "Correct Answer", "Explanation", "Final Score", "Cycles", "Created At"
@@ -73,6 +82,8 @@ async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
             opts = {opt.id: opt.text for opt in q.options}
             writer.writerow([
                 q.id,
+                q.run_id or "",
+                q.batch_id or "",
                 q.combination_id or "",
                 q.section_label,
                 q.subtopic,
@@ -101,3 +112,4 @@ async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
             media_type="text/csv",
             headers={"Content-Disposition": "attachment; filename=ucat_question_bank.csv"}
         )
+

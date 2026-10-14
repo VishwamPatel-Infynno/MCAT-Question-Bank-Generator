@@ -22,3 +22,5 @@ class AgentWorkflowState(TypedDict, total=False):
     agent_usage_breakdown: List[Dict[str, Any]]
     latest_usage: Optional[Dict[str, Any]]
     stage_outcomes: Dict[str, Any]
+    run_id: str
+    batch_id: Optional[str]

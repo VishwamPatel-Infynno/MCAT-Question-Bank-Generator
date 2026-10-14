@@ -57,7 +57,7 @@ export default function MatrixRunner({ onOpenSettings }) {
   const [selectedCombIndex, setSelectedCombIndex] = useState(0);
   const [tsvInput, setTsvInput] = useState('');
   const [showImporter, setShowImporter] = useState(false);
-  const [generatedResults, setGeneratedResults] = useState({});
+  const [currentBatchId, setCurrentBatchId] = useState(null);
 
   const {
     isGenerating,
@@ -73,11 +73,15 @@ export default function MatrixRunner({ onOpenSettings }) {
   const selectedCombination = combinations[selectedCombIndex] || combinations[0];
 
   const handleRunCombination = (comb) => {
+    const batchId = currentBatchId || crypto.randomUUID();
+    setCurrentBatchId(batchId);
+
     const payload = {
       section: comb.Section,
       subtopic: comb.Subcategory,
-      difficulty: comb.Difficulty.toLowerCase(),
-      combination_id: comb.Combination_ID,
+      difficulty: (comb.Difficulty || 'Medium').toLowerCase(),
+      combination_id: comb.Combination_ID || crypto.randomUUID(),
+      batch_id: batchId,
       subcategory: comb.Subcategory,
       content_domain: comb.Content_Domain,
       question_type: comb.Question_Type,
@@ -91,6 +95,37 @@ export default function MatrixRunner({ onOpenSettings }) {
     };
 
     startGeneration(payload);
+  };
+
+  const handleAddRow = () => {
+    const newId = crypto.randomUUID();
+    const newRow = {
+      Combination_ID: newId,
+      Section: 'VR',
+      Subcategory: 'Inference',
+      Difficulty: 'Medium',
+      Content_Domain: 'Science',
+      Question_Type: 'Passage_MCQ',
+      Interaction_Type: 'single_choice',
+      Primary_Trap: 'Keyword_Trap',
+      Passage_Required: 'Yes',
+      Passage_Questions: 3,
+      Image_Required: 'No',
+      Visual_Type: 'None',
+      Questions_To_Generate: 1
+    };
+    setCombinations([...combinations, newRow]);
+    setSelectedCombIndex(combinations.length);
+  };
+
+  const handleDeleteRow = (idx, e) => {
+    e.stopPropagation();
+    if (combinations.length <= 1) return;
+    const updated = combinations.filter((_, i) => i !== idx);
+    setCombinations(updated);
+    if (selectedCombIndex >= updated.length) {
+      setSelectedCombIndex(updated.length - 1);
+    }
   };
 
   const handleImportTSV = () => {
@@ -108,6 +143,10 @@ export default function MatrixRunner({ onOpenSettings }) {
           headers.forEach((h, idx) => {
             rowObj[h] = parts[idx] || '';
           });
+          // Ensure every imported row has a valid Combination UUID if blank
+          if (!rowObj.Combination_ID || !rowObj.Combination_ID.trim()) {
+            rowObj.Combination_ID = crypto.randomUUID();
+          }
           parsed.push(rowObj);
         }
       }
@@ -123,6 +162,7 @@ export default function MatrixRunner({ onOpenSettings }) {
       alert('Could not parse TSV data. Please check column format.');
     }
   };
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -221,7 +261,30 @@ export default function MatrixRunner({ onOpenSettings }) {
       )}
 
       {/* Matrix Table */}
-      <div className="glass-panel" style={{ padding: '20px', overflowX: 'auto' }}>
+      <div className="glass-panel" style={{ padding: '20px', overflowX: 'auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+              Configured Combinations ({combinations.length})
+            </span>
+            {currentBatchId && (
+              <span className="badge badge-purple" style={{ fontFamily: 'monospace', fontSize: '0.7rem' }} title={`Active Batch UUID: ${currentBatchId}`}>
+                Batch: {currentBatchId.slice(0, 8)}...
+              </span>
+            )}
+          </div>
+
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={handleAddRow}
+            style={{ padding: '6px 12px', fontSize: '0.775rem', gap: '5px' }}
+            title="Add new combination row with auto-generated UUID4"
+          >
+            <Plus size={14} /> Add Row
+          </button>
+        </div>
+
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8rem' }}>
           <thead>
             <tr style={{ borderBottom: '2px solid var(--border-light)', color: 'var(--text-muted)' }}>

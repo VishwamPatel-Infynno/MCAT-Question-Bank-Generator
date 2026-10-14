@@ -8,6 +8,8 @@ class OptionChoice(BaseModel):
     text: str
 
 class ReviewScore(BaseModel):
+    audit_id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique psychometric audit evaluation UUID4")
+    evaluated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
     authenticity_score: int = Field(..., ge=0, le=25, description="UCAT authentic tone and style (0-25)")
     clarity_score: int = Field(..., ge=0, le=25, description="Stem clarity and logical tightness (0-25)")
     distractor_score: int = Field(..., ge=0, le=25, description="Plausibility and sophistication of distractors (0-25)")
@@ -29,6 +31,8 @@ class QuestionDraft(BaseModel):
 
 class Question(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    run_id: Optional[str] = Field(None, description="Workflow execution run UUID4")
+    batch_id: Optional[str] = Field(None, description="Batch execution UUID4 binding multiple questions")
     section: str
     section_label: str
     subtopic: str
@@ -53,7 +57,7 @@ class Question(BaseModel):
     created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
     # Manager Combination Matrix attributes
-    combination_id: Optional[str] = Field(None, description="e.g. CMB00001")
+    combination_id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), description="Combination UUID4 or custom manager code")
     content_domain: Optional[str] = Field(None, description="e.g. Science, Healthcare")
     question_type: Optional[str] = Field(None, description="e.g. Passage_MCQ, True_False_Cant_Tell")
     interaction_type: Optional[str] = Field("single_choice", description="single_choice, multi_choice, drag_drop")
@@ -64,3 +68,4 @@ class Question(BaseModel):
 
     # Multi-Stage Raw Outcome JSON
     stage_outcomes: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Raw outcome JSON of all agent workflow stages")
+

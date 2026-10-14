@@ -15,6 +15,8 @@ def _model_to_schema(m: QuestionModel) -> Question:
     
     return Question(
         id=m.id,
+        run_id=m.run_id,
+        batch_id=m.batch_id,
         section=m.section,
         section_label=m.section_label,
         subtopic=m.subtopic,
@@ -56,6 +58,8 @@ async def save_question(q: Question) -> Question:
 
         model = QuestionModel(
             id=q.id,
+            run_id=q.run_id,
+            batch_id=q.batch_id,
             section=q.section,
             section_label=q.section_label,
             subtopic=q.subtopic,
@@ -97,7 +101,9 @@ async def get_questions(
     section: Optional[str] = None,
     difficulty: Optional[str] = None,
     search: Optional[str] = None,
-    combination_id: Optional[str] = None
+    combination_id: Optional[str] = None,
+    run_id: Optional[str] = None,
+    batch_id: Optional[str] = None
 ) -> List[Question]:
     """Retrieves questions from PostgreSQL with optional filtering and full-text search."""
     async with async_session_factory() as session:
@@ -109,6 +115,10 @@ async def get_questions(
             stmt = stmt.where(QuestionModel.difficulty == difficulty)
         if combination_id:
             stmt = stmt.where(QuestionModel.combination_id == combination_id)
+        if run_id:
+            stmt = stmt.where(QuestionModel.run_id == run_id)
+        if batch_id:
+            stmt = stmt.where(QuestionModel.batch_id == batch_id)
         if search:
             wildcard = f"%{search}%"
             stmt = stmt.where(
@@ -117,7 +127,9 @@ async def get_questions(
                     QuestionModel.stimulus_text.ilike(wildcard),
                     QuestionModel.subtopic.ilike(wildcard),
                     QuestionModel.combination_id.ilike(wildcard),
-                    QuestionModel.content_domain.ilike(wildcard)
+                    QuestionModel.content_domain.ilike(wildcard),
+                    QuestionModel.run_id.ilike(wildcard),
+                    QuestionModel.batch_id.ilike(wildcard)
                 )
             )
 

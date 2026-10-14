@@ -26,6 +26,8 @@ class QuestionModel(Base):
     iteration_count: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     iterations_history: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    run_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
+    batch_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
     
     # Token usage & cost tracking
     total_tokens: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, default=0)

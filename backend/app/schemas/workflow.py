@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from typing import Optional, Dict, Any, Union
 from pydantic import BaseModel, Field, field_validator
@@ -13,8 +14,12 @@ class GenerationRequest(BaseModel):
     model_name: Optional[str] = None
     api_key: Optional[str] = None
 
+    # Execution & Batch UUID Identifiers
+    run_id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique execution run UUID4")
+    batch_id: Optional[str] = Field(None, description="Optional batch run UUID4 binding multiple questions")
+
     # Manager Combination Matrix attributes
-    combination_id: Optional[str] = Field(None, description="e.g. CMB00001")
+    combination_id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), description="Combination UUID4 or custom code e.g. CMB00001")
     subcategory: Optional[str] = Field(None, description="e.g. Inference")
     content_domain: Optional[str] = Field(None, description="e.g. Science, Healthcare")
     question_type: Optional[str] = Field(None, description="e.g. Passage_MCQ, True_False_Cant_Tell")
@@ -25,6 +30,13 @@ class GenerationRequest(BaseModel):
     image_required: Optional[Union[str, bool]] = Field(None, description="Yes or No")
     visual_type: Optional[str] = Field("None", description="e.g. None, SVG_Diagram, AI_FLUX_Image")
     questions_to_generate: Optional[int] = Field(1, description="Quantity to generate from this combination")
+
+    @field_validator("combination_id", mode="before")
+    @classmethod
+    def validate_combination_id(cls, v):
+        if v is None or (isinstance(v, str) and not v.strip()):
+            return str(uuid.uuid4())
+        return str(v).strip()
 
     @field_validator("section", mode="before")
     @classmethod
@@ -47,8 +59,12 @@ class GenerationRequest(BaseModel):
         return v
 
 class WorkflowEvent(BaseModel):
+    event_id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique SSE event UUID4")
+    run_id: Optional[str] = Field(None, description="Execution run UUID4")
+    batch_id: Optional[str] = Field(None, description="Batch execution UUID4")
     event_type: str  # 'workflow_start', 'agent_start', 'agent_complete', 'workflow_complete', 'workflow_rejected', 'workflow_error'
     agent_name: str  # 'Question Generator', 'Question Reviewer', 'Question Re-Generator', 'Image Generator', 'Quality Gate', 'System'
     message: str
     data: Optional[Dict[str, Any]] = None
     timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+
