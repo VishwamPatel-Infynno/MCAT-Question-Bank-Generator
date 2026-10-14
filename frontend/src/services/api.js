@@ -32,6 +32,26 @@ export async function deleteQuestion(id) {
   return res.json();
 }
 
+export async function approveQuestion(question) {
+  const res = await fetch(`${API_BASE}/questions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(question)
+  });
+  if (!res.ok) throw new Error('Failed to save approved question');
+  return res.json();
+}
+
+export async function batchApproveQuestions(questions) {
+  const res = await fetch(`${API_BASE}/questions/batch`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(questions)
+  });
+  if (!res.ok) throw new Error('Failed to bulk-save approved questions');
+  return res.json();
+}
+
 export async function fetchSettings() {
   const res = await fetch(`${API_BASE}/config`);
   return res.json();

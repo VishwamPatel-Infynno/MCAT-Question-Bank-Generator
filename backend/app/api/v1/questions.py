@@ -1,13 +1,15 @@
 import csv
 import io
 import logging
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Query, Response
 from fastapi.responses import JSONResponse
 
+from app.schemas import Question
 from app.repositories.question_repo import (
     get_questions,
     get_question_by_id,
+    save_question,
     delete_question
 )
 
@@ -51,6 +53,27 @@ async def get_single_question(question_id: str):
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
     return q.model_dump()
+
+@router.post("/questions")
+async def approve_and_save_question(question: Question):
+    """
+    Admin approval endpoint: persists an approved candidate question into the Question Bank in PostgreSQL.
+    """
+    saved = await save_question(question)
+    logger.info(f"Question approved by Admin and saved to Question Bank: {saved.id} ({saved.section_label})")
+    return {"success": True, "question": saved.model_dump()}
+
+@router.post("/questions/batch")
+async def batch_approve_and_save_questions(questions: List[Question]):
+    """
+    Bulk Admin approval endpoint: persists an array of approved candidate questions into PostgreSQL.
+    """
+    saved_list = []
+    for q in questions:
+        saved = await save_question(q)
+        saved_list.append(saved.id)
+    logger.info(f"Batch approved {len(saved_list)} questions into Question Bank.")
+    return {"success": True, "saved_count": len(saved_list), "ids": saved_list}
 
 @router.delete("/questions/{question_id}")
 async def remove_question(question_id: str):

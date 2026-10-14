@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Layers, Play, Upload, Sparkles, FileSpreadsheet, Plus, Trash2 } from 'lucide-react';
+import { Layers, Play, Upload, Sparkles, FileSpreadsheet, Plus, Trash2, CheckCircle } from 'lucide-react';
 import QuestionCard from '../question/QuestionCard';
 import AgentVisualizer from '../generator/AgentVisualizer';
 import { useQuestionGenerator } from '../../hooks/useQuestionGenerator';
+import { approveQuestion, batchApproveQuestions } from '../../services/api';
 
 const DEFAULT_SAMPLE_COMBINATIONS = [
   {
@@ -58,6 +59,10 @@ export default function MatrixRunner({ onOpenSettings }) {
   const [tsvInput, setTsvInput] = useState('');
   const [showImporter, setShowImporter] = useState(false);
   const [currentBatchId, setCurrentBatchId] = useState(null);
+  const [stagedCandidates, setStagedCandidates] = useState([]);
+  const [savedIds, setSavedIds] = useState(new Set());
+  const [isBulkApproving, setIsBulkApproving] = useState(false);
+  const [prevActiveQuestionId, setPrevActiveQuestionId] = useState(null);
 
   const {
     isGenerating,
@@ -69,6 +74,43 @@ export default function MatrixRunner({ onOpenSettings }) {
   } = useQuestionGenerator({
     onNeedsApiKey: onOpenSettings
   });
+
+  // Collect generated candidate questions into the Staged Batch Review Queue without cascading renders
+  if (activeQuestion && activeQuestion.id !== prevActiveQuestionId) {
+    setPrevActiveQuestionId(activeQuestion.id);
+    if (!stagedCandidates.some(q => q.id === activeQuestion.id)) {
+      setStagedCandidates([activeQuestion, ...stagedCandidates]);
+    }
+  }
+
+  const handleApproveCandidate = async (candidate) => {
+    try {
+      await approveQuestion(candidate);
+      setSavedIds(prev => new Set([...prev, candidate.id]));
+    } catch (err) {
+      console.error('Failed to approve question:', err);
+      alert('Failed to save question to database.');
+    }
+  };
+
+  const handleApproveAll = async () => {
+    const unapproved = stagedCandidates.filter(c => !savedIds.has(c.id));
+    if (unapproved.length === 0 || isBulkApproving) return;
+    setIsBulkApproving(true);
+    try {
+      await batchApproveQuestions(unapproved);
+      setSavedIds(prev => new Set([...prev, ...unapproved.map(c => c.id)]));
+    } catch (err) {
+      console.error('Failed to batch approve questions:', err);
+      alert('Failed to batch approve questions.');
+    } finally {
+      setIsBulkApproving(false);
+    }
+  };
+
+  const handleDiscardCandidate = (candidateId) => {
+    setStagedCandidates(prev => prev.filter(c => c.id !== candidateId));
+  };
 
   const selectedCombination = combinations[selectedCombIndex] || combinations[0];
 
@@ -398,15 +440,63 @@ export default function MatrixRunner({ onOpenSettings }) {
         />
       )}
 
-      {activeQuestion && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Sparkles size={18} color="var(--brand-primary)" />
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-              Generated Question for Matrix {activeQuestion.combination_id || selectedCombination.Combination_ID}
-            </h3>
+      {/* Staged Batch Review Queue */}
+      {stagedCandidates.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="glass-panel" style={{
+            padding: '16px 22px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '12px',
+            background: 'linear-gradient(135deg, rgba(236, 253, 245, 0.95) 0%, rgba(240, 253, 250, 0.95) 100%)',
+            border: '1px solid #a7f3d0'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Sparkles size={20} color="#059669" />
+              <div>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#065f46', margin: 0 }}>
+                  Staged Batch Review Queue ({stagedCandidates.length})
+                </h3>
+                <span style={{ fontSize: '0.8rem', color: '#047857' }}>
+                  {stagedCandidates.filter(c => savedIds.has(c.id)).length} Approved &amp; Saved &bull; {stagedCandidates.filter(c => !savedIds.has(c.id)).length} Pending Review
+                </span>
+              </div>
+            </div>
+
+            {stagedCandidates.some(c => !savedIds.has(c.id)) && (
+              <button
+                type="button"
+                id="btn-approve-all-candidates"
+                className="btn-primary"
+                onClick={handleApproveAll}
+                disabled={isBulkApproving}
+                style={{
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  borderColor: '#059669',
+                  padding: '9px 20px',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  gap: '8px'
+                }}
+              >
+                <CheckCircle size={16} /> {isBulkApproving ? 'Saving...' : `Approve All Candidates (${stagedCandidates.filter(c => !savedIds.has(c.id)).length})`}
+              </button>
+            )}
           </div>
-          <QuestionCard question={activeQuestion} />
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {stagedCandidates.map((candidate) => (
+              <QuestionCard
+                key={candidate.id}
+                question={candidate}
+                isSaved={savedIds.has(candidate.id)}
+                onApprove={() => handleApproveCandidate(candidate)}
+                onDiscard={() => handleDiscardCandidate(candidate.id)}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -30,6 +30,7 @@ class GenerationRequest(BaseModel):
     image_required: Optional[Union[str, bool]] = Field(None, description="Yes or No")
     visual_type: Optional[str] = Field("None", description="e.g. None, SVG_Diagram, AI_FLUX_Image")
     questions_to_generate: Optional[int] = Field(1, description="Quantity to generate from this combination")
+    auto_save: bool = Field(False, description="Whether to automatically persist candidate in PostgreSQL (default: False for admin review)")
 
     @field_validator("combination_id", mode="before")
     @classmethod

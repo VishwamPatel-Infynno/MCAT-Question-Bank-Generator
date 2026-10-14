@@ -283,3 +283,107 @@ async def test_deepinfra_strict_api_key_enforcement():
         config.DEEPINFRA_API_KEY = original_key
         if original_env:
             os.environ["DEEPINFRA_API_KEY"] = original_env
+
+@pytest.mark.asyncio
+async def test_admin_approval_and_persistence_endpoints():
+    from app.schemas import Question, OptionChoice, ReviewScore
+    from app.workflow.graph import finalize_node
+    from app.repositories.question_repo import get_question_by_id, delete_question
+    from app.api.v1.questions import approve_and_save_question, batch_approve_and_save_questions
+    import uuid
+
+    # 1. Test finalize_node with auto_save=False (Default for Admin Review)
+    req = GenerationRequest(
+        section=UCATSection.VERBAL_REASONING,
+        difficulty=Difficulty.MEDIUM,
+        auto_save=False
+    )
+    draft_data = {
+        "stimulus_text": "Clinical patient trial data on neuroprotective agents.",
+        "question_stem": "Which trial finding supports the clinical efficacy?",
+        "options": [
+            {"id": "A", "text": "Significant reduction in infarct volume."},
+            {"id": "B", "text": "Adverse events reported in high doses."},
+            {"id": "C", "text": "Participant attrition rate was 12%."},
+            {"id": "D", "text": "No statistical difference noted."}
+        ],
+        "correct_answer_id": "A",
+        "explanation": "Option A directly demonstrates efficacy."
+    }
+    review_data = {
+        "authenticity_score": 24,
+        "clarity_score": 24,
+        "distractor_score": 24,
+        "explanation_score": 24,
+        "total_score": 96,
+        "strengths": ["Clear stimulus"],
+        "weaknesses": [],
+        "recommendations": []
+    }
+    state = {
+        "request": req.model_dump(),
+        "current_draft": draft_data,
+        "current_review": review_data,
+        "iteration_count": 1,
+        "iterations_history": [],
+        "total_tokens": 1200,
+        "total_cost_usd": 0.00045,
+        "stage_outcomes": {}
+    }
+    fin_res = await finalize_node(state)
+    candidate = fin_res["final_question"]
+    cand_id = candidate["id"]
+    
+    # Verify candidate is NOT automatically saved in database
+    db_check = await get_question_by_id(cand_id)
+    assert db_check is None, "Candidate question should NOT be saved in DB before Admin approval!"
+
+    # 2. Test Admin Approval: POST /questions
+    q_schema = Question(**candidate)
+    approve_res = await approve_and_save_question(q_schema)
+    assert approve_res["success"] is True
+    assert approve_res["question"]["id"] == cand_id
+
+    # Verify candidate is now saved in DB
+    db_saved = await get_question_by_id(cand_id)
+    assert db_saved is not None
+    assert db_saved.id == cand_id
+    assert db_saved.final_score == 96
+
+    # 3. Test Batch Approval: POST /questions/batch
+    batch_q1 = Question(
+        id=str(uuid.uuid4()),
+        section="decision_making",
+        section_label="Decision Making",
+        subtopic="Syllogisms",
+        difficulty="Medium",
+        stimulus_text="All doctors are certified.",
+        question_stem="Is Dr. Smith certified?",
+        options=[OptionChoice(id="A", text="Yes"), OptionChoice(id="B", text="No"), OptionChoice(id="C", text="Cannot Tell"), OptionChoice(id="D", text="Insufficient")],
+        correct_answer_id="A",
+        explanation="Yes by syllogism.",
+        final_score=94
+    )
+    batch_q2 = Question(
+        id=str(uuid.uuid4()),
+        section="quantitative_reasoning",
+        section_label="Quantitative Reasoning",
+        subtopic="Dosage Calculation",
+        difficulty="Easy",
+        stimulus_text="Dosage is 10mg/kg.",
+        question_stem="What is the dose for 70kg?",
+        options=[OptionChoice(id="A", text="700mg"), OptionChoice(id="B", text="500mg"), OptionChoice(id="C", text="100mg"), OptionChoice(id="D", text="350mg")],
+        correct_answer_id="A",
+        explanation="70 * 10 = 700mg.",
+        final_score=95
+    )
+
+    batch_res = await batch_approve_and_save_questions([batch_q1, batch_q2])
+    assert batch_res["success"] is True
+    assert batch_res["saved_count"] == 2
+
+    # Clean up test questions
+    await delete_question(cand_id)
+    await delete_question(batch_q1.id)
+    await delete_question(batch_q2.id)
+

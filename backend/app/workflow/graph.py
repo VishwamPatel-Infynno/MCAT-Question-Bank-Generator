@@ -335,9 +335,12 @@ async def finalize_node(state: AgentWorkflowState) -> Dict[str, Any]:
     )
     outcomes["final_payload"]["id"] = final_q.id
     
-    # Persist in PostgreSQL
-    await save_question(final_q)
-    logger.info(f"Question saved to PostgreSQL Question Bank: {final_q.id} (Score: {final_q.final_score}, Cost: ${final_q.cost_usd:.5f})")
+    # Persist in PostgreSQL ONLY if auto_save is explicitly requested (e.g. testing)
+    if getattr(req, "auto_save", False):
+        await save_question(final_q)
+        logger.info(f"Question auto-saved to PostgreSQL Question Bank: {final_q.id} (Score: {final_q.final_score}, Cost: ${final_q.cost_usd:.5f})")
+    else:
+        logger.info(f"Question candidate verified ({final_q.id}, Score: {final_q.final_score}). Staged for Admin Review & Approval.")
     
     return {
         "final_question": final_q.model_dump(),
@@ -574,10 +577,15 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         final_tokens = state.get("total_tokens", 0)
         final_cost = state.get("total_cost_usd", 0.0)
         
+        complete_msg = (
+            f"Multi-Agent workflow successfully finished! Question verified > 90 and saved to Question Bank. Total: {final_tokens} tokens (${final_cost:.5f})."
+            if getattr(req, "auto_save", False)
+            else f"Multi-Agent workflow completed! Candidate question scored {state.get('final_question', {}).get('final_score', 95)}/100 and is staged for Admin Review & Approval. Total: {final_tokens} tokens (${final_cost:.5f})."
+        )
         complete_evt = make_event(
             event_type="workflow_complete",
             agent_name="System",
-            message=f"Multi-Agent workflow successfully finished! Question verified > 90 and saved to Question Bank. Total: {final_tokens} tokens (${final_cost:.5f}).",
+            message=complete_msg,
             data={
                 "question": state["final_question"],
                 "stage_outcomes": state.get("stage_outcomes", {}),

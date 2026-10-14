@@ -1,5 +1,5 @@
 import React from 'react';
-import { Database, Search, Download, Trash2, Award, Copy, Check, Coins, Play } from 'lucide-react';
+import { Database, Search, Download, Trash2, Award, Copy, Check, Coins, Eye } from 'lucide-react';
 import { getExportUrl } from '../../services/api';
 import { useQuestionBank } from '../../hooks/useQuestionBank';
 
@@ -294,9 +294,9 @@ export default function QuestionBank({ onSelectQuestion }) {
                     gap: '6px',
                     whiteSpace: 'nowrap'
                   }}
-                  title="Load into Interactive Practice Studio"
+                  title="Inspect in Question Studio"
                 >
-                  <Play size={14} /> Practice in Studio
+                  <Eye size={14} /> Review in Studio
                 </button>
 
                 <button

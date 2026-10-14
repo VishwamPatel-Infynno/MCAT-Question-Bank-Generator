@@ -13,7 +13,7 @@ import {
 } from './components';
 import { useQuestionGenerator } from './hooks/useQuestionGenerator';
 import { UCAT_SECTIONS_FALLBACK } from './constants/ucat';
-import { fetchSections, fetchHealth } from './services/api';
+import { fetchSections, fetchHealth, approveQuestion } from './services/api';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('generator');
@@ -77,7 +77,10 @@ export default function App() {
       });
   }, []);
 
+  const [isQuestionSaved, setIsQuestionSaved] = useState(false);
+
   const handleGenerate = () => {
+    setIsQuestionSaved(false);
     const payload = {
       section: selectedSection,
       subtopic: selectedSubtopic,
@@ -94,8 +97,24 @@ export default function App() {
     startGeneration(payload);
   };
 
+  const handleApproveQuestion = async (q) => {
+    try {
+      await approveQuestion(q);
+      setIsQuestionSaved(true);
+    } catch (err) {
+      console.error('Failed to approve and save question:', err);
+      alert('Failed to save question to database. Please check connection.');
+    }
+  };
+
+  const handleDiscardQuestion = () => {
+    setActiveQuestion(null);
+    setIsQuestionSaved(false);
+  };
+
   const handleSelectFromBank = (q) => {
     setActiveQuestion(q);
+    setIsQuestionSaved(true);
     if (q.section) setSelectedSection(q.section);
     if (q.subtopic) setSelectedSubtopic(q.subtopic);
     if (q.difficulty) setDifficulty(q.difficulty);
@@ -171,6 +190,9 @@ export default function App() {
               ) : activeQuestion ? (
                 <QuestionCard
                   question={activeQuestion}
+                  isSaved={isQuestionSaved}
+                  onApprove={handleApproveQuestion}
+                  onDiscard={handleDiscardQuestion}
                   onOpenAudit={(q) => setAuditQuestion(q)}
                   onNextQuestion={handleGenerate}
                 />
