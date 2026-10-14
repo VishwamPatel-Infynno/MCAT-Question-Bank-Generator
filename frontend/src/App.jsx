@@ -80,6 +80,9 @@ export default function App() {
 
   const handleSelectFromBank = (q) => {
     setActiveQuestion(q);
+    if (q.section) setSelectedSection(q.section);
+    if (q.subtopic) setSelectedSubtopic(q.subtopic);
+    if (q.difficulty) setDifficulty(q.difficulty);
     setActiveTab('generator');
   };
 
@@ -135,6 +138,7 @@ export default function App() {
                 <QuestionCard
                   question={activeQuestion}
                   onOpenAudit={(q) => setAuditQuestion(q)}
+                  onNextQuestion={handleGenerate}
                 />
               ) : (
                 <div

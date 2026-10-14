@@ -119,7 +119,8 @@ async def test_strict_rejection_routing_when_score_le_90():
     assert "reason" in reject_res["rejection_data"]
 
 @pytest.mark.asyncio
-async def test_image_generator_svg():
+async def test_image_generator_svg(monkeypatch):
+    monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
     req_ar = GenerationRequest(section=UCATSection.ABSTRACT_REASONING, difficulty=Difficulty.HARD)
     draft_ar = get_mock_draft(req_ar)
     img_url, img_svg, img_desc, usage = await generate_image_stimulus(draft_ar, req_ar)

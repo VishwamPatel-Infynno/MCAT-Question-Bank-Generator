@@ -1,11 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { CheckCircle, XCircle, HelpCircle, ChevronDown, ChevronUp, Award, Layers, ShieldCheck, Eye, Sparkles, Coins } from 'lucide-react';
+import { 
+  CheckCircle, 
+  XCircle, 
+  HelpCircle, 
+  ChevronDown, 
+  ChevronUp, 
+  Award, 
+  Layers, 
+  Eye, 
+  Coins, 
+  Timer, 
+  Play, 
+  Pause, 
+  RotateCcw, 
+  ArrowRight,
+  Sparkles
+} from 'lucide-react';
 
-export default function QuestionCard({ question, onOpenAudit }) {
+const SECTION_SECONDS_MAP = {
+  verbal_reasoning: 28,
+  decision_making: 64,
+  quantitative_reasoning: 41,
+  abstract_reasoning: 14,
+  situational_judgement: 23
+};
+
+export default function QuestionCard({ question, onOpenAudit, onNextQuestion }) {
   const [selectedOption, setSelectedOption] = useState(null);
   const [isAnswerRevealed, setIsAnswerRevealed] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
+
+  // Timer State
+  const targetSeconds = SECTION_SECONDS_MAP[question?.section] || 30;
+  const [secondsRemaining, setSecondsRemaining] = useState(targetSeconds);
+  const [isTimerRunning, setIsTimerRunning] = useState(true);
+  const timerRef = useRef(null);
+
+  // Reset question state & timer whenever question changes
+  useEffect(() => {
+    setSelectedOption(null);
+    setIsAnswerRevealed(false);
+    setShowExplanation(false);
+    setSecondsRemaining(targetSeconds);
+    setIsTimerRunning(true);
+  }, [question?.id, question?.section, targetSeconds]);
+
+  // Timer countdown loop
+  useEffect(() => {
+    if (isTimerRunning && !isAnswerRevealed) {
+      timerRef.current = setInterval(() => {
+        setSecondsRemaining(prev => prev - 1);
+      }, 1000);
+    } else {
+      clearInterval(timerRef.current);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [isTimerRunning, isAnswerRevealed]);
 
   if (!question) return null;
 
@@ -18,6 +69,7 @@ export default function QuestionCard({ question, onOpenAudit }) {
   const handleCheckAnswer = () => {
     setIsAnswerRevealed(true);
     setShowExplanation(true);
+    setIsTimerRunning(false);
     if (selectedOption === question.correct_answer_id) {
       confetti({
         particleCount: 70,
@@ -31,48 +83,96 @@ export default function QuestionCard({ question, onOpenAudit }) {
     setSelectedOption(null);
     setIsAnswerRevealed(false);
     setShowExplanation(false);
+    setSecondsRemaining(targetSeconds);
+    setIsTimerRunning(true);
   };
 
   const isUserCorrect = selectedOption === question.correct_answer_id;
 
+  // Timer visual style
+  let timerStatusClass = 'normal';
+  if (secondsRemaining < 0) {
+    timerStatusClass = 'overtime';
+  } else if (secondsRemaining <= 7) {
+    timerStatusClass = 'warning';
+  }
+
+  const formatTimer = (sec) => {
+    if (sec >= 0) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m > 0 ? `${m}m ` : ''}${s}s`;
+    } else {
+      return `+${Math.abs(sec)}s (Overtime)`;
+    }
+  };
+
   return (
     <div className="glass-panel" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Top Metadata Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      {/* Top Header: Subtest Badges + Pacing Timer + Audit */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <span className="badge badge-cyan">{question.section_label || question.section}</span>
           <span className="badge badge-purple">{question.subtopic}</span>
           <span className="badge badge-amber">{question.difficulty}</span>
+          <span className="badge badge-emerald" style={{ fontSize: '0.75rem', padding: '3px 10px' }}>
+            <Award size={13} /> {question.final_score}/100
+          </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="badge badge-emerald" style={{ fontSize: '0.8rem', padding: '4px 12px' }}>
-            <Award size={14} /> Quality Score: {question.final_score}/100
-          </span>
-          {question.total_tokens !== undefined && question.total_tokens > 0 && (
-            <span className="badge badge-cyan" style={{ fontSize: '0.8rem', padding: '4px 12px' }} title="Accumulated Multi-Agent Tokens & Cost">
-              <Coins size={14} /> {question.total_tokens.toLocaleString()} tokens &bull; ${question.cost_usd?.toFixed(5)}
-            </span>
-          )}
-          {question.iteration_count > 1 && (
-            <span className="badge badge-amber" style={{ fontSize: '0.8rem', padding: '4px 12px' }}>
-              <Layers size={14} /> Refined in Iteration {question.iteration_count}
-            </span>
-          )}
+        {/* Live Practice Timer Pill */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className={`timer-pill ${timerStatusClass}`}>
+            <Timer size={15} />
+            <span>{formatTimer(secondsRemaining)}</span>
+            <button
+              type="button"
+              onClick={() => setIsTimerRunning(!isTimerRunning)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '2px',
+                color: 'inherit'
+              }}
+              title={isTimerRunning ? 'Pause Timer' : 'Resume Timer'}
+            >
+              {isTimerRunning ? <Pause size={13} /> : <Play size={13} />}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSecondsRemaining(targetSeconds)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '2px',
+                color: 'inherit'
+              }}
+              title="Reset Timer"
+            >
+              <RotateCcw size={13} />
+            </button>
+          </div>
+
           {onOpenAudit && (
             <button
               onClick={() => onOpenAudit(question)}
               className="btn-secondary"
               style={{ padding: '4px 10px', fontSize: '0.75rem' }}
-              title="Inspect Reviewer Rubric and Evolution Diff"
+              title="Inspect Reviewer Rubric and Score Breakdown"
             >
-              <Eye size={14} /> Audit Log
+              <Eye size={13} /> Audit
             </button>
           )}
         </div>
       </div>
 
-      {/* Stimulus / Reading Passage / Clinical Vignette */}
+      {/* Reading Passage / Clinical Vignette */}
       {question.stimulus_text && (
         <div style={{
           background: 'var(--bg-canvas)',
@@ -91,7 +191,7 @@ export default function QuestionCard({ question, onOpenAudit }) {
         </div>
       )}
 
-      {/* Visual Stimulus Diagram / SVG / Image */}
+      {/* Visual Stimulus Diagram / Image */}
       {(question.image_svg || question.image_url) && (
         <div style={{
           display: 'flex',
@@ -151,8 +251,8 @@ export default function QuestionCard({ question, onOpenAudit }) {
               onClick={() => handleSelect(opt.id)}
             >
               <div style={{
-                width: '30px',
-                height: '30px',
+                width: '32px',
+                height: '32px',
                 borderRadius: '8px',
                 background: isAnswerRevealed && isCorrectKey 
                   ? '#10b981'
@@ -173,47 +273,63 @@ export default function QuestionCard({ question, onOpenAudit }) {
                 {opt.id}
               </div>
 
-              <div style={{ flex: 1, fontSize: '0.925rem', fontWeight: 500, color: 'var(--text-primary)', paddingTop: '2px' }}>
+              <div style={{ flex: 1, fontSize: '0.925rem', fontWeight: 500, color: 'var(--text-primary)', paddingTop: '4px' }}>
                 {opt.text}
               </div>
 
               {isAnswerRevealed && isCorrectKey && (
-                <CheckCircle size={20} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <CheckCircle size={20} color="#10b981" style={{ flexShrink: 0, marginTop: '4px' }} />
               )}
               {isAnswerRevealed && isSelected && !isCorrectKey && (
-                <XCircle size={20} color="#f43f5e" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <XCircle size={20} color="#f43f5e" style={{ flexShrink: 0, marginTop: '4px' }} />
               )}
             </div>
           );
         })}
       </div>
 
-      {/* Action Controls for Testing */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '10px' }}>
-        {!isAnswerRevealed ? (
-          <button
-            id="btn-check-answer"
-            className="btn-primary"
-            onClick={handleCheckAnswer}
-            disabled={!selectedOption}
-            style={{ padding: '10px 24px' }}
-          >
-            Check My Answer
-          </button>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{
-              fontSize: '0.9rem',
-              fontWeight: 700,
-              color: isUserCorrect ? '#059669' : '#e11d48'
-            }}>
-              {isUserCorrect ? 'Correct! Excellent clinical reasoning.' : `Incorrect. The correct answer is Option ${question.correct_answer_id}.`}
-            </span>
-            <button className="btn-secondary" onClick={handleReset}>
-              Try Again
+      {/* Action Controls */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', paddingTop: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {!isAnswerRevealed ? (
+            <button
+              id="btn-check-answer"
+              className="btn-primary"
+              onClick={handleCheckAnswer}
+              disabled={!selectedOption}
+              style={{ padding: '10px 24px' }}
+            >
+              Check My Answer
             </button>
-          </div>
-        )}
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{
+                fontSize: '0.9rem',
+                fontWeight: 700,
+                color: isUserCorrect ? '#059669' : '#e11d48'
+              }}>
+                {isUserCorrect ? '🎉 Correct! Excellent clinical reasoning.' : `Option ${question.correct_answer_id} is correct.`}
+              </span>
+              <button className="btn-secondary" onClick={handleReset}>
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {onNextQuestion && (
+            <button
+              id="btn-practice-next"
+              className="btn-primary"
+              onClick={onNextQuestion}
+              style={{
+                background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                borderColor: '#6366f1'
+              }}
+            >
+              <Sparkles size={16} /> Practice Next Question
+            </button>
+          )}
+        </div>
 
         <button
           className="btn-secondary"

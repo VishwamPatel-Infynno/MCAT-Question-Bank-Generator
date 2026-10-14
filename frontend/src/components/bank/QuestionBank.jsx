@@ -1,7 +1,23 @@
 import React from 'react';
-import { Database, Search, Download, Trash2, Eye, Award, ExternalLink, Copy, Check, Coins } from 'lucide-react';
+import { Database, Search, Download, Trash2, Award, Copy, Check, Coins, Play, ArrowRight, Filter } from 'lucide-react';
 import { getExportUrl } from '../../services/api';
 import { useQuestionBank } from '../../hooks/useQuestionBank';
+
+const SUBTEST_FILTER_OPTIONS = [
+  { id: '', label: 'All Subtests' },
+  { id: 'verbal_reasoning', label: 'Verbal' },
+  { id: 'decision_making', label: 'Decision' },
+  { id: 'quantitative_reasoning', label: 'Quantitative' },
+  { id: 'abstract_reasoning', label: 'Abstract' },
+  { id: 'situational_judgement', label: 'SJT' }
+];
+
+const DIFFICULTY_FILTER_OPTIONS = [
+  { id: '', label: 'All Levels' },
+  { id: 'easy', label: 'Easy' },
+  { id: 'medium', label: 'Medium' },
+  { id: 'hard', label: 'Hard' }
+];
 
 export default function QuestionBank({ onSelectQuestion }) {
   const {
@@ -26,47 +42,46 @@ export default function QuestionBank({ onSelectQuestion }) {
       <div className="glass-panel" style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
-            UK UCAT Question Bank Repository
+            UK UCAT Question Bank Library
           </h2>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            Curated questions reviewed, scored, and stored in persistent PostgreSQL 16 database.
+            Practice and review psychometrically validated questions stored in PostgreSQL 16.
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <div style={{
             background: 'var(--bg-canvas)',
-            padding: '10px 18px',
+            padding: '8px 16px',
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--border-light)',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>TOTAL QUESTIONS</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--brand-primary)' }}>{questions.length}</div>
+            <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)' }}>QUESTIONS</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--brand-primary)' }}>{questions.length}</div>
           </div>
 
           <div style={{
             background: 'var(--bg-canvas)',
-            padding: '10px 18px',
+            padding: '8px 16px',
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--border-light)',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>AVG QUALITY SCORE</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#059669' }}>{avgScore}/100</div>
+            <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)' }}>AVG SCORE</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#059669' }}>{avgScore}/100</div>
           </div>
 
-          {/* 3rd Stat Card: Total Repository Tokens & Cost */}
           <div style={{
             background: 'var(--bg-canvas)',
-            padding: '10px 18px',
+            padding: '8px 16px',
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--border-light)',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>REPO TOKENS &amp; COST</div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#4f46e5' }}>
-              {repoStats.total_tokens.toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#166534' }}>(${repoStats.total_cost_usd.toFixed(4)})</span>
+            <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)' }}>REPO COST</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#4f46e5' }}>
+              ${repoStats.total_cost_usd.toFixed(4)}
             </div>
           </div>
 
@@ -76,61 +91,94 @@ export default function QuestionBank({ onSelectQuestion }) {
               href={getExportUrl('json')}
               download="ucat_questions.json"
               className="btn-secondary"
-              style={{ textDecoration: 'none', padding: '10px 14px' }}
+              style={{ textDecoration: 'none', padding: '8px 12px', fontSize: '0.8rem' }}
             >
-              <Download size={16} /> JSON
+              <Download size={14} /> JSON
             </a>
             <a
               href={getExportUrl('csv')}
               download="ucat_questions.csv"
               className="btn-secondary"
-              style={{ textDecoration: 'none', padding: '10px 14px' }}
+              style={{ textDecoration: 'none', padding: '8px 12px', fontSize: '0.8rem' }}
             >
-              <Download size={16} /> CSV
+              <Download size={14} /> CSV
             </a>
           </div>
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="glass-panel" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: '220px', display: 'flex', alignItems: 'center', gap: '10px', background: '#ffffff', padding: '0 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }}>
-          <Search size={18} color="var(--text-secondary)" />
-          <input
-            id="input-bank-search"
-            type="text"
-            placeholder="Search questions by stem, topic, or stimulus..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ border: 'none', background: 'transparent', padding: '10px 0', width: '100%', color: 'var(--text-primary)' }}
-          />
+      {/* Filter Bar with Horizontal Pills */}
+      <div className="glass-panel" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        {/* Search Row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{
+            flex: 1,
+            minWidth: '240px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            background: '#ffffff',
+            padding: '0 12px',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border-light)'
+          }}>
+            <Search size={16} color="var(--text-secondary)" />
+            <input
+              id="input-bank-search"
+              type="text"
+              placeholder="Search by question stem, topic, or stimulus..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ border: 'none', background: 'transparent', padding: '8px 0', width: '100%', fontSize: '0.85rem' }}
+            />
+          </div>
+
+          {/* Difficulty Filter Chips */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {DIFFICULTY_FILTER_OPTIONS.map(d => (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => setDiffFilter(d.id)}
+                style={{
+                  padding: '5px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  border: diffFilter === d.id ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
+                  background: diffFilter === d.id ? 'var(--brand-primary-light)' : '#ffffff',
+                  color: diffFilter === d.id ? 'var(--brand-primary)' : 'var(--text-secondary)',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <select
-          id="select-bank-section"
-          value={sectionFilter}
-          onChange={(e) => setSectionFilter(e.target.value)}
-          style={{ minWidth: '180px' }}
-        >
-          <option value="">All UCAT Subtests</option>
-          <option value="verbal_reasoning">Verbal Reasoning</option>
-          <option value="decision_making">Decision Making</option>
-          <option value="quantitative_reasoning">Quantitative Reasoning</option>
-          <option value="abstract_reasoning">Abstract Reasoning</option>
-          <option value="situational_judgement">Situational Judgement</option>
-        </select>
-
-        <select
-          id="select-bank-difficulty"
-          value={diffFilter}
-          onChange={(e) => setDiffFilter(e.target.value)}
-          style={{ minWidth: '140px' }}
-        >
-          <option value="">All Difficulties</option>
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
-        </select>
+        {/* Horizontal Subtest Filter Pills */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          overflowX: 'auto',
+          paddingBottom: '2px'
+        }}>
+          {SUBTEST_FILTER_OPTIONS.map(sec => {
+            const isActive = sectionFilter === sec.id;
+            return (
+              <button
+                key={sec.id}
+                type="button"
+                className={`filter-pill ${isActive ? 'active' : ''}`}
+                onClick={() => setSectionFilter(sec.id)}
+              >
+                <span>{sec.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Questions List */}
@@ -140,10 +188,10 @@ export default function QuestionBank({ onSelectQuestion }) {
         </div>
       ) : questions.length === 0 ? (
         <div className="glass-panel" style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-secondary)' }}>
-          <Database size={48} color="#cbd5e1" style={{ marginBottom: '14px' }} />
-          <h3 style={{ fontSize: '1.1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>No Questions Found</h3>
-          <p style={{ fontSize: '0.85rem' }}>
-            Generate questions using the Generator Studio to build your UK UCAT library.
+          <Database size={44} color="#cbd5e1" style={{ marginBottom: '12px' }} />
+          <h3 style={{ fontSize: '1.05rem', color: 'var(--text-primary)', marginBottom: '6px' }}>No Questions Found</h3>
+          <p style={{ fontSize: '0.825rem' }}>
+            No questions match your current filters. Clear filters or generate new questions in the Studio.
           </p>
         </div>
       ) : (
@@ -151,11 +199,9 @@ export default function QuestionBank({ onSelectQuestion }) {
           {questions.map((q) => (
             <div
               key={q.id}
-              onClick={() => onSelectQuestion(q)}
               className="glass-panel"
               style={{
                 padding: '18px 24px',
-                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -181,7 +227,7 @@ export default function QuestionBank({ onSelectQuestion }) {
                   )}
                   {q.image_svg && (
                     <span className="badge badge-purple" style={{ fontSize: '0.65rem' }}>
-                      SVG Stimulus
+                      Visual Stimulus
                     </span>
                   )}
                 </div>
@@ -197,15 +243,29 @@ export default function QuestionBank({ onSelectQuestion }) {
                 )}
               </div>
 
-              {/* Action Buttons */}
+              {/* Action Buttons: Practice in Studio, Copy, Delete */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  onClick={() => onSelectQuestion(q)}
+                  className="btn-primary"
+                  style={{
+                    padding: '8px 14px',
+                    fontSize: '0.8rem',
+                    gap: '6px',
+                    whiteSpace: 'nowrap'
+                  }}
+                  title="Load into Interactive Practice Studio"
+                >
+                  <Play size={14} /> Practice in Studio
+                </button>
+
                 <button
                   onClick={(e) => handleCopy(q, e)}
                   className="btn-secondary"
                   style={{ padding: '8px' }}
-                  title="Copy formatted question"
+                  title="Copy question text"
                 >
-                  {copiedId === q.id ? <Check size={16} color="#059669" /> : <Copy size={16} />}
+                  {copiedId === q.id ? <Check size={15} color="#059669" /> : <Copy size={15} />}
                 </button>
 
                 <button
@@ -214,7 +274,7 @@ export default function QuestionBank({ onSelectQuestion }) {
                   style={{ padding: '8px', color: '#e11d48' }}
                   title="Delete question"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={15} />
                 </button>
               </div>
             </div>
