@@ -3,7 +3,6 @@ import {
   PenTool, 
   ShieldCheck, 
   RotateCcw, 
-  Image as ImageIcon, 
   CheckCircle2, 
   Coins, 
   ChevronDown, 
@@ -31,7 +30,6 @@ export default function AgentVisualizer({
   const hasGenerated = events.some(e => e.agent_name === 'Question Generator' && e.event_type === 'agent_complete');
   const hasReviewed = events.some(e => e.agent_name === 'Question Reviewer' && e.event_type === 'agent_complete');
   const hasRegenerated = events.some(e => e.agent_name === 'Question Re-Generator' && e.event_type === 'agent_complete');
-  const hasImaged = events.some(e => e.agent_name === 'Image Generator' && e.event_type === 'agent_complete');
 
   const isWorkflowComplete = !isGenerating && events.length > 0 && hasReviewed && (latestReview?.total_score > 90 || !latestReview);
 

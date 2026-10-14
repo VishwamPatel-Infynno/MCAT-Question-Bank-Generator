@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Award, CheckCircle, AlertTriangle, ArrowRight, ShieldCheck, Layers, Coins, Cpu } from 'lucide-react';
+import { X, CheckCircle, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 export default function ReviewAuditView({ question, onClose }) {
   if (!question) return null;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertOctagon, RotateCcw, ShieldAlert, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
+import { AlertOctagon, RotateCcw, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 
 export default function RejectionCard({ rejectionData, onRetry }) {
   const [showDraft, setShowDraft] = useState(false);

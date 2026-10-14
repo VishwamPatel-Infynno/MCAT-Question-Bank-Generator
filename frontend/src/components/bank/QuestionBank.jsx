@@ -1,5 +1,5 @@
 import React from 'react';
-import { Database, Search, Download, Trash2, Award, Copy, Check, Coins, Play, ArrowRight, Filter } from 'lucide-react';
+import { Database, Search, Download, Trash2, Award, Copy, Check, Coins, Play } from 'lucide-react';
 import { getExportUrl } from '../../services/api';
 import { useQuestionBank } from '../../hooks/useQuestionBank';
 

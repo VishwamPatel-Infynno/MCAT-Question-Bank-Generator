@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, FileText, ChevronDown, ChevronUp, SlidersHorizontal, Target, Zap, Flame, Hash, Tag, AlertTriangle } from 'lucide-react';
+import { Sparkles, FileText, ChevronDown, ChevronUp, SlidersHorizontal, Target, Zap, Flame, Tag } from 'lucide-react';
 import { SECTION_ICONS, PACING_INFO, CONTENT_DOMAINS, QUESTION_TYPES, PRIMARY_TRAPS } from '../../constants/ucat';
 
 export default function GeneratorPanel({
@@ -22,10 +22,10 @@ export default function GeneratorPanel({
   setQuestionType,
   primaryTrap,
   setPrimaryTrap,
-  passageRequired,
-  setPassageRequired,
-  visualType,
-  setVisualType,
+  passageRequired: _passageRequired,
+  setPassageRequired: _setPassageRequired,
+  visualType: _visualType,
+  setVisualType: _setVisualType,
   onGenerate,
   isGenerating
 }) {

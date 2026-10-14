@@ -9,30 +9,37 @@ export function useQuestionBank() {
   const [diffFilter, setDiffFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState(null);
-
-  const loadQuestions = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await fetchQuestions({
-        section: sectionFilter || undefined,
-        difficulty: diffFilter || undefined,
-        search: searchQuery || undefined
-      });
-      setQuestions(data.questions || []);
-      setRepoStats({
-        total_tokens: data.total_tokens || 0,
-        total_cost_usd: data.total_cost_usd || 0
-      });
-    } catch (err) {
-      console.error('Failed to load question bank:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [sectionFilter, diffFilter, searchQuery]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
-    loadQuestions();
-  }, [loadQuestions]);
+    let isMounted = true;
+    fetchQuestions({
+      section: sectionFilter || undefined,
+      difficulty: diffFilter || undefined,
+      search: searchQuery || undefined
+    }).then(data => {
+      if (isMounted) {
+        setQuestions(data.questions || []);
+        setRepoStats({
+          total_tokens: data.total_tokens || 0,
+          total_cost_usd: data.total_cost_usd || 0
+        });
+        setLoading(false);
+      }
+    }).catch(err => {
+      console.error('Failed to load question bank:', err);
+      if (isMounted) setLoading(false);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [sectionFilter, diffFilter, searchQuery, refreshTrigger]);
+
+  const loadQuestions = useCallback(() => {
+    setLoading(true);
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
 
   const handleDelete = useCallback(async (id, e) => {
     if (e) e.stopPropagation();

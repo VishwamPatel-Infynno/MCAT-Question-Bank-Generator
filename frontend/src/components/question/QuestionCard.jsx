@@ -7,14 +7,11 @@ import {
   ChevronDown, 
   ChevronUp, 
   Award, 
-  Layers, 
   Eye, 
-  Coins, 
   Timer, 
   Play, 
   Pause, 
   RotateCcw, 
-  ArrowRight,
   Sparkles
 } from 'lucide-react';
 import StageJsonInspector from './StageJsonInspector';
@@ -29,24 +26,26 @@ const SECTION_SECONDS_MAP = {
 };
 
 export default function QuestionCard({ question, onOpenAudit, onNextQuestion }) {
+  const targetSeconds = SECTION_SECONDS_MAP[question?.section] || 30;
+  const [prevQuestionId, setPrevQuestionId] = useState(question?.id);
   const [selectedOption, setSelectedOption] = useState(null);
   const [isAnswerRevealed, setIsAnswerRevealed] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
 
   // Timer State
-  const targetSeconds = SECTION_SECONDS_MAP[question?.section] || 30;
   const [secondsRemaining, setSecondsRemaining] = useState(targetSeconds);
   const [isTimerRunning, setIsTimerRunning] = useState(true);
   const timerRef = useRef(null);
 
-  // Reset question state & timer whenever question changes
-  useEffect(() => {
+  // Reset state when question ID changes without cascading render effects
+  if (question?.id !== prevQuestionId) {
+    setPrevQuestionId(question?.id);
     setSelectedOption(null);
     setIsAnswerRevealed(false);
     setShowExplanation(false);
     setSecondsRemaining(targetSeconds);
     setIsTimerRunning(true);
-  }, [question?.id, question?.section, targetSeconds]);
+  }
 
   // Timer countdown loop
   useEffect(() => {

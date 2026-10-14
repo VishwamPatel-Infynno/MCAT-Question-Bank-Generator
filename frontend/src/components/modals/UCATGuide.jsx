@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, CheckCircle, ShieldAlert, Zap, Clock, HelpCircle } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 export default function UCATGuide() {
   const sections = [

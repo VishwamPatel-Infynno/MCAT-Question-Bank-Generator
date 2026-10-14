@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, Settings, Sliders, Image, Sparkles } from 'lucide-react';
+import { X, Settings, Sliders, Image } from 'lucide-react';
 import { fetchSettings, updateSettings } from '../../services/api';
-import { MODEL_OPTIONS, DEFAULT_TEXT_MODEL, DEFAULT_IMAGE_MODEL, IMAGE_RESOLUTION_PRESETS, IMAGE_PRICING } from '../../constants/config';
+import { MODEL_OPTIONS, DEFAULT_TEXT_MODEL, IMAGE_RESOLUTION_PRESETS } from '../../constants/config';
 
 export default function SettingsModal({ onClose }) {
   const [model, setModel] = useState(DEFAULT_TEXT_MODEL);
   const [deepinfraKey, setDeepinfraKey] = useState('');
-  const [geminiKey, setGeminiKey] = useState('');
-  const [openaiKey, setOpenaiKey] = useState('');
   const [maxRegenerations, setMaxRegenerations] = useState(3);
 
   // FLUX-1-schnell Image Settings
@@ -16,7 +14,6 @@ export default function SettingsModal({ onClose }) {
   const [imageIters, setImageIters] = useState(4);
 
   const [savedSuccess, setSavedSuccess] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchSettings().then(cfg => {
@@ -25,8 +22,7 @@ export default function SettingsModal({ onClose }) {
       if (cfg.image_width) setImageWidth(cfg.image_width);
       if (cfg.image_height) setImageHeight(cfg.image_height);
       if (cfg.image_iters) setImageIters(cfg.image_iters);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch(() => {});
   }, []);
 
   const liveImageCost = (0.0005 * (imageWidth / 1024) * (imageHeight / 1024) * imageIters).toFixed(5);
@@ -40,8 +36,6 @@ export default function SettingsModal({ onClose }) {
       image_iters: imageIters
     };
     if (deepinfraKey.trim()) payload.deepinfra_api_key = deepinfraKey.trim();
-    if (geminiKey.trim()) payload.gemini_api_key = geminiKey.trim();
-    if (openaiKey.trim()) payload.openai_api_key = openaiKey.trim();
 
     await updateSettings(payload);
     setSavedSuccess(true);

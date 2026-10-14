@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, Play, Upload, CheckCircle2, AlertCircle, Sparkles, Database, FileSpreadsheet, Plus, Trash2 } from 'lucide-react';
+import { Layers, Play, Upload, Sparkles, FileSpreadsheet, Plus, Trash2 } from 'lucide-react';
 import QuestionCard from '../question/QuestionCard';
 import AgentVisualizer from '../generator/AgentVisualizer';
 import { useQuestionGenerator } from '../../hooks/useQuestionGenerator';
@@ -346,19 +346,40 @@ export default function MatrixRunner({ onOpenSettings }) {
                   <td style={{ padding: '10px' }}>{comb.Passage_Required} ({comb.Passage_Questions}q)</td>
                   <td style={{ padding: '10px' }}>{comb.Visual_Type || 'None'}</td>
                   <td style={{ padding: '10px' }}>
-                    <button
-                      type="button"
-                      className="btn-primary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedCombIndex(idx);
-                        handleRunCombination(comb);
-                      }}
-                      disabled={isGenerating}
-                      style={{ padding: '4px 10px', fontSize: '0.725rem' }}
-                    >
-                      <Play size={12} /> Run
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCombIndex(idx);
+                          handleRunCombination(comb);
+                        }}
+                        disabled={isGenerating}
+                        style={{ padding: '4px 10px', fontSize: '0.725rem' }}
+                      >
+                        <Play size={12} /> Run
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteRow(idx, e)}
+                        title="Delete combination row"
+                        disabled={combinations.length <= 1}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: combinations.length <= 1 ? 'var(--text-muted)' : 'var(--brand-danger)',
+                          cursor: combinations.length <= 1 ? 'not-allowed' : 'pointer',
+                          padding: '4px 6px',
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          opacity: combinations.length <= 1 ? 0.4 : 1
+                        }}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
