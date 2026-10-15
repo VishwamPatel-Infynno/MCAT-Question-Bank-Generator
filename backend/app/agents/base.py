@@ -67,6 +67,8 @@ async def call_llm(
         ],
         "temperature": temperature,
         "max_tokens": max_tokens,
+        "request_timeout": 90.0,
+        "num_retries": 2,
     }
 
     if api_key:

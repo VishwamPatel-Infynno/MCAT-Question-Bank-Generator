@@ -55,10 +55,20 @@ export default function App() {
     setActiveQuestion,
     rejectedData,
     latestReview,
-    startGeneration
+    startGeneration,
+    cancelGeneration
   } = useQuestionGenerator({
     onNeedsApiKey: () => setShowSettings(true)
   });
+
+  const handleCancelGeneration = useCallback(() => {
+    cancelGeneration();
+    showToast({
+      type: 'info',
+      title: 'Generation Cancelled',
+      message: 'Workflow execution stopped.'
+    });
+  }, [cancelGeneration, showToast]);
 
   // Initialize backend health & sections data
   useEffect(() => {
@@ -211,6 +221,7 @@ export default function App() {
                 customPrompt={customPrompt}
                 setCustomPrompt={setCustomPrompt}
                 onGenerate={handleGenerate}
+                onCancel={handleCancelGeneration}
                 isGenerating={isGenerating}
                 isCollapsed={isPanelCollapsed}
                 onToggleCollapse={() => setIsPanelCollapsed(!isPanelCollapsed)}

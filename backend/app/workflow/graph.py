@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from collections.abc import AsyncGenerator
@@ -633,6 +634,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             },
         )
         yield f"data: {complete_evt.model_dump_json()}\n\n"
+    except asyncio.CancelledError:
+        logger.info("Workflow stream cancelled by client disconnect.")
+        raise
     except Exception as e:
         logger.error(f"Workflow stream error: {e}")
         err_msg = str(e)

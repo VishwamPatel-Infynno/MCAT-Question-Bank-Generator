@@ -15,10 +15,18 @@ import {
   Square,
   Sparkles,
   HelpCircle,
-  FileDown
+  FileDown,
+  ArrowUpDown
 } from 'lucide-react';
 import { getExportUrl, deleteQuestion } from '../../services/api';
 import { useQuestionBank } from '../../hooks/useQuestionBank';
+
+const SORT_OPTIONS = [
+  { id: 'newest', label: 'Newest First' },
+  { id: 'score_desc', label: 'Highest Score' },
+  { id: 'score_asc', label: 'Lowest Score' },
+  { id: 'difficulty', label: 'Difficulty Level' }
+];
 
 const SUBTEST_FILTER_OPTIONS = [
   { id: '', label: 'All Subtests' },
@@ -47,6 +55,8 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
     setDiffFilter,
     searchQuery,
     setSearchQuery,
+    sortBy,
+    setSortBy,
     copiedId,
     loadQuestions,
     handleDelete,
@@ -294,6 +304,34 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                 </button>
               );
             })}
+          </div>
+
+          {/* Sort Selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto' }}>
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <ArrowUpDown size={12} /> Sort:
+            </span>
+            <select
+              id="select-bank-sort"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              style={{
+                background: 'var(--bg-surface-elevated)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '4px 8px',
+                fontSize: '0.74rem',
+                color: 'var(--text-primary)',
+                outline: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.id} value={opt.id}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

@@ -11,13 +11,13 @@ export async function fetchSections() {
   return res.json();
 }
 
-export async function fetchQuestions(params = {}) {
+export async function fetchQuestions(params = {}, signal = null) {
   const query = new URLSearchParams();
   if (params.section) query.append('section', params.section);
   if (params.difficulty) query.append('difficulty', params.difficulty);
   if (params.search) query.append('search', params.search);
 
-  const res = await fetch(`${API_BASE}/questions?${query.toString()}`);
+  const res = await fetch(`${API_BASE}/questions?${query.toString()}`, { signal });
   return res.json();
 }
 
@@ -70,12 +70,13 @@ export function getExportUrl(format = 'json') {
   return `${API_BASE}/export?format=${format}`;
 }
 
-export async function generateQuestionStream(payload, onEvent, onError, onComplete) {
+export async function generateQuestionStream(payload, onEvent, onError, onComplete, signal = null) {
   try {
     const response = await fetch(`${API_BASE}/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal
     });
 
     if (!response.ok) {
@@ -111,6 +112,10 @@ export async function generateQuestionStream(payload, onEvent, onError, onComple
       }
     }
   } catch (err) {
+    if (err.name === 'AbortError') {
+      if (onError) onError({ isAborted: true, message: 'Generation cancelled' });
+      return;
+    }
     console.error('SSE Stream error:', err);
     if (onError) onError(err);
   }

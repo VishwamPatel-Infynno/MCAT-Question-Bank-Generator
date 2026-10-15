@@ -6,7 +6,8 @@ import {
   ChevronUp,
   SlidersHorizontal,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  X
 } from 'lucide-react';
 import { SECTION_ICONS, PACING_INFO } from '../../constants/ucat';
 
@@ -23,6 +24,7 @@ export default function GeneratorPanel({
   customPrompt,
   setCustomPrompt,
   onGenerate,
+  onCancel,
   isGenerating,
   isCollapsed,
   onToggleCollapse
@@ -112,15 +114,27 @@ export default function GeneratorPanel({
         </div>
 
         <div style={{ marginTop: 'auto' }}>
-          <button
-            onClick={onGenerate}
-            disabled={isGenerating}
-            className="btn-primary"
-            style={{ width: '36px', height: '36px', padding: 0, borderRadius: 'var(--radius-sm)' }}
-            title="Generate Question (⌘↵)"
-          >
-            <Sparkles size={16} />
-          </button>
+          {isGenerating ? (
+            <button
+              id="btn-cancel-generation-collapsed"
+              onClick={onCancel}
+              className="btn-danger"
+              style={{ width: '36px', height: '36px', padding: 0, borderRadius: 'var(--radius-sm)' }}
+              title="Cancel Generation"
+            >
+              <X size={16} />
+            </button>
+          ) : (
+            <button
+              id="btn-generate-collapsed"
+              onClick={onGenerate}
+              className="btn-primary"
+              style={{ width: '36px', height: '36px', padding: 0, borderRadius: 'var(--radius-sm)' }}
+              title="Generate Question (⌘↵)"
+            >
+              <Sparkles size={16} />
+            </button>
+          )}
         </div>
       </div>
     );
@@ -428,20 +442,38 @@ export default function GeneratorPanel({
         )}
       </div>
 
-      {/* Primary Generate Action */}
-      <button
-        id="btn-generate-main"
-        onClick={onGenerate}
-        disabled={isGenerating}
-        className="btn-primary"
-        style={{ width: '100%', padding: '10px 16px', marginTop: 'auto' }}
-      >
-        <Sparkles size={15} />
-        <span>{isGenerating ? 'Generating Question...' : 'Generate Question'}</span>
-        <span className="kbd-hint" style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.2)', color: '#ffffff', border: 'none' }}>
-          ⌘↵
-        </span>
-      </button>
+      {/* Primary Generate Action / Cancel Action */}
+      <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
+        <button
+          id="btn-generate-main"
+          onClick={onGenerate}
+          disabled={isGenerating}
+          className="btn-primary"
+          style={{ flex: 1, padding: '10px 16px' }}
+        >
+          <Sparkles size={15} />
+          <span>{isGenerating ? 'Generating Question...' : 'Generate Question'}</span>
+          {!isGenerating && (
+            <span className="kbd-hint" style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.2)', color: '#ffffff', border: 'none' }}>
+              ⌘↵
+            </span>
+          )}
+        </button>
+
+        {isGenerating && onCancel && (
+          <button
+            id="btn-cancel-generation"
+            type="button"
+            onClick={onCancel}
+            className="btn-danger"
+            style={{ padding: '10px 14px', fontSize: '0.8rem', whiteSpace: 'nowrap', gap: '6px' }}
+            title="Stop and abort question generation"
+          >
+            <X size={14} />
+            <span>Cancel</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }

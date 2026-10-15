@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { generateQuestionStream } from '../services/api';
 
 export function useQuestionGenerator({ onNeedsApiKey } = {}) {
@@ -9,8 +9,24 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
   const [activeQuestion, setActiveQuestion] = useState(null);
   const [rejectedData, setRejectedData] = useState(null);
   const [latestReview, setLatestReview] = useState(null);
+  const abortControllerRef = useRef(null);
+
+  const cancelGeneration = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsGenerating(false);
+    setActiveAgent('Idle');
+  }, []);
 
   const startGeneration = useCallback((payload) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsGenerating(true);
     setActiveQuestion(null);
     setRejectedData(null);
@@ -41,32 +57,46 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
           setIsGenerating(false);
           setActiveAgent('Quality Gate (Halted)');
           setRejectedData(evt.data);
+          abortControllerRef.current = null;
         }
         if (evt.event_type === 'workflow_error') {
           setIsGenerating(false);
           setActiveAgent('Configuration Required');
+          abortControllerRef.current = null;
           if (evt.message && evt.message.includes('DeepInfra API Key') && onNeedsApiKey) {
             onNeedsApiKey();
           }
         }
       },
       (err) => {
+        abortControllerRef.current = null;
+        if (err?.isAborted) {
+          setIsGenerating(false);
+          setActiveAgent('Idle');
+          return;
+        }
         console.error('Workflow error:', err);
         setIsGenerating(false);
         setActiveAgent('Error');
       },
       (finalData) => {
+        abortControllerRef.current = null;
         setIsGenerating(false);
         setActiveAgent('Completed');
         const q = finalData?.question || finalData;
         if (q) {
           setActiveQuestion(q);
         }
-      }
+      },
+      controller.signal
     );
   }, [onNeedsApiKey]);
 
   const reset = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
     setIsGenerating(false);
     setActiveAgent('Idle');
     setEvents([]);
@@ -86,6 +116,7 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
     rejectedData,
     latestReview,
     startGeneration,
+    cancelGeneration,
     reset
   };
 }
