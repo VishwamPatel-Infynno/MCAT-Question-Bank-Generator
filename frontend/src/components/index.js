@@ -11,8 +11,7 @@ export { default as QuestionCard } from './question/QuestionCard';
 export { default as ReviewAuditView } from './question/ReviewAuditView';
 export { default as StageJsonInspector } from './question/StageJsonInspector';
 
-// Batch Matrix Runner
-export { default as MatrixRunner } from './matrix/MatrixRunner';
+
 
 // Question Bank
 export { default as QuestionBank } from './bank/QuestionBank';

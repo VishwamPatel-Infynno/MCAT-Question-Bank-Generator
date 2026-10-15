@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Database, Settings, Cpu, Layers, Sun, Moon } from 'lucide-react';
+import { Sparkles, Database, Settings, Cpu, Sun, Moon } from 'lucide-react';
 
 export default function Navbar({
   activeTab,
@@ -99,28 +99,6 @@ export default function Navbar({
           Generator Studio
         </button>
 
-        <button
-          id="nav-tab-matrix"
-          onClick={() => setActiveTab('matrix')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '7px 16px',
-            borderRadius: 'var(--radius-md)',
-            background: activeTab === 'matrix' ? 'var(--brand-primary)' : 'transparent',
-            border: 'none',
-            color: activeTab === 'matrix' ? '#ffffff' : 'var(--text-secondary)',
-            fontWeight: 600,
-            fontSize: '0.85rem',
-            cursor: 'pointer',
-            transition: 'all var(--transition-fast)',
-            boxShadow: activeTab === 'matrix' ? '0 2px 8px rgba(2, 132, 199, 0.4)' : 'none'
-          }}
-        >
-          <Layers size={15} />
-          Batch Matrix
-        </button>
 
         <button
           id="nav-tab-bank"

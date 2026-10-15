@@ -310,7 +310,6 @@ frontend/src/
 │   ├── layout/          # Layout components (Navbar)
 │   ├── generator/       # Question generation studio (Panel, Visualizer, RejectionCard)
 │   ├── question/        # Candidate question review & audit (QuestionCard, ReviewAuditView, StageJsonInspector)
-│   ├── matrix/          # Combinations matrix & batch generation studio (MatrixRunner)
 │   ├── bank/            # Question repository (QuestionBank)
 │   ├── modals/          # Dialog modals (SettingsModal)
 │   └── common/          # Common components (Toast)

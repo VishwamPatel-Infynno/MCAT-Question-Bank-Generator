@@ -4,7 +4,6 @@ import {
   GeneratorPanel,
   AgentVisualizer,
   QuestionCard,
-  MatrixRunner,
   QuestionBank,
   ReviewAuditView,
   SettingsModal,
@@ -27,13 +26,7 @@ export default function App() {
   const [requireImage, setRequireImage] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
 
-  // Manager Combination Matrix Parameters
-  const [combinationId, setCombinationId] = useState('');
-  const [contentDomain, setContentDomain] = useState('');
-  const [questionType, setQuestionType] = useState('');
-  const [primaryTrap, setPrimaryTrap] = useState('');
-  const [passageRequired, setPassageRequired] = useState('');
-  const [visualType, setVisualType] = useState('');
+
 
   // Layout & Dock State
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
@@ -103,13 +96,7 @@ export default function App() {
       subtopic: selectedSubtopic,
       difficulty,
       require_image: requireImage || selectedSection === 'abstract_reasoning',
-      custom_prompt: customPrompt.trim() || undefined,
-      combination_id: combinationId?.trim() || undefined,
-      content_domain: contentDomain || undefined,
-      question_type: questionType || undefined,
-      primary_trap: primaryTrap || undefined,
-      passage_required: passageRequired || undefined,
-      visual_type: visualType || undefined
+      custom_prompt: customPrompt.trim() || undefined
     };
     startGeneration(payload);
     showToast({
@@ -124,12 +111,6 @@ export default function App() {
     difficulty,
     requireImage,
     customPrompt,
-    combinationId,
-    contentDomain,
-    questionType,
-    primaryTrap,
-    passageRequired,
-    visualType,
     startGeneration,
     showToast
   ]);
@@ -231,18 +212,6 @@ export default function App() {
                 setRequireImage={setRequireImage}
                 customPrompt={customPrompt}
                 setCustomPrompt={setCustomPrompt}
-                combinationId={combinationId}
-                setCombinationId={setCombinationId}
-                contentDomain={contentDomain}
-                setContentDomain={setContentDomain}
-                questionType={questionType}
-                setQuestionType={setQuestionType}
-                primaryTrap={primaryTrap}
-                setPrimaryTrap={setPrimaryTrap}
-                passageRequired={passageRequired}
-                setPassageRequired={setPassageRequired}
-                visualType={visualType}
-                setVisualType={setVisualType}
                 onGenerate={handleGenerate}
                 isGenerating={isGenerating}
                 isCollapsed={isPanelCollapsed}
@@ -325,15 +294,6 @@ export default function App() {
           </div>
         )}
 
-        {activeTab === 'matrix' && (
-          <MatrixRunner
-            onOpenSettings={() => setShowSettings(true)}
-            onSelectQuestion={(q) => {
-              setActiveQuestion(q);
-              setActiveTab('generator');
-            }}
-          />
-        )}
 
         {activeTab === 'bank' && (
           <QuestionBank

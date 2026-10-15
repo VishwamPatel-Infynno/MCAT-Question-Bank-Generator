@@ -8,11 +8,10 @@ import {
   Target,
   Zap,
   Flame,
-  Tag,
   PanelLeftClose,
   PanelLeftOpen
 } from 'lucide-react';
-import { SECTION_ICONS, PACING_INFO, CONTENT_DOMAINS, QUESTION_TYPES, PRIMARY_TRAPS } from '../../constants/ucat';
+import { SECTION_ICONS, PACING_INFO } from '../../constants/ucat';
 
 export default function GeneratorPanel({
   sectionsData,
@@ -26,18 +25,6 @@ export default function GeneratorPanel({
   setRequireImage,
   customPrompt,
   setCustomPrompt,
-  combinationId,
-  setCombinationId,
-  contentDomain,
-  setContentDomain,
-  questionType,
-  setQuestionType,
-  primaryTrap,
-  setPrimaryTrap,
-  passageRequired: _passageRequired,
-  setPassageRequired: _setPassageRequired,
-  visualType: _visualType,
-  setVisualType: _setVisualType,
   onGenerate,
   isGenerating,
   isCollapsed,
@@ -404,7 +391,7 @@ export default function GeneratorPanel({
         >
           <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <SlidersHorizontal size={14} color="var(--brand-primary)" />
-            <span style={{ fontSize: '0.825rem', fontWeight: 700 }}>Advanced Matrix Parameters</span>
+            <span style={{ fontSize: '0.825rem', fontWeight: 700 }}>Advanced Directives &amp; Visuals</span>
           </span>
           {showAdvanced ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
         </button>
@@ -439,92 +426,6 @@ export default function GeneratorPanel({
               </select>
             </div>
 
-            {/* Matrix Attributes */}
-            <div
-              style={{
-                background: 'var(--bg-surface-elevated)',
-                padding: '10px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border-light)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <Tag size={12} color="var(--brand-primary)" /> Combination Matrix
-                </span>
-                <span className="badge badge-cyan" style={{ fontSize: '0.6rem' }}>Manager Schema</span>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '2px' }}>
-                    Combination ID
-                  </label>
-                  <input
-                    id="input-combination-id"
-                    type="text"
-                    value={combinationId || ''}
-                    onChange={(e) => setCombinationId && setCombinationId(e.target.value)}
-                    placeholder="e.g. CMB00001"
-                    style={{ width: '100%', fontSize: '0.75rem', padding: '6px 8px', fontFamily: 'var(--font-mono)' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '2px' }}>
-                    Content Domain
-                  </label>
-                  <select
-                    id="select-content-domain"
-                    value={contentDomain || ''}
-                    onChange={(e) => setContentDomain && setContentDomain(e.target.value)}
-                    style={{ width: '100%', fontSize: '0.75rem', padding: '6px 8px' }}
-                  >
-                    <option value="">(Auto-detect)</option>
-                    {CONTENT_DOMAINS.map(d => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '2px' }}>
-                    Question Type
-                  </label>
-                  <select
-                    id="select-question-type"
-                    value={questionType || ''}
-                    onChange={(e) => setQuestionType && setQuestionType(e.target.value)}
-                    style={{ width: '100%', fontSize: '0.75rem', padding: '6px 8px' }}
-                  >
-                    <option value="">(Auto-detect)</option>
-                    {QUESTION_TYPES.map(t => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '2px' }}>
-                    Primary Trap
-                  </label>
-                  <select
-                    id="select-primary-trap"
-                    value={primaryTrap || ''}
-                    onChange={(e) => setPrimaryTrap && setPrimaryTrap(e.target.value)}
-                    style={{ width: '100%', fontSize: '0.75rem', padding: '6px 8px' }}
-                  >
-                    <option value="">(Auto-detect)</option>
-                    {PRIMARY_TRAPS.map(trap => (
-                      <option key={trap} value={trap}>{trap}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
 
             {/* Visual Stimulus Toggle */}
             <div
