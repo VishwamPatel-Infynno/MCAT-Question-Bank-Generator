@@ -512,7 +512,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 batch_prog_evt = make_event(
                     event_type="batch_progress",
                     agent_name="System",
-                    message=f"[{idx+1}/{total_qty}] Drafting {item_interaction.replace('_', ' ').title()} question ({'Reading Passage' if is_item_passage else 'Standard Vignette'})...",
+                    message=f"[{idx + 1}/{total_qty}] Drafting {item_interaction.replace('_', ' ').title()} question ({'Reading Passage' if is_item_passage else 'Standard Vignette'})...",
                     data={
                         "current_index": idx + 1,
                         "total_count": total_qty,
@@ -543,7 +543,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             gen_evt = make_event(
                 event_type="agent_start",
                 agent_name="Question Generator",
-                message=f"Synthesizing UCAT draft {idx+1}/{total_qty} ({'Multi-Choice' if is_item_multi else 'Single Choice'})...",
+                message=f"Synthesizing UCAT draft {idx + 1}/{total_qty} ({'Multi-Choice' if is_item_multi else 'Single Choice'})...",
                 run_id=item_run_id,
             )
             yield f"data: {gen_evt.model_dump_json()}\n\n"
@@ -572,7 +572,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 rev_start_evt = make_event(
                     event_type="agent_start",
                     agent_name="Question Reviewer",
-                    message=f"Auditing draft {idx+1}/{total_qty} (Iteration {iteration}) against 100-point rubric...",
+                    message=f"Auditing draft {idx + 1}/{total_qty} (Iteration {iteration}) against 100-point rubric...",
                     run_id=item_run_id,
                 )
                 yield f"data: {rev_start_evt.model_dump_json()}\n\n"
@@ -631,7 +631,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                     rej_evt = make_event(
                         event_type="workflow_rejected",
                         agent_name="Quality Gate",
-                        message=f"Strict Quality Halt on question {idx+1}: Score {score}/100 after {iteration} attempts.",
+                        message=f"Strict Quality Halt on question {idx + 1}: Score {score}/100 after {iteration} attempts.",
                         data=state.get("rejection_data"),
                         run_id=item_run_id,
                     )
@@ -688,7 +688,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 q_gen_evt = make_event(
                     event_type="question_generated",
                     agent_name="System",
-                    message=f"Question {idx+1} of {total_qty} successfully verified (Score: {final_q_dict.get('final_score')}/100) and staged for confirmation.",
+                    message=f"Question {idx + 1} of {total_qty} successfully verified (Score: {final_q_dict.get('final_score')}/100) and staged for confirmation.",
                     data={
                         "question": final_q_dict,
                         "index": idx + 1,

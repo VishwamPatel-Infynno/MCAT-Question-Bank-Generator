@@ -43,7 +43,9 @@ Image Required: {"Yes - formulate visual pattern requirements" if req.require_im
     if req.passage_required and str(req.passage_required).lower() in ("yes", "true"):
         user_prompt += "\nPassage Required: Yes - Provide a rigorous, substantive 250-400 word academic or clinical passage with dense data and structured paragraphs."
     elif req.passage_required and str(req.passage_required).lower() in ("no", "false"):
-        user_prompt += "\nPassage Required: No - Keep stimulus brief (1-3 sentences or direct vignette)."
+        user_prompt += (
+            "\nPassage Required: No - Keep stimulus brief (1-3 sentences or direct vignette)."
+        )
     if req.visual_type and req.visual_type != "None":
         user_prompt += f"\nVisual Stimulus Type: {req.visual_type}"
     if req.custom_prompt:

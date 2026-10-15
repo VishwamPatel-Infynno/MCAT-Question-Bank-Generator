@@ -7,12 +7,9 @@ import {
   LayoutGrid,
   ChevronLeft,
   ChevronRight,
-  BookOpen,
-  ListChecks,
   Award,
   Sparkles,
   ShieldCheck,
-  FileText,
   Loader2,
   Clock
 } from 'lucide-react';
@@ -30,8 +27,8 @@ export default function StagedBatchReview({
   onOpenAudit,
   onUpdateQuestion
 }) {
-  // State for which questions are selected for saving to Question Bank
-  const [selectedIds, setSelectedIds] = useState(() => new Set(stagedQuestions.map(q => q.id)));
+  // State for which questions are explicitly deselected by the user
+  const [deselectedIds, setDeselectedIds] = useState(() => new Set());
   // State for which questions have already been saved to the database
   const [savedIds, setSavedIds] = useState(() => new Set());
   // Active question index in detailed view
@@ -41,19 +38,6 @@ export default function StagedBatchReview({
   // Loading state during batch saving
   const [isSaving, setIsSaving] = useState(false);
 
-  // Sync selectedIds if new questions arrive during batch generation
-  React.useEffect(() => {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      stagedQuestions.forEach(q => {
-        if (!prev.has(q.id) && !savedIds.has(q.id)) {
-          next.add(q.id);
-        }
-      });
-      return next;
-    });
-  }, [stagedQuestions, savedIds]);
-
   // Determine total number of slots expected
   const effectiveTotal = Math.max(
     stagedQuestions.length,
@@ -61,15 +45,16 @@ export default function StagedBatchReview({
     batchProgress?.total || 1
   );
 
-  if (stagedQuestions.length === 0 && !isGenerating && effectiveTotal <= 1) {
-    return null;
-  }
+  // Derived set of selected question IDs (avoids useEffect cascading renders)
+  const selectedIds = useMemo(() => {
+    return new Set(
+      stagedQuestions
+        .filter(q => !deselectedIds.has(q.id))
+        .map(q => q.id)
+    );
+  }, [stagedQuestions, deselectedIds]);
 
-  // Clamped active question for single view
-  const validIdx = Math.max(0, Math.min(activeIdx, Math.max(0, stagedQuestions.length - 1)));
-  const activeQuestion = stagedQuestions[validIdx] || null;
-
-  // Batch stats
+  // Batch stats computed unconditionally before any early returns (React Rules of Hooks)
   const totalCompleted = stagedQuestions.length;
   const selectedCount = selectedIds.size;
   const isAllSelected = totalCompleted > 0 && selectedCount === totalCompleted;
@@ -99,9 +84,17 @@ export default function StagedBatchReview({
     };
   }, [stagedQuestions, totalCompleted]);
 
+  // Clamped active question for single view
+  const validIdx = Math.max(0, Math.min(activeIdx, Math.max(0, stagedQuestions.length - 1)));
+  const activeQuestion = stagedQuestions[validIdx] || null;
+
+  if (stagedQuestions.length === 0 && !isGenerating && effectiveTotal <= 1) {
+    return null;
+  }
+
   // Toggle selection for an individual question
   const handleToggleSelect = (id) => {
-    setSelectedIds(prev => {
+    setDeselectedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
@@ -115,9 +108,9 @@ export default function StagedBatchReview({
   // Toggle select all
   const handleToggleSelectAll = () => {
     if (isAllSelected) {
-      setSelectedIds(new Set());
+      setDeselectedIds(new Set(stagedQuestions.map(q => q.id)));
     } else {
-      setSelectedIds(new Set(stagedQuestions.map(q => q.id)));
+      setDeselectedIds(new Set());
     }
   };
 
@@ -158,7 +151,7 @@ export default function StagedBatchReview({
         unsaved.forEach(q => next.add(q.id));
         return next;
       });
-      setSelectedIds(new Set(stagedQuestions.map(q => q.id)));
+      setDeselectedIds(new Set());
     } finally {
       setIsSaving(false);
     }

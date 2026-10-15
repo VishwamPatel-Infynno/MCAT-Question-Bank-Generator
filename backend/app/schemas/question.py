@@ -100,6 +100,7 @@ class Question(BaseModel):
             ]
         elif self.correct_answer_ids and not self.correct_answer_id:
             self.correct_answer_id = ", ".join(self.correct_answer_ids)
+
     iteration_count: int = 1
     iterations_history: list[dict[str, Any]] = Field(default_factory=list)
     total_tokens: int = Field(

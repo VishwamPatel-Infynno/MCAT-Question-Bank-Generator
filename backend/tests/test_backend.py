@@ -492,6 +492,7 @@ async def test_multichoice_and_passage_support():
 @pytest.mark.asyncio
 async def test_batch_generation_and_staging_flow():
     import json
+
     from app.repositories.question_repo import get_question_by_id, save_questions_batch
     from app.workflow.graph import run_workflow_stream
 
@@ -541,4 +542,3 @@ async def test_batch_generation_and_staging_flow():
     # Clean up
     await delete_question(staged_qs[0]["id"])
     await delete_question(staged_qs[1]["id"])
-

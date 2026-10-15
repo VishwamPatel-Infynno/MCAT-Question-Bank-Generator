@@ -284,10 +284,9 @@ def improve_draft_heuristically(
         f"• Explicit Distractor Analysis:\n"
     )
     for opt in draft.options:
-        is_key = (
-            opt.id in draft.correct_answer_ids
-            or opt.id in [k.strip().upper() for k in draft.correct_answer_id.split(",") if k.strip()]
-        )
+        is_key = opt.id in draft.correct_answer_ids or opt.id in [
+            k.strip().upper() for k in draft.correct_answer_id.split(",") if k.strip()
+        ]
         if is_key:
             enhanced_explanation += f"  - Option {opt.id} [CORRECT]: Validated with primary premise and incontrovertible logical steps.\n"
         else:
