@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
@@ -15,7 +15,7 @@ class ReviewScore(BaseModel):
         default_factory=lambda: str(uuid.uuid4()),
         description="Unique psychometric audit evaluation UUID4",
     )
-    evaluated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    evaluated_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     authenticity_score: int = Field(
         ..., ge=0, le=25, description="UCAT authentic tone and style (0-25)"
     )
@@ -114,7 +114,7 @@ class Question(BaseModel):
     token_usage_details: list[dict[str, Any]] | dict[str, Any] | None = Field(
         default_factory=list, description="Per-agent granular token and cost breakdown"
     )
-    created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     # Manager Combination Matrix attributes
     combination_id: str | None = Field(

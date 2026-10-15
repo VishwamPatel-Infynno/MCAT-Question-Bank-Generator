@@ -21,9 +21,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="UK UCAT Question Bank Generator API",
-    description="Multi-Agent System & Workflow for UK UCAT Preparation",
-    version="1.0.0",
+    title="UK UCAT Question Studio API",
+    description="Multi-Agent Cognitive Psychometric System & Workflow | An Infynno Solutions LLP Product",
+    version="2.0.0",
     lifespan=lifespan,
 )
 

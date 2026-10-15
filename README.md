@@ -1,8 +1,9 @@
-# UK UCAT Question Bank Generator
+# UK UCAT Question Studio v2.0
+> **An Infynno Solutions LLP Product • [Infinite Innovations](https://infynno.com/)**
 
-An autonomous multi-agent AI system and workflow for generating, reviewing, conditionally re-generating, and visually illustrating high-caliber multiple-choice questions for the official **UK UCAT** (University Clinical Aptitude Test).
+An enterprise autonomous multi-agent AI system and psychometric workstation for generating, reviewing, conditionally calibrating, and visually illustrating high-caliber questions for the official **UK UCAT** (University Clinical Aptitude Test).
 
-Powered by **LangGraph**, **FastAPI**, **React 19**, and **PostgreSQL 16**, running inference on **Meta Llama 3.3 70B Instruct Turbo** via **DeepInfra** with precision per-request token usage and micro-dollar cost tracking.
+Engineered by **[Infynno Solutions LLP](https://infynno.com/)**, powered by a **Proprietary Multi-Agent Cyclic State Machine**, **FastAPI**, **React 19**, and **PostgreSQL 16**, featuring live electric conduit pipeline visualization, multi-question batching, and strict 90+ score quality gates.
 
 ---
 
@@ -200,6 +201,5 @@ Question Bank Generator/
 
 ---
 
-## 📄 License
-
-Proprietary — UK UCAT Question Bank Generator Multi-Agent AI System.
+## 📄 License & Attribution
+Proprietary — UK UCAT Question Studio is engineered and maintained by **[Infynno Solutions LLP](https://infynno.com/)**. All rights reserved.

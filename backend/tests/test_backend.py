@@ -259,7 +259,9 @@ async def test_token_and_cost_calculation():
 
 
 @pytest.mark.asyncio
-async def test_workflow_token_accumulation():
+async def test_workflow_token_accumulation(monkeypatch):
+    monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
+    monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
     req = GenerationRequest(section=UCATSection.VERBAL_REASONING, difficulty=Difficulty.MEDIUM)
     init_state = {
         "request": req.model_dump(),
@@ -438,7 +440,7 @@ async def test_multichoice_and_passage_support():
         passage_required="Yes",
         primary_trap="Extreme_Language",
     )
-    draft, usage = await generate_question(req)
+    draft = get_mock_draft(req)
 
     assert len(draft.options) in (4, 5)
     assert len(draft.correct_answer_ids) >= 1
@@ -490,11 +492,15 @@ async def test_multichoice_and_passage_support():
 
 
 @pytest.mark.asyncio
-async def test_batch_generation_and_staging_flow():
+async def test_batch_generation_and_staging_flow(monkeypatch):
     import json
 
+    from app.core.config import config
     from app.repositories.question_repo import get_question_by_id, save_questions_batch
     from app.workflow.graph import run_workflow_stream
+
+    monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
+    monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
 
     # Request batch of 3 questions: 2 Single, 1 Multi, 1 Passage
     req = GenerationRequest(

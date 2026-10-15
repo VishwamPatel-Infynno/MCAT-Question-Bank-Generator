@@ -122,27 +122,27 @@ Workflow state is tracked via a typed dictionary `AgentWorkflowState` defined in
 
 ```python
 class AgentWorkflowState(TypedDict, total=False):
-    request: Dict[str, Any]                   # Original GenerationRequest parameters
-    current_draft: Optional[Dict[str, Any]]   # Active candidate QuestionDraft
+    request: Dict[str, Any]  # Original GenerationRequest parameters
+    current_draft: Optional[Dict[str, Any]]  # Active candidate QuestionDraft
     current_review: Optional[Dict[str, Any]]  # Latest ReviewScore rubric
-    iteration_count: int                      # Current iteration counter (1, 2, 3)
+    iteration_count: int  # Current iteration counter (1, 2, 3)
     iterations_history: List[Dict[str, Any]]  # Full audit history of drafts and reviews
-    image_url: Optional[str]                  # URL if external image generated
-    image_svg: Optional[str]                  # Embedded SVG markup
-    image_description: Optional[str]          # Accessibility alt text
+    image_url: Optional[str]  # URL if external image generated
+    image_svg: Optional[str]  # Embedded SVG markup
+    image_description: Optional[str]  # Accessibility alt text
     final_question: Optional[Dict[str, Any]]  # Finalized Question model
     rejection_data: Optional[Dict[str, Any]]  # Telemetry if rejected by Quality Gate
-    status: str                               # Workflow lifecycle phase
-    active_agent: str                         # Currently executing agent node
-    log_messages: List[str]                   # Running log entries
-    
+    status: str  # Workflow lifecycle phase
+    active_agent: str  # Currently executing agent node
+    log_messages: List[str]  # Running log entries
+
     # Per-Request Token Usage & Cost Accumulator
-    total_tokens: int                         # Cumulative tokens consumed
-    total_prompt_tokens: int                  # Cumulative input tokens
-    total_completion_tokens: int              # Cumulative output tokens
-    total_cost_usd: float                     # Cumulative cost in USD ($0.10 in / $0.32 out)
-    agent_usage_breakdown: List[Dict[str, Any]] # Itemized usage per agent cycle
-    latest_usage: Optional[Dict[str, Any]]    # Usage of the most recently executed node
+    total_tokens: int  # Cumulative tokens consumed
+    total_prompt_tokens: int  # Cumulative input tokens
+    total_completion_tokens: int  # Cumulative output tokens
+    total_cost_usd: float  # Cumulative cost in USD ($0.10 in / $0.32 out)
+    agent_usage_breakdown: List[Dict[str, Any]]  # Itemized usage per agent cycle
+    latest_usage: Optional[Dict[str, Any]]  # Usage of the most recently executed node
 ```
 
 ### 4.1 State Accumulation Pattern

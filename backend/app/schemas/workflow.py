@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Dict, Optional, Union
 
 from pydantic import BaseModel, Field, field_validator
@@ -98,4 +98,4 @@ class WorkflowEvent(BaseModel):
     agent_name: str  # 'Question Generator', 'Question Reviewer', 'Question Re-Generator', 'Image Generator', 'Quality Gate', 'System'
     message: str
     data: dict[str, Any] | None = None
-    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
