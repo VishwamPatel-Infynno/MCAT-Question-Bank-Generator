@@ -26,6 +26,6 @@ export const IMAGE_RESOLUTION_PRESETS = [
 export const MODEL_OPTIONS = [
   {
     id: 'deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo',
-    label: 'Meta Llama 3.3 70B Instruct Turbo (DeepInfra: $0.10 in / $0.32 out per 1M tokens)'
+    label: 'Autonomous Psychometric Engine (v2.0 High-Throughput Enterprise)'
   }
 ];

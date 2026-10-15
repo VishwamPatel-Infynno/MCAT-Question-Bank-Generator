@@ -502,6 +502,16 @@ input:focus, select:focus, textarea:focus {
   border-color: var(--border-medium);
 }
 
+.dock-panel-collapsed {
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 56px;
+  overflow: hidden;
+}
+
 .dock-section {
   padding: 16px 18px;
   border-bottom: 1px solid var(--border-light);

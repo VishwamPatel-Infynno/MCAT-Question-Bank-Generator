@@ -94,10 +94,10 @@ export default function SettingsModal({ onClose }) {
             </div>
             <div>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                DeepInfra &amp; Model Configuration
+                Enterprise Engine &amp; Gateway Configuration
               </h3>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Configure DeepInfra API key, Llama 3.3 Turbo, and FLUX-1-schnell image generator.
+                Configure high-throughput inference keys, multi-agent reasoning thresholds, and visual stimulus parameters.
               </p>
             </div>
           </div>
@@ -112,7 +112,7 @@ export default function SettingsModal({ onClose }) {
           {/* Text Model */}
           <div>
             <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
-              DeepInfra Primary Text Model
+              Autonomous Reasoning Engine
             </label>
             <select
               id="settings-select-model"
@@ -125,11 +125,11 @@ export default function SettingsModal({ onClose }) {
               ))}
             </select>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Ultra-low latency: $0.10 input / $0.32 output per 1M tokens.
+              High-throughput multi-agent inference: $0.10 input / $0.32 output per 1M tokens.
             </div>
           </div>
 
-          {/* DeepInfra API Key Input */}
+          {/* Gateway API Key Input */}
           <div
             style={{
               background: 'var(--brand-light)',
@@ -139,22 +139,22 @@ export default function SettingsModal({ onClose }) {
             }}
           >
             <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 800, color: 'var(--brand-primary)', marginBottom: '6px' }}>
-              DeepInfra API Key (Required for Turbo Llama &amp; FLUX.1)
+              Inference Gateway Key
             </label>
             <input
               id="settings-input-deepinfra-key"
               type="password"
-              placeholder="e.g. your_deepinfra_api_key_here (or set in .env)"
+              placeholder="Enter gateway credentials or configure via server environment (.env)"
               value={deepinfraKey}
               onChange={(e) => setDeepinfraKey(e.target.value)}
               style={{ width: '100%' }}
             />
             <div style={{ fontSize: '0.75rem', color: 'var(--brand-primary)', marginTop: '6px', fontWeight: 500 }}>
-              Get your key from <a href="https://deepinfra.com/dash/api_keys" target="_blank" rel="noreferrer" style={{ color: 'var(--brand-primary)', textDecoration: 'underline', fontWeight: 700 }}>deepinfra.com/dash/api_keys</a>
+              Supply your enterprise gateway key for high-throughput generation, or set in backend environment.
             </div>
           </div>
 
-          {/* FLUX-1-schnell Image Generator Section */}
+          {/* Diagram & Stimulus Generator Section */}
           <div
             style={{
               background: 'var(--bg-canvas)',
@@ -170,7 +170,7 @@ export default function SettingsModal({ onClose }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Image size={16} color="var(--brand-primary)" />
                 <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                  Image Model: black-forest-labs/FLUX-1-schnell
+                  Stimulus Engine: High-Resolution Psychometric Diagram Engine
                 </span>
               </div>
               <span className="badge badge-cyan" style={{ fontSize: '0.72rem', fontWeight: 700 }}>
@@ -217,7 +217,7 @@ export default function SettingsModal({ onClose }) {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                 <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                  Inference Steps (iters)
+                  Inference Precision Steps (iters)
                 </label>
                 <span className="badge badge-amber" style={{ fontSize: '0.72rem' }}>
                   {imageIters} steps
@@ -233,7 +233,7 @@ export default function SettingsModal({ onClose }) {
                 style={{ width: '100%' }}
               />
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                FLUX.1 Schnell is optimized for 1–4 steps (4 steps recommended for crisp diagrams).
+                Optimized for 1–4 steps (4 steps recommended for crisp psychometric diagrams).
               </div>
             </div>
 
@@ -249,7 +249,7 @@ export default function SettingsModal({ onClose }) {
                 lineHeight: 1.4
               }}
             >
-              <strong>Official Formula:</strong> $0.0005 × ({imageWidth} / 1024) × ({imageHeight} / 1024) × {imageIters} iters = <strong>${liveImageCost}</strong>
+              <strong>Engine Rate:</strong> $0.0005 × ({imageWidth} / 1024) × ({imageHeight} / 1024) × {imageIters} iters = <strong>${liveImageCost}</strong>
             </div>
           </div>
 
@@ -271,7 +271,7 @@ export default function SettingsModal({ onClose }) {
               style={{ width: '100%' }}
             />
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              If a question scores ≤ 90 on the psychometric rubric, the Re-Generator agent will refine it up to {maxRegenerations} times.
+              If a question scores ≤ 90 on the psychometric rubric, the Remediation Engine will refine it up to {maxRegenerations} times.
             </div>
           </div>
 

@@ -93,7 +93,7 @@ export default function GeneratorPanel({
   if (isCollapsed) {
     return (
       <div
-        className="glass-panel"
+        className="dock-panel dock-panel-collapsed"
         style={{
           padding: '14px 10px',
           display: 'flex',

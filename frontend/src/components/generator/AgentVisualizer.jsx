@@ -1,26 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  ShieldCheck, 
-  RotateCcw, 
   CheckCircle2, 
   Terminal, 
-  Sparkles,
-  Timer,
-  PenTool,
-  Network
+  Timer 
 } from 'lucide-react';
 import MultiAgentPipelineVisualizer from './MultiAgentPipelineVisualizer';
 
 export default function AgentVisualizer({
   activeAgent,
   iterationCount,
-  events,
+  events = [],
   latestReview,
   isGenerating,
   batchProgress
 }) {
   const [showTelemetry, setShowTelemetry] = useState(false);
-  const [showFullArchitecture, setShowFullArchitecture] = useState(true);
   const [elapsedTime, setElapsedTime] = useState('0.0');
 
   // Live stopwatch during active generation
@@ -37,13 +31,6 @@ export default function AgentVisualizer({
     return () => clearInterval(interval);
   }, [isGenerating]);
 
-  // Agent states
-  const isGeneratorActive = activeAgent === 'Question Generator';
-  const isReviewerActive = activeAgent === 'Question Reviewer';
-  const isRegeneratorActive = activeAgent === 'Question Re-Generator';
-  const isImageActive = activeAgent === 'Image Generator';
-
-  const hasGenerated = events.some(e => e.agent_name === 'Question Generator' && e.event_type === 'agent_complete');
   const hasReviewed = events.some(e => e.agent_name === 'Question Reviewer' && e.event_type === 'agent_complete');
 
   const isWorkflowComplete = !isGenerating && events.length > 0 && hasReviewed;
@@ -137,14 +124,7 @@ export default function AgentVisualizer({
     );
   }
 
-  // When Generating: Precision Horizontal Step Stepper
-  const steps = [
-    { label: 'Writing', active: isGeneratorActive, done: hasGenerated, icon: PenTool },
-    { label: 'Quality Check', active: isReviewerActive, done: hasReviewed, icon: ShieldCheck },
-    { label: 'Fine-Tuning', active: isRegeneratorActive || (iterationCount > 1), done: false, icon: RotateCcw },
-    { label: 'Illustration', active: isImageActive, done: false, icon: Sparkles }
-  ];
-
+  // When Generating: Single Unified 4-Node Pipeline Stepper with Batch Progress
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       {/* Batch Progress Bar when generating multiple questions */}
@@ -177,107 +157,15 @@ export default function AgentVisualizer({
         </div>
       )}
 
-      {showFullArchitecture ? (
-        <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10 }}>
-            <button
-              type="button"
-              onClick={() => setShowFullArchitecture(false)}
-              className="btn-secondary"
-              style={{ padding: '4px 8px', fontSize: '0.675rem', gap: '4px' }}
-              title="Switch to Compact Stepper"
-            >
-              <Network size={11} />
-              <span>Compact Stepper</span>
-            </button>
-          </div>
-
-          <MultiAgentPipelineVisualizer
-            isGenerating={isGenerating}
-            activeAgent={activeAgent}
-            iterationCount={iterationCount}
-            events={events}
-            latestReview={latestReview}
-          />
-        </div>
-      ) : (
-        <div
-          className="glass-panel"
-          style={{
-            padding: '14px 18px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px',
-            borderRadius: 'var(--radius-md)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="agent-pulse-dot" />
-              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                AI Creating Your Questions...
-              </span>
-              <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
-                ({activeAgent === 'Question Generator' ? 'Drafting scenario & options' : activeAgent === 'Question Reviewer' ? 'Verifying quality & answers' : activeAgent === 'Question Re-Generator' ? 'Fine-tuning question' : 'Generating'}...)
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
-              <button
-                type="button"
-                onClick={() => setShowFullArchitecture(true)}
-                className="btn-secondary"
-                style={{ padding: '3px 8px', fontSize: '0.675rem', gap: '4px' }}
-                title="View Full Architecture Swarm"
-              >
-                <Network size={11} />
-                <span>Architecture Swarm</span>
-              </button>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Timer size={12} color="var(--brand-primary)" /> {elapsedTime}s
-              </span>
-              <span style={{ fontFamily: 'var(--font-mono)' }}>
-                {totalTokens} tokens
-              </span>
-            </div>
-          </div>
-
-          {/* Horizontal Step Sequence */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            {steps.map((st, idx) => {
-              const Icon = st.icon;
-              const isActive = st.active;
-              const isDone = st.done;
-              return (
-                <React.Fragment key={st.label}>
-                  <div
-                    style={{
-                      flex: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '6px 10px',
-                      borderRadius: 'var(--radius-sm)',
-                      background: isActive ? 'var(--bg-surface-hover)' : 'var(--bg-surface-subtle)',
-                      border: isActive ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
-                      color: isActive ? 'var(--brand-primary)' : isDone ? 'var(--status-success)' : 'var(--text-muted)',
-                      fontSize: '0.75rem',
-                      fontWeight: isActive ? 600 : 500
-                    }}
-                  >
-                    <Icon size={13} />
-                    <span>{st.label}</span>
-                    {isDone && <CheckCircle2 size={11} style={{ marginLeft: 'auto' }} />}
-                  </div>
-                  {idx < steps.length - 1 && (
-                    <div style={{ width: '12px', height: '1px', background: 'var(--border-light)' }} />
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Unified 4-Node Pipeline Stepper */}
+      <MultiAgentPipelineVisualizer
+        isGenerating={isGenerating}
+        activeAgent={activeAgent}
+        iterationCount={iterationCount}
+        events={events}
+        latestReview={latestReview}
+      />
     </div>
   );
 }
+
