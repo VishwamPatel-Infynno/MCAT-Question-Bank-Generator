@@ -1,5 +1,10 @@
 // Layout
 export { default as Navbar } from './layout/Navbar';
+export { default as Footer } from './layout/Footer';
+
+// Common Brand & Primitives
+export { default as InfynnoLogo } from './common/InfynnoLogo';
+export { ToastContainer } from './common/Toast';
 
 // Generator Studio
 export { default as GeneratorPanel } from './generator/GeneratorPanel';
@@ -16,6 +21,5 @@ export { default as StageJsonInspector } from './question/StageJsonInspector';
 // Question Bank
 export { default as QuestionBank } from './bank/QuestionBank';
 
-// Modals & Common
+// Modals
 export { default as SettingsModal } from './modals/SettingsModal';
-export { ToastContainer } from './common/Toast';

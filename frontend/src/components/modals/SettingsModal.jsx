@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Settings, Sliders, Image } from 'lucide-react';
+import { X, Settings, Sliders, Image, ExternalLink } from 'lucide-react';
 import { fetchSettings, updateSettings } from '../../services/api';
 import { MODEL_OPTIONS, DEFAULT_TEXT_MODEL, IMAGE_RESOLUTION_PRESETS } from '../../constants/config';
+import InfynnoLogo from '../common/InfynnoLogo';
 
 export default function SettingsModal({ onClose }) {
   const [model, setModel] = useState(DEFAULT_TEXT_MODEL);
@@ -273,22 +274,66 @@ export default function SettingsModal({ onClose }) {
               If a question scores ≤ 90 on the psychometric rubric, the Re-Generator agent will refine it up to {maxRegenerations} times.
             </div>
           </div>
+
+          {/* About Infynno Solutions LLP */}
+          <div
+            style={{
+              padding: '16px',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--bg-surface-subtle)',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <InfynnoLogo width={28} height={18} />
+                <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                  Infynno Solutions LLP
+                </span>
+                <span className="badge badge-indigo" style={{ fontSize: '0.65rem' }}>
+                  Creator &amp; Maintainer
+                </span>
+              </div>
+              <a
+                href="https://infynno.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="infynno-pill-link"
+                style={{ fontSize: '0.7rem', padding: '3px 8px' }}
+              >
+                <span>infynno.com</span>
+                <ExternalLink size={10} />
+              </a>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
+              Infynno builds product-grade custom software, SaaS, and AI-powered systems for founders and growing businesses globally.
+              Clean engineering, transparent process, measurable outcomes.
+            </p>
+          </div>
         </div>
 
         {/* Footer Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px', paddingTop: '10px', borderTop: '1px solid var(--border-light)' }}>
-          <button onClick={onClose} className="btn-secondary">
-            Cancel
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '10px', borderTop: '1px solid var(--border-light)' }}>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
+            UK UCAT Question Studio v2.0 • An Infynno Solutions Product
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button onClick={onClose} className="btn-secondary">
+              Cancel
+            </button>
 
-          <button
-            id="settings-btn-save"
-            onClick={handleSave}
-            className="btn-primary"
-            style={{ background: savedSuccess ? '#10b981' : undefined }}
-          >
-            {savedSuccess ? 'Saved Successfully!' : 'Save Configuration'}
-          </button>
+            <button
+              id="settings-btn-save"
+              onClick={handleSave}
+              className="btn-primary"
+              style={{ background: savedSuccess ? '#10b981' : undefined }}
+            >
+              {savedSuccess ? 'Saved Successfully!' : 'Save Configuration'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

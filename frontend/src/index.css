@@ -32,6 +32,13 @@
   --brand-light: rgba(2, 132, 199, 0.12);
   --brand-indigo: #6366f1;
 
+  /* Infynno Solutions LLP Brand Identity */
+  --infynno-violet: #4F30B9;
+  --infynno-blue: #335ACF;
+  --infynno-cyan: #1E7ADF;
+  --infynno-gradient: linear-gradient(135deg, #4F30B9 0%, #335ACF 50%, #1E7ADF 100%);
+  --infynno-glow: 0 0 24px rgba(51, 90, 207, 0.4);
+
   /* Status Colors */
   --status-success: #10b981;
   --status-success-bg: rgba(16, 185, 129, 0.1);
@@ -85,6 +92,13 @@
   --brand-hover: #0369a1;
   --brand-light: #f0f9ff;
   --brand-indigo: #4f46e5;
+
+  /* Infynno Solutions LLP Brand Identity */
+  --infynno-violet: #4F30B9;
+  --infynno-blue: #335ACF;
+  --infynno-cyan: #1E7ADF;
+  --infynno-gradient: linear-gradient(135deg, #4F30B9 0%, #335ACF 50%, #1E7ADF 100%);
+  --infynno-glow: 0 0 24px rgba(51, 90, 207, 0.35);
 
   --status-success: #059669;
   --status-success-bg: #ecfdf5;
@@ -166,26 +180,56 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--brand-primary);
+  background: var(--infynno-gradient);
   color: #ffffff;
   font-weight: 600;
   font-size: 0.85rem;
   padding: 9px 18px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 14px rgba(51, 90, 207, 0.35);
   transition: all var(--transition-fast);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--brand-hover);
-  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: var(--infynno-glow);
   transform: translateY(-1px);
+  filter: brightness(1.08);
 }
 
 .btn-primary:active:not(:disabled) {
   transform: translateY(0);
+}
+
+/* Infynno Solutions Brand Classes */
+.infynno-text-gradient {
+  background: var(--infynno-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.infynno-pill-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-light);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.infynno-pill-link:hover {
+  color: #ffffff;
+  border-color: rgba(56, 189, 248, 0.4);
+  background: var(--bg-surface-hover);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
 .btn-primary:disabled {

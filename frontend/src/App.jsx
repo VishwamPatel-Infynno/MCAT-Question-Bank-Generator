@@ -10,7 +10,8 @@ import {
   SettingsModal,
   RejectionCard,
   ToastContainer,
-  StudioBlueprint
+  StudioBlueprint,
+  Footer
 } from './components';
 import { useQuestionGenerator } from './hooks/useQuestionGenerator';
 import { useTheme } from './hooks/useTheme';
@@ -414,6 +415,9 @@ export default function App() {
         )}
 
       </main>
+
+      {/* Corporate Footer */}
+      <Footer />
 
       {/* Audit Modal */}
       {auditQuestion && (

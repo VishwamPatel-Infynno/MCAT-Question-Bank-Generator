@@ -10,6 +10,7 @@ import {
   FileText
 } from 'lucide-react';
 import { SECTION_ICONS, PACING_INFO } from '../../constants/ucat';
+import InfynnoLogo from '../common/InfynnoLogo';
 
 export default function StudioBlueprint({
   selectedSection,
@@ -389,9 +390,25 @@ export default function StudioBlueprint({
           borderRadius: 'var(--radius-md)'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-primary)', fontWeight: 600 }}>
-          <ShieldCheck size={16} color="var(--status-success)" />
-          <span>Automatic 4-Agent Verification Standard:</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-primary)', fontWeight: 600 }}>
+            <ShieldCheck size={16} color="var(--status-success)" />
+            <span>Automatic 4-Agent Verification Standard:</span>
+          </div>
+
+          <span
+            className="badge badge-indigo"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              fontSize: '0.675rem',
+              padding: '2px 8px'
+            }}
+          >
+            <InfynnoLogo width={16} height={10} />
+            <span>Engineered by Infynno Solutions LLP</span>
+          </span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', color: 'var(--text-secondary)' }}>
