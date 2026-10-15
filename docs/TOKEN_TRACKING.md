@@ -1,6 +1,8 @@
 # Per-Request Token Usage & Cost Tracking Specification
 
-This document details the token accounting engine, DeepInfra pricing rate card, accumulation architecture, database persistence, and frontend observability features built into the **UK UCAT Question Bank Generator**.
+Engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
+
+This document details the token accounting engine, high-throughput pricing rate card, accumulation architecture, database persistence, and frontend observability features built into the **UK UCAT Question Studio v2.0**.
 
 ---
 
@@ -157,12 +159,12 @@ This delivers global repository cost and token totals directly to the Question B
 
 ## 5. UI Observability & User Experience
 
-Token and cost data is surfaced across 4 distinct user interfaces in the frontend:
+Token and cost data is surfaced across 4 distinct user interfaces in the frontend across both Dark and Light themes:
 
-### 1. Multi-Agent State Graph (`AgentVisualizer.jsx`)
+### 1. Multi-Agent Pipeline Stepper (`MultiAgentPipelineVisualizer.jsx` / `AgentVisualizer.jsx`)
 - **Cumulative Header Badge**: Displays running totals during live generation:
   `🪙 2,850 tokens • $0.00053`
-- **Per-Agent Step Badges**: Each agent card shows its specific cycle tokens and cost:
+- **Per-Agent Step Badges**: Each agent node shows its specific cycle tokens and cost:
   `450 tok • $0.00015`
 
 ### 2. Formatted Question Card (`QuestionCard.jsx`)
@@ -181,7 +183,7 @@ Token and cost data is surfaced across 4 distinct user interfaces in the fronten
   - Micro-dollar Cost ($0.000XX)
 
 ### 4. Question Bank Repository (`QuestionBank.jsx`)
-- **3rd Top Stat Card**: **`REPO TOKENS & COST`** displays total accumulated tokens and total expenditure for the entire database:
+- **Repository Stat Metric**: Displays total accumulated tokens and total expenditure for the entire database:
   `14,250 ($0.0027)`
 - **Table Row Chips**: Each question row includes a compact chip:
   `🪙 2,850 tok • $0.00053`

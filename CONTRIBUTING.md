@@ -1,6 +1,8 @@
-# Contributing to UK UCAT Question Bank Generator
+# Contributing to UK UCAT Question Studio v2.0
 
-Thank you for your interest in contributing to the **UK UCAT Question Bank Generator** multi-agent AI system!
+Engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
+
+Thank you for your interest in contributing to the **UK UCAT Question Studio** multi-agent AI system!
 
 ---
 
@@ -10,7 +12,7 @@ Thank you for your interest in contributing to the **UK UCAT Question Bank Gener
 - **Python 3.11+**
 - **Node.js 20+** & **npm**
 - **Docker & Docker Compose** (for PostgreSQL 16)
-- A **DeepInfra API Key** (for Meta Llama 3.3 70B Turbo and FLUX-1-schnell image generation)
+- High-Throughput Inference Gateway credentials
 
 ### 2. Local Database
 ```bash
@@ -39,16 +41,22 @@ npm run dev
 
 ---
 
-## 🧪 Testing Guidelines
+## 🧪 Testing & Verification Guidelines
 
-Before submitting any code changes, ensure all tests pass:
+Before submitting any code changes, ensure all verification suites pass with zero defects:
 
 ```bash
-# Backend pytest suite (12 tests)
+# 1. Backend pytest suite (15 unit & integration tests)
 PYTHONPATH=backend pytest backend/tests/test_backend.py -v
 
-# Frontend production bundle
-cd frontend && npm run build
+# 2. Backend Python linter
+ruff check backend
+
+# 3. Frontend Oxlint linter (0 errors, 0 warnings policy)
+cd frontend && npm run lint
+
+# 4. Frontend production build
+npm run build
 ```
 
 ---

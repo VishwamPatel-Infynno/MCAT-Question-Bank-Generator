@@ -1,6 +1,8 @@
 # UK UCAT 100-Point Psychometric Rubric & Question Authoring Standards
 
-This document specifies the psychometric standards, 100-point quality rubric, cognitive distractor trap engineering principles, and pacing guidelines governing the **UK UCAT Question Bank Generator**.
+Engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
+
+This document specifies the psychometric standards, 100-point quality rubric, cognitive distractor trap engineering principles, and pacing guidelines governing the **UK UCAT Question Studio v2.0**.
 
 ---
 

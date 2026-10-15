@@ -1,6 +1,8 @@
 # Installation, Setup & Configuration Guide
 
-This guide provides complete instructions for provisioning, configuring, and operating the **UK UCAT Question Bank Generator** in both local development and production environments.
+Engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
+
+This guide provides complete instructions for provisioning, configuring, and operating the **UK UCAT Question Studio v2.0** in both local development and production environments.
 
 ---
 
@@ -117,23 +119,50 @@ If no API key is provided, the backend automatically engages the **Authentic Moc
 
 ---
 
-## 5. Running Automated Tests
+## 5. Running Quality Verification & Automated Tests
 
-Execute the automated test suite using `pytest`:
+The repository maintains an uncompromising **Zero-Defect Quality Policy** enforced across both backend and frontend layers.
+
+### 5.1 Backend Verification Suite
+
+Run the complete 15-test unit & integration suite using `pytest`:
 
 ```bash
 source .venv/bin/activate
+
+# 1. Run all 15 backend unit and contract tests (100% pass guarantee)
 PYTHONPATH=backend pytest backend/tests/test_backend.py -v
+
+# 2. Run Python linting and code quality checks
+ruff check backend
 ```
 
 This verifies:
-- Pydantic schema validation for all 5 UCAT subtests.
-- Reviewer 100-point rubric evaluation and remediation routing.
+- Pydantic schema validation across all 5 official UK UCAT subtests.
+- Reviewer 100-point rubric evaluation and remediation routing logic.
 - Strict Quality Gate halt and rejection payload generation when score $\le 90$.
-- Programmatic SVG diagram synthesis.
-- PostgreSQL CRUD operations and native JSONB columns.
-- DeepInfra model naming and token pricing constants ($0.10 in / $0.32 out).
-- Exact mathematical token cost calculation and multi-agent state accumulation.
+- Programmatic SVG vector diagram rendering and XML validation.
+- PostgreSQL 16 CRUD persistence, native JSONB columns, and B-Tree indexes.
+- Batch generation schema parsing and manager combination matrix propagation.
+- Deterministic token cost calculation and multi-agent state accumulation.
+
+#### Live Multi-Agent E2E Verification
+To verify live inference, streaming SSE events, and manager matrix combinations with active LLM gateways:
+```bash
+PYTHONPATH=backend pytest backend/tests/test_e2e_live.py -v
+```
+
+### 5.2 Frontend Quality & Production Verification
+
+```bash
+cd frontend
+
+# 1. High-speed Oxlint check (Zero warnings, zero errors required)
+npm run lint
+
+# 2. Compile optimized production bundle with Vite
+npm run build
+```
 
 ---
 

@@ -1,6 +1,8 @@
-# UK UCAT Question Bank Generator — REST & SSE API Reference
+# UK UCAT Question Studio — REST & SSE API Reference
 
-This document provides a complete reference for all REST endpoints and Server-Sent Events (SSE) streaming protocols exposed by the FastAPI backend on port `8000`.
+Engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
+
+This document provides a comprehensive reference for all REST endpoints and Server-Sent Events (SSE) streaming protocols exposed by the FastAPI backend on port `8000`.
 
 ---
 
@@ -8,7 +10,8 @@ This document provides a complete reference for all REST endpoints and Server-Se
 
 - **Base URL**: `http://localhost:8000` (or configured deployment host)
 - **Content Type**: `application/json` (REST endpoints), `text/event-stream` (Live generation)
-- **CORS Policy & Security Headers**: Restricted to trusted origins (`http://localhost:5173`, etc.) with OWASP headers (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`).
+- **CORS Policy & Security Headers**: Restricted to trusted origins (`http://localhost:5173`, etc.) with OWASP security headers (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`).
+- **Autonomous Inference Gateway**: Backed by high-throughput enterprise reasoning models (~110–140 tok/s) with deterministic token billing ($0.10 input / $0.32 output per 1M tokens).
 
 ---
 
@@ -35,7 +38,7 @@ This document provides a complete reference for all REST endpoints and Server-Se
 ### 3.1 Start Multi-Agent Generation (SSE Stream)
 `POST /api/generate`
 
-Initiates the multi-agent generation and psychometric evaluation workflow. Returns a live Server-Sent Events stream delivering step-by-step agent telemetry, intermediate drafts, review rubrics, token usage, and final question payloads.
+Initiates the multi-agent generation and psychometric evaluation workflow. Returns a live Server-Sent Events stream delivering step-by-step agent telemetry, intermediate drafts, review rubrics, token usage, and candidate question payloads. Supports single-item and batch generation.
 
 #### Request Headers
 ```http
@@ -51,8 +54,18 @@ Accept: text/event-stream
   "difficulty": "medium",
   "require_image": false,
   "custom_prompt": "Focus on NHS junior doctor triage ethics in a busy A&E department.",
-  "model_name": "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo",
-  "api_key": null
+  "questions_to_generate": 1,
+  "single_choice_count": 1,
+  "multi_choice_count": 0,
+  "passage_count": 1,
+  "interaction_type": "single_choice",
+  "passage_required": "Yes",
+  "passage_questions": 4,
+  "primary_trap": "Keyword_Trap",
+  "combination_id": "CMB00001",
+  "run_id": "d81f668e-c768-45b7-9fb6-ba1ee2bdbba3",
+  "batch_id": null,
+  "auto_save": false
 }
 ```
 
@@ -61,9 +74,21 @@ Accept: text/event-stream
 | `section` | `string` | **Yes** | — | `verbal_reasoning`, `decision_making`, `quantitative_reasoning`, `abstract_reasoning`, `situational_judgement` |
 | `subtopic` | `string` | No | `null` | Categorized syllabus topic |
 | `difficulty` | `string` | No | `"medium"` | `easy`, `medium`, `hard` |
-| `require_image` | `boolean` | No | `false` | Set `true` to force visual stimulus generation |
+| `require_image` | `boolean` | No | `false` | Force visual stimulus generation |
 | `custom_prompt` | `string` | No | `null` | Contextual steer or clinical vignette guidance |
-| `model_name` | `string` | No | `DEFAULT_TEXT_MODEL` | Custom LiteLLM model identifier |
+| `questions_to_generate` | `integer` | No | `1` | Number of questions to generate in batch (1–10) |
+| `single_choice_count` | `integer` | No | `null` | Number of single-choice items in batch (0–10) |
+| `multi_choice_count` | `integer` | No | `null` | Number of multi-choice items in batch (0–10) |
+| `passage_count` | `integer` | No | `null` | Number of passage-linked items in batch (0–10) |
+| `interaction_type` | `string` | No | `"single_choice"` | `single_choice`, `multi_choice`, `drag_drop` |
+| `passage_required` | `string \| boolean` | No | `null` | `"Yes"`, `"No"`, or boolean flag |
+| `passage_questions` | `integer` | No | `null` | Target question count per passage (e.g. 3, 4) |
+| `primary_trap` | `string` | No | `null` | Primary cognitive distractor trap (e.g. `Keyword_Trap`, `Partial_Match`) |
+| `combination_id` | `string` | No | Auto UUID4 | Unique matrix combination code (e.g. `CMB00001`) |
+| `run_id` | `string` | No | Auto UUID4 | Execution run UUID4 |
+| `batch_id` | `string` | No | `null` | Optional batch identifier grouping questions |
+| `auto_save` | `boolean` | No | `false` | Auto-persist to DB (`false` retains Admin Review Gate) |
+| `model_name` | `string` | No | Gateway Default | Model identifier override |
 | `api_key` | `string` | No | `null` | Ephemeral API key override |
 
 #### SSE Event Format
@@ -99,7 +124,7 @@ Events are formatted as Server-Sent Events lines: `data: {JSON_PAYLOAD}\n\n`
       "total_cost_usd": 0.0005336
     }
   },
-  "timestamp": "2026-10-14T09:30:00.000000"
+  "timestamp": "2026-10-15T12:00:00.000000"
 }
 ```
 
@@ -107,7 +132,7 @@ Events are formatted as Server-Sent Events lines: `data: {JSON_PAYLOAD}\n\n`
 - `workflow_start`: Workflow begins execution.
 - `agent_start`: Specific agent initiates task (`Question Generator`, `Question Reviewer`, `Question Re-Generator`, `Image Generator`).
 - `agent_complete`: Agent finished step; contains draft/review data and `latest_usage` & `cumulative_usage`.
-- `workflow_complete`: Workflow verified score $> 90$ and saved question to PostgreSQL.
+- `workflow_complete`: Workflow verified score $> 90$ and staged or saved question.
 - `workflow_rejected`: Strict Quality Gate tripped (score $\le 90$ after 3 attempts). Question discarded from DB.
 - `workflow_error`: System error during workflow.
 
@@ -119,7 +144,8 @@ curl -N -X POST http://localhost:8000/api/generate \
     "section": "quantitative_reasoning",
     "subtopic": "Rates, Work & Concentration",
     "difficulty": "medium",
-    "require_image": false
+    "require_image": false,
+    "questions_to_generate": 1
   }'
 ```
 
@@ -136,6 +162,9 @@ Retrieves saved questions from PostgreSQL with optional filtering, full-text sea
 | `section` | `string` | No | Filter by subtest enum (e.g. `verbal_reasoning`) |
 | `difficulty` | `string` | No | Filter by difficulty (`easy`, `medium`, `hard`) |
 | `search` | `string` | No | Substring match in question stem, stimulus, or subtopic |
+| `combination_id` | `string` | No | Filter by combination UUID or custom code |
+| `run_id` | `string` | No | Filter by execution run UUID4 |
+| `batch_id` | `string` | No | Filter by batch run UUID4 |
 
 #### Response (`200 OK`)
 ```json
@@ -280,7 +309,7 @@ curl -X GET http://localhost:8000/api/questions/e3b0c442-98fc-1c14-9afb-4c8996fb
 
 ---
 
-### 3.4 Delete Question
+### 3.6 Delete Question
 `DELETE /api/questions/{question_id}`
 
 Deletes a question from PostgreSQL.
@@ -299,7 +328,7 @@ curl -X DELETE http://localhost:8000/api/questions/e3b0c442-98fc-1c14-9afb-4c899
 
 ---
 
-### 3.5 Export Question Bank
+### 3.7 Export Question Bank
 `GET /api/export`
 
 Downloads the entire Question Bank as an attachment in JSON or CSV format.
@@ -320,7 +349,7 @@ curl -O -J http://localhost:8000/api/export?format=csv
 
 ---
 
-### 3.6 Service Health Check
+### 3.8 Service Health Check
 `GET /api/health`
 
 Reports backend status, PostgreSQL database connection, database version, active models, and official pricing rate constants.
@@ -355,7 +384,7 @@ curl -X GET http://localhost:8000/api/health
 
 ---
 
-### 3.7 Configuration & Runtime Settings
+### 3.9 Configuration & Runtime Settings
 `GET /api/config` | `POST /api/config`
 
 Enables reading and dynamically updating API keys and model choices without restarting the backend process.
@@ -372,7 +401,7 @@ curl -X POST http://localhost:8000/api/config \
   -d '{
     "default_text_model": "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo",
     "default_image_model": "black-forest-labs/FLUX-1-schnell",
-    "deepinfra_api_key": "your_deepinfra_key_here",
+    "deepinfra_api_key": "your_api_key_here",
     "image_width": 1024,
     "image_height": 1024,
     "image_iters": 4,
@@ -382,7 +411,7 @@ curl -X POST http://localhost:8000/api/config \
 
 ---
 
-### 3.8 List UCAT Sections & Subtopics
+### 3.10 List UCAT Sections & Subtopics
 `GET /api/sections`
 
 Returns the official 5 UK UCAT subtests with their syllabus topics.
@@ -411,8 +440,7 @@ Returns the official 5 UK UCAT subtests with their syllabus topics.
         "Argument Evaluation",
         "Recognising Assumptions"
       ]
-    },
-    ...
+    }
   ]
 }
 ```

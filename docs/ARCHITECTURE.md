@@ -1,12 +1,14 @@
 # System Architecture & Multi-Agent Workflow
 
-This document details the software architecture, multi-agent design patterns, state management, and database schema powering the **UK UCAT Question Bank Generator**.
+Engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
+
+This document details the software architecture, multi-agent design patterns, state management, database schema, and frontend systems powering the **UK UCAT Question Studio v2.0**.
 
 ---
 
 ## 1. High-Level Architecture Overview
 
-The system is constructed as an asynchronous, event-driven multi-agent workflow coordinated by **LangGraph** and served via **FastAPI** with **Server-Sent Events (SSE)** to a **React 19** frontend.
+The system is constructed as an asynchronous, event-driven multi-agent workflow coordinated by **LangGraph** and served via **FastAPI** with **Server-Sent Events (SSE)** to a high-performance **React 19** frontend operating on a Modern Enterprise Minimalist single-canvas dock.
 
 ```mermaid
 graph TD
@@ -14,21 +16,21 @@ graph TD
     API -->|Initialize State| Graph[LangGraph Multi-Agent Engine]
     
     subgraph "LangGraph StateGraph Workflow"
-        Graph --> NodeGen[Question Generator Agent]
-        NodeGen --> NodeRev[Question Reviewer Agent]
+        Graph --> NodeGen[Infynno Cognitive Reasoning Core]
+        NodeGen --> NodeRev[Infynno Psychometric Scoring Engine]
         
-        NodeRev -->|Audit Score <= 90 & Iteration < 3| NodeRegen[Question Re-Generator Agent]
+        NodeRev -->|Audit Score <= 90 & Iteration < 3| NodeRegen[Autonomous Remediation Engine]
         NodeRegen -->|Refined Candidate Draft| NodeRev
         
         NodeRev -->|Score <= 90 & Iteration >= 3| NodeReject[Strict Quality Gate Reject]
         
-        NodeRev -->|Score > 90 & Needs Visual| NodeImg[Image Generator Agent]
-        NodeRev -->|Score > 90 & Text Only| NodeFin[Finalize & Persist Node]
+        NodeRev -->|Score > 90 & Needs Visual| NodeImg[Infynno Visual & Vector Engine]
+        NodeRev -->|Score > 90 & Text Only| NodeFin[Finalize & Staging Node]
         NodeImg --> NodeFin
     end
 
     NodeReject -->|Halt & Discard Draft| SSEStream[SSE Event Stream]
-    NodeFin -->|Save Verified Question| PG[(PostgreSQL 16 DB)]
+    NodeFin -->|Stage for Admin Review or Save| PG[(PostgreSQL 16 DB)]
     NodeFin --> SSEStream
     SSEStream -->|Real-Time SSE JSON Updates| User
 ```
@@ -71,17 +73,17 @@ stateDiagram-v2
 
 ## 3. Agent Specifications & Prompt Engineering
 
-The system decomposes question authoring into 4 specialized autonomous agents plus 1 deterministic quality gate:
+The system decomposes question authoring into 4 specialized autonomous engines plus 1 deterministic quality gate:
 
-### 3.1 Question Generator Agent (`generator.py`)
+### 3.1 Infynno Cognitive Reasoning Core (`generator.py`)
 - **Mission**: Synthesizes a high-yield clinical or cognitive scenario for the selected UK UCAT subtest with 4 distinct options (A, B, C, D).
 - **Core Prompt Strategy**:
   - Uses subtest-specific rules (e.g., categorical syllogisms for Decision Making, Venn reasoning for Abstract Reasoning, GMC Good Medical Practice guidance for Situational Judgement).
   - Explicitly crafts 1 definitive correct key and 3 sophisticated distractors representing realistic cognitive biases or calculation traps.
   - Requires strict JSON response matching the `QuestionDraft` schema.
-- **Model**: `deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo` (Temperature: `0.7`).
+- **Inference Gateway**: High-throughput enterprise reasoning model (~110–140 tok/s, Temperature: `0.7`).
 
-### 3.2 Question Reviewer Agent (`reviewer.py`)
+### 3.2 Infynno Psychometric Scoring Engine (`reviewer.py`)
 - **Mission**: Acts as an impartial Senior Psychometric Auditor, independently evaluating the candidate question against a standardized **100-point rubric**:
   1. *UCAT Authenticity & Tone* (0-25 points)
   2. *Clarity & Logical Soundness* (0-25 points)
@@ -91,15 +93,15 @@ The system decomposes question authoring into 4 specialized autonomous agents pl
   - Passing Score: **$> 90$** points ($91 - 100$).
   - Failing Score: **$\le 90$** points ($0 - 90$).
 - **Output**: Returns numerical pillar scores, observed strengths, specific weaknesses, and actionable remediation instructions.
-- **Model**: `deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo` (Temperature: `0.3` for objective, deterministic evaluation).
+- **Inference Gateway**: High-throughput enterprise reasoning model (Temperature: `0.3` for objective, deterministic evaluation).
 
-### 3.3 Question Re-Generator Agent (`regenerator.py`)
+### 3.3 Autonomous Remediation Engine (`regenerator.py`)
 - **Mission**: Triggered exclusively when the Reviewer's score is $\le 90$. It digests the Reviewer's exact critique, distractor deficiencies, and recommendations to repair the draft.
 - **Rules**:
   - Fixes borderline ambiguities and sharpens distractor plausibility.
   - Deepens step-by-step rationales explaining why the key is incontrovertible and why every distractor fails.
   - Re-submits the updated draft back to the Reviewer for re-audit.
-- **Model**: `deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo` (Temperature: `0.6`).
+- **Inference Gateway**: High-throughput enterprise reasoning model (Temperature: `0.6`).
 
 ### 3.4 Strict Quality Gate (`reject_node` in `graph.py`)
 - **Mission**: Deterministic circuit breaker. If a candidate draft fails to exceed 90 points after reaching the maximum permitted remediation cycles (`MAX_REGENERATION_ATTEMPTS = 3`), the workflow halts immediately.
@@ -108,11 +110,11 @@ The system decomposes question authoring into 4 specialized autonomous agents pl
   - **Discards from Database**: Zero substandard questions enter the PostgreSQL repository.
   - **Diagnostic Payload**: Transmits full rejection telemetry and history via SSE for audit inspection.
 
-### 3.5 Image Generator Agent (`image_generator.py`)
+### 3.5 Infynno Visual & Vector Engine (`image_generator.py`)
 - **Mission**: Generates visual stimuli for questions requiring graphical diagrams (mandatory for Abstract Reasoning; optional for Decision Making and Quantitative Reasoning).
 - **Hybrid Visual Engine**:
   - *Programmatic SVG Renderer*: Generates clean, crisp, scalable vector graphics for Venn diagrams, geometric transformation grids, and statistical bar charts.
-  - *AI Generative Image Provider*: Configurable for LiteLLM image models (FLUX.1 Schnell on DeepInfra, Imagen on Gemini, or DALL-E on OpenAI).
+  - *Generative Image Provider*: Configurable for high-resolution visual synthesis (FLUX.1 Schnell, Gemini Imagen, or OpenAI DALL-E).
 
 ---
 
@@ -238,13 +240,25 @@ erDiagram
         INTEGER completion_tokens "Cumulative completion tokens"
         DOUBLE_PRECISION cost_usd "Total cost in USD ($0.10 in / $0.32 out)"
         JSONB token_usage_details "Per-agent itemized token breakdown"
+        VARCHAR(64) combination_id "Matrix combination code (CMB00001)"
+        VARCHAR(64) run_id "Execution run UUID4"
+        VARCHAR(64) batch_id "Batch run UUID4"
+        VARCHAR(128) subcategory "Matrix subcategory taxonomy"
+        VARCHAR(128) content_domain "Matrix domain (Science, Ethics)"
+        VARCHAR(128) question_type "Passage_MCQ, True_False_Cant_Tell"
+        VARCHAR(64) interaction_type "single_choice, multi_choice, drag_drop"
+        VARCHAR(128) primary_trap "Cognitive distractor trap classification"
+        VARCHAR(16) passage_required "Yes or No"
+        INTEGER passage_questions "Passage question count"
+        VARCHAR(16) image_required "Yes or No"
+        VARCHAR(64) visual_type "None, SVG_Diagram, AI_FLUX_Image"
         VARCHAR(64) created_at "ISO-8601 UTC timestamp"
     }
 ```
 
 ### 6.2 Key Database Features
 - **Native JSONB Storage**: Flexible storage for option lists, reviewer rubrics, evolution histories, and granular per-agent token tracking.
-- **B-Tree Indexes**: Placed on `section`, `subtopic`, `difficulty`, and `created_at` for sub-millisecond filtering and sorting in the Question Bank.
+- **B-Tree Indexes**: Placed on `section`, `subtopic`, `difficulty`, `combination_id`, `run_id`, `batch_id`, and `created_at` for sub-millisecond filtering and sorting.
 - **Connection Pooling**: Managed via `async_sessionmaker` with `pool_size=10`, `max_overflow=20`, and `pool_pre_ping=True` to prevent stale connection drops.
 - **Automatic Schema Migration**: Built-in `init_db()` automatically runs `ALTER TABLE questions ADD COLUMN IF NOT EXISTS ...` ensuring zero downtime when new tracking fields are added.
 
@@ -259,7 +273,7 @@ The codebase follows professional software engineering practices, separating res
 ```
 backend/app/
 ├── core/                # Configuration & Settings
-│   └── config.py        # Pydantic SettingsConfigDict, DeepInfra defaults, token costs
+│   └── config.py        # Pydantic SettingsConfigDict, gateway defaults, token costs
 ├── db/                  # Database connectivity & session lifecycle
 │   ├── base.py          # Declarative Base
 │   └── session.py       # Async engine, connection pool, init_db, health checks
@@ -288,7 +302,7 @@ backend/app/
 │   └── v1/
 │       ├── generation.py # SSE streaming question generator endpoint
 │       ├── questions.py  # Question Bank CRUD, Admin Approval & JSON/CSV exports
-│       ├── config.py     # DeepInfra configuration & model settings
+│       ├── config.py     # Inference Gateway configuration & model settings
 │       └── health.py     # DB connectivity & system health checks
 └── main.py              # FastAPI application entrypoint with security headers & CORS
 ```
@@ -302,16 +316,21 @@ frontend/src/
 │   └── config.js        # Model options & pricing constants
 ├── hooks/               # Custom stateful React hooks
 │   ├── useQuestionGenerator.js # SSE streaming multi-agent orchestrator hook
-│   └── useQuestionBank.js      # CRUD, filtering, clipboard & repository stats hook
+│   ├── useQuestionBank.js      # CRUD, filtering, clipboard & repository stats hook
+│   ├── useKeyboardShortcuts.js # Keyboard shortcuts (⌘↵, A, D, T)
+│   └── useTheme.js             # Dual-theme engine (dark / light)
 ├── components/          # Domain-organized UI components
 │   ├── index.js         # Barrel exports for clean component imports
-│   ├── layout/          # Layout components (Navbar)
-│   ├── generator/       # Question generation studio (Panel, Visualizer, RejectionCard)
-│   ├── question/        # Candidate question review & audit (QuestionCard, ReviewAuditView, StageJsonInspector)
-│   ├── bank/            # Question repository (QuestionBank)
+│   ├── layout/          # Layout components (Navbar, Footer)
+│   ├── generator/       # Studio Blueprint, GeneratorPanel, MultiAgentPipelineVisualizer, RejectionCard
+│   ├── question/        # CandidateStagedBanner, QuestionCard, ReviewAuditView, StageJsonInspector, StagedBatchReview
+│   ├── bank/            # Repository table, filter chips, pagination, export (QuestionBank)
 │   ├── modals/          # Dialog modals (SettingsModal)
-│   └── common/          # Common components (Toast)
-└── services/
-    └── api.js           # SSE event reader, candidate approval & REST API client
+│   └── common/          # Common primitives (InfynnoLogo, Toast)
+├── services/
+│   └── api.js           # SSE event reader, candidate approval & REST API client
+├── index.css            # Enterprise CSS tokens, conduit animations, dual-theme styling
+└── main.jsx             # React 19 application root
 ```
+
 

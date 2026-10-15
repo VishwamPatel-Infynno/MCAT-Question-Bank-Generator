@@ -1,9 +1,9 @@
 # UK UCAT Question Studio v2.0
 > **An Infynno Solutions LLP Product • [Infinite Innovations](https://infynno.com/)**
 
-An enterprise autonomous multi-agent AI system and psychometric workstation for generating, reviewing, conditionally calibrating, and visually illustrating high-caliber questions for the official **UK UCAT** (University Clinical Aptitude Test).
+An enterprise autonomous multi-agent AI workstation for generating, psychometrically auditing, conditionally remediating, and visually illustrating high-caliber questions for the official **UK UCAT** (University Clinical Aptitude Test).
 
-Engineered by **[Infynno Solutions LLP](https://infynno.com/)**, powered by a **Proprietary Multi-Agent Cyclic State Machine**, **FastAPI**, **React 19**, and **PostgreSQL 16**, featuring live electric conduit pipeline visualization, multi-question batching, and strict 90+ score quality gates.
+Engineered by **[Infynno Solutions LLP](https://infynno.com/)**, powered by a **Proprietary Multi-Agent Cognitive State Machine**, **FastAPI**, **React 19**, and **PostgreSQL 16**, featuring a Modern Enterprise Minimalist single-canvas studio, 4-node pipeline stepper, batch staging, and strict 90+ score quality gates.
 
 ---
 
@@ -13,10 +13,10 @@ For deep-dive technical specifications, architecture diagrams, API schemas, and 
 
 | Document | Description |
 | :--- | :--- |
-| **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 4-agent specifications, Strict Quality Gate, SSE pipeline, and PostgreSQL 16 ERD. |
-| **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation, SSE event stream schemas, filter parameters, and cURL examples. |
-| **[Token Usage & Cost Tracking](docs/TOKEN_TRACKING.md)** | DeepInfra rate card ($0.10 in / $0.32 out per 1M tokens), exact mathematical cost formulas, multi-agent accumulation, and UI observability. |
-| **[Installation, Setup & Deployment](docs/SETUP_AND_CONFIG.md)** | Step-by-step setup, Docker PostgreSQL 16 guide, environment variables reference, production deployment, and troubleshooting. |
+| **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 4-agent specifications, Strict Quality Gate, SSE pipeline, batch routing, and PostgreSQL 16 ERD. |
+| **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation, batch generation schemas, SSE event stream contracts, filter parameters, and cURL examples. |
+| **[Token Usage & Cost Tracking](docs/TOKEN_TRACKING.md)** | High-throughput rate card ($0.10 in / $0.32 out per 1M tokens), exact mathematical cost formulas, multi-agent accumulation, and UI observability. |
+| **[Installation, Setup & Deployment](docs/SETUP_AND_CONFIG.md)** | Step-by-step setup, Docker PostgreSQL 16 guide, environment variables reference, production deployment, linters, and troubleshooting. |
 | **[UCAT Psychometric Rubric & Standards](docs/UCAT_RUBRIC.md)** | Official 5 subtests pacing, 100-point 4-pillar evaluation rubric, $> 90$ quality benchmark, and cognitive distractor trap engineering. |
 
 ---
@@ -26,43 +26,47 @@ For deep-dive technical specifications, architecture diagrams, API schemas, and 
 ### 1. 4-Agent Autonomous Workflow with Strict Quality Gate
 ```mermaid
 graph LR
-    Generator[Question Generator] --> Reviewer[Question Reviewer]
-    Reviewer -->|Score <= 90 & Cycles < 3| Regenerator[Question Re-Generator]
+    Generator[Question Generator] --> Reviewer[Psychometric Auditor]
+    Reviewer -->|Score <= 90 & Cycles < 3| Regenerator[Remediation Engine]
     Regenerator --> Reviewer
     Reviewer -->|Score <= 90 & Cycles = 3| Reject[Strict Quality Gate Reject]
-    Reviewer -->|Score > 90| ImageGen[Image Generator]
-    ImageGen --> Finalize[Finalize & Save to DB]
+    Reviewer -->|Score > 90| ImageGen[Stimulus & Diagram]
+    ImageGen --> Finalize[Admin Review Desk]
     Reviewer -->|Score > 90 & No Image| Finalize
 ```
-- **Question Generator Agent**: Synthesizes authentic UK UCAT clinical passages and 4 distinct options (A, B, C, D) using subtest-specific cognitive constraints.
-- **Question Reviewer Agent**: Impartially evaluates candidate items against a standardized **100-point psychometric rubric** across 4 equal 25-point pillars (Authenticity, Clarity, Distractor Traps, Explanation Rigor).
-- **Question Re-Generator Agent**: Automatically triggered when score $\le 90$. Digests the Reviewer's exact weaknesses and recommendations to repair borderline distractors and expand step-by-step proofs.
-- **Strict Quality Gate**: If a question fails to score $> 90$ after reaching maximum attempts (`MAX_REGENERATION_ATTEMPTS = 3`), the workflow halts immediately. Bypasses image generation and discards the draft to protect repository integrity.
-- **Image Generator Agent**: Renders clean programmatic SVG vector diagrams for geometric patterns, Venn syllogisms, and charts, with fallback support for AI image models.
+- **Question Generator Agent (`generator.py`)**: Synthesizes authentic UK UCAT clinical passages and 4 distinct options (A, B, C, D) using subtest-specific cognitive pacing and syllabus constraints.
+- **Psychometric Auditor Agent (`reviewer.py`)**: Impartially evaluates candidate items against a standardized **100-point psychometric rubric** across 4 equal 25-point pillars (*Authenticity*, *Clarity*, *Distractor Traps*, *Explanation Rigor*).
+- **Remediation Engine Agent (`regenerator.py`)**: Automatically triggered when score $\le 90$. Digests the Auditor's exact weaknesses and recommendations to repair borderline distractors and expand step-by-step proofs up to 3 iterations.
+- **Strict Quality Gate**: If a question fails to score $> 90$ after reaching maximum attempts (`MAX_REGENERATION_ATTEMPTS = 3`), the workflow halts immediately. Bypasses image generation and discards the candidate to protect repository integrity.
+- **Stimulus & Diagram Agent (`image_generator.py`)**: Renders clean programmatic SVG vector diagrams for geometric patterns, Venn syllogisms, and charts, with fallback support for AI visual generators.
 
-### 2. DeepInfra Meta Llama 3.3 70B Turbo & Precision Cost Accounting
-- **Primary LLM**: `deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo`
-- **Official Pricing**:
-  - **Input Tokens**: **$0.10** per 1,000,000 tokens
-  - **Output Tokens**: **$0.32** per 1,000,000 tokens
-- **Micro-Dollar Tracking**: Every LLM request computes exact USD costs:
+### 2. High-Throughput Autonomous Inference & Precision Cost Accounting
+- **Inference Engine**: Autonomous Psychometric Engine v2.0 (High-Throughput Enterprise Gateway)
+- **Official Rate Card**:
+  - **Input (Prompt) Tokens**: **$0.10** per 1,000,000 tokens
+  - **Output (Completion) Tokens**: **$0.32** per 1,000,000 tokens
+- **Micro-Dollar Tracking**: Every request computes exact USD costs:
   $$\text{Cost (USD)} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times 0.10\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times 0.32\right)$$
 - **Granular Observability**:
-  - Live State Graph header counter (`🪙 2,850 tokens • $0.00053`) and per-agent step pills.
-  - QuestionCard badge displaying total tokens and cost.
+  - Live pipeline stepper with active stopwatch and collapsible SSE telemetry tray.
+  - QuestionCard badges displaying total tokens and cost.
   - Psychometric Review Audit Modal itemized table showing prompt tokens, completion tokens, and cost per agent cycle.
-  - Question Bank 3rd top stat box tracking accumulated repository-wide tokens and total expenditure.
+  - Question Bank metrics strip tracking accumulated repository-wide tokens and total expenditure.
 
 ### 3. Production PostgreSQL 16 Tier (SQLAlchemy Async + asyncpg)
 - **Native JSONB Columns**: Stores options, review rubrics, evolution histories, and granular per-agent token tracking.
+- **UUID4 Traceability**: Automatic UUID4 generation for every question (`id`), execution run (`run_id`), batch set (`batch_id`), and combination matrix (`combination_id`).
 - **Docker Compose Setup**: Instant container initialization on port `5432` with pre-ping connection pooling.
-- **Zero-Downtime Auto-Migration**: Automatically runs non-destructive schema migrations on startup.
+- **Zero-Downtime Auto-Migration**: Automatically runs non-destructive schema migrations and SQLite fallback migrations on startup.
 
-### 4. Modern Accessible Light Theme UI
-- High-contrast, clean visual design adhering to modern UI/UX design engineering principles.
-- Interactive student practice mode with immediate feedback, confetti animations, and expandable rationales.
-- Real-time Server-Sent Events (SSE) telemetry displaying live agent thoughts.
-- One-click export to **JSON** or **CSV**.
+### 4. Modern Enterprise Minimalist UI (Dual Theme: Dark & Light)
+- **Linear/Vercel-Inspired Aesthetic**: Hairline borders (`rgba(255, 255, 255, 0.06)` dark / `#e8ecf2` light), quiet obsidian and alabaster surfaces, and zero multi-card clutter.
+- **Unified Parameter Dock (`.dock-panel`)**: Seamless single-canvas sidebar organized by uppercase micro-kickers (`01 / SUBTEST & TOPIC`, `02 / FORMAT & RIGOR`, `03 / DIRECTIVES & TRAPS`), with flat subtest list and subtle active indicator dots.
+- **Collapsible Dock Rail**: 56px collapsed state (`.dock-panel-collapsed`) to maximize question review canvas space.
+- **Horizontal 4-Node Pipeline Stepper**: Clean sequential nodes (`01 Draft`, `02 Audit`, `03 Remediate`, `04 Stimulus`) with live status indicators.
+- **Editorial Question Presentation**: Clinical reading passages formatted in serif typography with line-height `1.68` for fatigue-free reading; circular option badges (`A`, `B`, `C`, `D`) and distractor trap rationalization drawers.
+- **Instant Theme Switching**: Seamless toggle between Dark and Light themes with WCAG AA compliance via the `T` key shortcut.
+- **Full Keyboard Navigation**: `⌘ + Enter` (Generate), `T` (Theme), `/` (Search Bank), `A` (Approve), `D` (Discard), `Escape` (Close Modals).
 
 ---
 
@@ -98,18 +102,28 @@ npm run dev
 
 ---
 
-## 🧪 Automated Testing
+## 🧪 Automated Testing & Linters
 
 Run the full backend test suite covering schemas, routing logic, strict quality gates, SVG synthesis, PostgreSQL operations, and token calculations:
 
 ```bash
+# Run backend deterministic test suite (15 passed)
 source .venv/bin/activate
-PYTHONPATH=backend pytest backend/tests/test_backend.py -v
+pytest backend/tests/test_backend.py -v
+
+# Run backend linter (ruff)
+ruff check backend
 ```
 
-Verify frontend production build:
+Verify frontend code hygiene and production bundle:
+
 ```bash
 cd frontend
+
+# Run frontend linter (oxlint: 0 warnings, 0 errors)
+npm run lint
+
+# Build production bundle (vite build: ~189ms)
 npm run build
 ```
 
@@ -125,18 +139,18 @@ Question Bank Generator/
 ├── docs/                        # Comprehensive Documentation Suite
 │   ├── ARCHITECTURE.md          # Multi-agent architecture & LangGraph StateGraph
 │   ├── API.md                   # Complete REST & SSE API specification
-│   ├── TOKEN_TRACKING.md        # DeepInfra pricing & mathematical cost engine
+│   ├── TOKEN_TRACKING.md        # Inference pricing & mathematical cost engine
 │   ├── SETUP_AND_CONFIG.md      # Installation, deployment & troubleshooting
 │   └── UCAT_RUBRIC.md           # 100-point psychometric rubric & authoring standards
 ├── backend/
 │   ├── requirements.txt         # Python dependencies
 │   ├── tests/
-│   │   ├── test_backend.py      # Automated pytest suite (13 unit & integration tests)
+│   │   ├── test_backend.py      # Automated pytest suite (15 unit & integration tests)
 │   │   └── test_e2e_live.py     # Live end-to-end integration test suite (9 tests)
 │   └── app/
-│       ├── main.py              # FastAPI app with modern lifespan context
+│       ├── main.py              # FastAPI app with modern lifespan context & security headers
 │       ├── core/                # Core configurations & Pydantic V2 settings
-│       │   ├── config.py        # DeepInfra model configuration & token pricing constants
+│       │   ├── config.py        # Settings, model configuration & token pricing constants
 │       │   └── __init__.py
 │       ├── db/                  # Database connectivity & session lifecycle
 │       │   ├── base.py          # SQLAlchemy declarative base
@@ -160,8 +174,8 @@ Question Bank Generator/
 │       │   ├── mock_fixtures.py # Mock fallback questions & heuristic rubrics
 │       │   ├── generator.py     # Question Generator Agent
 │       │   ├── reviewer.py      # Question Reviewer Agent (100-pt rubric)
-│       │   ├── regenerator.py   # Question Re-Generator Agent (<= 90 trigger)
-│       │   ├── image_generator.py # Programmatic SVG & AI visual generator
+│       │   ├── regenerator.py   # Remediation Engine Agent (<= 90 trigger)
+│       │   ├── image_generator.py # Programmatic SVG & visual stimulus generator
 │       │   └── __init__.py
 │       ├── workflow/            # LangGraph multi-agent state graph
 │       │   ├── state.py         # AgentWorkflowState typed dictionary
@@ -172,29 +186,31 @@ Question Bank Generator/
 │           └── v1/
 │               ├── generation.py # SSE streaming question generator endpoint
 │               ├── questions.py  # Question Bank CRUD & JSON/CSV exports
-│               ├── config.py     # DeepInfra configuration & model settings
+│               ├── config.py     # Engine configuration & model settings
 │               ├── health.py     # DB connectivity & system health checks
 │               └── __init__.py
 └── frontend/
     ├── package.json             # React 19 dependencies & scripts
-    ├── vite.config.js           # Vite build configuration
+    ├── vite.config.js           # Vite build configuration with chunk splitting
     └── src/
         ├── App.jsx              # Main application shell with useQuestionGenerator
-        ├── index.css            # Light theme glassmorphism design system
+        ├── index.css            # Modern Enterprise Minimalist design system (Dual Theme)
         ├── constants/           # Centralized application constants
         │   ├── ucat.js          # Subtest icons, pacing targets & fallback taxonomy
         │   └── config.js        # Model options & pricing constants
         ├── hooks/               # Custom stateful React hooks
-        │   ├── useQuestionGenerator.js # SSE streaming multi-agent orchestrator hook
-        │   └── useQuestionBank.js      # CRUD, filtering, clipboard & repository stats hook
+        │   ├── useTheme.js              # Theme manager (Dark/Light with localStorage)
+        │   ├── useKeyboardShortcuts.js  # Global hotkeys (⌘↵, T, A, D, /, Esc)
+        │   ├── useQuestionGenerator.js  # SSE streaming multi-agent orchestrator hook
+        │   └── useQuestionBank.js       # CRUD, filtering, clipboard & repository stats hook
         ├── components/          # Domain-organized UI components
         │   ├── index.js         # Barrel exports for clean component imports
-        │   ├── layout/          # Layout components (Navbar)
-        │   ├── generator/       # Question generation studio (Panel, Visualizer, RejectionCard)
-        │   ├── question/        # Candidate question display & review (QuestionCard, ReviewAuditView)
+        │   ├── layout/          # Layout components (Navbar, Footer)
+        │   ├── generator/       # Studio components (GeneratorPanel, MultiAgentPipelineVisualizer, StudioBlueprint, RejectionCard)
+        │   ├── question/        # Review Desk components (QuestionCard, StagedBatchReview, ReviewAuditView, StageJsonInspector)
         │   ├── bank/            # Question repository (QuestionBank)
         │   ├── modals/          # Dialog modals (SettingsModal)
-        │   └── common/          # Common components (Toast)
+        │   └── common/          # Common primitives (InfynnoLogo, Toast)
         └── services/
             └── api.js           # SSE event reader & REST API client
 ```
