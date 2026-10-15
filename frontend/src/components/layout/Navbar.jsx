@@ -15,51 +15,48 @@ export default function Navbar({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '14px 28px',
+        padding: '12px 24px',
         borderBottom: '1px solid var(--border-light)',
         background: 'var(--bg-surface)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
         position: 'sticky',
         top: 0,
-        zIndex: 50,
-        boxShadow: 'var(--shadow-sm)'
+        zIndex: 50
       }}
     >
       {/* Brand & Subtitle */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <div
           style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #4f46e5 100%)',
+            width: '32px',
+            height: '32px',
+            borderRadius: '8px',
+            background: 'var(--brand-primary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 14px rgba(2, 132, 199, 0.4)'
+            color: '#ffffff'
           }}
         >
-          <Cpu size={22} color="#ffffff" />
+          <Cpu size={18} />
         </div>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <h1
               style={{
-                fontSize: '1.15rem',
-                fontWeight: 800,
+                fontSize: '1rem',
+                fontWeight: 700,
                 letterSpacing: '-0.02em',
                 color: 'var(--text-primary)'
               }}
             >
-              UK UCAT Question Bank
+              UK UCAT Question Studio
             </h1>
-            <span className="badge badge-cyan" style={{ fontSize: '0.65rem' }}>
-              Multi-Agent Studio
+            <span className="badge badge-neutral" style={{ fontSize: '0.625rem' }}>
+              v2.0
             </span>
           </div>
-          <p style={{ fontSize: '0.775rem', color: 'var(--text-muted)' }}>
-            Autonomous Generation, 100-pt Psychometric Audit &amp; Review Workflow
+          <p style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
+            Multi-Agent Psychometric Authoring Platform
           </p>
         </div>
       </div>
@@ -69,10 +66,10 @@ export default function Navbar({
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '4px',
-          padding: '4px',
+          gap: '2px',
+          padding: '3px',
           background: 'var(--bg-surface-elevated)',
-          borderRadius: 'var(--radius-lg)',
+          borderRadius: 'var(--radius-md)',
           border: '1px solid var(--border-light)'
         }}
       >
@@ -82,23 +79,21 @@ export default function Navbar({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            padding: '7px 16px',
-            borderRadius: 'var(--radius-md)',
+            gap: '7px',
+            padding: '6px 14px',
+            borderRadius: 'var(--radius-sm)',
             background: activeTab === 'generator' ? 'var(--brand-primary)' : 'transparent',
             border: 'none',
             color: activeTab === 'generator' ? '#ffffff' : 'var(--text-secondary)',
             fontWeight: 600,
-            fontSize: '0.85rem',
+            fontSize: '0.825rem',
             cursor: 'pointer',
-            transition: 'all var(--transition-fast)',
-            boxShadow: activeTab === 'generator' ? '0 2px 8px rgba(2, 132, 199, 0.4)' : 'none'
+            transition: 'all var(--transition-fast)'
           }}
         >
-          <Sparkles size={15} />
+          <Sparkles size={14} />
           Generator Studio
         </button>
-
 
         <button
           id="nav-tab-bank"
@@ -106,52 +101,49 @@ export default function Navbar({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            padding: '7px 16px',
-            borderRadius: 'var(--radius-md)',
+            gap: '7px',
+            padding: '6px 14px',
+            borderRadius: 'var(--radius-sm)',
             background: activeTab === 'bank' ? 'var(--brand-primary)' : 'transparent',
             border: 'none',
             color: activeTab === 'bank' ? '#ffffff' : 'var(--text-secondary)',
             fontWeight: 600,
-            fontSize: '0.85rem',
+            fontSize: '0.825rem',
             cursor: 'pointer',
-            transition: 'all var(--transition-fast)',
-            boxShadow: activeTab === 'bank' ? '0 2px 8px rgba(2, 132, 199, 0.4)' : 'none'
+            transition: 'all var(--transition-fast)'
           }}
         >
-          <Database size={15} />
+          <Database size={14} />
           Question Bank
         </button>
-
       </nav>
 
-      {/* Right Action Tools: Health + Theme Toggle + Settings */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        {/* Backend Agent Status Indicator */}
+      {/* Right Tools */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Backend Status Indicator */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '7px',
-            padding: '6px 12px',
+            gap: '6px',
+            padding: '5px 10px',
             background: 'var(--bg-surface-elevated)',
-            borderRadius: 'var(--radius-full)',
-            fontSize: '0.75rem',
+            borderRadius: 'var(--radius-sm)',
+            fontSize: '0.725rem',
             fontWeight: 600,
             border: '1px solid var(--border-light)'
           }}
         >
           <div
             style={{
-              width: '8px',
-              height: '8px',
+              width: '6px',
+              height: '6px',
               borderRadius: '50%',
-              background: backendStatus ? '#10b981' : '#f59e0b',
-              boxShadow: backendStatus ? '0 0 8px #10b981' : '0 0 8px #f59e0b'
+              background: backendStatus ? 'var(--status-success)' : 'var(--status-warning)'
             }}
           />
           <span style={{ color: 'var(--text-secondary)' }}>
-            {backendStatus ? 'Agents Online' : 'Connecting...'}
+            {backendStatus ? 'Online' : 'Connecting...'}
           </span>
         </div>
 
@@ -160,11 +152,11 @@ export default function Navbar({
           id="btn-toggle-theme"
           onClick={onToggleTheme}
           className="btn-secondary"
-          style={{ padding: '8px 12px' }}
+          style={{ padding: '6px 10px' }}
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode (Press T)`}
         >
-          {theme === 'dark' ? <Sun size={16} color="#fbbf24" /> : <Moon size={16} color="#0284c7" />}
-          <span className="kbd-hint" style={{ fontSize: '0.65rem', marginLeft: '2px' }}>T</span>
+          {theme === 'dark' ? <Sun size={14} color="#fbbf24" /> : <Moon size={14} color="#0284c7" />}
+          <span className="kbd-hint" style={{ fontSize: '0.6rem', marginLeft: '2px' }}>T</span>
         </button>
 
         {/* Settings Button */}
@@ -172,10 +164,10 @@ export default function Navbar({
           id="btn-settings-open"
           onClick={onOpenSettings}
           className="btn-secondary"
-          style={{ padding: '8px 12px' }}
+          style={{ padding: '6px 10px' }}
           title="Configure Models & DeepInfra API Key"
         >
-          <Settings size={16} />
+          <Settings size={14} />
           Settings
         </button>
       </div>

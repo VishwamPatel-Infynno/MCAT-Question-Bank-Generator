@@ -132,142 +132,114 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Top Banner & Modern Metrics Deck */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* Top Header & Precision Metric Strip */}
       <div
-        className="glass-panel"
         style={{
-          padding: '24px 28px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '20px'
+          gap: '16px',
+          paddingBottom: '4px'
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-              UK UCAT Question Bank Library
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
+              Question Bank
             </h2>
-            <span className="badge badge-emerald" style={{ fontSize: '0.65rem' }}>
-              PostgreSQL 16
+            <span className="badge badge-emerald" style={{ fontSize: '0.68rem' }}>
+              PostgreSQL
             </span>
           </div>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            Psychometrically audited items with distractor trap analysis, stored with full stage telemetry.
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+            Psychometrically audited items with distractor trap analysis and telemetry.
           </p>
         </div>
 
-        {/* 3 Modern KPI Cards */}
+        {/* 1-Line Stats Summary Strip & Exports */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          {/* Total Questions Card */}
           <div
             style={{
-              background: 'var(--bg-surface-elevated)',
-              padding: '10px 18px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '6px 14px',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
               borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-light)',
-              minWidth: '100px',
-              textAlign: 'center'
+              fontSize: '0.78rem',
+              color: 'var(--text-secondary)'
             }}
           >
-            <div style={{ fontSize: '0.675rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
-              QUESTIONS
-            </div>
-            <div style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--brand-primary)' }}>
-              {questions.length}
-            </div>
+            <span>
+              <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{questions.length}</strong> questions
+            </span>
+            <span style={{ color: 'var(--border-subtle)' }}>&bull;</span>
+            <span>
+              <strong style={{ color: 'var(--status-success-text)', fontWeight: 700 }}>{avgScore}</strong>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>/100 avg</span>
+            </span>
+            <span style={{ color: 'var(--border-subtle)' }}>&bull;</span>
+            <span>
+              <strong style={{ color: 'var(--text-primary)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
+                ${repoStats.total_cost_usd.toFixed(4)}
+              </strong> cost
+            </span>
           </div>
 
-          {/* Average Quality Score Card */}
-          <div
-            style={{
-              background: 'var(--bg-surface-elevated)',
-              padding: '10px 18px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-light)',
-              minWidth: '100px',
-              textAlign: 'center'
-            }}
-          >
-            <div style={{ fontSize: '0.675rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
-              AVG QUALITY
-            </div>
-            <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#10b981' }}>
-              {avgScore}<span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-muted)' }}>/100</span>
-            </div>
-          </div>
-
-          {/* Repository Cost Card */}
-          <div
-            style={{
-              background: 'var(--bg-surface-elevated)',
-              padding: '10px 18px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-light)',
-              minWidth: '100px',
-              textAlign: 'center'
-            }}
-          >
-            <div style={{ fontSize: '0.675rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
-              REPO COST
-            </div>
-            <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#6366f1' }}>
-              ${repoStats.total_cost_usd.toFixed(4)}
-            </div>
-          </div>
-
-          {/* Export Actions */}
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '6px' }}>
             <a
               href={getExportUrl('json')}
               download="ucat_questions.json"
               className="btn-secondary"
-              style={{ textDecoration: 'none', padding: '8px 12px', fontSize: '0.8rem' }}
+              style={{ textDecoration: 'none', padding: '6px 12px', fontSize: '0.78rem' }}
               title="Download entire question bank as JSON"
             >
-              <Download size={14} /> JSON
+              <Download size={13} /> JSON
             </a>
             <a
               href={getExportUrl('csv')}
               download="ucat_questions.csv"
               className="btn-secondary"
-              style={{ textDecoration: 'none', padding: '8px 12px', fontSize: '0.8rem' }}
+              style={{ textDecoration: 'none', padding: '6px 12px', fontSize: '0.78rem' }}
               title="Download entire question bank as CSV"
             >
-              <Download size={14} /> CSV
+              <Download size={13} /> CSV
             </a>
           </div>
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
+      {/* Precision Filter & Search Row */}
       <div
-        className="glass-panel"
         style={{
-          padding: '16px 20px',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-md)',
+          padding: '12px 16px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '14px'
+          gap: '10px'
         }}
       >
         {/* Search Row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <div
             style={{
               flex: 1,
-              minWidth: '260px',
+              minWidth: '240px',
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
+              gap: '8px',
               background: 'var(--bg-surface-elevated)',
-              padding: '0 14px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-light)'
+              padding: '0 12px',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--border-subtle)'
             }}
           >
-            <Search size={16} color="var(--text-muted)" />
+            <Search size={14} color="var(--text-muted)" />
             <input
               ref={searchInputRef}
               id="input-bank-search"
@@ -278,37 +250,50 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
               style={{
                 border: 'none',
                 background: 'transparent',
-                padding: '9px 0',
+                padding: '8px 0',
                 width: '100%',
-                fontSize: '0.85rem',
-                color: 'var(--text-primary)'
+                fontSize: '0.82rem',
+                color: 'var(--text-primary)',
+                outline: 'none'
               }}
             />
-            <span className="kbd-hint" style={{ fontSize: '0.65rem' }}>/</span>
+            <span className="kbd-hint" style={{ fontSize: '0.62rem' }}>/</span>
           </div>
 
           {/* Difficulty Filter Chips */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            {DIFFICULTY_FILTER_OPTIONS.map(d => (
-              <button
-                key={d.id}
-                type="button"
-                onClick={() => setDiffFilter(d.id)}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 'var(--radius-full)',
-                  border: diffFilter === d.id ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
-                  background: diffFilter === d.id ? 'var(--brand-primary)' : 'var(--bg-surface-elevated)',
-                  color: diffFilter === d.id ? '#ffffff' : 'var(--text-secondary)',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all var(--transition-fast)'
-                }}
-              >
-                {d.label}
-              </button>
-            ))}
+          <div
+            style={{
+              display: 'inline-flex',
+              background: 'var(--bg-surface-elevated)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '2px'
+            }}
+          >
+            {DIFFICULTY_FILTER_OPTIONS.map(d => {
+              const isActive = diffFilter === d.id;
+              return (
+                <button
+                  key={d.id}
+                  type="button"
+                  onClick={() => setDiffFilter(d.id)}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: 'var(--radius-xs)',
+                    border: 'none',
+                    background: isActive ? 'var(--bg-surface)' : 'transparent',
+                    color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
+                    fontSize: '0.74rem',
+                    fontWeight: isActive ? 600 : 500,
+                    cursor: 'pointer',
+                    boxShadow: isActive ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                    transition: 'all var(--transition-fast)'
+                  }}
+                >
+                  {d.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -317,7 +302,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            gap: '6px',
             overflowX: 'auto',
             paddingBottom: '2px'
           }}
@@ -330,6 +315,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                 type="button"
                 className={`filter-pill ${isActive ? 'active' : ''}`}
                 onClick={() => setSectionFilter(sec.id)}
+                style={{ fontSize: '0.74rem', padding: '4px 10px' }}
               >
                 <span>{sec.label}</span>
               </button>
@@ -345,8 +331,8 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
               alignItems: 'center',
               justifyContent: 'space-between',
               paddingTop: '8px',
-              borderTop: '1px solid var(--border-light)',
-              fontSize: '0.8rem',
+              borderTop: '1px solid var(--border-subtle)',
+              fontSize: '0.78rem',
               color: 'var(--text-secondary)'
             }}
           >
@@ -354,18 +340,18 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
               <button
                 onClick={handleSelectAll}
                 className="btn-secondary"
-                style={{ padding: '4px 10px', fontSize: '0.75rem', gap: '6px' }}
+                style={{ padding: '4px 8px', fontSize: '0.74rem', gap: '6px' }}
               >
                 {selectedIds.length === questions.length ? (
-                  <CheckSquare size={14} color="var(--brand-primary)" />
+                  <CheckSquare size={13} color="var(--brand-primary)" />
                 ) : (
-                  <Square size={14} />
+                  <Square size={13} />
                 )}
                 <span>{selectedIds.length === questions.length ? 'Deselect All' : 'Select All'}</span>
               </button>
 
               {selectedIds.length > 0 && (
-                <span style={{ fontWeight: 600, color: 'var(--brand-primary)' }}>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                   {selectedIds.length} of {questions.length} selected
                 </span>
               )}
@@ -376,9 +362,9 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                 <button
                   onClick={handleBulkExportJson}
                   className="btn-secondary"
-                  style={{ padding: '5px 12px', fontSize: '0.75rem', gap: '6px' }}
+                  style={{ padding: '4px 10px', fontSize: '0.74rem', gap: '6px' }}
                 >
-                  <FileDown size={14} />
+                  <FileDown size={13} />
                   <span>Export Selected ({selectedIds.length})</span>
                 </button>
 
@@ -386,9 +372,9 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                   onClick={handleBulkDelete}
                   disabled={isDeletingBulk}
                   className="btn-danger"
-                  style={{ padding: '5px 12px', fontSize: '0.75rem', gap: '6px' }}
+                  style={{ padding: '4px 10px', fontSize: '0.74rem', gap: '6px' }}
                 >
-                  <Trash2 size={14} />
+                  <Trash2 size={13} />
                   <span>{isDeletingBulk ? 'Deleting...' : `Delete Selected (${selectedIds.length})`}</span>
                 </button>
               </div>
@@ -400,21 +386,32 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
       {/* Question Cards List */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-secondary)' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem' }}>
-            <Sparkles size={18} color="var(--brand-primary)" className="pulse-glowing" />
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem' }}>
+            <Sparkles size={16} color="var(--brand-primary)" />
             <span>Loading Question Bank...</span>
           </div>
         </div>
       ) : questions.length === 0 ? (
-        <div className="glass-panel" style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-secondary)' }}>
-          <Database size={44} color="var(--text-muted)" style={{ marginBottom: '12px' }} />
-          <h3 style={{ fontSize: '1.05rem', color: 'var(--text-primary)', marginBottom: '6px' }}>No Questions Found</h3>
-          <p style={{ fontSize: '0.825rem' }}>
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '50px 20px',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-md)',
+            color: 'var(--text-secondary)'
+          }}
+        >
+          <Database size={36} color="var(--text-muted)" style={{ marginBottom: '12px' }} />
+          <h3 style={{ fontSize: '0.96rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
+            No Questions Found
+          </h3>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
             No questions match your current filters. Clear filters or generate new questions in the Studio.
           </p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {questions.map((q) => {
             const isSelected = selectedIds.includes(q.id);
             const isExpanded = expandedId === q.id;
@@ -422,22 +419,21 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
             return (
               <div
                 key={q.id}
-                className="glass-panel"
                 style={{
-                  padding: '18px 24px',
+                  padding: '16px 20px',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '12px',
                   background: isSelected ? 'var(--bg-surface-elevated)' : 'var(--bg-surface)',
-                  border: isSelected ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
-                  boxShadow: isSelected ? 'var(--shadow-glow)' : 'var(--shadow-sm)',
-                  transition: 'all var(--transition-fast)'
+                  border: isSelected ? '1px solid var(--border-brand)' : '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  transition: 'background var(--transition-fast), border-color var(--transition-fast)'
                 }}
               >
                 {/* Main Row */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
                   {/* Checkbox & Details */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flex: 1 }}>
                     <button
                       onClick={(e) => handleToggleSelect(q.id, e)}
                       style={{
@@ -450,7 +446,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                       }}
                       title="Select question"
                     >
-                      {isSelected ? <CheckSquare size={18} /> : <Square size={18} />}
+                      {isSelected ? <CheckSquare size={16} /> : <Square size={16} />}
                     </button>
 
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -465,13 +461,13 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                           {q.difficulty}
                         </span>
                         <span className="badge badge-emerald">
-                          <Award size={12} /> {q.final_score}/100
+                          <Award size={11} /> {q.final_score}/100
                         </span>
 
                         {q.id && (
                           <span
                             className="badge badge-cyan"
-                            style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', cursor: 'pointer' }}
+                            style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', cursor: 'pointer' }}
                             title={`UUID: ${q.id} (Click to copy)`}
                             onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(q.id); }}
                           >
@@ -482,7 +478,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                         {q.combination_id && (
                           <span
                             className="badge badge-indigo"
-                            style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}
+                            style={{ fontFamily: 'var(--font-mono)' }}
                           >
                             {q.combination_id}
                           </span>
@@ -495,20 +491,20 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                         )}
 
                         {q.total_tokens !== undefined && q.total_tokens > 0 && (
-                          <span className="badge badge-cyan" style={{ fontSize: '0.7rem' }}>
+                          <span className="badge badge-cyan" style={{ fontSize: '0.68rem' }}>
                             <Coins size={11} /> {q.total_tokens.toLocaleString()} tok &bull; ${q.cost_usd?.toFixed(5)}
                           </span>
                         )}
                       </div>
 
                       {/* Question Stem */}
-                      <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.4 }}>
                         {q.question_stem}
                       </div>
 
                       {/* Snippet */}
                       {q.stimulus_text && (
-                        <div style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '780px' }}>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '780px' }}>
                           {q.stimulus_text}
                         </div>
                       )}
@@ -516,41 +512,41 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                   </div>
 
                   {/* Actions: Review in Studio, Expand Details, Copy, Delete */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <button
                       onClick={() => onSelectQuestion(q)}
-                      className="btn-primary"
-                      style={{ padding: '8px 14px', fontSize: '0.8rem', whiteSpace: 'nowrap', gap: '6px' }}
+                      className="btn-secondary"
+                      style={{ padding: '6px 12px', fontSize: '0.78rem', whiteSpace: 'nowrap', gap: '6px' }}
                       title="Inspect in Question Studio"
                     >
-                      <Eye size={14} /> Review in Studio
+                      <Eye size={13} /> Review in Studio
                     </button>
 
                     <button
                       onClick={() => setExpandedId(isExpanded ? null : q.id)}
                       className="btn-secondary"
-                      style={{ padding: '8px' }}
+                      style={{ padding: '6px' }}
                       title={isExpanded ? 'Collapse preview' : 'Expand preview inline'}
                     >
-                      {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                      {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </button>
 
                     <button
                       onClick={(e) => handleCopy(q, e)}
                       className="btn-secondary"
-                      style={{ padding: '8px' }}
+                      style={{ padding: '6px' }}
                       title="Copy formatted question text"
                     >
-                      {copiedId === q.id ? <Check size={15} color="#10b981" /> : <Copy size={15} />}
+                      {copiedId === q.id ? <Check size={14} color="var(--status-success-text)" /> : <Copy size={14} />}
                     </button>
 
                     <button
                       onClick={(e) => handleDelete(q.id, e)}
                       className="btn-danger"
-                      style={{ padding: '8px' }}
+                      style={{ padding: '6px' }}
                       title="Delete question"
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
@@ -560,7 +556,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                   <div
                     style={{
                       paddingTop: '14px',
-                      borderTop: '1px solid var(--border-light)',
+                      borderTop: '1px solid var(--border-subtle)',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '12px'
@@ -571,16 +567,16 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                       <div
                         style={{
                           background: 'var(--bg-canvas)',
-                          padding: '14px 18px',
-                          borderRadius: 'var(--radius-md)',
-                          borderLeft: '4px solid var(--brand-primary)',
-                          fontSize: '0.875rem',
+                          padding: '12px 16px',
+                          borderRadius: 'var(--radius-sm)',
+                          borderLeft: '3px solid var(--brand-primary)',
+                          fontSize: '0.84rem',
                           lineHeight: '1.6',
                           color: 'var(--text-primary)'
                         }}
                       >
-                        <div style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', marginBottom: '4px' }}>
-                          Full Stimulus Vignette
+                        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.04em' }}>
+                          Stimulus Vignette
                         </div>
                         {q.stimulus_text}
                       </div>
@@ -594,24 +590,24 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                           <div
                             key={opt.id}
                             style={{
-                              padding: '10px 14px',
+                              padding: '8px 12px',
                               borderRadius: 'var(--radius-sm)',
                               background: isCorrect ? 'var(--status-success-bg)' : 'var(--bg-surface-elevated)',
-                              border: isCorrect ? '1px solid var(--status-success-border)' : '1px solid var(--border-light)',
+                              border: isCorrect ? '1px solid var(--status-success-border)' : '1px solid var(--border-subtle)',
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '10px',
-                              fontSize: '0.825rem'
+                              gap: '8px',
+                              fontSize: '0.8rem'
                             }}
                           >
-                            <span style={{ fontWeight: 800, color: isCorrect ? '#10b981' : 'var(--text-muted)' }}>
+                            <span style={{ fontWeight: 700, color: isCorrect ? 'var(--status-success-text)' : 'var(--text-muted)' }}>
                               {opt.id}:
                             </span>
-                            <span style={{ color: isCorrect ? '#10b981' : 'var(--text-primary)', fontWeight: isCorrect ? 700 : 400 }}>
+                            <span style={{ color: isCorrect ? 'var(--status-success-text)' : 'var(--text-primary)', fontWeight: isCorrect ? 600 : 400 }}>
                               {opt.text}
                             </span>
                             {isCorrect && (
-                              <span className="badge badge-emerald" style={{ marginLeft: 'auto', fontSize: '0.625rem' }}>
+                              <span className="badge badge-emerald" style={{ marginLeft: 'auto', fontSize: '0.62rem' }}>
                                 Correct
                               </span>
                             )}
@@ -626,15 +622,15 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                         style={{
                           padding: '12px 16px',
                           background: 'var(--bg-surface-elevated)',
-                          borderRadius: 'var(--radius-md)',
-                          border: '1px solid var(--border-light)',
-                          fontSize: '0.825rem',
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid var(--border-subtle)',
+                          fontSize: '0.82rem',
                           color: 'var(--text-secondary)',
                           lineHeight: '1.6'
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: 'var(--brand-primary)', marginBottom: '4px' }}>
-                          <HelpCircle size={14} /> Rationale &amp; Distractor Analysis
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--brand-primary)', marginBottom: '4px' }}>
+                          <HelpCircle size={13} /> Rationale &amp; Distractor Analysis
                         </div>
                         {q.explanation}
                       </div>
