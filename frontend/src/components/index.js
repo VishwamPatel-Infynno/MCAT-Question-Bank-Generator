@@ -5,6 +5,7 @@ export { default as Navbar } from './layout/Navbar';
 export { default as GeneratorPanel } from './generator/GeneratorPanel';
 export { default as AgentVisualizer } from './generator/AgentVisualizer';
 export { default as RejectionCard } from './generator/RejectionCard';
+export { default as StudioBlueprint } from './generator/StudioBlueprint';
 
 // Question & Review
 export { default as QuestionCard } from './question/QuestionCard';

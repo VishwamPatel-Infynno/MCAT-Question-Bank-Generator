@@ -9,7 +9,8 @@ import {
   ReviewAuditView,
   SettingsModal,
   RejectionCard,
-  ToastContainer
+  ToastContainer,
+  StudioBlueprint
 } from './components';
 import { useQuestionGenerator } from './hooks/useQuestionGenerator';
 import { useTheme } from './hooks/useTheme';
@@ -230,18 +231,35 @@ export default function App() {
     }
   });
 
+  const handleApplyPreset = useCallback((cfg) => {
+    if (cfg.section) setSelectedSection(cfg.section);
+    if (cfg.difficulty) setDifficulty(cfg.difficulty);
+    if (cfg.totalQuestions) setTotalQuestions(cfg.totalQuestions);
+    if (cfg.singleChoiceCount !== undefined) setSingleChoiceCount(cfg.singleChoiceCount);
+    if (cfg.multiChoiceCount !== undefined) {
+      setMultiChoiceCount(cfg.multiChoiceCount);
+      setInteractionType(cfg.multiChoiceCount > 0 ? 'multi_choice' : 'single_choice');
+    }
+    if (cfg.passageCount !== undefined) {
+      setPassageCount(cfg.passageCount);
+      setPassageRequired(cfg.passageCount > 0 ? 'Yes' : 'No');
+    }
+    if (cfg.primaryTrap) setPrimaryTrap(cfg.primaryTrap);
+    showToast({
+      type: 'info',
+      title: 'Preset Applied',
+      message: `${cfg.totalQuestions || 5} questions set for ${cfg.section ? cfg.section.replace(/_/g, ' ') : 'UCAT'}.`
+    });
+  }, [showToast]);
+
   const handleSelectFromBank = (q) => {
     setActiveQuestion(q);
     setIsQuestionSaved(true);
     if (q.section) setSelectedSection(q.section);
     if (q.subtopic) setSelectedSubtopic(q.subtopic);
     if (q.difficulty) setDifficulty(q.difficulty);
-    if (q.combination_id) setCombinationId(q.combination_id);
-    if (q.content_domain) setContentDomain(q.content_domain);
-    if (q.question_type) setQuestionType(q.question_type);
     if (q.primary_trap) setPrimaryTrap(q.primary_trap);
     if (q.passage_required) setPassageRequired(q.passage_required);
-    if (q.visual_type) setVisualType(q.visual_type);
     setActiveTab('generator');
     showToast({
       type: 'info',
@@ -326,7 +344,7 @@ export default function App() {
                   rejectionData={rejectedData}
                   onRetry={handleGenerate}
                 />
-              ) : (totalQuestions > 1 || stagedQuestions.length > 1 || (isGenerating && (batchProgress?.total > 1 || totalQuestions > 1))) ? (
+              ) : ((stagedQuestions.length > 1) || (stagedQuestions.length > 0 && totalQuestions > 1) || (isGenerating && (batchProgress?.total > 1 || totalQuestions > 1))) ? (
                 <StagedBatchReview
                   stagedQuestions={stagedQuestions}
                   targetTotal={totalQuestions}
@@ -368,41 +386,20 @@ export default function App() {
                   }}
                 />
               ) : (
-                <div
-                  className="glass-panel"
-                  style={{
-                    padding: '80px 24px',
-                    textAlign: 'center',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '16px',
-                    color: 'var(--text-secondary)'
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '64px',
-                      height: '64px',
-                      borderRadius: '50%',
-                      background: 'var(--brand-light)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1.75rem',
-                      boxShadow: 'var(--shadow-glow)'
-                    }}
-                  >
-                    ✨
-                  </div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                    Admin Review &amp; Quality Desk
-                  </h3>
-                  <p style={{ maxWidth: '480px', fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                    Select your target UCAT subtest on the left dock and press <strong style={{ color: 'var(--text-primary)' }}>⌘↵ (or click Generate)</strong>.
-                    Watch the 4 autonomous agents draft, audit, and calibrate the question to 90+ quality standards in real time.
-                  </p>
-                </div>
+                <StudioBlueprint
+                  selectedSection={selectedSection}
+                  selectedSubtopic={selectedSubtopic}
+                  difficulty={difficulty}
+                  totalQuestions={totalQuestions}
+                  singleChoiceCount={singleChoiceCount}
+                  multiChoiceCount={multiChoiceCount}
+                  passageCount={passageCount}
+                  primaryTrap={primaryTrap}
+                  customPrompt={customPrompt}
+                  sectionsData={sectionsData}
+                  onGenerate={handleGenerate}
+                  onApplyPreset={handleApplyPreset}
+                />
               )}
             </div>
           </div>
