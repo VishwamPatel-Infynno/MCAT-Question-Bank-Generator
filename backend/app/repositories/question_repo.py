@@ -15,6 +15,10 @@ def _model_to_schema(m: QuestionModel) -> Question:
     options = [OptionChoice(**o) for o in m.options]
     rubric = ReviewScore(**m.review_rubric) if m.review_rubric else None
 
+    answer_ids = m.correct_answer_ids
+    if not answer_ids and m.correct_answer_id:
+        answer_ids = [k.strip().upper() for k in m.correct_answer_id.split(",") if k.strip()]
+
     return Question(
         id=m.id,
         run_id=m.run_id,
@@ -27,6 +31,7 @@ def _model_to_schema(m: QuestionModel) -> Question:
         question_stem=m.question_stem,
         options=options,
         correct_answer_id=m.correct_answer_id,
+        correct_answer_ids=answer_ids or [],
         explanation=m.explanation,
         image_url=m.image_url,
         image_svg=m.image_svg,
@@ -71,6 +76,7 @@ async def save_question(q: Question) -> Question:
             question_stem=q.question_stem,
             options=options_data,
             correct_answer_id=q.correct_answer_id,
+            correct_answer_ids=q.correct_answer_ids,
             explanation=q.explanation,
             image_url=q.image_url,
             image_svg=q.image_svg,

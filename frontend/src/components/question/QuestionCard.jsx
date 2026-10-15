@@ -14,7 +14,10 @@ import {
   FileText,
   BarChart3,
   Code2,
-  ShieldCheck
+  ShieldCheck,
+  ListChecks,
+  BookOpen,
+  Target
 } from 'lucide-react';
 import StageJsonInspector from './StageJsonInspector';
 
@@ -88,6 +91,14 @@ export default function QuestionCard({
   const diffLower = (question.difficulty || '').toLowerCase();
   const diffBadgeClass = diffLower === 'easy' ? 'badge-emerald' : diffLower === 'hard' ? 'badge-rose' : 'badge-amber';
 
+  const correctKeysList = Array.isArray(question.correct_answer_ids) && question.correct_answer_ids.length > 0
+    ? question.correct_answer_ids.map(k => String(k).trim().toUpperCase())
+    : (question.correct_answer_id || '').split(',').map(k => k.trim().toUpperCase()).filter(Boolean);
+
+  const isMulti = correctKeysList.length > 1 || question.interaction_type === 'multi_choice';
+  const wordCount = question.stimulus_text ? question.stimulus_text.trim().split(/\s+/).length : 0;
+  const isPassage = question.passage_required === 'Yes' || wordCount >= 180;
+
   return (
     <div
       className="glass-panel"
@@ -128,6 +139,57 @@ export default function QuestionCard({
           <span className={`badge ${diffBadgeClass}`} style={{ textTransform: 'capitalize' }}>
             {question.difficulty}
           </span>
+
+          {isMulti && (
+            <span
+              className="badge"
+              style={{
+                background: 'rgba(99, 102, 241, 0.15)',
+                color: '#818cf8',
+                border: '1px solid rgba(99, 102, 241, 0.3)',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <ListChecks size={11} /> Multi-Choice ({correctKeysList.length} Keys)
+            </span>
+          )}
+
+          {isPassage && (
+            <span
+              className="badge"
+              style={{
+                background: 'rgba(56, 189, 248, 0.15)',
+                color: '#38bdf8',
+                border: '1px solid rgba(56, 189, 248, 0.3)',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <BookOpen size={11} /> Reading Passage ({wordCount}w)
+            </span>
+          )}
+
+          {question.primary_trap && question.primary_trap !== 'Automatic' && (
+            <span
+              className="badge"
+              style={{
+                background: 'rgba(245, 158, 11, 0.15)',
+                color: '#f59e0b',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <Target size={11} /> Trap: {question.primary_trap.replace(/_/g, ' ')}
+            </span>
+          )}
 
           <span className="badge badge-emerald" style={{ fontWeight: 700 }}>
             <Award size={12} /> {question.final_score}/100 Quality
@@ -322,7 +384,8 @@ export default function QuestionCard({
           {/* Options List */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {(question.options || []).map((opt, idx) => {
-              const isCorrectKey = opt.id === question.correct_answer_id;
+              const optId = (opt.id || '').trim().toUpperCase();
+              const isCorrectKey = correctKeysList.includes(optId);
               return (
                 <div
                   key={opt.id}
@@ -337,12 +400,12 @@ export default function QuestionCard({
                     transition: 'all var(--transition-fast)'
                   }}
                 >
-                  {/* Option Letter Circle */}
+                  {/* Option Letter Indicator */}
                   <div
                     style={{
                       width: '26px',
                       height: '26px',
-                      borderRadius: '50%',
+                      borderRadius: isMulti ? 'var(--radius-sm)' : '50%',
                       background: isCorrectKey ? 'var(--status-success)' : 'var(--bg-surface-subtle)',
                       color: isCorrectKey ? '#ffffff' : 'var(--text-secondary)',
                       border: isCorrectKey ? 'none' : '1px solid var(--border-medium)',
@@ -354,7 +417,7 @@ export default function QuestionCard({
                       flexShrink: 0
                     }}
                   >
-                    {opt.id}
+                    {isMulti && isCorrectKey ? <Check size={14} /> : opt.id}
                   </div>
 
                   {/* Option Text */}
@@ -390,7 +453,7 @@ export default function QuestionCard({
                       className="badge badge-emerald"
                       style={{ fontSize: '0.7rem', padding: '3px 8px', flexShrink: 0 }}
                     >
-                      <CheckCircle size={12} /> Correct Key
+                      <CheckCircle size={12} /> {isMulti ? `Key (${opt.id})` : 'Correct Key'}
                     </span>
                   ) : (
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', flexShrink: 0, marginTop: '3px' }}>

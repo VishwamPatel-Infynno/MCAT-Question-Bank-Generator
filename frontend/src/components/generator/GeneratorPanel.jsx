@@ -7,7 +7,10 @@ import {
   SlidersHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
-  X
+  X,
+  ListChecks,
+  BookOpen,
+  Target
 } from 'lucide-react';
 import { SECTION_ICONS, PACING_INFO } from '../../constants/ucat';
 
@@ -19,6 +22,12 @@ export default function GeneratorPanel({
   setSelectedSubtopic,
   difficulty,
   setDifficulty,
+  interactionType = 'single_choice',
+  setInteractionType,
+  passageRequired = 'No',
+  setPassageRequired,
+  primaryTrap = 'Automatic',
+  setPrimaryTrap,
   requireImage,
   setRequireImage,
   customPrompt,
@@ -112,6 +121,47 @@ export default function GeneratorPanel({
         >
           {difficulty[0].toUpperCase()}
         </div>
+
+        {/* Multi-choice indicator */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '28px',
+            height: '24px',
+            borderRadius: 'var(--radius-sm)',
+            background: interactionType === 'multi_choice' ? 'rgba(99, 102, 241, 0.15)' : 'var(--bg-surface-elevated)',
+            color: interactionType === 'multi_choice' ? '#818cf8' : 'var(--text-muted)',
+            fontSize: '0.65rem',
+            fontWeight: 700,
+            border: interactionType === 'multi_choice' ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid transparent'
+          }}
+          title={interactionType === 'multi_choice' ? 'Mode: Multi-Choice' : 'Mode: Single Choice'}
+        >
+          {interactionType === 'multi_choice' ? 'MC' : '1x'}
+        </div>
+
+        {passageRequired === 'Yes' && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '28px',
+              height: '24px',
+              borderRadius: 'var(--radius-sm)',
+              background: 'rgba(56, 189, 248, 0.15)',
+              color: '#38bdf8',
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              border: '1px solid rgba(56, 189, 248, 0.3)'
+            }}
+            title="Passage Format: Long Reading Passage"
+          >
+            DOC
+          </div>
+        )}
 
         <div style={{ marginTop: 'auto' }}>
           {isGenerating ? (
@@ -318,6 +368,172 @@ export default function GeneratorPanel({
             );
           })}
         </div>
+      </div>
+
+      {/* Answer Mode (Single Choice vs Multi-Choice) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <ListChecks size={13} color="var(--brand-primary)" />
+            <span>Answer Mode</span>
+          </label>
+          <span
+            style={{
+              fontSize: '0.675rem',
+              fontWeight: 600,
+              padding: '2px 6px',
+              borderRadius: 'var(--radius-sm)',
+              background: interactionType === 'multi_choice' ? 'rgba(99, 102, 241, 0.15)' : 'var(--bg-surface-elevated)',
+              color: interactionType === 'multi_choice' ? '#818cf8' : 'var(--text-muted)'
+            }}
+          >
+            {interactionType === 'multi_choice' ? 'Multi-Key' : 'Single Key'}
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '3px',
+            background: 'var(--bg-surface-subtle)',
+            padding: '3px',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border-light)'
+          }}
+        >
+          {[
+            { id: 'single_choice', label: 'Single Choice', desc: '1 Key' },
+            { id: 'multi_choice', label: 'Multi-Choice', desc: 'Select All' }
+          ].map(opt => {
+            const isSel = interactionType === opt.id;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                id={`btn-mode-${opt.id}`}
+                onClick={() => setInteractionType && setInteractionType(opt.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '7px 6px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
+                  border: isSel ? '1px solid var(--border-medium)' : '1px solid transparent',
+                  color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
+                  fontSize: '0.75rem',
+                  fontWeight: isSel ? 700 : 500,
+                  cursor: 'pointer',
+                  transition: 'all var(--transition-fast)'
+                }}
+              >
+                <span>{opt.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Passage Format (Standard Vignette vs Long Reading Passage) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <BookOpen size={13} color="var(--brand-primary)" />
+            <span>Passage Format</span>
+          </label>
+          <span
+            style={{
+              fontSize: '0.675rem',
+              fontWeight: 600,
+              padding: '2px 6px',
+              borderRadius: 'var(--radius-sm)',
+              background: passageRequired === 'Yes' ? 'rgba(56, 189, 248, 0.15)' : 'var(--bg-surface-elevated)',
+              color: passageRequired === 'Yes' ? '#38bdf8' : 'var(--text-muted)'
+            }}
+          >
+            {passageRequired === 'Yes' ? 'Long (~350w)' : 'Standard'}
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '3px',
+            background: 'var(--bg-surface-subtle)',
+            padding: '3px',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border-light)'
+          }}
+        >
+          {[
+            { id: 'No', label: 'Standard Vignette' },
+            { id: 'Yes', label: 'Long Reading Passage' }
+          ].map(opt => {
+            const isSel = passageRequired === opt.id;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                id={`btn-passage-${opt.id.toLowerCase()}`}
+                onClick={() => setPassageRequired && setPassageRequired(opt.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '7px 6px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
+                  border: isSel ? '1px solid var(--border-medium)' : '1px solid transparent',
+                  color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
+                  fontSize: '0.75rem',
+                  fontWeight: isSel ? 700 : 500,
+                  cursor: 'pointer',
+                  transition: 'all var(--transition-fast)'
+                }}
+              >
+                <span>{opt.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Cognitive Distractor Trap Selector */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <Target size={13} color="var(--brand-primary)" />
+            <span>Target Cognitive Trap</span>
+          </label>
+        </div>
+
+        <select
+          id="select-primary-trap"
+          value={primaryTrap}
+          onChange={(e) => setPrimaryTrap && setPrimaryTrap(e.target.value)}
+          style={{
+            width: '100%',
+            fontSize: '0.775rem',
+            padding: '7px 10px',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--bg-surface-subtle)',
+            border: '1px solid var(--border-light)',
+            color: 'var(--text-primary)',
+            cursor: 'pointer'
+          }}
+        >
+          <option value="Automatic">Automatic (Balanced Adaptive Traps)</option>
+          <option value="Keyword_Trap">Keyword Trap (Verbal matching with inverted meaning)</option>
+          <option value="Partial_Match">Partial Match (Incomplete computation / partial fact)</option>
+          <option value="Extreme_Language">Extreme Language (Always, Never, Solely, Entirely)</option>
+          <option value="Correlation_vs_Causation">Correlation vs Causation (Confusing link with cause)</option>
+          <option value="Scope_Shift">Scope Shift (Extrapolating outside premises)</option>
+          <option value="Half_Truth">Half-Truth (Factually true but irrelevant)</option>
+        </select>
       </div>
 
       {/* Advanced Directives & Visuals Accordion */}

@@ -522,9 +522,21 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                           </span>
                         )}
 
-                        {q.primary_trap && (
+                        {((q.correct_answer_ids && q.correct_answer_ids.length > 1) || q.interaction_type === 'multi_choice') && (
+                          <span className="badge badge-purple" style={{ fontWeight: 600 }}>
+                            Multi-Choice ({q.correct_answer_ids?.join(', ') || q.correct_answer_id})
+                          </span>
+                        )}
+
+                        {(q.passage_required === 'Yes' || (q.stimulus_text && q.stimulus_text.split(/\s+/).length >= 180)) && (
+                          <span className="badge badge-cyan" style={{ fontWeight: 600 }}>
+                            Passage
+                          </span>
+                        )}
+
+                        {q.primary_trap && q.primary_trap !== 'Automatic' && (
                           <span className="badge badge-rose">
-                            Trap: {q.primary_trap}
+                            Trap: {q.primary_trap.replace(/_/g, ' ')}
                           </span>
                         )}
 
@@ -622,36 +634,42 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
 
                     {/* Options Grid */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                      {q.options?.map(opt => {
-                        const isCorrect = opt.id === q.correct_answer_id;
-                        return (
-                          <div
-                            key={opt.id}
-                            style={{
-                              padding: '8px 12px',
-                              borderRadius: 'var(--radius-sm)',
-                              background: isCorrect ? 'var(--status-success-bg)' : 'var(--bg-surface-elevated)',
-                              border: isCorrect ? '1px solid var(--status-success-border)' : '1px solid var(--border-subtle)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                              fontSize: '0.8rem'
-                            }}
-                          >
-                            <span style={{ fontWeight: 700, color: isCorrect ? 'var(--status-success-text)' : 'var(--text-muted)' }}>
-                              {opt.id}:
-                            </span>
-                            <span style={{ color: isCorrect ? 'var(--status-success-text)' : 'var(--text-primary)', fontWeight: isCorrect ? 600 : 400 }}>
-                              {opt.text}
-                            </span>
-                            {isCorrect && (
-                              <span className="badge badge-emerald" style={{ marginLeft: 'auto', fontSize: '0.62rem' }}>
-                                Correct
+                      {(() => {
+                        const correctList = Array.isArray(q.correct_answer_ids) && q.correct_answer_ids.length > 0
+                          ? q.correct_answer_ids.map(k => String(k).trim().toUpperCase())
+                          : (q.correct_answer_id || '').split(',').map(k => k.trim().toUpperCase()).filter(Boolean);
+
+                        return q.options?.map(opt => {
+                          const isCorrect = correctList.includes(opt.id.toUpperCase());
+                          return (
+                            <div
+                              key={opt.id}
+                              style={{
+                                padding: '8px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                background: isCorrect ? 'var(--status-success-bg)' : 'var(--bg-surface-elevated)',
+                                border: isCorrect ? '1px solid var(--status-success-border)' : '1px solid var(--border-subtle)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                fontSize: '0.8rem'
+                              }}
+                            >
+                              <span style={{ fontWeight: 700, color: isCorrect ? 'var(--status-success-text)' : 'var(--text-muted)' }}>
+                                {opt.id}:
                               </span>
-                            )}
-                          </div>
-                        );
-                      })}
+                              <span style={{ color: isCorrect ? 'var(--status-success-text)' : 'var(--text-primary)', fontWeight: isCorrect ? 600 : 400 }}>
+                                {opt.text}
+                              </span>
+                              {isCorrect && (
+                                <span className="badge badge-emerald" style={{ marginLeft: 'auto', fontSize: '0.62rem' }}>
+                                  Key
+                                </span>
+                              )}
+                            </div>
+                          );
+                        });
+                      })()}
                     </div>
 
                     {/* Explanation */}

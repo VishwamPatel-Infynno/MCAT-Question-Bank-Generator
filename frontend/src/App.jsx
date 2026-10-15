@@ -23,6 +23,9 @@ export default function App() {
   const [selectedSection, setSelectedSection] = useState('verbal_reasoning');
   const [selectedSubtopic, setSelectedSubtopic] = useState('');
   const [difficulty, setDifficulty] = useState('medium');
+  const [interactionType, setInteractionType] = useState('single_choice');
+  const [passageRequired, setPassageRequired] = useState('No');
+  const [primaryTrap, setPrimaryTrap] = useState('Automatic');
   const [requireImage, setRequireImage] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
 
@@ -103,6 +106,9 @@ export default function App() {
       section: selectedSection,
       subtopic: selectedSubtopic,
       difficulty,
+      interaction_type: interactionType,
+      passage_required: passageRequired,
+      primary_trap: primaryTrap !== 'Automatic' ? primaryTrap : undefined,
       require_image: requireImage || selectedSection === 'abstract_reasoning',
       custom_prompt: customPrompt.trim() || undefined
     };
@@ -117,6 +123,9 @@ export default function App() {
     selectedSection,
     selectedSubtopic,
     difficulty,
+    interactionType,
+    passageRequired,
+    primaryTrap,
     requireImage,
     customPrompt,
     startGeneration,
@@ -216,6 +225,12 @@ export default function App() {
                 setSelectedSubtopic={setSelectedSubtopic}
                 difficulty={difficulty}
                 setDifficulty={setDifficulty}
+                interactionType={interactionType}
+                setInteractionType={setInteractionType}
+                passageRequired={passageRequired}
+                setPassageRequired={setPassageRequired}
+                primaryTrap={primaryTrap}
+                setPrimaryTrap={setPrimaryTrap}
                 requireImage={requireImage}
                 setRequireImage={setRequireImage}
                 customPrompt={customPrompt}

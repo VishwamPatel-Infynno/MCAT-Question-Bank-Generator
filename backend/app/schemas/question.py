@@ -41,9 +41,14 @@ class QuestionDraft(BaseModel):
     )
     question_stem: str = Field(..., description="The direct question or prompt to solve")
     options: list[OptionChoice] = Field(
-        ..., min_length=4, max_length=4, description="Exactly 4 choices (A, B, C, D)"
+        ..., min_length=4, max_length=5, description="4 or 5 choices (A, B, C, D, [E])"
     )
-    correct_answer_id: str = Field(..., description="Key option id: A, B, C, or D")
+    correct_answer_id: str = Field(
+        ..., description="Key option id e.g. 'A', or comma-joined keys e.g. 'A, C'"
+    )
+    correct_answer_ids: list[str] = Field(
+        default_factory=list, description="List of correct keys e.g. ['A', 'C']"
+    )
     explanation: str = Field(
         ..., description="Comprehensive step-by-step cognitive and pedagogical rationale"
     )
@@ -51,6 +56,19 @@ class QuestionDraft(BaseModel):
     image_prompt_or_type: str | None = Field(
         None, description="Visual description, chart type, or SVG geometry description"
     )
+
+    def model_post_init(self, __context: Any) -> None:
+        # Synchronize correct_answer_id and correct_answer_ids
+        if not self.correct_answer_ids and self.correct_answer_id:
+            self.correct_answer_ids = [
+                k.strip().upper() for k in self.correct_answer_id.split(",") if k.strip()
+            ]
+        elif self.correct_answer_ids and not self.correct_answer_id:
+            self.correct_answer_id = ", ".join(self.correct_answer_ids)
+        elif self.correct_answer_ids and self.correct_answer_id:
+            # Ensure upper-case
+            self.correct_answer_ids = [k.strip().upper() for k in self.correct_answer_ids]
+            self.correct_answer_id = self.correct_answer_id.strip().upper()
 
 
 class Question(BaseModel):
@@ -67,12 +85,21 @@ class Question(BaseModel):
     question_stem: str
     options: list[OptionChoice]
     correct_answer_id: str
+    correct_answer_ids: list[str] = Field(default_factory=list)
     explanation: str
     image_url: str | None = None
     image_svg: str | None = None
     image_description: str | None = None
     final_score: int = 95
     review_rubric: ReviewScore | None = None
+
+    def model_post_init(self, __context: Any) -> None:
+        if not self.correct_answer_ids and self.correct_answer_id:
+            self.correct_answer_ids = [
+                k.strip().upper() for k in self.correct_answer_id.split(",") if k.strip()
+            ]
+        elif self.correct_answer_ids and not self.correct_answer_id:
+            self.correct_answer_id = ", ".join(self.correct_answer_ids)
     iteration_count: int = 1
     iterations_history: list[dict[str, Any]] = Field(default_factory=list)
     total_tokens: int = Field(

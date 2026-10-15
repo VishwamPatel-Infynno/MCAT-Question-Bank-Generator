@@ -72,15 +72,27 @@ Please re-generate and refine this question to resolve all weaknesses and produc
         cleaned = clean_json_text(raw_output)
         data = json.loads(cleaned)
 
-        options = [OptionChoice(id=opt["id"], text=opt["text"]) for opt in data["options"]]
-        if len(options) != 4:
-            raise ValueError(f"Expected exactly 4 options, got {len(options)}")
+        options = [OptionChoice(id=opt["id"].upper(), text=opt["text"]) for opt in data["options"]]
+        if len(options) not in (4, 5):
+            raise ValueError(f"Expected 4 or 5 options, got {len(options)}")
+
+        raw_id = data.get("correct_answer_id")
+        raw_ids = data.get("correct_answer_ids")
+        if isinstance(raw_ids, list) and raw_ids:
+            keys_list = [str(k).strip().upper() for k in raw_ids if str(k).strip()]
+        elif isinstance(raw_id, str) and raw_id:
+            keys_list = [str(k).strip().upper() for k in raw_id.split(",") if str(k).strip()]
+        else:
+            keys_list = draft.correct_answer_ids or [options[0].id]
+
+        correct_id_str = ", ".join(keys_list)
 
         re_draft = QuestionDraft(
             stimulus_text=data.get("stimulus_text", draft.stimulus_text),
             question_stem=data["question_stem"],
             options=options,
-            correct_answer_id=data["correct_answer_id"].upper(),
+            correct_answer_id=correct_id_str,
+            correct_answer_ids=keys_list,
             explanation=data["explanation"],
             image_needed=data.get("image_needed", draft.image_needed),
             image_prompt_or_type=data.get("image_prompt_or_type", draft.image_prompt_or_type),

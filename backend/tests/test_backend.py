@@ -1,4 +1,5 @@
 import asyncio
+import uuid
 
 import pytest
 from app.agents.generator import generate_question, get_mock_draft
@@ -423,3 +424,66 @@ async def test_admin_approval_and_persistence_endpoints():
     await delete_question(cand_id)
     await delete_question(batch_q1.id)
     await delete_question(batch_q2.id)
+
+
+@pytest.mark.asyncio
+async def test_multichoice_and_passage_support():
+    from app.repositories.question_repo import get_question_by_id, save_question
+
+    # 1. Test multi-choice GenerationRequest with passage and trap
+    req = GenerationRequest(
+        section=UCATSection.VERBAL_REASONING,
+        difficulty=Difficulty.HARD,
+        interaction_type="multi_choice",
+        passage_required="Yes",
+        primary_trap="Extreme_Language",
+    )
+    draft, usage = await generate_question(req)
+
+    assert len(draft.options) in (4, 5)
+    assert len(draft.correct_answer_ids) >= 1
+    assert draft.correct_answer_id is not None
+    assert len(draft.stimulus_text) > 100
+
+    # 2. Test Question model creation with multiple keys
+    multi_q = Question(
+        id=str(uuid.uuid4()),
+        section="verbal_reasoning",
+        section_label="Verbal Reasoning",
+        subtopic="Critical Inference",
+        difficulty="Hard",
+        interaction_type="multi_choice",
+        primary_trap="Extreme_Language",
+        passage_required="Yes",
+        stimulus_text="A comprehensive 300-word clinical study on pharmacology...",
+        question_stem="Which TWO of the following statements are supported by the passage?",
+        options=[
+            OptionChoice(id="A", text="Statement A is clinically validated."),
+            OptionChoice(id="B", text="Statement B is statistically confirmed."),
+            OptionChoice(id="C", text="Statement C always occurs in every patient."),
+            OptionChoice(id="D", text="Statement D is never applicable."),
+            OptionChoice(id="E", text="Statement E represents a partial correlation."),
+        ],
+        correct_answer_id="A, B",
+        correct_answer_ids=["A", "B"],
+        explanation="Statements A and B are definitively supported. C and D commit extreme language fallacies.",
+        final_score=96,
+    )
+    assert multi_q.correct_answer_ids == ["A", "B"]
+    assert multi_q.correct_answer_id == "A, B"
+
+    # 3. Test persistence in PostgreSQL and schema reconstruction
+    saved = await save_question(multi_q)
+    assert saved.id == multi_q.id
+
+    fetched = await get_question_by_id(multi_q.id)
+    assert fetched is not None
+    assert fetched.interaction_type == "multi_choice"
+    assert fetched.primary_trap == "Extreme_Language"
+    assert fetched.passage_required == "Yes"
+    assert fetched.correct_answer_ids == ["A", "B"]
+    assert "A" in fetched.correct_answer_id and "B" in fetched.correct_answer_id
+    assert len(fetched.options) == 5
+
+    # Clean up
+    await delete_question(multi_q.id)

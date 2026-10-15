@@ -320,6 +320,7 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
         "visual_type": req.visual_type or "None",
         "final_score": review.total_score if review else 95,
         "correct_answer_id": draft.correct_answer_id,
+        "correct_answer_ids": draft.correct_answer_ids,
         "total_tokens": state.get("total_tokens", 0),
         "cost_usd": state.get("total_cost_usd", 0.0),
     }
@@ -335,6 +336,7 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
         question_stem=draft.question_stem,
         options=options,
         correct_answer_id=draft.correct_answer_id,
+        correct_answer_ids=draft.correct_answer_ids,
         explanation=draft.explanation,
         image_url=state.get("image_url"),
         image_svg=state.get("image_svg"),

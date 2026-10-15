@@ -26,6 +26,9 @@ Metadata:
 - Subtest: {section_name}
 - Subtopic: {req.subtopic or "General"}
 - Target Difficulty: {req.difficulty.value}
+- Interaction Format: {req.interaction_type or "single_choice"}
+- Target Trap to Audit: {req.primary_trap or "Automatic"}
+- Passage Type: {"Yes (250-400 words)" if req.passage_required and str(req.passage_required).lower() in ("yes", "true") else "No"}
 - Iteration Attempt: {iteration}
 
 --- CANDIDATE QUESTION ---
@@ -38,7 +41,7 @@ Question Stem:
 Options:
 {options_formatted}
 
-Correct Answer Key:
+Correct Answer Key(s):
 {draft.correct_answer_id}
 
 Explanation:

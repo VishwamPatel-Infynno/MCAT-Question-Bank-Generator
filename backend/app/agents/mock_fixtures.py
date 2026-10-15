@@ -7,6 +7,52 @@ from app.schemas.workflow import GenerationRequest
 
 def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
     """Provides high-caliber, authentic fallback UCAT questions across all 5 subtests."""
+    if req.interaction_type == "multi_choice":
+        return QuestionDraft(
+            stimulus_text=(
+                "Clinical audit of antimicrobial stewardship in emergency care evaluated 650 febrile adult admissions across three NHS teaching trusts. "
+                "The primary protocol mandated blood cultures and broad-spectrum intravenous antibiotic initiation within 60 minutes for high-risk sepsis criteria (NEWS2 ≥ 5). "
+                "However, empirical antibiotic treatment was subsequently stepped down or discontinued within 48 hours in 48% of culture-negative patients. "
+                "Biomarker analysis revealed that serum procalcitonin levels < 0.25 ng/mL reliably distinguished viral infection from bacterial bacteremia with 91% sensitivity and 84% specificity. "
+                "Nonetheless, clinicians cited diagnostic uncertainty and fear of rapid clinical deterioration as the predominant drivers for continuing broad-spectrum carbapenems "
+                "despite non-contributory microbiology in 34% of cases."
+            ),
+            question_stem="Which TWO of the following statements are supported by the findings of the antimicrobial audit?",
+            options=[
+                OptionChoice(
+                    id="A",
+                    text="Nearly half of culture-negative patients had their empirical antibiotic regimens de-escalated or stopped within 48 hours.",
+                ),
+                OptionChoice(
+                    id="B",
+                    text="Serum procalcitonin demonstrated higher sensitivity than specificity in identifying bacterial bacteremia.",
+                ),
+                OptionChoice(
+                    id="C",
+                    text="Clinicians invariably discontinued carbapenems whenever blood cultures returned negative at 48 hours.",
+                ),
+                OptionChoice(
+                    id="D",
+                    text="High-risk sepsis criteria (NEWS2 ≥ 5) were detected in a majority of emergency admissions.",
+                ),
+                OptionChoice(
+                    id="E",
+                    text="Diagnostic certainty was achieved in all culture-positive cases prior to initiating empirical antibiotics.",
+                ),
+            ],
+            correct_answer_id="A, B",
+            correct_answer_ids=["A", "B"],
+            explanation=(
+                "Step-by-Step Pedagogical Evaluation:\n"
+                "- Key A is CORRECT: The audit explicitly states that empirical treatment was stepped down or stopped within 48 hours in 48% (nearly half) of culture-negative patients.\n"
+                "- Key B is CORRECT: Procalcitonin demonstrated 91% sensitivity and 84% specificity; 91% is higher than 84%.\n"
+                "- Distractor C is INCORRECT (Extreme Language Trap): The text notes clinicians continued carbapenems in 34% of cases due to diagnostic fear, refuting 'invariably discontinued'.\n"
+                "- Distractor D is INCORRECT (Unwarranted Assumption Trap): The protocol mandated action for NEWS2 ≥ 5, but the passage does not state a majority of admissions met this threshold.\n"
+                "- Distractor E is INCORRECT (Contradicted by Protocol): Empirical treatment is initiated prior to microbiology results, not with full diagnostic certainty."
+            ),
+            image_needed=False,
+        )
+
     sec = req.section
 
     if sec == UCATSection.VERBAL_REASONING:
@@ -238,7 +284,11 @@ def improve_draft_heuristically(
         f"• Explicit Distractor Analysis:\n"
     )
     for opt in draft.options:
-        if opt.id == draft.correct_answer_id:
+        is_key = (
+            opt.id in draft.correct_answer_ids
+            or opt.id in [k.strip().upper() for k in draft.correct_answer_id.split(",") if k.strip()]
+        )
+        if is_key:
             enhanced_explanation += f"  - Option {opt.id} [CORRECT]: Validated with primary premise and incontrovertible logical steps.\n"
         else:
             enhanced_explanation += f"  - Option {opt.id} [DISTRACTOR]: Plausible trap representing common cognitive bias, ruled out by strict condition in premise.\n"
@@ -250,6 +300,7 @@ def improve_draft_heuristically(
         question_stem=draft.question_stem,
         options=new_options,
         correct_answer_id=draft.correct_answer_id,
+        correct_answer_ids=draft.correct_answer_ids,
         explanation=enhanced_explanation,
         image_needed=draft.image_needed,
         image_prompt_or_type=draft.image_prompt_or_type,
