@@ -245,7 +245,7 @@ export default function SettingsModal({ onClose }) {
                 borderRadius: '6px',
                 padding: '8px 10px',
                 fontSize: '0.72rem',
-                color: '#10b981',
+                color: 'var(--status-success)',
                 lineHeight: 1.4
               }}
             >

@@ -356,9 +356,9 @@ export default function GeneratorPanel({
             }}
           >
             {[
-              { id: 'easy', label: 'Easy', color: '#10b981' },
-              { id: 'medium', label: 'Medium', color: '#f59e0b' },
-              { id: 'hard', label: 'Hard', color: '#f43f5e' }
+              { id: 'easy', label: 'Easy', color: 'var(--status-success)' },
+              { id: 'medium', label: 'Medium', color: 'var(--status-warning)' },
+              { id: 'hard', label: 'Hard', color: 'var(--status-danger)' }
             ].map(opt => {
               const isSel = difficulty === opt.id;
               return (
@@ -942,7 +942,7 @@ export default function GeneratorPanel({
               padding: '10px 16px',
               fontWeight: 700,
               fontSize: '0.825rem',
-              boxShadow: '0 0 20px rgba(2, 132, 199, 0.35)'
+              boxShadow: 'var(--infynno-glow)'
             }}
           >
             <Sparkles size={15} />

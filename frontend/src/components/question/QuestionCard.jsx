@@ -193,7 +193,7 @@ export default function QuestionCard({
               title={`Question UUID: ${question.id} (Click to copy)`}
               onClick={() => handleCopyText(question.id, 'id')}
             >
-              {copiedId === 'id' ? <Check size={10} color="#10b981" /> : null} {question.id.slice(0, 8)}...
+              {copiedId === 'id' ? <Check size={10} color="var(--status-success)" /> : null} {question.id.slice(0, 8)}...
             </span>
           )}
         </div>

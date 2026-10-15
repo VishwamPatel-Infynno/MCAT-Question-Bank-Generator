@@ -125,7 +125,7 @@ export default function StudioBlueprint({
               fontSize: '0.825rem',
               fontWeight: 700,
               gap: '6px',
-              boxShadow: '0 0 20px rgba(2, 132, 199, 0.35)'
+              boxShadow: 'var(--infynno-glow)'
             }}
           >
             <Sparkles size={15} />
