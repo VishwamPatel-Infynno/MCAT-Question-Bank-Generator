@@ -10,7 +10,10 @@ import {
   X,
   ListChecks,
   BookOpen,
-  Target
+  Target,
+  Layers,
+  Plus,
+  Minus
 } from 'lucide-react';
 import { SECTION_ICONS, PACING_INFO } from '../../constants/ucat';
 
@@ -22,6 +25,14 @@ export default function GeneratorPanel({
   setSelectedSubtopic,
   difficulty,
   setDifficulty,
+  totalQuestions = 1,
+  setTotalQuestions,
+  singleChoiceCount = 1,
+  setSingleChoiceCount,
+  multiChoiceCount = 0,
+  setMultiChoiceCount,
+  passageCount = 0,
+  setPassageCount,
   interactionType = 'single_choice',
   setInteractionType,
   passageRequired = 'No',
@@ -39,6 +50,42 @@ export default function GeneratorPanel({
   onToggleCollapse
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const handleTotalChange = (newTotal) => {
+    const clamped = Math.max(1, Math.min(10, newTotal));
+    if (setTotalQuestions) setTotalQuestions(clamped);
+    if (setSingleChoiceCount && setMultiChoiceCount) {
+      if (clamped === 1) {
+        setSingleChoiceCount(interactionType === 'multi_choice' ? 0 : 1);
+        setMultiChoiceCount(interactionType === 'multi_choice' ? 1 : 0);
+        if (setPassageCount) setPassageCount(passageRequired === 'Yes' ? 1 : 0);
+      } else {
+        const curMulti = Math.min(multiChoiceCount, clamped);
+        setMultiChoiceCount(curMulti);
+        setSingleChoiceCount(clamped - curMulti);
+        if (setPassageCount && passageCount > clamped) {
+          setPassageCount(clamped);
+        }
+      }
+    }
+  };
+
+  const handleSingleCountChange = (newVal) => {
+    const val = Math.max(0, Math.min(totalQuestions, newVal));
+    if (setSingleChoiceCount) setSingleChoiceCount(val);
+    if (setMultiChoiceCount) setMultiChoiceCount(totalQuestions - val);
+  };
+
+  const handleMultiCountChange = (newVal) => {
+    const val = Math.max(0, Math.min(totalQuestions, newVal));
+    if (setMultiChoiceCount) setMultiChoiceCount(val);
+    if (setSingleChoiceCount) setSingleChoiceCount(totalQuestions - val);
+  };
+
+  const handlePassageCountChange = (newVal) => {
+    const val = Math.max(0, Math.min(totalQuestions, newVal));
+    if (setPassageCount) setPassageCount(val);
+  };
 
   const currentSectionObj = sectionsData.find(s => s.id === selectedSection) || sectionsData[0];
   const subtopics = currentSectionObj?.subtopics || [];
@@ -160,6 +207,28 @@ export default function GeneratorPanel({
             title="Passage Format: Long Reading Passage"
           >
             DOC
+          </div>
+        )}
+
+        {/* Batch Quantity Pill if > 1 */}
+        {totalQuestions > 1 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '28px',
+              height: '24px',
+              borderRadius: 'var(--radius-sm)',
+              background: 'rgba(168, 85, 247, 0.15)',
+              color: '#c084fc',
+              fontSize: '0.65rem',
+              fontWeight: 800,
+              border: '1px solid rgba(168, 85, 247, 0.3)'
+            }}
+            title={`Batch Size: ${totalQuestions} Questions`}
+          >
+            {totalQuestions}x
           </div>
         )}
 
@@ -370,137 +439,459 @@ export default function GeneratorPanel({
         </div>
       </div>
 
-      {/* Answer Mode (Single Choice vs Multi-Choice) */}
+      {/* Question Batch Quantity Stepper & Quick Chips */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <ListChecks size={13} color="var(--brand-primary)" />
-            <span>Answer Mode</span>
+            <Layers size={13} color="var(--brand-primary)" />
+            <span>Quantity (Batch Size)</span>
           </label>
           <span
             style={{
               fontSize: '0.675rem',
-              fontWeight: 600,
+              fontWeight: 700,
               padding: '2px 6px',
               borderRadius: 'var(--radius-sm)',
-              background: interactionType === 'multi_choice' ? 'rgba(99, 102, 241, 0.15)' : 'var(--bg-surface-elevated)',
-              color: interactionType === 'multi_choice' ? '#818cf8' : 'var(--text-muted)'
+              background: totalQuestions > 1 ? 'rgba(168, 85, 247, 0.15)' : 'var(--bg-surface-elevated)',
+              color: totalQuestions > 1 ? '#c084fc' : 'var(--text-muted)'
             }}
           >
-            {interactionType === 'multi_choice' ? 'Multi-Key' : 'Single Key'}
+            {totalQuestions > 1 ? `${totalQuestions} Questions Batch` : 'Single Item'}
           </span>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '3px',
-            background: 'var(--bg-surface-subtle)',
-            padding: '3px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-light)'
-          }}
-        >
-          {[
-            { id: 'single_choice', label: 'Single Choice', desc: '1 Key' },
-            { id: 'multi_choice', label: 'Multi-Choice', desc: 'Select All' }
-          ].map(opt => {
-            const isSel = interactionType === opt.id;
-            return (
-              <button
-                key={opt.id}
-                type="button"
-                id={`btn-mode-${opt.id}`}
-                onClick={() => setInteractionType && setInteractionType(opt.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  padding: '7px 6px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
-                  border: isSel ? '1px solid var(--border-medium)' : '1px solid transparent',
-                  color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
-                  fontSize: '0.75rem',
-                  fontWeight: isSel ? 700 : 500,
-                  cursor: 'pointer',
-                  transition: 'all var(--transition-fast)'
-                }}
-              >
-                <span>{opt.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Passage Format (Standard Vignette vs Long Reading Passage) */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <BookOpen size={13} color="var(--brand-primary)" />
-            <span>Passage Format</span>
-          </label>
-          <span
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Stepper */}
+          <div
             style={{
-              fontSize: '0.675rem',
-              fontWeight: 600,
-              padding: '2px 6px',
-              borderRadius: 'var(--radius-sm)',
-              background: passageRequired === 'Yes' ? 'rgba(56, 189, 248, 0.15)' : 'var(--bg-surface-elevated)',
-              color: passageRequired === 'Yes' ? '#38bdf8' : 'var(--text-muted)'
+              display: 'flex',
+              alignItems: 'center',
+              background: 'var(--bg-surface-subtle)',
+              border: '1px solid var(--border-light)',
+              borderRadius: 'var(--radius-md)',
+              padding: '2px',
+              flex: 1
             }}
           >
-            {passageRequired === 'Yes' ? 'Long (~350w)' : 'Standard'}
-          </span>
-        </div>
+            <button
+              type="button"
+              id="btn-qty-minus"
+              onClick={() => handleTotalChange(totalQuestions - 1)}
+              disabled={totalQuestions <= 1}
+              style={{
+                width: '30px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: 'none',
+                background: 'transparent',
+                color: totalQuestions <= 1 ? 'var(--text-disabled)' : 'var(--text-primary)',
+                cursor: totalQuestions <= 1 ? 'not-allowed' : 'pointer',
+                borderRadius: 'var(--radius-sm)'
+              }}
+              title="Decrease questions"
+            >
+              <Minus size={13} />
+            </button>
+            <div
+              style={{
+                flex: 1,
+                textAlign: 'center',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                color: 'var(--text-primary)'
+              }}
+            >
+              {totalQuestions}
+            </div>
+            <button
+              type="button"
+              id="btn-qty-plus"
+              onClick={() => handleTotalChange(totalQuestions + 1)}
+              disabled={totalQuestions >= 10}
+              style={{
+                width: '30px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: 'none',
+                background: 'transparent',
+                color: totalQuestions >= 10 ? 'var(--text-disabled)' : 'var(--text-primary)',
+                cursor: totalQuestions >= 10 ? 'not-allowed' : 'pointer',
+                borderRadius: 'var(--radius-sm)'
+              }}
+              title="Increase questions"
+            >
+              <Plus size={13} />
+            </button>
+          </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '3px',
-            background: 'var(--bg-surface-subtle)',
-            padding: '3px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-light)'
-          }}
-        >
-          {[
-            { id: 'No', label: 'Standard Vignette' },
-            { id: 'Yes', label: 'Long Reading Passage' }
-          ].map(opt => {
-            const isSel = passageRequired === opt.id;
-            return (
+          {/* Quick Selection Chips */}
+          <div style={{ display: 'flex', gap: '4px' }}>
+            {[1, 3, 5, 10].map(cnt => (
               <button
-                key={opt.id}
+                key={cnt}
                 type="button"
-                id={`btn-passage-${opt.id.toLowerCase()}`}
-                onClick={() => setPassageRequired && setPassageRequired(opt.id)}
+                id={`btn-chip-qty-${cnt}`}
+                onClick={() => handleTotalChange(cnt)}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  padding: '7px 6px',
+                  padding: '5px 8px',
                   borderRadius: 'var(--radius-sm)',
-                  background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
-                  border: isSel ? '1px solid var(--border-medium)' : '1px solid transparent',
-                  color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
-                  fontSize: '0.75rem',
-                  fontWeight: isSel ? 700 : 500,
+                  fontSize: '0.725rem',
+                  fontWeight: totalQuestions === cnt ? 700 : 500,
+                  background: totalQuestions === cnt ? 'var(--brand-primary)' : 'var(--bg-surface-subtle)',
+                  color: totalQuestions === cnt ? '#ffffff' : 'var(--text-muted)',
+                  border: totalQuestions === cnt ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
                   cursor: 'pointer',
                   transition: 'all var(--transition-fast)'
                 }}
               >
-                <span>{opt.label}</span>
+                {cnt}
               </button>
-            );
-          })}
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* Batch Format Allocation Matrix (When totalQuestions > 1) */}
+      {totalQuestions > 1 ? (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+            padding: '12px',
+            background: 'var(--bg-surface-subtle)',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border-light)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              Batch Format Allocation
+            </span>
+            <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>
+              Total: {totalQuestions} Items
+            </span>
+          </div>
+
+          {/* Answer Mode Breakdown */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <ListChecks size={12} color="var(--brand-primary)" />
+              <span>Answer Mode Split</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+              {/* Single Choice Sub-counter */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '5px 8px',
+                  background: 'var(--bg-surface-elevated)',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--border-light)'
+                }}
+              >
+                <span style={{ fontSize: '0.725rem', color: 'var(--text-secondary)' }}>Single</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <button
+                    type="button"
+                    id="btn-single-count-minus"
+                    onClick={() => handleSingleCountChange(singleChoiceCount - 1)}
+                    disabled={singleChoiceCount <= 0}
+                    style={{ width: '18px', height: '18px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                  >
+                    <Minus size={10} />
+                  </button>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, minWidth: '14px', textAlign: 'center' }}>
+                    {singleChoiceCount}
+                  </span>
+                  <button
+                    type="button"
+                    id="btn-single-count-plus"
+                    onClick={() => handleSingleCountChange(singleChoiceCount + 1)}
+                    disabled={singleChoiceCount >= totalQuestions}
+                    style={{ width: '18px', height: '18px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                  >
+                    <Plus size={10} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Multi Choice Sub-counter */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '5px 8px',
+                  background: 'var(--bg-surface-elevated)',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--border-light)'
+                }}
+              >
+                <span style={{ fontSize: '0.725rem', color: 'var(--text-secondary)' }}>Multi</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <button
+                    type="button"
+                    id="btn-multi-count-minus"
+                    onClick={() => handleMultiCountChange(multiChoiceCount - 1)}
+                    disabled={multiChoiceCount <= 0}
+                    style={{ width: '18px', height: '18px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                  >
+                    <Minus size={10} />
+                  </button>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, minWidth: '14px', textAlign: 'center', color: multiChoiceCount > 0 ? '#818cf8' : 'var(--text-primary)' }}>
+                    {multiChoiceCount}
+                  </span>
+                  <button
+                    type="button"
+                    id="btn-multi-count-plus"
+                    onClick={() => handleMultiCountChange(multiChoiceCount + 1)}
+                    disabled={multiChoiceCount >= totalQuestions}
+                    style={{ width: '18px', height: '18px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                  >
+                    <Plus size={10} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Passage Stimulus Breakdown */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <BookOpen size={12} color="var(--brand-primary)" />
+              <span>Stimulus Format Split</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+              {/* Passage Sub-counter */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '5px 8px',
+                  background: 'var(--bg-surface-elevated)',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--border-light)'
+                }}
+              >
+                <span style={{ fontSize: '0.725rem', color: 'var(--text-secondary)' }}>Passage</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <button
+                    type="button"
+                    id="btn-passage-count-minus"
+                    onClick={() => handlePassageCountChange(passageCount - 1)}
+                    disabled={passageCount <= 0}
+                    style={{ width: '18px', height: '18px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                  >
+                    <Minus size={10} />
+                  </button>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, minWidth: '14px', textAlign: 'center', color: passageCount > 0 ? '#38bdf8' : 'var(--text-primary)' }}>
+                    {passageCount}
+                  </span>
+                  <button
+                    type="button"
+                    id="btn-passage-count-plus"
+                    onClick={() => handlePassageCountChange(passageCount + 1)}
+                    disabled={passageCount >= totalQuestions}
+                    style={{ width: '18px', height: '18px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                  >
+                    <Plus size={10} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Standard Vignette (Derived) */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '5px 8px',
+                  background: 'var(--bg-surface-elevated)',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--border-light)'
+                }}
+              >
+                <span style={{ fontSize: '0.725rem', color: 'var(--text-secondary)' }}>Standard</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, paddingRight: '6px', color: 'var(--text-muted)' }}>
+                  {totalQuestions - passageCount}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Allocation Summary Tag */}
+          <div
+            style={{
+              padding: '6px 8px',
+              background: 'var(--bg-surface-elevated)',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.675rem',
+              color: 'var(--text-muted)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <span>Target Composition:</span>
+            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+              {singleChoiceCount} Single • {multiChoiceCount} Multi • {passageCount} Passage
+            </span>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Answer Mode (Single Choice vs Multi-Choice) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <ListChecks size={13} color="var(--brand-primary)" />
+                <span>Answer Mode</span>
+              </label>
+              <span
+                style={{
+                  fontSize: '0.675rem',
+                  fontWeight: 600,
+                  padding: '2px 6px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: interactionType === 'multi_choice' ? 'rgba(99, 102, 241, 0.15)' : 'var(--bg-surface-elevated)',
+                  color: interactionType === 'multi_choice' ? '#818cf8' : 'var(--text-muted)'
+                }}
+              >
+                {interactionType === 'multi_choice' ? 'Multi-Key' : 'Single Key'}
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '3px',
+                background: 'var(--bg-surface-subtle)',
+                padding: '3px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-light)'
+              }}
+            >
+              {[
+                { id: 'single_choice', label: 'Single Choice', desc: '1 Key' },
+                { id: 'multi_choice', label: 'Multi-Choice', desc: 'Select All' }
+              ].map(opt => {
+                const isSel = interactionType === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    id={`btn-mode-${opt.id}`}
+                    onClick={() => {
+                      if (setInteractionType) setInteractionType(opt.id);
+                      if (setSingleChoiceCount && setMultiChoiceCount) {
+                        setSingleChoiceCount(opt.id === 'multi_choice' ? 0 : 1);
+                        setMultiChoiceCount(opt.id === 'multi_choice' ? 1 : 0);
+                      }
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      padding: '7px 6px',
+                      borderRadius: 'var(--radius-sm)',
+                      background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
+                      border: isSel ? '1px solid var(--border-medium)' : '1px solid transparent',
+                      color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
+                      fontSize: '0.75rem',
+                      fontWeight: isSel ? 700 : 500,
+                      cursor: 'pointer',
+                      transition: 'all var(--transition-fast)'
+                    }}
+                  >
+                    <span>{opt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Passage Format (Standard Vignette vs Long Reading Passage) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <BookOpen size={13} color="var(--brand-primary)" />
+                <span>Passage Format</span>
+              </label>
+              <span
+                style={{
+                  fontSize: '0.675rem',
+                  fontWeight: 600,
+                  padding: '2px 6px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: passageRequired === 'Yes' ? 'rgba(56, 189, 248, 0.15)' : 'var(--bg-surface-elevated)',
+                  color: passageRequired === 'Yes' ? '#38bdf8' : 'var(--text-muted)'
+                }}
+              >
+                {passageRequired === 'Yes' ? 'Long (~350w)' : 'Standard'}
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '3px',
+                background: 'var(--bg-surface-subtle)',
+                padding: '3px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-light)'
+              }}
+            >
+              {[
+                { id: 'No', label: 'Standard Vignette' },
+                { id: 'Yes', label: 'Long Reading Passage' }
+              ].map(opt => {
+                const isSel = passageRequired === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    id={`btn-passage-${opt.id.toLowerCase()}`}
+                    onClick={() => {
+                      if (setPassageRequired) setPassageRequired(opt.id);
+                      if (setPassageCount) setPassageCount(opt.id === 'Yes' ? 1 : 0);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      padding: '7px 6px',
+                      borderRadius: 'var(--radius-sm)',
+                      background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
+                      border: isSel ? '1px solid var(--border-medium)' : '1px solid transparent',
+                      color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
+                      fontSize: '0.75rem',
+                      fontWeight: isSel ? 700 : 500,
+                      cursor: 'pointer',
+                      transition: 'all var(--transition-fast)'
+                    }}
+                  >
+                    <span>{opt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Cognitive Distractor Trap Selector */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -668,7 +1059,11 @@ export default function GeneratorPanel({
           style={{ flex: 1, padding: '10px 16px' }}
         >
           <Sparkles size={15} />
-          <span>{isGenerating ? 'Generating Question...' : 'Generate Question'}</span>
+          <span>
+            {isGenerating
+              ? (totalQuestions > 1 ? `Generating Batch (${totalQuestions})...` : 'Generating Question...')
+              : (totalQuestions > 1 ? `Generate ${totalQuestions} Questions` : 'Generate Question')}
+          </span>
           {!isGenerating && (
             <span className="kbd-hint" style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.2)', color: '#ffffff', border: 'none' }}>
               ⌘↵

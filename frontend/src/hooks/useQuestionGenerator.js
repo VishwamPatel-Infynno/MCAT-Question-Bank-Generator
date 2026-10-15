@@ -7,6 +7,8 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
   const [iterationCount, setIterationCount] = useState(1);
   const [events, setEvents] = useState([]);
   const [activeQuestion, setActiveQuestion] = useState(null);
+  const [stagedQuestions, setStagedQuestions] = useState([]);
+  const [batchProgress, setBatchProgress] = useState(null);
   const [rejectedData, setRejectedData] = useState(null);
   const [latestReview, setLatestReview] = useState(null);
   const abortControllerRef = useRef(null);
@@ -27,8 +29,12 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
+    const reqTotal = payload?.questions_to_generate || 1;
+
     setIsGenerating(true);
     setActiveQuestion(null);
+    setStagedQuestions([]);
+    setBatchProgress(reqTotal > 1 ? { current: 0, total: reqTotal, message: 'Initiating batch pipeline...' } : null);
     setRejectedData(null);
     setEvents([]);
     setLatestReview(null);
@@ -42,6 +48,27 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
         if (evt.agent_name && evt.agent_name !== 'System') {
           setActiveAgent(evt.agent_name);
         }
+
+        if (evt.event_type === 'batch_progress' && evt.data) {
+          setBatchProgress({
+            current: evt.data.current_index,
+            total: evt.data.total_count,
+            interactionType: evt.data.interaction_type,
+            passageRequired: evt.data.passage_required,
+            message: evt.message
+          });
+        }
+
+        if (evt.event_type === 'question_generated' && evt.data?.question) {
+          const newQ = evt.data.question;
+          setStagedQuestions((prev) => {
+            const exists = prev.some((q) => q.id === newQ.id);
+            if (exists) return prev;
+            return [...prev, newQ];
+          });
+          setActiveQuestion((prev) => prev || newQ);
+        }
+
         if (evt.event_type === 'agent_complete' && evt.agent_name === 'Question Reviewer') {
           if (evt.data?.review) {
             setLatestReview(evt.data.review);
@@ -83,9 +110,12 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
         abortControllerRef.current = null;
         setIsGenerating(false);
         setActiveAgent('Completed');
-        const q = finalData?.question || finalData;
-        if (q) {
-          setActiveQuestion(q);
+        const qList = finalData?.questions || (finalData?.question ? [finalData.question] : []);
+        if (qList.length > 0) {
+          setStagedQuestions(qList);
+          setActiveQuestion(qList[0]);
+        } else if (finalData?.question) {
+          setActiveQuestion(finalData.question);
         }
       },
       controller.signal
@@ -101,6 +131,8 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
     setActiveAgent('Idle');
     setEvents([]);
     setActiveQuestion(null);
+    setStagedQuestions([]);
+    setBatchProgress(null);
     setRejectedData(null);
     setLatestReview(null);
     setIterationCount(1);
@@ -113,6 +145,9 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
     events,
     activeQuestion,
     setActiveQuestion,
+    stagedQuestions,
+    setStagedQuestions,
+    batchProgress,
     rejectedData,
     latestReview,
     startGeneration,

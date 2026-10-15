@@ -4,6 +4,7 @@ import {
   GeneratorPanel,
   AgentVisualizer,
   QuestionCard,
+  StagedBatchReview,
   QuestionBank,
   ReviewAuditView,
   SettingsModal,
@@ -14,7 +15,7 @@ import { useQuestionGenerator } from './hooks/useQuestionGenerator';
 import { useTheme } from './hooks/useTheme';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { UCAT_SECTIONS_FALLBACK } from './constants/ucat';
-import { fetchSections, fetchHealth, approveQuestion } from './services/api';
+import { fetchSections, fetchHealth, approveQuestion, batchApproveQuestions } from './services/api';
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
@@ -23,6 +24,10 @@ export default function App() {
   const [selectedSection, setSelectedSection] = useState('verbal_reasoning');
   const [selectedSubtopic, setSelectedSubtopic] = useState('');
   const [difficulty, setDifficulty] = useState('medium');
+  const [totalQuestions, setTotalQuestions] = useState(1);
+  const [singleChoiceCount, setSingleChoiceCount] = useState(1);
+  const [multiChoiceCount, setMultiChoiceCount] = useState(0);
+  const [passageCount, setPassageCount] = useState(0);
   const [interactionType, setInteractionType] = useState('single_choice');
   const [passageRequired, setPassageRequired] = useState('No');
   const [primaryTrap, setPrimaryTrap] = useState('Automatic');
@@ -56,6 +61,9 @@ export default function App() {
     events,
     activeQuestion,
     setActiveQuestion,
+    stagedQuestions,
+    setStagedQuestions,
+    batchProgress,
     rejectedData,
     latestReview,
     startGeneration,
@@ -106,6 +114,10 @@ export default function App() {
       section: selectedSection,
       subtopic: selectedSubtopic,
       difficulty,
+      questions_to_generate: totalQuestions,
+      single_choice_count: totalQuestions > 1 ? singleChoiceCount : (interactionType === 'multi_choice' ? 0 : 1),
+      multi_choice_count: totalQuestions > 1 ? multiChoiceCount : (interactionType === 'multi_choice' ? 1 : 0),
+      passage_count: totalQuestions > 1 ? passageCount : (passageRequired === 'Yes' ? 1 : 0),
       interaction_type: interactionType,
       passage_required: passageRequired,
       primary_trap: primaryTrap !== 'Automatic' ? primaryTrap : undefined,
@@ -115,14 +127,20 @@ export default function App() {
     startGeneration(payload);
     showToast({
       type: 'info',
-      title: 'Generation Started',
-      message: `Multi-agent swarm drafting ${difficulty.toUpperCase()} question...`
+      title: totalQuestions > 1 ? `Batch Generation Started (${totalQuestions})` : 'Generation Started',
+      message: totalQuestions > 1
+        ? `Drafting ${totalQuestions} questions (${singleChoiceCount} Single, ${multiChoiceCount} Multi, ${passageCount} Passage)...`
+        : `Multi-agent swarm drafting ${difficulty.toUpperCase()} question...`
     });
   }, [
     isGenerating,
     selectedSection,
     selectedSubtopic,
     difficulty,
+    totalQuestions,
+    singleChoiceCount,
+    multiChoiceCount,
+    passageCount,
     interactionType,
     passageRequired,
     primaryTrap,
@@ -151,6 +169,25 @@ export default function App() {
     }
   }, [showToast]);
 
+  const handleBatchApprove = useCallback(async (questionsToSave) => {
+    try {
+      await batchApproveQuestions(questionsToSave);
+      showToast({
+        type: 'success',
+        title: 'Batch Items Saved',
+        message: `${questionsToSave.length} question(s) successfully committed to PostgreSQL Question Bank.`
+      });
+    } catch (err) {
+      console.error('Failed to batch save questions:', err);
+      showToast({
+        type: 'error',
+        title: 'Batch Save Failed',
+        message: 'Could not connect to database to persist questions.'
+      });
+      throw err;
+    }
+  }, [showToast]);
+
   const handleDiscardQuestion = useCallback(() => {
     setActiveQuestion(null);
     setIsQuestionSaved(false);
@@ -160,6 +197,26 @@ export default function App() {
       message: 'Candidate question was discarded from studio view.'
     });
   }, [setActiveQuestion, showToast]);
+
+  const handleDiscardBatch = useCallback(() => {
+    setStagedQuestions([]);
+    setActiveQuestion(null);
+    setIsQuestionSaved(false);
+    showToast({
+      type: 'info',
+      title: 'Batch Discarded',
+      message: 'Generated candidate batch was discarded.'
+    });
+  }, [setStagedQuestions, setActiveQuestion, showToast]);
+
+  const handleDiscardQuestionInBatch = useCallback((qId) => {
+    setStagedQuestions(prev => prev.filter(q => q.id !== qId));
+    showToast({
+      type: 'info',
+      title: 'Candidate Discarded',
+      message: 'Question removed from staged batch.'
+    });
+  }, [setStagedQuestions, showToast]);
 
   // Keyboard Shortcuts Registration
   useKeyboardShortcuts({
@@ -225,6 +282,14 @@ export default function App() {
                 setSelectedSubtopic={setSelectedSubtopic}
                 difficulty={difficulty}
                 setDifficulty={setDifficulty}
+                totalQuestions={totalQuestions}
+                setTotalQuestions={setTotalQuestions}
+                singleChoiceCount={singleChoiceCount}
+                setSingleChoiceCount={setSingleChoiceCount}
+                multiChoiceCount={multiChoiceCount}
+                setMultiChoiceCount={setMultiChoiceCount}
+                passageCount={passageCount}
+                setPassageCount={setPassageCount}
                 interactionType={interactionType}
                 setInteractionType={setInteractionType}
                 passageRequired={passageRequired}
@@ -252,13 +317,34 @@ export default function App() {
                 events={events}
                 latestReview={latestReview}
                 isGenerating={isGenerating}
+                batchProgress={batchProgress}
               />
 
-              {/* Output: Rejection Card, Active Question Card, or Empty State Placeholder */}
+              {/* Output: Rejection Card, Staged Batch Review, Single Question Card, or Empty State Placeholder */}
               {rejectedData ? (
                 <RejectionCard
                   rejectionData={rejectedData}
                   onRetry={handleGenerate}
+                />
+              ) : stagedQuestions.length > 1 ? (
+                <StagedBatchReview
+                  stagedQuestions={stagedQuestions}
+                  onApproveSelected={handleBatchApprove}
+                  onApproveAll={handleBatchApprove}
+                  onDiscardQuestion={handleDiscardQuestionInBatch}
+                  onDiscardAll={handleDiscardBatch}
+                  onOpenAudit={(q) => setAuditQuestion(q)}
+                  onUpdateQuestion={(updated) => {
+                    setStagedQuestions(prev => prev.map(item => item.id === updated.id ? updated : item));
+                    if (activeQuestion?.id === updated.id) {
+                      setActiveQuestion(updated);
+                    }
+                    showToast({
+                      type: 'success',
+                      title: 'Changes Applied',
+                      message: 'Question text updated.'
+                    });
+                  }}
                 />
               ) : activeQuestion ? (
                 <QuestionCard
@@ -270,6 +356,7 @@ export default function App() {
                   onNextQuestion={handleGenerate}
                   onUpdateQuestion={(updated) => {
                     setActiveQuestion(updated);
+                    setStagedQuestions(prev => prev.map(item => item.id === updated.id ? updated : item));
                     showToast({
                       type: 'success',
                       title: 'Changes Applied',

@@ -14,7 +14,8 @@ export default function AgentVisualizer({
   iterationCount,
   events,
   latestReview,
-  isGenerating
+  isGenerating,
+  batchProgress
 }) {
   const [showTelemetry, setShowTelemetry] = useState(false);
   const [elapsedTime, setElapsedTime] = useState('0.0');
@@ -73,7 +74,7 @@ export default function AgentVisualizer({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <CheckCircle2 size={16} color="var(--status-success)" />
           <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-            Psychometric Verification Passed
+            {batchProgress && batchProgress.total > 1 ? `Batch Verification Passed (${batchProgress.total} Questions Staged)` : 'Psychometric Verification Passed'}
           </span>
           <span className="badge badge-emerald" style={{ fontSize: '0.7rem' }}>
             {latestReview?.total_score || 95}/100
@@ -179,6 +180,35 @@ export default function AgentVisualizer({
           </span>
         </div>
       </div>
+
+      {/* Batch Progress Bar when generating multiple questions */}
+      {batchProgress && batchProgress.total > 1 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '6px 8px', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.725rem' }}>
+            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+              Batch Progress: Question {batchProgress.current || 1} of {batchProgress.total}
+            </span>
+            <span style={{ color: 'var(--brand-primary)', fontWeight: 700 }}>
+              {Math.min(100, Math.round(((Math.max(0, (batchProgress.current || 1) - 1)) / batchProgress.total) * 100))}%
+            </span>
+          </div>
+          <div style={{ width: '100%', height: '4px', background: 'var(--bg-surface-elevated)', borderRadius: '2px', overflow: 'hidden' }}>
+            <div
+              style={{
+                width: `${Math.min(100, Math.max(10, (((batchProgress.current || 1) - 0.5) / batchProgress.total) * 100))}%`,
+                height: '100%',
+                background: 'linear-gradient(90deg, var(--brand-primary), #818cf8)',
+                transition: 'width 0.4s ease'
+              }}
+            />
+          </div>
+          {batchProgress.message && (
+            <div style={{ fontSize: '0.675rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {batchProgress.message}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Horizontal Step Sequence */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

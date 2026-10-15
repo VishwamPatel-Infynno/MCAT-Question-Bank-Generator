@@ -103,7 +103,7 @@ export async function generateQuestionStream(payload, onEvent, onError, onComple
             const eventData = JSON.parse(jsonStr);
             onEvent(eventData);
             if (eventData.event_type === 'workflow_complete') {
-              onComplete(eventData.data?.question);
+              onComplete(eventData.data);
             }
           } catch (err) {
             console.error('Failed to parse SSE JSON block:', err, jsonStr);

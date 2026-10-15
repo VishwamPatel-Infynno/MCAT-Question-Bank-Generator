@@ -107,6 +107,13 @@ async def save_question(q: Question) -> Question:
         return q
 
 
+async def save_questions_batch(questions: list[Question]) -> int:
+    """Inserts or updates a list of questions in PostgreSQL."""
+    for q in questions:
+        await save_question(q)
+    return len(questions)
+
+
 async def get_questions(
     section: str | None = None,
     difficulty: str | None = None,

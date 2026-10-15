@@ -487,3 +487,58 @@ async def test_multichoice_and_passage_support():
 
     # Clean up
     await delete_question(multi_q.id)
+
+
+@pytest.mark.asyncio
+async def test_batch_generation_and_staging_flow():
+    import json
+    from app.repositories.question_repo import get_question_by_id, save_questions_batch
+    from app.workflow.graph import run_workflow_stream
+
+    # Request batch of 3 questions: 2 Single, 1 Multi, 1 Passage
+    req = GenerationRequest(
+        section=UCATSection.DECISION_MAKING,
+        difficulty=Difficulty.MEDIUM,
+        questions_to_generate=3,
+        single_choice_count=2,
+        multi_choice_count=1,
+        passage_count=1,
+    )
+
+    events = []
+    async for chunk in run_workflow_stream(req):
+        line = chunk.strip()
+        if line.startswith("data: "):
+            events.append(json.loads(line[6:]))
+
+    # Verify event stream contents
+    event_types = [e["event_type"] for e in events]
+    assert "workflow_start" in event_types
+    assert "batch_progress" in event_types
+    assert event_types.count("question_generated") == 3
+    assert "workflow_complete" in event_types
+
+    # Verify workflow_complete contains all 3 staged questions
+    complete_evt = next(e for e in events if e["event_type"] == "workflow_complete")
+    staged_qs = complete_evt["data"]["questions"]
+    assert len(staged_qs) == 3
+
+    # Check that candidates are NOT automatically saved to DB
+    for q_data in staged_qs:
+        in_db = await get_question_by_id(q_data["id"])
+        assert in_db is None  # Not saved until user confirms!
+
+    # Test user selecting 2 of the 3 questions to save (Confirmation Simulation)
+    chosen_to_approve = [Question(**staged_qs[0]), Question(**staged_qs[1])]
+    saved_count = await save_questions_batch(chosen_to_approve)
+    assert saved_count == 2
+
+    # Verify the 2 approved are now in DB, and unapproved is not
+    assert await get_question_by_id(staged_qs[0]["id"]) is not None
+    assert await get_question_by_id(staged_qs[1]["id"]) is not None
+    assert await get_question_by_id(staged_qs[2]["id"]) is None
+
+    # Clean up
+    await delete_question(staged_qs[0]["id"])
+    await delete_question(staged_qs[1]["id"])
+
