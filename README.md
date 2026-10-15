@@ -192,8 +192,10 @@ Question Bank Generator/
         │   ├── layout/          # Layout components (Navbar)
         │   ├── generator/       # Question generation studio (Panel, Visualizer, RejectionCard)
         │   ├── question/        # Candidate question display & review (QuestionCard, ReviewAuditView)
+        │   ├── matrix/          # Batch Matrix Studio (MatrixRunner)
         │   ├── bank/            # Question repository (QuestionBank)
-        │   └── modals/          # Dialog modals (SettingsModal, UCATGuide)
+        │   ├── modals/          # Dialog modals (SettingsModal)
+        │   └── common/          # Common components (Toast)
         └── services/
             └── api.js           # SSE event reader & REST API client
 ```

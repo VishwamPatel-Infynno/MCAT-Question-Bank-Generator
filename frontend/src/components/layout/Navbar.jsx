@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Database, Settings, BookOpen, Cpu, Layers, Sun, Moon } from 'lucide-react';
+import { Sparkles, Database, Settings, Cpu, Layers, Sun, Moon } from 'lucide-react';
 
 export default function Navbar({
   activeTab,
@@ -145,28 +145,6 @@ export default function Navbar({
           Question Bank
         </button>
 
-        <button
-          id="nav-tab-guide"
-          onClick={() => setActiveTab('guide')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '7px 16px',
-            borderRadius: 'var(--radius-md)',
-            background: activeTab === 'guide' ? 'var(--brand-primary)' : 'transparent',
-            border: 'none',
-            color: activeTab === 'guide' ? '#ffffff' : 'var(--text-secondary)',
-            fontWeight: 600,
-            fontSize: '0.85rem',
-            cursor: 'pointer',
-            transition: 'all var(--transition-fast)',
-            boxShadow: activeTab === 'guide' ? '0 2px 8px rgba(2, 132, 199, 0.4)' : 'none'
-          }}
-        >
-          <BookOpen size={15} />
-          UCAT Syllabus
-        </button>
       </nav>
 
       {/* Right Action Tools: Health + Theme Toggle + Settings */}

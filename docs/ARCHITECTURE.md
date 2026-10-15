@@ -312,7 +312,8 @@ frontend/src/
 │   ├── question/        # Candidate question review & audit (QuestionCard, ReviewAuditView, StageJsonInspector)
 │   ├── matrix/          # Combinations matrix & batch generation studio (MatrixRunner)
 │   ├── bank/            # Question repository (QuestionBank)
-│   └── modals/          # Dialog modals (SettingsModal, UCATGuide)
+│   ├── modals/          # Dialog modals (SettingsModal)
+│   └── common/          # Common components (Toast)
 └── services/
     └── api.js           # SSE event reader, candidate approval & REST API client
 ```

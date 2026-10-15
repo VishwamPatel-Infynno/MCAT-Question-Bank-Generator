@@ -258,7 +258,7 @@ export default function MatrixRunner({ onOpenSettings }) {
             </span>
           </div>
           <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)' }}>
-            Execute multi-agent generation against strict syllabus matrices (Combination ID, Content Domain, Question Type &amp; Trap engineering).
+            Execute multi-agent generation against combination test matrices (Combination ID, Content Domain, Question Type &amp; Trap engineering).
           </p>
         </div>
 

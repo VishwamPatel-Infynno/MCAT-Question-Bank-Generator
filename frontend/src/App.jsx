@@ -8,7 +8,6 @@ import {
   QuestionBank,
   ReviewAuditView,
   SettingsModal,
-  UCATGuide,
   RejectionCard,
   ToastContainer
 } from './components';
@@ -343,9 +342,6 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'guide' && (
-          <UCATGuide />
-        )}
       </main>
 
       {/* Audit Modal */}

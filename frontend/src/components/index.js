@@ -19,5 +19,4 @@ export { default as QuestionBank } from './bank/QuestionBank';
 
 // Modals & Common
 export { default as SettingsModal } from './modals/SettingsModal';
-export { default as UCATGuide } from './modals/UCATGuide';
 export { ToastContainer } from './common/Toast';
