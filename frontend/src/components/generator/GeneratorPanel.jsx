@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
-import { Sparkles, FileText, ChevronDown, ChevronUp, SlidersHorizontal, Target, Zap, Flame, Tag } from 'lucide-react';
+import {
+  Sparkles,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  SlidersHorizontal,
+  Target,
+  Zap,
+  Flame,
+  Tag,
+  PanelLeftClose,
+  PanelLeftOpen
+} from 'lucide-react';
 import { SECTION_ICONS, PACING_INFO, CONTENT_DOMAINS, QUESTION_TYPES, PRIMARY_TRAPS } from '../../constants/ucat';
 
 export default function GeneratorPanel({
@@ -27,7 +39,9 @@ export default function GeneratorPanel({
   visualType: _visualType,
   setVisualType: _setVisualType,
   onGenerate,
-  isGenerating
+  isGenerating,
+  isCollapsed,
+  onToggleCollapse
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -35,166 +49,287 @@ export default function GeneratorPanel({
   const subtopics = currentSectionObj?.subtopics || [];
   const pacing = PACING_INFO[selectedSection] || PACING_INFO.verbal_reasoning;
 
+  // Render Collapsed Sidebar Dock
+  if (isCollapsed) {
+    return (
+      <div
+        className="glass-panel"
+        style={{
+          padding: '16px 10px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '16px',
+          width: '64px'
+        }}
+      >
+        <button
+          onClick={onToggleCollapse}
+          className="btn-secondary"
+          style={{ padding: '8px', border: 'none', background: 'transparent' }}
+          title="Expand Generator Panel"
+        >
+          <PanelLeftOpen size={18} color="var(--brand-primary)" />
+        </button>
 
-  return (
-    <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
-      {/* Step 1: Select UCAT Subtest */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-          <h2 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{
-              width: '22px',
-              height: '22px',
-              borderRadius: '50%',
-              background: 'var(--brand-primary)',
-              color: '#ffffff',
-              fontSize: '0.75rem',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 800
-            }}>1</span>
-            Select UCAT Subtest
-          </h2>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Official 2025/2026 Format</span>
-        </div>
-        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-          Choose which section of the exam you want to practice.
-        </p>
-
-        {/* 5 Section Buttons */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-          gap: '8px'
-        }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {sectionsData.map(sec => {
             const Icon = SECTION_ICONS[sec.id] || FileText;
             const isSelected = selectedSection === sec.id;
             return (
               <button
                 key={sec.id}
-                id={`section-btn-${sec.id}`}
                 onClick={() => {
                   setSelectedSection(sec.id);
-                  if (sec.subtopics && sec.subtopics.length > 0) {
-                    setSelectedSubtopic(sec.subtopics[0]);
-                  }
-                  if (sec.id === 'abstract_reasoning') {
-                    setRequireImage(true);
-                  }
+                  if (sec.subtopics?.length > 0) setSelectedSubtopic(sec.subtopics[0]);
                 }}
                 style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  textAlign: 'center',
-                  gap: '6px',
-                  padding: '10px 8px',
-                  borderRadius: 'var(--radius-md)',
-                  background: isSelected ? 'var(--brand-primary-light)' : '#ffffff',
-                  border: isSelected ? '2px solid var(--brand-primary)' : '1px solid var(--border-light)',
-                  color: isSelected ? 'var(--brand-primary)' : 'var(--text-secondary)',
-                  boxShadow: isSelected ? '0 2px 8px rgba(2, 132, 199, 0.15)' : 'var(--shadow-sm)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                <div style={{
-                  width: '30px',
-                  height: '30px',
-                  borderRadius: '8px',
-                  background: isSelected ? 'var(--brand-primary)' : 'var(--bg-canvas)',
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '10px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: isSelected ? '#ffffff' : 'var(--brand-primary)'
-                }}>
-                  <Icon size={16} />
-                </div>
-                <span style={{ fontSize: '0.775rem', fontWeight: 700, lineHeight: 1.2 }}>
-                  {sec.label}
-                </span>
+                  background: isSelected ? 'var(--brand-primary)' : 'var(--bg-surface-elevated)',
+                  border: isSelected ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
+                  color: isSelected ? '#ffffff' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  transition: 'all var(--transition-fast)'
+                }}
+                title={sec.label}
+              >
+                <Icon size={16} />
               </button>
             );
           })}
         </div>
 
-        {/* Pacing Advice Bar */}
-        <div style={{
-          marginTop: '10px',
+        <div style={{ width: '100%', height: '1px', background: 'var(--border-light)' }} />
+
+        {/* Difficulty Mini Indicator */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '4px',
+            fontSize: '0.65rem',
+            fontWeight: 700,
+            color: difficulty === 'easy' ? '#10b981' : difficulty === 'medium' ? '#f59e0b' : '#f43f5e'
+          }}
+          title={`Difficulty: ${difficulty}`}
+        >
+          {difficulty === 'easy' ? <Zap size={16} /> : difficulty === 'medium' ? <Target size={16} /> : <Flame size={16} />}
+          <span style={{ textTransform: 'capitalize' }}>{difficulty[0]}</span>
+        </div>
+
+        <div style={{ marginTop: 'auto' }}>
+          <button
+            onClick={onGenerate}
+            disabled={isGenerating}
+            className="btn-primary"
+            style={{ width: '40px', height: '40px', padding: 0, borderRadius: '50%' }}
+            title="Generate Question (⌘↵)"
+          >
+            <Sparkles size={18} />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Render Expanded Studio Parameter Panel
+  return (
+    <div
+      className="glass-panel"
+      style={{
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px'
+      }}
+    >
+      {/* Header with Collapse Button */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span
+            style={{
+              width: '24px',
+              height: '24px',
+              borderRadius: '50%',
+              background: 'var(--brand-primary)',
+              color: '#ffffff',
+              fontSize: '0.75rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 800
+            }}
+          >
+            1
+          </span>
+          <h2 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+            Select UCAT Subtest
+          </h2>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Official 2025/2026</span>
+          {onToggleCollapse && (
+            <button
+              onClick={onToggleCollapse}
+              className="btn-secondary"
+              style={{ padding: '4px 8px', fontSize: '0.75rem' }}
+              title="Collapse Dock to maximize review space"
+            >
+              <PanelLeftClose size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* 5 Section Grid */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '8px'
+        }}
+      >
+        {sectionsData.map(sec => {
+          const Icon = SECTION_ICONS[sec.id] || FileText;
+          const isSelected = selectedSection === sec.id;
+          return (
+            <button
+              key={sec.id}
+              id={`section-btn-${sec.id}`}
+              onClick={() => {
+                setSelectedSection(sec.id);
+                if (sec.subtopics && sec.subtopics.length > 0) {
+                  setSelectedSubtopic(sec.subtopics[0]);
+                }
+                if (sec.id === 'abstract_reasoning') {
+                  setRequireImage(true);
+                }
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '10px 12px',
+                borderRadius: 'var(--radius-md)',
+                background: isSelected ? 'var(--brand-light)' : 'var(--bg-surface-elevated)',
+                border: isSelected ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
+                color: isSelected ? 'var(--brand-primary)' : 'var(--text-secondary)',
+                boxShadow: isSelected ? 'var(--shadow-glow)' : 'var(--shadow-sm)',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all var(--transition-fast)'
+              }}
+            >
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  background: isSelected ? 'var(--brand-primary)' : 'var(--bg-surface)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: isSelected ? '#ffffff' : 'var(--brand-primary)',
+                  boxShadow: isSelected ? '0 2px 6px rgba(2, 132, 199, 0.4)' : 'none',
+                  flexShrink: 0
+                }}
+              >
+                <Icon size={16} />
+              </div>
+              <span style={{ fontSize: '0.785rem', fontWeight: 700, lineHeight: 1.25 }}>
+                {sec.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Pacing Advice Bar */}
+      <div
+        style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '8px 12px',
           background: 'var(--brand-light)',
-          border: '1px solid #bae6fd',
+          border: '1px solid var(--border-brand)',
           borderRadius: 'var(--radius-sm)',
-          fontSize: '0.775rem'
-        }}>
-          <span style={{ color: 'var(--brand-primary-dark)', fontWeight: 600 }}>
-            Target Pacing: <strong>{pacing.target}</strong>
-          </span>
-          <span style={{ color: 'var(--brand-primary)', fontSize: '0.725rem' }}>
-            {pacing.desc}
-          </span>
-        </div>
+          fontSize: '0.75rem'
+        }}
+      >
+        <span style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>
+          Pacing: <strong>{pacing.target}</strong>
+        </span>
+        <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
+          {pacing.desc}
+        </span>
       </div>
 
-      <hr style={{ border: 'none', borderTop: '1px solid var(--border-light)' }} />
+      <div style={{ height: '1px', background: 'var(--border-light)' }} />
 
       {/* Step 2: Target Difficulty Level */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-          <h2 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{
-              width: '22px',
-              height: '22px',
-              borderRadius: '50%',
-              background: 'var(--brand-primary)',
-              color: '#ffffff',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '0.75rem',
-              fontWeight: 800
-            }}>2</span>
-            Target Difficulty Level
-          </h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span
+              style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '50%',
+                background: 'var(--brand-primary)',
+                color: '#ffffff',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.75rem',
+                fontWeight: 800
+              }}
+            >
+              2
+            </span>
+            <h2 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+              Difficulty Level
+            </h2>
+          </div>
+          <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Strict Standard</span>
         </div>
-        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-          Select target question difficulty (Easy, Medium, Hard).
-        </p>
 
         {/* 3-Segment Difficulty Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
           {[
             {
               id: 'easy',
               label: 'Easy',
               icon: Zap,
-              desc: 'Foundational & Direct',
-              color: '#059669',
-              activeBg: '#ecfdf5',
-              activeBorder: '#10b981'
+              desc: 'Direct & Foundational',
+              color: '#10b981',
+              activeBg: 'var(--status-success-bg)',
+              activeBorder: 'var(--status-success-border)'
             },
             {
               id: 'medium',
               label: 'Medium',
               icon: Target,
-              desc: 'Official Exam Standard',
-              color: '#d97706',
-              activeBg: '#fffbeb',
-              activeBorder: '#f59e0b'
+              desc: 'Official Standard',
+              color: '#f59e0b',
+              activeBg: 'var(--status-warning-bg)',
+              activeBorder: 'var(--status-warning-border)'
             },
             {
               id: 'hard',
               label: 'Hard',
               icon: Flame,
-              desc: 'High-Decile & Traps',
-              color: '#e11d48',
-              activeBg: '#fff1f2',
-              activeBorder: '#f43f5e'
+              desc: 'High-Decile Traps',
+              color: '#f43f5e',
+              activeBg: 'var(--status-danger-bg)',
+              activeBorder: 'var(--status-danger-border)'
             }
           ].map(opt => {
             const Icon = opt.icon;
@@ -206,45 +341,51 @@ export default function GeneratorPanel({
                 id={`btn-diff-${opt.id}`}
                 onClick={() => setDifficulty(opt.id)}
                 style={{
-                  padding: '12px 10px',
+                  padding: '12px 8px',
                   borderRadius: 'var(--radius-md)',
-                  border: isSel ? `2px solid ${opt.activeBorder}` : '1px solid var(--border-light)',
-                  background: isSel ? opt.activeBg : '#ffffff',
-                  boxShadow: isSel ? `0 2px 8px ${opt.activeBorder}25` : 'var(--shadow-sm)',
+                  border: isSel ? `1px solid ${opt.activeBorder}` : '1px solid var(--border-light)',
+                  background: isSel ? opt.activeBg : 'var(--bg-surface-elevated)',
+                  boxShadow: isSel ? `0 0 16px ${opt.color}35` : 'var(--shadow-sm)',
                   cursor: 'pointer',
                   textAlign: 'center',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: '5px',
-                  transition: 'all 0.18s ease'
+                  transition: 'all var(--transition-fast)'
                 }}
               >
-                <div style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  background: isSel ? '#ffffff' : '#f8fafc',
-                  color: isSel ? opt.color : 'var(--text-secondary)'
-                }}>
-                  <Icon size={16} color={isSel ? opt.color : 'currentColor'} />
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '26px',
+                    height: '26px',
+                    borderRadius: '50%',
+                    background: isSel ? 'var(--bg-surface)' : 'transparent',
+                    color: opt.color
+                  }}
+                >
+                  <Icon size={15} color={opt.color} />
                 </div>
-                <span style={{
-                  fontWeight: 800,
-                  fontSize: '0.85rem',
-                  color: isSel ? opt.color : 'var(--text-primary)'
-                }}>
+                <span
+                  style={{
+                    fontWeight: 800,
+                    fontSize: '0.825rem',
+                    color: isSel ? opt.color : 'var(--text-primary)'
+                  }}
+                >
                   {opt.label}
                 </span>
-                <span style={{
-                  fontSize: '0.675rem',
-                  color: isSel ? opt.color : 'var(--text-muted)',
-                  fontWeight: 500,
-                  lineHeight: 1.2
-                }}>
+                <span
+                  style={{
+                    fontSize: '0.65rem',
+                    color: isSel ? opt.color : 'var(--text-muted)',
+                    fontWeight: 500,
+                    lineHeight: 1.2
+                  }}
+                >
                   {opt.desc}
                 </span>
               </button>
@@ -253,44 +394,44 @@ export default function GeneratorPanel({
         </div>
       </div>
 
-      {/* Collapsible Advanced Customization Accordion */}
+      {/* Advanced Customization Accordion */}
       <div>
         <button
           type="button"
-          className="accordion-toggle"
+          className="btn-secondary"
           onClick={() => setShowAdvanced(!showAdvanced)}
+          style={{ width: '100%', justifyContent: 'space-between', padding: '10px 14px' }}
         >
           <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <SlidersHorizontal size={15} color="var(--brand-primary)" />
-            <span>Advanced Customization</span>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-              (Topic, Visuals, Clinical Scenario)
-            </span>
+            <SlidersHorizontal size={14} color="var(--brand-primary)" />
+            <span style={{ fontSize: '0.825rem', fontWeight: 700 }}>Advanced Matrix Parameters</span>
           </span>
-          {showAdvanced ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          {showAdvanced ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
         </button>
 
         {showAdvanced && (
-          <div style={{
-            marginTop: '10px',
-            padding: '16px',
-            background: 'var(--bg-canvas)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-light)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '14px'
-          }}>
+          <div
+            style={{
+              marginTop: '10px',
+              padding: '14px',
+              background: 'var(--bg-surface-subtle)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}
+          >
             {/* Subtopic */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
-                Curriculum Topic / Question Type
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                Subcategory / Question Type
               </label>
               <select
                 id="select-subtopic"
                 value={selectedSubtopic}
                 onChange={(e) => setSelectedSubtopic(e.target.value)}
-                style={{ width: '100%', fontSize: '0.85rem' }}
+                style={{ width: '100%', fontSize: '0.825rem' }}
               >
                 {subtopics.map(sub => (
                   <option key={sub} value={sub}>{sub}</option>
@@ -298,26 +439,28 @@ export default function GeneratorPanel({
               </select>
             </div>
 
-            {/* Manager Combination Matrix Controls */}
-            <div style={{
-              background: '#ffffff',
-              padding: '12px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border-light)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px'
-            }}>
+            {/* Matrix Attributes */}
+            <div
+              style={{
+                background: 'var(--bg-surface-elevated)',
+                padding: '10px',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border-light)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Tag size={13} color="var(--brand-primary)" /> Combination Matrix Attributes
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Tag size={12} color="var(--brand-primary)" /> Combination Matrix
                 </span>
-                <span className="badge badge-cyan" style={{ fontSize: '0.65rem' }}>Manager Schema</span>
+                <span className="badge badge-cyan" style={{ fontSize: '0.6rem' }}>Manager Schema</span>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.725rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '3px' }}>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '2px' }}>
                     Combination ID
                   </label>
                   <input
@@ -326,19 +469,19 @@ export default function GeneratorPanel({
                     value={combinationId || ''}
                     onChange={(e) => setCombinationId && setCombinationId(e.target.value)}
                     placeholder="e.g. CMB00001"
-                    style={{ width: '100%', fontSize: '0.8rem', padding: '6px 8px', fontFamily: 'monospace' }}
+                    style={{ width: '100%', fontSize: '0.75rem', padding: '6px 8px', fontFamily: 'var(--font-mono)' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.725rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '3px' }}>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '2px' }}>
                     Content Domain
                   </label>
                   <select
                     id="select-content-domain"
                     value={contentDomain || ''}
                     onChange={(e) => setContentDomain && setContentDomain(e.target.value)}
-                    style={{ width: '100%', fontSize: '0.8rem', padding: '6px 8px' }}
+                    style={{ width: '100%', fontSize: '0.75rem', padding: '6px 8px' }}
                   >
                     <option value="">(Auto-detect)</option>
                     {CONTENT_DOMAINS.map(d => (
@@ -348,14 +491,14 @@ export default function GeneratorPanel({
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.725rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '3px' }}>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '2px' }}>
                     Question Type
                   </label>
                   <select
                     id="select-question-type"
                     value={questionType || ''}
                     onChange={(e) => setQuestionType && setQuestionType(e.target.value)}
-                    style={{ width: '100%', fontSize: '0.8rem', padding: '6px 8px' }}
+                    style={{ width: '100%', fontSize: '0.75rem', padding: '6px 8px' }}
                   >
                     <option value="">(Auto-detect)</option>
                     {QUESTION_TYPES.map(t => (
@@ -365,14 +508,14 @@ export default function GeneratorPanel({
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.725rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '3px' }}>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '2px' }}>
                     Primary Trap
                   </label>
                   <select
                     id="select-primary-trap"
                     value={primaryTrap || ''}
                     onChange={(e) => setPrimaryTrap && setPrimaryTrap(e.target.value)}
-                    style={{ width: '100%', fontSize: '0.8rem', padding: '6px 8px' }}
+                    style={{ width: '100%', fontSize: '0.75rem', padding: '6px 8px' }}
                   >
                     <option value="">(Auto-detect)</option>
                     {PRIMARY_TRAPS.map(trap => (
@@ -384,25 +527,27 @@ export default function GeneratorPanel({
             </div>
 
             {/* Visual Stimulus Toggle */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 12px',
-              background: '#ffffff',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border-light)'
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 10px',
+                background: 'var(--bg-surface-elevated)',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border-light)'
+              }}
+            >
               <div>
-                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                   Visual Stimulus (Diagram / Graph)
                 </div>
-                <div style={{ fontSize: '0.725rem', color: 'var(--text-secondary)' }}>
-                  Generates clean SVG diagrams or FLUX.1 image stimuli.
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                  Clean SVG diagrams or FLUX.1 image stimuli.
                 </div>
               </div>
 
-              <label style={{ position: 'relative', display: 'inline-block', width: '42px', height: '22px', cursor: 'pointer' }}>
+              <label style={{ position: 'relative', display: 'inline-block', width: '38px', height: '20px', cursor: 'pointer' }}>
                 <input
                   id="checkbox-require-image"
                   type="checkbox"
@@ -411,64 +556,70 @@ export default function GeneratorPanel({
                   onChange={(e) => setRequireImage(e.target.checked)}
                   style={{ opacity: 0, width: 0, height: 0 }}
                 />
-                <span style={{
-                  position: 'absolute',
-                  top: 0, left: 0, right: 0, bottom: 0,
-                  backgroundColor: (requireImage || selectedSection === 'abstract_reasoning') ? 'var(--brand-primary)' : '#cbd5e1',
-                  borderRadius: '24px',
-                  transition: '0.2s'
-                }}>
-                  <span style={{
+                <span
+                  style={{
                     position: 'absolute',
-                    content: '""',
-                    height: '16px',
-                    width: '16px',
-                    left: (requireImage || selectedSection === 'abstract_reasoning') ? '22px' : '3px',
-                    bottom: '3px',
-                    backgroundColor: '#ffffff',
-                    borderRadius: '50%',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: (requireImage || selectedSection === 'abstract_reasoning') ? 'var(--brand-primary)' : 'var(--border-medium)',
+                    borderRadius: '20px',
                     transition: '0.2s'
-                  }} />
+                  }}
+                >
+                  <span
+                    style={{
+                      position: 'absolute',
+                      height: '14px',
+                      width: '14px',
+                      left: (requireImage || selectedSection === 'abstract_reasoning') ? '21px' : '3px',
+                      bottom: '3px',
+                      backgroundColor: '#ffffff',
+                      borderRadius: '50%',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                      transition: '0.2s'
+                    }}
+                  />
                 </span>
               </label>
             </div>
 
-            {/* Custom Scenario Prompt */}
+            {/* Custom Clinical Scenario Prompt */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
-                Custom Clinical Focus or Prompt (Optional)
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                Custom Clinical Focus or Scenario Prompt (Optional)
               </label>
               <textarea
                 id="textarea-custom-prompt"
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
-                placeholder="e.g. Focus on pediatric emergency triage ethics or time-distance calculations..."
+                placeholder="e.g. Focus on pediatric emergency triage ethics or medication dosage calculations..."
                 rows={2}
-                style={{ width: '100%', fontSize: '0.825rem', resize: 'none' }}
+                style={{ width: '100%', fontSize: '0.8rem', resize: 'none' }}
               />
             </div>
           </div>
         )}
       </div>
 
-      <hr style={{ border: 'none', borderTop: '1px solid var(--border-light)' }} />
+      <div style={{ height: '1px', background: 'var(--border-light)' }} />
 
-      {/* Step 3: Generate Button */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      {/* Primary Action Button */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <button
           id="btn-generate-question"
           className="btn-primary"
           onClick={onGenerate}
           disabled={isGenerating}
-          style={{ width: '100%', padding: '14px', fontSize: '1rem', fontWeight: 700 }}
+          style={{ width: '100%', padding: '12px 20px', fontSize: '0.95rem', fontWeight: 700 }}
         >
           <Sparkles size={18} />
-          {isGenerating ? 'AI Agents Collaborating...' : 'Generate UK UCAT Question'}
+          <span>{isGenerating ? 'Agents Collaborating...' : 'Generate UK UCAT Question'}</span>
+          <span className="kbd-hint" style={{ color: '#ffffff', borderColor: 'rgba(255,255,255,0.3)', marginLeft: 'auto' }}>
+            ⌘↵
+          </span>
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#0284c7' }} />
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#38bdf8' }} />
           <span>Meta Llama 3.3 70B Turbo &bull; Precision Cost Tracked</span>
         </div>
       </div>

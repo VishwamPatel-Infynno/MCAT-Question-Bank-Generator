@@ -46,47 +46,56 @@ export default function SettingsModal({ onClose }) {
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(15, 23, 42, 0.45)',
-      backdropFilter: 'blur(8px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 100,
-      padding: '20px'
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: '580px',
-        maxHeight: '90vh',
-        overflowY: 'auto',
-        padding: '28px',
-        borderRadius: 'var(--radius-lg)',
-        background: '#ffffff',
-        border: '1px solid var(--border-light)',
-        boxShadow: 'var(--shadow-xl)',
+    <div
+      style={{
+        position: 'fixed',
+        top: 0, left: 0, right: 0, bottom: 0,
+        background: 'rgba(0, 0, 0, 0.65)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
         display: 'flex',
-        flexDirection: 'column',
-        gap: '20px'
-      }}>
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 100,
+        padding: '20px'
+      }}
+    >
+      <div
+        className="glass-panel-elevated"
+        style={{
+          width: '100%',
+          maxWidth: '580px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          padding: '28px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px'
+        }}
+      >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '40px', height: '40px', borderRadius: '12px',
-              background: 'var(--brand-primary-light)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--brand-primary)'
-            }}>
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '12px',
+                background: 'var(--brand-light)',
+                border: '1px solid var(--border-brand)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--brand-primary)'
+              }}
+            >
               <Settings size={22} />
             </div>
             <div>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                 DeepInfra &amp; Model Configuration
               </h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                 Configure DeepInfra API key, Llama 3.3 Turbo, and FLUX-1-schnell image generator.
               </p>
             </div>
@@ -114,19 +123,21 @@ export default function SettingsModal({ onClose }) {
                 <option key={opt.id} value={opt.id}>{opt.label}</option>
               ))}
             </select>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
               Ultra-low latency: $0.10 input / $0.32 output per 1M tokens.
             </div>
           </div>
 
           {/* DeepInfra API Key Input */}
-          <div style={{
-            background: 'var(--brand-primary-light)',
-            padding: '14px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid #bae6fd'
-          }}>
-            <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 800, color: 'var(--brand-primary-dark)', marginBottom: '6px' }}>
+          <div
+            style={{
+              background: 'var(--brand-light)',
+              padding: '14px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-brand)'
+            }}
+          >
+            <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 800, color: 'var(--brand-primary)', marginBottom: '6px' }}>
               DeepInfra API Key (Required for Turbo Llama &amp; FLUX.1)
             </label>
             <input
@@ -135,7 +146,7 @@ export default function SettingsModal({ onClose }) {
               placeholder="e.g. your_deepinfra_api_key_here (or set in .env)"
               value={deepinfraKey}
               onChange={(e) => setDeepinfraKey(e.target.value)}
-              style={{ width: '100%', background: '#ffffff' }}
+              style={{ width: '100%' }}
             />
             <div style={{ fontSize: '0.75rem', color: 'var(--brand-primary)', marginTop: '6px', fontWeight: 500 }}>
               Get your key from <a href="https://deepinfra.com/dash/api_keys" target="_blank" rel="noreferrer" style={{ color: 'var(--brand-primary)', textDecoration: 'underline', fontWeight: 700 }}>deepinfra.com/dash/api_keys</a>
@@ -143,15 +154,17 @@ export default function SettingsModal({ onClose }) {
           </div>
 
           {/* FLUX-1-schnell Image Generator Section */}
-          <div style={{
-            background: '#fafafa',
-            border: '1px solid #e2e8f0',
-            borderRadius: 'var(--radius-md)',
-            padding: '14px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px'
-          }}>
+          <div
+            style={{
+              background: 'var(--bg-canvas)',
+              border: '1px solid var(--border-light)',
+              borderRadius: 'var(--radius-md)',
+              padding: '14px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Image size={16} color="var(--brand-primary)" />
@@ -159,7 +172,7 @@ export default function SettingsModal({ onClose }) {
                   Image Model: black-forest-labs/FLUX-1-schnell
                 </span>
               </div>
-              <span className="badge badge-primary" style={{ fontSize: '0.72rem', fontWeight: 700 }}>
+              <span className="badge badge-cyan" style={{ fontSize: '0.72rem', fontWeight: 700 }}>
                 ${liveImageCost} / image
               </span>
             </div>
@@ -185,9 +198,9 @@ export default function SettingsModal({ onClose }) {
                         fontSize: '0.75rem',
                         fontWeight: isSelected ? 700 : 500,
                         borderRadius: '6px',
-                        border: isSelected ? '2px solid var(--brand-primary)' : '1px solid #cbd5e1',
-                        background: isSelected ? 'var(--brand-primary-light)' : '#ffffff',
-                        color: isSelected ? 'var(--brand-primary-dark)' : 'var(--text-primary)',
+                        border: isSelected ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
+                        background: isSelected ? 'var(--brand-primary)' : 'var(--bg-surface-elevated)',
+                        color: isSelected ? '#ffffff' : 'var(--text-primary)',
                         cursor: 'pointer',
                         textAlign: 'center'
                       }}
@@ -218,21 +231,23 @@ export default function SettingsModal({ onClose }) {
                 onChange={(e) => setImageIters(Number(e.target.value))}
                 style={{ width: '100%' }}
               />
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                 FLUX.1 Schnell is optimized for 1–4 steps (4 steps recommended for crisp diagrams).
               </div>
             </div>
 
-            {/* Mathematical Cost Formula Card */}
-            <div style={{
-              background: '#f0fdf4',
-              border: '1px solid #bbf7d0',
-              borderRadius: '6px',
-              padding: '8px 10px',
-              fontSize: '0.72rem',
-              color: '#166534',
-              lineHeight: 1.4
-            }}>
+            {/* Cost Formula Card */}
+            <div
+              style={{
+                background: 'var(--status-success-bg)',
+                border: '1px solid var(--status-success-border)',
+                borderRadius: '6px',
+                padding: '8px 10px',
+                fontSize: '0.72rem',
+                color: '#10b981',
+                lineHeight: 1.4
+              }}
+            >
               <strong>Official Formula:</strong> $0.0005 × ({imageWidth} / 1024) × ({imageHeight} / 1024) × {imageIters} iters = <strong>${liveImageCost}</strong>
             </div>
           </div>
@@ -254,7 +269,7 @@ export default function SettingsModal({ onClose }) {
               onChange={(e) => setMaxRegenerations(Number(e.target.value))}
               style={{ width: '100%' }}
             />
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
               If a question scores ≤ 90 on the psychometric rubric, the Re-Generator agent will refine it up to {maxRegenerations} times.
             </div>
           </div>

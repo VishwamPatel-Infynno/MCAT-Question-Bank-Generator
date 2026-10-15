@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   PenTool, 
   ShieldCheck, 
@@ -9,7 +9,8 @@ import {
   ChevronUp, 
   Terminal, 
   Activity,
-  Sparkles
+  Sparkles,
+  Timer
 } from 'lucide-react';
 
 export default function AgentVisualizer({
@@ -20,8 +21,23 @@ export default function AgentVisualizer({
   isGenerating
 }) {
   const [showTelemetry, setShowTelemetry] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
 
-  // Status flags
+  // Live stopwatch during active generation
+  useEffect(() => {
+    let interval = null;
+    if (isGenerating) {
+      const startTime = Date.now();
+      interval = setInterval(() => {
+        setElapsedTime(((Date.now() - startTime) / 1000).toFixed(1));
+      }, 100);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [isGenerating]);
+
+  // Agent flags
   const isGeneratorActive = activeAgent === 'Question Generator';
   const isReviewerActive = activeAgent === 'Question Reviewer';
   const isRegeneratorActive = activeAgent === 'Question Re-Generator';
@@ -48,92 +64,136 @@ export default function AgentVisualizer({
   const revUsage = getAgentUsage('Question Reviewer');
   const regenUsage = getAgentUsage('Question Re-Generator');
 
-  // Friendly Stage Definition
-  const stages = [
+  const nodes = [
     {
       id: 'draft',
-      label: '1. Drafting',
-      desc: 'Stem & Options',
+      label: 'Drafting Agent',
+      role: 'Writer',
       icon: PenTool,
+      color: '#38bdf8',
       active: isGeneratorActive,
       completed: hasGenerated
     },
     {
       id: 'review',
-      label: '2. Quality Audit',
-      desc: '100-pt Rubric',
+      label: 'Psychometric Auditor',
+      role: 'Reviewer',
       icon: ShieldCheck,
+      color: '#10b981',
       active: isReviewerActive,
       completed: hasReviewed,
-      badge: latestReview ? `${latestReview.total_score}/100` : null
+      score: latestReview ? `${latestReview.total_score}/100` : null
     },
     {
       id: 'remediate',
-      label: '3. Polish & Refine',
-      desc: iterationCount > 1 ? `Loop ${iterationCount}` : 'Trap Calibration',
+      label: 'Trap Calibrator',
+      role: iterationCount > 1 ? `Loop ${iterationCount}` : 'Re-Generator',
       icon: RotateCcw,
+      color: '#a855f7',
       active: isRegeneratorActive,
       completed: hasRegenerated || (hasReviewed && latestReview?.total_score > 90)
     },
     {
       id: 'ready',
-      label: '4. Ready',
-      desc: 'Exam Verified',
+      label: 'Exam Ready',
+      role: 'Verified',
       icon: Sparkles,
+      color: '#f59e0b',
       active: false,
       completed: isWorkflowComplete
     }
   ];
 
-  // Current friendly activity message
-  const lastEvent = events.length > 0 ? events[events.length - 1] : null;
+  // Dynamic status copy
   let statusMessage = 'Ready to generate high-yield UCAT practice questions.';
   if (isGenerating) {
-    if (isGeneratorActive) statusMessage = '✍️ Drafting candidate passage, scenario, and distractors...';
-    else if (isReviewerActive) statusMessage = '🔍 Psychometric auditor scoring question against 100-pt official rubric...';
-    else if (isRegeneratorActive) statusMessage = `🛠️ Remediating distractors (Iteration ${iterationCount} of 3)...`;
-    else if (isImageActive) statusMessage = '🎨 Generating visual stimulus diagram...';
-    else statusMessage = lastEvent ? lastEvent.message : 'Running multi-agent pipeline...';
+    if (isGeneratorActive) statusMessage = 'Drafting clinical vignette, stem & candidate distractors...';
+    else if (isReviewerActive) statusMessage = 'Auditing 100-pt psychometric rubric across 4 dimensions...';
+    else if (isRegeneratorActive) statusMessage = `Refining distractor trap plausibility (Iteration ${iterationCount} of 3)...`;
+    else if (isImageActive) statusMessage = 'Generating visual stimulus diagram...';
+    else {
+      const lastEvent = events[events.length - 1];
+      statusMessage = lastEvent ? lastEvent.message : 'Running autonomous multi-agent pipeline...';
+    }
   } else if (isWorkflowComplete) {
-    statusMessage = `✨ Question generated and verified! Quality score: ${latestReview?.total_score || 95}/100.`;
+    statusMessage = `Question verified against psychometric standards. Quality Score: ${latestReview?.total_score || 95}/100.`;
   }
 
   return (
-    <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {/* Top Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+    <div
+      className="glass-panel"
+      style={{
+        padding: '20px 24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        position: 'relative',
+        overflow: 'hidden'
+      }}
+    >
+      {/* Top Status Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{
-            width: '10px',
-            height: '10px',
-            borderRadius: '50%',
-            background: isGenerating ? 'var(--brand-primary)' : isWorkflowComplete ? '#10b981' : '#94a3b8',
-            boxShadow: isGenerating ? '0 0 10px rgba(2, 132, 199, 0.5)' : 'none'
-          }} className={isGenerating ? 'pulse-active' : ''} />
-          
+          <div
+            style={{
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+              background: isGenerating ? 'var(--brand-primary)' : isWorkflowComplete ? '#10b981' : '#64748b',
+              boxShadow: isGenerating ? '0 0 12px var(--brand-primary)' : isWorkflowComplete ? '0 0 10px #10b981' : 'none'
+            }}
+            className={isGenerating ? 'pulse-glowing' : ''}
+          />
           <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-            Generation Pipeline
+            Multi-Agent Command Rail
           </h3>
+          <span className="badge badge-cyan" style={{ fontSize: '0.625rem' }}>
+            LangGraph Swarm
+          </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Stopwatch & Token Cost Badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {isGenerating && (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '3px 10px',
+                background: 'var(--bg-surface-elevated)',
+                border: '1px solid var(--border-medium)',
+                borderRadius: 'var(--radius-full)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                color: 'var(--brand-primary)'
+              }}
+            >
+              <Timer size={13} />
+              <span>{elapsedTime}s</span>
+            </span>
+          )}
+
           {totalTokens > 0 && (
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '3px 10px',
-              background: '#f0fdf4',
-              border: '1px solid #bbf7d0',
-              borderRadius: '20px',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              color: '#166534'
-            }}>
-              <Coins size={12} color="#16a34a" />
-              <span>{totalTokens.toLocaleString()} tokens</span>
-              <span style={{ color: '#86efac' }}>&bull;</span>
-              <span style={{ color: '#15803d' }}>${totalCost.toFixed(5)}</span>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '3px 10px',
+                background: 'var(--status-success-bg)',
+                border: '1px solid var(--status-success-border)',
+                borderRadius: 'var(--radius-full)',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                color: '#10b981'
+              }}
+            >
+              <Coins size={12} color="#10b981" />
+              <span>{totalTokens.toLocaleString()} tok</span>
+              <span style={{ opacity: 0.6 }}>&bull;</span>
+              <span>${totalCost.toFixed(5)}</span>
             </span>
           )}
 
@@ -141,104 +201,178 @@ export default function AgentVisualizer({
             type="button"
             className="btn-secondary"
             onClick={() => setShowTelemetry(!showTelemetry)}
-            style={{ padding: '4px 10px', fontSize: '0.75rem', gap: '4px' }}
+            style={{ padding: '4px 10px', fontSize: '0.75rem', gap: '5px' }}
           >
-            <Terminal size={13} />
-            <span>{showTelemetry ? 'Hide Telemetry' : 'Technical Telemetry'}</span>
-            {showTelemetry ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            <Terminal size={12} />
+            <span>Telemetry</span>
+            {showTelemetry ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </button>
         </div>
       </div>
 
-      {/* Friendly Horizontal Stepper */}
-      <div className="workflow-stepper" style={{ padding: '8px 12px' }}>
-        <div className="workflow-connector">
-          <div 
-            className="workflow-connector-fill" 
-            style={{ 
-              width: isWorkflowComplete ? '100%' 
-                : isRegeneratorActive ? '75%'
-                : isReviewerActive ? '50%'
-                : isGeneratorActive ? '25%'
-                : '0%'
-            }} 
+      {/* Interconnected Command Rail Track */}
+      <div style={{ position: 'relative', padding: '10px 0 6px 0' }}>
+        {/* Connecting Line */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '26px',
+            left: '36px',
+            right: '36px',
+            height: '2px',
+            background: 'var(--border-light)',
+            zIndex: 1
+          }}
+        >
+          <div
+            style={{
+              height: '100%',
+              background: 'linear-gradient(90deg, #38bdf8 0%, #10b981 40%, #a855f7 70%, #f59e0b 100%)',
+              width: isWorkflowComplete ? '100%' : isRegeneratorActive ? '75%' : isReviewerActive ? '50%' : isGeneratorActive ? '25%' : '0%',
+              transition: 'width 0.4s ease',
+              boxShadow: '0 0 10px rgba(56, 189, 248, 0.5)'
+            }}
           />
         </div>
 
-        {stages.map((stage) => {
-          const Icon = stage.icon;
-          let stepState = 'idle';
-          if (stage.active) stepState = 'active';
-          else if (stage.completed) stepState = 'completed';
+        {/* 4 Agent Nodes */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            position: 'relative',
+            zIndex: 2
+          }}
+        >
+          {nodes.map(node => {
+            const Icon = node.icon;
+            const isNodeActive = node.active;
+            const isNodeCompleted = node.completed;
 
-          return (
-            <div 
-              key={stage.id} 
-              className={`workflow-step ${stepState}`}
-            >
-              <div className="step-circle">
-                {stage.completed ? <CheckCircle2 size={18} color="#ffffff" /> : <Icon size={16} />}
+            return (
+              <div
+                key={node.id}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '6px',
+                  flex: 1
+                }}
+              >
+                {/* Node Circle */}
+                <div
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: isNodeCompleted
+                      ? node.color
+                      : isNodeActive
+                      ? 'var(--bg-surface)'
+                      : 'var(--bg-surface-elevated)',
+                    border: isNodeActive
+                      ? `2px solid ${node.color}`
+                      : isNodeCompleted
+                      ? `2px solid ${node.color}`
+                      : '2px solid var(--border-medium)',
+                    color: isNodeCompleted ? '#ffffff' : isNodeActive ? node.color : 'var(--text-muted)',
+                    boxShadow: isNodeActive
+                      ? `0 0 18px ${node.color}55`
+                      : isNodeCompleted
+                      ? `0 0 12px ${node.color}40`
+                      : 'none',
+                    transition: 'all 0.3s ease'
+                  }}
+                  className={isNodeActive ? 'pulse-glowing' : ''}
+                >
+                  {isNodeCompleted ? <CheckCircle2 size={18} /> : <Icon size={16} />}
+                </div>
+
+                {/* Node Labels */}
+                <div style={{ textAlign: 'center' }}>
+                  <div
+                    style={{
+                      fontSize: '0.785rem',
+                      fontWeight: 700,
+                      color: isNodeActive ? node.color : isNodeCompleted ? 'var(--text-primary)' : 'var(--text-secondary)'
+                    }}
+                  >
+                    {node.label}
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                    {node.score ? (
+                      <span className="badge badge-emerald" style={{ fontSize: '0.625rem', padding: '1px 5px' }}>
+                        {node.score}
+                      </span>
+                    ) : (
+                      node.role
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="step-title">{stage.label}</div>
-              <div className="step-desc">
-                {stage.badge ? (
-                  <span className="badge badge-emerald" style={{ fontSize: '0.65rem', padding: '1px 6px' }}>
-                    {stage.badge}
-                  </span>
-                ) : (
-                  stage.desc
-                )}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
-      {/* Live Friendly Status Bar */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        padding: '10px 14px',
-        background: isGenerating ? 'var(--brand-light)' : '#f8fafc',
-        border: isGenerating ? '1px solid #bae6fd' : '1px solid var(--border-light)',
-        borderRadius: 'var(--radius-md)',
-        fontSize: '0.825rem',
-        color: isGenerating ? 'var(--brand-primary-dark)' : 'var(--text-secondary)'
-      }}>
-        <Activity size={16} color={isGenerating ? 'var(--brand-primary)' : '#64748b'} className={isGenerating ? 'pulse-active' : ''} />
-        <span style={{ fontWeight: 600 }}>{statusMessage}</span>
-      </div>
-
-      {/* Expandable Technical Telemetry & Event Stream */}
-      {showTelemetry && (
-        <div style={{
+      {/* Live Streaming Activity Feed Banner */}
+      <div
+        style={{
           display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          padding: '14px',
-          background: '#ffffff',
+          alignItems: 'center',
+          gap: '10px',
+          padding: '10px 14px',
+          background: isGenerating ? 'var(--brand-light)' : 'var(--bg-surface-elevated)',
+          border: isGenerating ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
           borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--border-light)'
-        }}>
-          {/* Detailed 4-Agent Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-            gap: '8px'
-          }}>
+          fontSize: '0.825rem',
+          color: isGenerating ? 'var(--brand-primary)' : 'var(--text-secondary)',
+          boxShadow: isGenerating ? 'var(--shadow-glow)' : 'none',
+          transition: 'all var(--transition-fast)'
+        }}
+      >
+        <Activity size={16} color={isGenerating ? 'var(--brand-primary)' : '#94a3b8'} className={isGenerating ? 'pulse-glowing' : ''} />
+        <span style={{ fontWeight: 600, flex: 1 }}>{statusMessage}</span>
+      </div>
+
+      {/* Expandable Technical Telemetry Drawer */}
+      {showTelemetry && (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            padding: '14px',
+            background: 'var(--bg-canvas)',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border-light)'
+          }}
+        >
+          {/* Agent Cost & Token Summary Grid */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+              gap: '8px'
+            }}
+          >
             {[
-              { name: 'Question Generator', usage: genUsage, color: '#0284c7' },
-              { name: 'Question Reviewer', usage: revUsage, color: '#4f46e5' },
-              { name: 'Question Re-Generator', usage: regenUsage, color: '#d97706' },
-              { name: 'Image Generator', usage: null, color: '#059669' }
+              { name: 'Question Generator', usage: genUsage, color: '#38bdf8' },
+              { name: 'Question Reviewer', usage: revUsage, color: '#10b981' },
+              { name: 'Question Re-Generator', usage: regenUsage, color: '#a855f7' },
+              { name: 'Image Generator', usage: null, color: '#f59e0b' }
             ].map(agent => (
-              <div 
+              <div
                 key={agent.name}
                 style={{
                   padding: '8px 10px',
                   borderRadius: 'var(--radius-sm)',
-                  background: 'var(--bg-canvas)',
+                  background: 'var(--bg-surface-elevated)',
                   border: '1px solid var(--border-light)',
                   fontSize: '0.75rem'
                 }}
@@ -248,7 +382,7 @@ export default function AgentVisualizer({
                 </div>
                 {agent.usage ? (
                   <div style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>
-                    {agent.usage.total_tokens.toLocaleString()} tokens &bull; ${agent.usage.cost_usd?.toFixed(5)}
+                    {agent.usage.total_tokens.toLocaleString()} tok &bull; ${agent.usage.cost_usd?.toFixed(5)}
                   </div>
                 ) : (
                   <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
@@ -259,26 +393,29 @@ export default function AgentVisualizer({
             ))}
           </div>
 
-          {/* Raw Event Stream */}
-          <div style={{
-            background: '#0f172a',
-            color: '#e2e8f0',
-            borderRadius: 'var(--radius-sm)',
-            padding: '12px',
-            maxHeight: '120px',
-            overflowY: 'auto',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.725rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px'
-          }}>
+          {/* Raw Terminal Event Stream */}
+          <div
+            style={{
+              background: '#040711',
+              color: '#cbd5e1',
+              borderRadius: 'var(--radius-sm)',
+              padding: '10px 12px',
+              maxHeight: '120px',
+              overflowY: 'auto',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.725rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+              border: '1px solid rgba(255, 255, 255, 0.08)'
+            }}
+          >
             {events.length === 0 ? (
-              <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>
+              <span style={{ color: '#64748b', fontStyle: 'italic' }}>
                 Pipeline idle. No events logged yet.
               </span>
             ) : (
-              events.slice(-8).map((e, idx) => (
+              events.slice(-10).map((e, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: '8px', lineHeight: 1.4 }}>
                   <span style={{ color: '#64748b', flexShrink: 0 }}>
                     [{new Date(e.timestamp).toLocaleTimeString()}]

@@ -55,7 +55,10 @@ class Settings(BaseSettings):
     MAX_REGENERATION_ATTEMPTS: int = int(os.getenv("MAX_REGENERATION_ATTEMPTS", "3"))
     PASSING_SCORE_THRESHOLD: int = int(os.getenv("PASSING_SCORE_THRESHOLD", "90"))
 
-    model_config = SettingsConfigDict(env_file=".env", extra="allow")
+    model_config = SettingsConfigDict(
+        env_file=[str(Path(__file__).resolve().parent.parent.parent.parent / ".env"), ".env"],
+        extra="allow",
+    )
 
 
 config = Settings()

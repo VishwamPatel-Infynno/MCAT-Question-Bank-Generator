@@ -75,7 +75,7 @@ export default function MatrixRunner({ onOpenSettings }) {
     onNeedsApiKey: onOpenSettings
   });
 
-  // Collect generated candidate questions into the Staged Batch Review Queue without cascading renders
+  // Collect generated candidate questions into the Staged Batch Review Queue
   if (activeQuestion && activeQuestion.id !== prevActiveQuestionId) {
     setPrevActiveQuestionId(activeQuestion.id);
     if (!stagedCandidates.some(q => q.id === activeQuestion.id)) {
@@ -191,12 +191,10 @@ export default function MatrixRunner({ onOpenSettings }) {
           headers.forEach((h, idx) => {
             rowObj[h] = parts[idx] || '';
           });
-          // Ensure every imported row has a valid Combination UUID if blank
           if (!rowObj.Combination_ID || !rowObj.Combination_ID.trim()) {
             rowObj.Combination_ID = crypto.randomUUID();
           }
 
-          // Normalize Difficulty strictly to Easy, Medium, Hard
           const rawDiff = (rowObj.Difficulty || '').trim().toLowerCase();
           if (rawDiff.startsWith('e') || rawDiff === 'foundational') {
             rowObj.Difficulty = 'Easy';
@@ -222,23 +220,34 @@ export default function MatrixRunner({ onOpenSettings }) {
     }
   };
 
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Top Banner */}
-      <div className="glass-panel" style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+      <div
+        className="glass-panel"
+        style={{
+          padding: '24px 28px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '16px'
+        }}
+      >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-            <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '8px',
-              background: 'var(--brand-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff'
-            }}>
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ffffff'
+              }}
+            >
               <Layers size={18} />
             </div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
@@ -327,7 +336,7 @@ export default function MatrixRunner({ onOpenSettings }) {
               Configured Combinations ({combinations.length})
             </span>
             {currentBatchId && (
-              <span className="badge badge-purple" style={{ fontFamily: 'monospace', fontSize: '0.7rem' }} title={`Active Batch UUID: ${currentBatchId}`}>
+              <span className="badge badge-purple" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>
                 Batch: {currentBatchId.slice(0, 8)}...
               </span>
             )}
@@ -338,7 +347,7 @@ export default function MatrixRunner({ onOpenSettings }) {
             className="btn-secondary"
             onClick={handleAddRow}
             style={{ padding: '6px 12px', fontSize: '0.775rem', gap: '5px' }}
-            title="Add new combination row with auto-generated UUID4"
+            title="Add new combination row"
           >
             <Plus size={14} /> Add Row
           </button>
@@ -369,9 +378,9 @@ export default function MatrixRunner({ onOpenSettings }) {
                   onClick={() => setSelectedCombIndex(idx)}
                   style={{
                     borderBottom: '1px solid var(--border-light)',
-                    background: isSelected ? 'var(--brand-primary-light)' : '#ffffff',
+                    background: isSelected ? 'var(--brand-light)' : 'transparent',
                     cursor: 'pointer',
-                    transition: 'background 0.15s ease'
+                    transition: 'background var(--transition-fast)'
                   }}
                 >
                   <td style={{ padding: '10px' }}>
@@ -381,11 +390,14 @@ export default function MatrixRunner({ onOpenSettings }) {
                       onChange={() => setSelectedCombIndex(idx)}
                     />
                   </td>
-                  <td style={{ padding: '10px', fontWeight: 700, color: 'var(--brand-indigo)' }}>
+                  <td style={{ padding: '10px', fontWeight: 700, color: 'var(--brand-primary)', fontFamily: 'var(--font-mono)' }}>
                     {comb.Combination_ID}
                   </td>
                   <td style={{ padding: '10px' }}>
                     <span className="badge badge-cyan">{comb.Section}</span>
+                  </td>
+                  <td style={{ padding: '10px', color: 'var(--text-primary)' }}>
+                    {comb.Subcategory}
                   </td>
                   <td style={{ padding: '8px 10px' }} onClick={(e) => e.stopPropagation()}>
                     <select
@@ -405,10 +417,10 @@ export default function MatrixRunner({ onOpenSettings }) {
                             : 'var(--status-warning-bg)',
                         color:
                           (comb.Difficulty || '').toLowerCase() === 'easy'
-                            ? '#047857'
+                            ? '#10b981'
                             : (comb.Difficulty || '').toLowerCase() === 'hard'
-                            ? '#be123c'
-                            : '#b45309',
+                            ? '#f43f5e'
+                            : '#f59e0b',
                         cursor: 'pointer'
                       }}
                     >
@@ -423,11 +435,15 @@ export default function MatrixRunner({ onOpenSettings }) {
                   <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>
                     {comb.Question_Type}
                   </td>
-                  <td style={{ padding: '10px', color: '#b45309', fontWeight: 600 }}>
+                  <td style={{ padding: '10px', color: '#f59e0b', fontWeight: 600 }}>
                     {comb.Primary_Trap}
                   </td>
-                  <td style={{ padding: '10px' }}>{comb.Passage_Required} ({comb.Passage_Questions}q)</td>
-                  <td style={{ padding: '10px' }}>{comb.Visual_Type || 'None'}</td>
+                  <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>
+                    {comb.Passage_Required} ({comb.Passage_Questions}q)
+                  </td>
+                  <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>
+                    {comb.Visual_Type || 'None'}
+                  </td>
                   <td style={{ padding: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <button
@@ -451,7 +467,7 @@ export default function MatrixRunner({ onOpenSettings }) {
                         style={{
                           background: 'none',
                           border: 'none',
-                          color: combinations.length <= 1 ? 'var(--text-muted)' : 'var(--brand-danger)',
+                          color: combinations.length <= 1 ? 'var(--text-muted)' : 'var(--status-danger)',
                           cursor: combinations.length <= 1 ? 'not-allowed' : 'pointer',
                           padding: '4px 6px',
                           borderRadius: '4px',
@@ -471,7 +487,7 @@ export default function MatrixRunner({ onOpenSettings }) {
         </table>
       </div>
 
-      {/* Live Generation Stepper & Question Output */}
+      {/* Live Generation Pipeline Stream */}
       {isGenerating && (
         <AgentVisualizer
           activeAgent={activeAgent}
@@ -484,23 +500,26 @@ export default function MatrixRunner({ onOpenSettings }) {
       {/* Staged Batch Review Queue */}
       {stagedCandidates.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div className="glass-panel" style={{
-            padding: '16px 22px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '12px',
-            background: 'linear-gradient(135deg, rgba(236, 253, 245, 0.95) 0%, rgba(240, 253, 250, 0.95) 100%)',
-            border: '1px solid #a7f3d0'
-          }}>
+          <div
+            className="glass-panel"
+            style={{
+              padding: '16px 22px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '12px',
+              background: 'var(--bg-surface-elevated)',
+              border: '1px solid var(--border-medium)'
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Sparkles size={20} color="#059669" />
+              <Sparkles size={20} color="#10b981" />
               <div>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#065f46', margin: 0 }}>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                   Staged Batch Review Queue ({stagedCandidates.length})
                 </h3>
-                <span style={{ fontSize: '0.8rem', color: '#047857' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                   {stagedCandidates.filter(c => savedIds.has(c.id)).length} Approved &amp; Saved &bull; {stagedCandidates.filter(c => !savedIds.has(c.id)).length} Pending Review
                 </span>
               </div>
@@ -510,19 +529,13 @@ export default function MatrixRunner({ onOpenSettings }) {
               <button
                 type="button"
                 id="btn-approve-all-candidates"
-                className="btn-primary"
+                className="btn-success"
                 onClick={handleApproveAll}
                 disabled={isBulkApproving}
-                style={{
-                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                  borderColor: '#059669',
-                  padding: '9px 20px',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  gap: '8px'
-                }}
+                style={{ padding: '9px 20px', fontSize: '0.85rem' }}
               >
-                <CheckCircle size={16} /> {isBulkApproving ? 'Saving...' : `Approve All Candidates (${stagedCandidates.filter(c => !savedIds.has(c.id)).length})`}
+                <CheckCircle size={16} />
+                <span>{isBulkApproving ? 'Saving...' : `Approve All Candidates (${stagedCandidates.filter(c => !savedIds.has(c.id)).length})`}</span>
               </button>
             )}
           </div>

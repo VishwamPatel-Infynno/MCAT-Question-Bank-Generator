@@ -37,7 +37,7 @@ export default function UCATGuide() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div className="glass-panel" style={{ padding: '24px' }}>
+      <div className="glass-panel" style={{ padding: '24px 28px' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '6px' }}>
           Official UK UCAT Examination Syllabus &amp; Standards
         </h2>
@@ -64,11 +64,11 @@ export default function UCATGuide() {
         ))}
       </div>
 
-      <div className="glass-panel" style={{ padding: '24px', background: 'var(--brand-primary-light)', border: '1px solid #bae6fd' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--brand-primary-dark)', marginBottom: '8px' }}>
+      <div className="glass-panel" style={{ padding: '24px', background: 'var(--brand-light)', border: '1px solid var(--border-brand)' }}>
+        <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--brand-primary)', marginBottom: '8px' }}>
           How the Multi-Agent System Guarantees 90+ Score Quality
         </h3>
-        <p style={{ fontSize: '0.875rem', color: '#1e3a8a', lineHeight: '1.6' }}>
+        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
           Writing psychometrically valid UCAT questions requires avoiding trivial options and ambiguous wording. 
           The <strong>Question Reviewer</strong> rigorously audits each generated question across a 100-point rubric. 
           If any distractor is too obvious or an explanation lacks depth (scoring &le; 90), the <strong>Question Re-Generator</strong> 

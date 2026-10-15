@@ -109,14 +109,16 @@ export default function StageJsonInspector({ question }) {
   };
 
   return (
-    <div style={{
-      marginTop: '12px',
-      border: '1px solid var(--border-light)',
-      borderRadius: 'var(--radius-md)',
-      background: '#ffffff',
-      overflow: 'hidden'
-    }}>
-      {/* Header / Accordion Toggle */}
+    <div
+      style={{
+        marginTop: '8px',
+        border: '1px solid var(--border-light)',
+        borderRadius: 'var(--radius-md)',
+        background: 'var(--bg-surface)',
+        overflow: 'hidden'
+      }}
+    >
+      {/* Header Accordion Toggle */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -126,13 +128,13 @@ export default function StageJsonInspector({ question }) {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '12px 18px',
-          background: 'var(--bg-canvas)',
+          background: 'var(--bg-surface-elevated)',
           border: 'none',
           cursor: 'pointer',
           fontSize: '0.825rem',
           fontWeight: 700,
           color: 'var(--text-primary)',
-          transition: 'background 0.15s ease'
+          transition: 'background var(--transition-fast)'
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -150,15 +152,17 @@ export default function StageJsonInspector({ question }) {
       {isOpen && (
         <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border-light)' }}>
           {/* Stage Tabs */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '8px',
-            borderBottom: '1px solid var(--border-light)',
-            paddingBottom: '10px'
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '8px',
+              borderBottom: '1px solid var(--border-light)',
+              paddingBottom: '10px'
+            }}
+          >
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               {stages.map((stage) => {
                 const Icon = stage.icon;
@@ -177,10 +181,10 @@ export default function StageJsonInspector({ question }) {
                       fontSize: '0.775rem',
                       fontWeight: 600,
                       cursor: 'pointer',
-                      background: isSelected ? 'var(--brand-primary)' : 'var(--bg-canvas)',
+                      background: isSelected ? 'var(--brand-primary)' : 'var(--bg-surface-elevated)',
                       color: isSelected ? '#ffffff' : 'var(--text-secondary)',
-                      border: isSelected ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
-                      transition: 'all 0.15s ease'
+                      border: isSelected ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
+                      transition: 'all var(--transition-fast)'
                     }}
                   >
                     <Icon size={14} />
@@ -199,23 +203,25 @@ export default function StageJsonInspector({ question }) {
                 style={{ padding: '4px 10px', fontSize: '0.75rem', gap: '4px' }}
                 title="Copy current stage JSON to clipboard"
               >
-                {copied ? <Check size={13} color="#059669" /> : <Copy size={13} />}
+                {copied ? <Check size={13} color="#10b981" /> : <Copy size={13} />}
                 <span>{copied ? 'Copied!' : 'Copy Stage JSON'}</span>
               </button>
             )}
           </div>
 
           {/* Current Stage Metadata Banner */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            fontSize: '0.75rem',
-            color: 'var(--text-secondary)'
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '0.75rem',
+              color: 'var(--text-secondary)'
+            }}
+          >
             <span>Agent Responsible: <strong>{currentStageObj.agent}</strong></span>
             {question.combination_id && (
-              <span className="badge badge-purple" style={{ fontSize: '0.65rem' }}>
+              <span className="badge badge-indigo" style={{ fontSize: '0.65rem' }}>
                 Combination: {question.combination_id}
               </span>
             )}
@@ -223,31 +229,35 @@ export default function StageJsonInspector({ question }) {
 
           {/* Code Viewer or Bypassed Notice */}
           {jsonString ? (
-            <div style={{
-              background: '#0f172a',
-              borderRadius: 'var(--radius-sm)',
-              padding: '14px',
-              maxHeight: '260px',
-              overflowY: 'auto',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.775rem',
-              lineHeight: 1.5,
-              color: '#38bdf8'
-            }}>
-              <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#e2e8f0' }}>
+            <div
+              style={{
+                background: '#040711',
+                borderRadius: 'var(--radius-sm)',
+                padding: '14px',
+                maxHeight: '280px',
+                overflowY: 'auto',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.775rem',
+                lineHeight: 1.5,
+                border: '1px solid rgba(255, 255, 255, 0.08)'
+              }}
+            >
+              <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#38bdf8' }}>
                 {jsonString}
               </pre>
             </div>
           ) : (
-            <div style={{
-              padding: '24px',
-              textAlign: 'center',
-              background: 'var(--bg-canvas)',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px dashed var(--border-medium)',
-              color: 'var(--text-muted)',
-              fontSize: '0.8rem'
-            }}>
+            <div
+              style={{
+                padding: '24px',
+                textAlign: 'center',
+                background: 'var(--bg-canvas)',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px dashed var(--border-medium)',
+                color: 'var(--text-muted)',
+                fontSize: '0.8rem'
+              }}
+            >
               {currentStageObj.bypassedNote || 'No payload recorded for this stage.'}
             </div>
           )}

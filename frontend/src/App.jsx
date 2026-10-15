@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Navbar,
   GeneratorPanel,
@@ -9,13 +9,17 @@ import {
   ReviewAuditView,
   SettingsModal,
   UCATGuide,
-  RejectionCard
+  RejectionCard,
+  ToastContainer
 } from './components';
 import { useQuestionGenerator } from './hooks/useQuestionGenerator';
+import { useTheme } from './hooks/useTheme';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { UCAT_SECTIONS_FALLBACK } from './constants/ucat';
 import { fetchSections, fetchHealth, approveQuestion } from './services/api';
 
 export default function App() {
+  const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('generator');
   const [sectionsData, setSectionsData] = useState([]);
   const [selectedSection, setSelectedSection] = useState('verbal_reasoning');
@@ -32,11 +36,24 @@ export default function App() {
   const [passageRequired, setPassageRequired] = useState('');
   const [visualType, setVisualType] = useState('');
 
+  // Layout & Dock State
+  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
 
   // Modals & Status
   const [auditQuestion, setAuditQuestion] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [backendStatus, setBackendStatus] = useState(false);
+
+  // Toast Notifications
+  const [toasts, setToasts] = useState([]);
+  const showToast = useCallback(({ type = 'info', title, message, duration = 4000 }) => {
+    const id = crypto.randomUUID();
+    setToasts(prev => [...prev, { id, type, title, message, duration }]);
+  }, []);
+
+  const dismissToast = useCallback((id) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
 
   // Multi-Agent Generation Hook
   const {
@@ -79,7 +96,8 @@ export default function App() {
 
   const [isQuestionSaved, setIsQuestionSaved] = useState(false);
 
-  const handleGenerate = () => {
+  const handleGenerate = useCallback(() => {
+    if (isGenerating) return;
     setIsQuestionSaved(false);
     const payload = {
       section: selectedSection,
@@ -95,22 +113,68 @@ export default function App() {
       visual_type: visualType || undefined
     };
     startGeneration(payload);
-  };
+    showToast({
+      type: 'info',
+      title: 'Generation Started',
+      message: `Multi-agent swarm drafting ${difficulty.toUpperCase()} question...`
+    });
+  }, [
+    isGenerating,
+    selectedSection,
+    selectedSubtopic,
+    difficulty,
+    requireImage,
+    customPrompt,
+    combinationId,
+    contentDomain,
+    questionType,
+    primaryTrap,
+    passageRequired,
+    visualType,
+    startGeneration,
+    showToast
+  ]);
 
-  const handleApproveQuestion = async (q) => {
+  const handleApproveQuestion = useCallback(async (q) => {
     try {
       await approveQuestion(q);
       setIsQuestionSaved(true);
+      showToast({
+        type: 'success',
+        title: 'Question Approved & Saved',
+        message: 'Psychometrically verified item is now stored in PostgreSQL Question Bank.'
+      });
     } catch (err) {
       console.error('Failed to approve and save question:', err);
-      alert('Failed to save question to database. Please check connection.');
+      showToast({
+        type: 'error',
+        title: 'Save Failed',
+        message: 'Could not connect to database to persist question.'
+      });
     }
-  };
+  }, [showToast]);
 
-  const handleDiscardQuestion = () => {
+  const handleDiscardQuestion = useCallback(() => {
     setActiveQuestion(null);
     setIsQuestionSaved(false);
-  };
+    showToast({
+      type: 'info',
+      title: 'Candidate Discarded',
+      message: 'Candidate question was discarded from studio view.'
+    });
+  }, [setActiveQuestion, showToast]);
+
+  // Keyboard Shortcuts Registration
+  useKeyboardShortcuts({
+    onGenerate: activeTab === 'generator' ? handleGenerate : undefined,
+    onApprove: activeQuestion && !isQuestionSaved ? () => handleApproveQuestion(activeQuestion) : undefined,
+    onDiscard: activeQuestion ? handleDiscardQuestion : undefined,
+    onToggleTheme: toggleTheme,
+    onEscape: () => {
+      if (showSettings) setShowSettings(false);
+      if (auditQuestion) setAuditQuestion(null);
+    }
+  });
 
   const handleSelectFromBank = (q) => {
     setActiveQuestion(q);
@@ -125,6 +189,11 @@ export default function App() {
     if (q.passage_required) setPassageRequired(q.passage_required);
     if (q.visual_type) setVisualType(q.visual_type);
     setActiveTab('generator');
+    showToast({
+      type: 'info',
+      title: 'Loaded in Studio',
+      message: 'Question loaded into Review Desk.'
+    });
   };
 
   return (
@@ -134,12 +203,22 @@ export default function App() {
         setActiveTab={setActiveTab}
         onOpenSettings={() => setShowSettings(true)}
         backendStatus={backendStatus}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
-      <main style={{ flex: 1, maxWidth: '1360px', width: '100%', margin: '0 auto', padding: '24px' }}>
+      <main style={{ flex: 1, maxWidth: '1440px', width: '100%', margin: '0 auto', padding: '24px' }}>
         {activeTab === 'generator' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(340px, 420px) 1fr', gap: '24px', alignItems: 'start' }}>
-            {/* Left Column: Generator Form Panel */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: isPanelCollapsed ? '64px 1fr' : 'minmax(320px, 380px) 1fr',
+              gap: '24px',
+              alignItems: 'start',
+              transition: 'grid-template-columns 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+          >
+            {/* Left Parameter Dock */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <GeneratorPanel
                 sectionsData={sectionsData}
@@ -167,12 +246,14 @@ export default function App() {
                 setVisualType={setVisualType}
                 onGenerate={handleGenerate}
                 isGenerating={isGenerating}
+                isCollapsed={isPanelCollapsed}
+                onToggleCollapse={() => setIsPanelCollapsed(!isPanelCollapsed)}
               />
             </div>
 
-            {/* Right Column: Multi-Agent Workflow State & Question/Rejection Preview */}
+            {/* Right Review Canvas */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {/* State Machine Trace */}
+              {/* Multi-Agent Command Rail */}
               <AgentVisualizer
                 activeAgent={activeAgent}
                 iterationCount={iterationCount}
@@ -181,7 +262,7 @@ export default function App() {
                 isGenerating={isGenerating}
               />
 
-              {/* Output: Rejection Card, Active Question Card, or Placeholder */}
+              {/* Output: Rejection Card, Active Question Card, or Empty State Placeholder */}
               {rejectedData ? (
                 <RejectionCard
                   rejectionData={rejectedData}
@@ -195,41 +276,49 @@ export default function App() {
                   onDiscard={handleDiscardQuestion}
                   onOpenAudit={(q) => setAuditQuestion(q)}
                   onNextQuestion={handleGenerate}
+                  onUpdateQuestion={(updated) => {
+                    setActiveQuestion(updated);
+                    showToast({
+                      type: 'success',
+                      title: 'Changes Applied',
+                      message: 'Question text updated.'
+                    });
+                  }}
                 />
               ) : (
                 <div
                   className="glass-panel"
                   style={{
-                    padding: '60px 24px',
+                    padding: '80px 24px',
                     textAlign: 'center',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '14px',
+                    gap: '16px',
                     color: 'var(--text-secondary)'
                   }}
                 >
                   <div
                     style={{
-                      width: '60px',
-                      height: '60px',
+                      width: '64px',
+                      height: '64px',
                       borderRadius: '50%',
-                      background: 'var(--brand-primary-light)',
+                      background: 'var(--brand-light)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '1.5rem',
-                      boxShadow: '0 4px 12px rgba(2, 132, 199, 0.15)'
+                      fontSize: '1.75rem',
+                      boxShadow: 'var(--shadow-glow)'
                     }}
                   >
                     ✨
                   </div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                    Candidate Question Preview
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                    Admin Review &amp; Quality Desk
                   </h3>
-                  <p style={{ maxWidth: '440px', fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                    Select your UCAT subtest on the left and click <strong>'Generate UK UCAT Question'</strong>.
-                    Watch the 4 agents collaborate, review against the 100-pt rubric, and polish the question in real time.
+                  <p style={{ maxWidth: '480px', fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                    Select your target UCAT subtest on the left dock and press <strong style={{ color: 'var(--text-primary)' }}>⌘↵ (or click Generate)</strong>.
+                    Watch the 4 autonomous agents draft, audit, and calibrate the question to 90+ quality standards in real time.
                   </p>
                 </div>
               )}
@@ -248,7 +337,10 @@ export default function App() {
         )}
 
         {activeTab === 'bank' && (
-          <QuestionBank onSelectQuestion={handleSelectFromBank} />
+          <QuestionBank
+            onSelectQuestion={handleSelectFromBank}
+            onShowToast={showToast}
+          />
         )}
 
         {activeTab === 'guide' && (
@@ -268,6 +360,9 @@ export default function App() {
       {showSettings && (
         <SettingsModal onClose={() => setShowSettings(false)} />
       )}
+
+      {/* Toast Notification Container */}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

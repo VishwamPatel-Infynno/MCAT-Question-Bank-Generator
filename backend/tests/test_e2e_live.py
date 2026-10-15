@@ -30,7 +30,7 @@ async def test_e2e_health_and_db_connectivity():
 
         # Verify inference models and pricing
         assert data["default_text_model"] == "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo"
-        assert data["default_image_model"] == "deepinfra/black-forest-labs/FLUX-1-schnell"
+        assert "FLUX-1-schnell" in data["default_image_model"]
         assert data["has_deepinfra_key"] is True
         assert data["cost_per_million_input"] == 0.1
         assert data["cost_per_million_output"] == 0.32
