@@ -53,8 +53,8 @@ export default function MultiAgentPipelineVisualizer({
       stepNum: '01',
       title: 'Question Generator',
       subtitle: 'Drafting Specialist',
-      engine: 'Meta Llama-3.3-70B Turbo',
-      engineTag: 'LLM Swarm',
+      engine: 'Infynno Cognitive Reasoning Core',
+      engineTag: 'Cognitive Core',
       role: 'Synthesizes clinical stimuli, authentic question stems, and subtle distractor options.',
       guarantee: 'Sub-30s Latency',
       icon: PenTool,
@@ -67,7 +67,7 @@ export default function MultiAgentPipelineVisualizer({
       stepNum: '02',
       title: 'Psychometric Auditor',
       subtitle: 'Quality & Rigor Reviewer',
-      engine: '4-Pillar Evaluation Engine',
+      engine: 'Infynno Psychometric Scoring Engine',
       engineTag: 'Auditor AI',
       role: 'Audits authenticity, clarity, distractor plausibility, and mathematical working steps.',
       guarantee: latestReview?.total_score ? `Verified ${latestReview.total_score}/100 Quality` : 'Strict 90+ Score Gate',
@@ -81,8 +81,8 @@ export default function MultiAgentPipelineVisualizer({
       stepNum: '03',
       title: 'Remediation Engine',
       subtitle: 'Self-Correction Agent',
-      engine: 'Adaptive Loop (Up to 3x)',
-      engineTag: 'Calibration',
+      engine: 'Autonomous Remediation Engine',
+      engineTag: 'Self-Correction',
       role: 'Automatically refines draft if score ≤ 90; eliminates loopholes and rebalances traps.',
       guarantee: 'Autonomous Self-Correction',
       icon: RotateCcw,
@@ -95,8 +95,8 @@ export default function MultiAgentPipelineVisualizer({
       stepNum: '04',
       title: 'Stimulus & Diagram Artist',
       subtitle: 'Visual Generator',
-      engine: 'FLUX-1-schnell & SVG Engine',
-      engineTag: 'Diffusion & Vector',
+      engine: 'Infynno Visual & Vector Engine',
+      engineTag: 'Visual Synthesis',
       role: 'Generates geometric figures, abstract shapes, and crisp medical charts.',
       guarantee: 'Vector & 1024px High-Res',
       icon: Sparkles,
@@ -170,7 +170,7 @@ export default function MultiAgentPipelineVisualizer({
               }}
             >
               <Cpu size={12} color="var(--brand-primary)" />
-              LangGraph Cyclic State Machine
+              Proprietary Cyclic State Machine
             </span>
           </div>
 
@@ -458,7 +458,7 @@ export default function MultiAgentPipelineVisualizer({
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', color: 'var(--text-muted)' }}>
             <span>Live Agent Event Log Stream ({events.length} events)</span>
-            <span>LangGraph Telemetry</span>
+            <span>Agent Swarm Telemetry</span>
           </div>
           {events.map((ev, i) => (
             <div

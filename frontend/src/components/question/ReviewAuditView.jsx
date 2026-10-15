@@ -65,7 +65,7 @@ export default function ReviewAuditView({ question, onClose }) {
                 Psychometric Review &amp; Cost Audit
               </h2>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Official 100-Point Quality Assurance Evaluation &bull; LLM Token Tracking &bull; Agent Reflection Diff
+                Official 100-Point Quality Assurance Evaluation &bull; AI Token Tracking &bull; Agent Reflection Diff
               </p>
             </div>
           </div>
@@ -114,10 +114,10 @@ export default function ReviewAuditView({ question, onClose }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h4 style={{ fontSize: '0.825rem', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              LLM Request Token Usage &amp; Cost Audit
+              AI Token Tracking &amp; Cost Audit
             </h4>
             <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              Meta Llama 3.3 70B Turbo ($0.10 in &bull; $0.32 out / 1M tokens)
+              Infynno Cognitive Core ($0.10 in &bull; $0.32 out / 1M tokens)
             </span>
           </div>
 
