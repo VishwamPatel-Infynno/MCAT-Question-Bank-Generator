@@ -26,8 +26,6 @@ export default function App() {
   const [requireImage, setRequireImage] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
 
-
-
   // Layout & Dock State
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
 

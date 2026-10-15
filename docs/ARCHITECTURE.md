@@ -290,8 +290,6 @@ backend/app/
 │       ├── questions.py  # Question Bank CRUD, Admin Approval & JSON/CSV exports
 │       ├── config.py     # DeepInfra configuration & model settings
 │       └── health.py     # DB connectivity & system health checks
-├── config.py            # Backward-compatibility facade (deprecated -> app.core.config)
-├── database.py          # Backward-compatibility facade (deprecated -> app.db / app.repositories)
 └── main.py              # FastAPI application entrypoint with security headers & CORS
 ```
 

@@ -130,11 +130,10 @@ Question Bank Generator/
 ├── backend/
 │   ├── requirements.txt         # Python dependencies
 │   ├── tests/
-│   │   └── test_backend.py      # Automated pytest suite (10 unit & integration tests)
+│   │   ├── test_backend.py      # Automated pytest suite (13 unit & integration tests)
+│   │   └── test_e2e_live.py     # Live end-to-end integration test suite (9 tests)
 │   └── app/
 │       ├── main.py              # FastAPI app with modern lifespan context
-│       ├── config.py            # Backward-compatible facade -> core/config.py
-│       ├── database.py          # Backward-compatible facade -> db/ & repositories/
 │       ├── core/                # Core configurations & Pydantic V2 settings
 │       │   ├── config.py        # DeepInfra model configuration & token pricing constants
 │       │   └── __init__.py
