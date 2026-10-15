@@ -61,3 +61,4 @@ Thumbs.db
 # Agentic IDE temporary / internal metadata
 .agents/
 .system_generated/
+.playwright-mcp/

@@ -131,7 +131,7 @@ export default function QuestionCard({
           ) : (
             <span className="badge badge-amber">
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--status-warning)' }} />
-              Staged Candidate
+              Ready for Review
             </span>
           )}
 
@@ -153,7 +153,7 @@ export default function QuestionCard({
                 gap: '4px'
               }}
             >
-              <ListChecks size={11} /> Multi-Choice ({correctKeysList.length} Keys)
+              <ListChecks size={11} /> Multiple Answers ({correctKeysList.length} choices)
             </span>
           )}
 
@@ -187,7 +187,7 @@ export default function QuestionCard({
                 gap: '4px'
               }}
             >
-              <Target size={11} /> Trap: {question.primary_trap.replace(/_/g, ' ')}
+              <Target size={11} /> Common Trap: {question.primary_trap.replace(/_/g, ' ')}
             </span>
           )}
 
@@ -214,10 +214,10 @@ export default function QuestionCard({
               onClick={() => onOpenAudit(question)}
               className="btn-secondary"
               style={{ padding: '5px 10px', fontSize: '0.75rem' }}
-              title="Open full audit modal"
+              title="Open quality breakdown modal"
             >
               <ShieldCheck size={12} color="var(--brand-primary)" />
-              <span>Full Audit</span>
+              <span>Quality Details</span>
             </button>
           )}
 
@@ -248,9 +248,9 @@ export default function QuestionCard({
         }}
       >
         {[
-          { id: 'preview', label: 'Candidate Preview', icon: FileText },
-          { id: 'scorecard', label: '100-pt Scorecard', icon: BarChart3 },
-          { id: 'telemetry', label: 'Stage Telemetry', icon: Code2 }
+          { id: 'preview', label: 'Question Preview', icon: FileText },
+          { id: 'scorecard', label: 'Quality Check (100 pts)', icon: BarChart3 },
+          { id: 'telemetry', label: 'AI Creation Steps', icon: Code2 }
         ].map(tab => {
           const Icon = tab.icon;
           const isSel = activeTab === tab.id;
@@ -328,7 +328,7 @@ export default function QuestionCard({
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Clinical Vignette Stimulus
+                  Scenario / Reading Passage
                 </span>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                   ~{question.stimulus_text ? question.stimulus_text.split(/\s+/).length : 0} words
@@ -584,10 +584,10 @@ export default function QuestionCard({
                 onClick={handleApproveClick}
                 disabled={isApproving}
                 style={{ padding: '8px 18px', fontSize: '0.825rem' }}
-                title="Approve candidate and save to Question Bank (Press A)"
+                title="Save question to Question Bank (Press A)"
               >
                 <CheckCircle size={15} />
-                <span>{isApproving ? 'Saving...' : 'Approve & Save to Bank'}</span>
+                <span>{isApproving ? 'Saving...' : 'Save to Question Bank'}</span>
                 <span className="kbd-hint" style={{ fontSize: '0.6rem', color: '#ffffff', borderColor: 'rgba(255,255,255,0.3)' }}>A</span>
               </button>
 
@@ -597,10 +597,10 @@ export default function QuestionCard({
                   className="btn-danger"
                   onClick={() => onDiscard(question)}
                   style={{ padding: '8px 14px', fontSize: '0.825rem' }}
-                  title="Discard candidate (Press D)"
+                  title="Discard question (Press D)"
                 >
                   <Trash2 size={13} />
-                  <span>Discard</span>
+                  <span>Discard Question</span>
                   <span className="kbd-hint" style={{ fontSize: '0.6rem' }}>D</span>
                 </button>
               )}

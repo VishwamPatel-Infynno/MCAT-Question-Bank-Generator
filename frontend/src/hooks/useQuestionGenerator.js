@@ -9,6 +9,7 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
   const [activeQuestion, setActiveQuestion] = useState(null);
   const [stagedQuestions, setStagedQuestions] = useState([]);
   const [batchProgress, setBatchProgress] = useState(null);
+  const [targetBatchTotal, setTargetBatchTotal] = useState(1);
   const [rejectedData, setRejectedData] = useState(null);
   const [latestReview, setLatestReview] = useState(null);
   const abortControllerRef = useRef(null);
@@ -30,11 +31,12 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
     abortControllerRef.current = controller;
 
     const reqTotal = payload?.questions_to_generate || 1;
+    setTargetBatchTotal(reqTotal);
 
     setIsGenerating(true);
     setActiveQuestion(null);
     setStagedQuestions([]);
-    setBatchProgress(reqTotal > 1 ? { current: 0, total: reqTotal, message: 'Initiating batch pipeline...' } : null);
+    setBatchProgress(reqTotal > 1 ? { current: 1, total: reqTotal, message: 'Drafting Question 1...' } : null);
     setRejectedData(null);
     setEvents([]);
     setLatestReview(null);
@@ -148,6 +150,7 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
     stagedQuestions,
     setStagedQuestions,
     batchProgress,
+    targetBatchTotal,
     rejectedData,
     latestReview,
     startGeneration,

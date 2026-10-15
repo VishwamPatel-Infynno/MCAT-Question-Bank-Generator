@@ -12,12 +12,17 @@ import {
   Award,
   Sparkles,
   ShieldCheck,
-  FileText
+  FileText,
+  Loader2,
+  Clock
 } from 'lucide-react';
 import QuestionCard from './QuestionCard';
 
 export default function StagedBatchReview({
   stagedQuestions = [],
+  targetTotal = 1,
+  isGenerating = false,
+  batchProgress = null,
   onApproveSelected,
   onApproveAll,
   onDiscardQuestion,
@@ -25,18 +30,18 @@ export default function StagedBatchReview({
   onOpenAudit,
   onUpdateQuestion
 }) {
-  // State for which questions are selected for commit
+  // State for which questions are selected for saving to Question Bank
   const [selectedIds, setSelectedIds] = useState(() => new Set(stagedQuestions.map(q => q.id)));
-  // State for which questions have already been persisted to PostgreSQL
+  // State for which questions have already been saved to the database
   const [savedIds, setSavedIds] = useState(() => new Set());
-  // Active question index in tabbed view
+  // Active question index in detailed view
   const [activeIdx, setActiveIdx] = useState(0);
-  // View mode: 'tabs' (detailed carousel) | 'grid' (all cards comparison)
-  const [viewMode, setViewMode] = useState('tabs');
+  // View mode: default 'grid' (all questions side-by-side) | 'tabs' (detailed single question view)
+  const [viewMode, setViewMode] = useState('grid');
   // Loading state during batch saving
   const [isSaving, setIsSaving] = useState(false);
 
-  // Sync selectedIds if new questions arrive during streaming
+  // Sync selectedIds if new questions arrive during batch generation
   React.useEffect(() => {
     setSelectedIds(prev => {
       const next = new Set(prev);
@@ -49,18 +54,25 @@ export default function StagedBatchReview({
     });
   }, [stagedQuestions, savedIds]);
 
-  if (!stagedQuestions || stagedQuestions.length === 0) {
+  // Determine total number of slots expected
+  const effectiveTotal = Math.max(
+    stagedQuestions.length,
+    targetTotal || 1,
+    batchProgress?.total || 1
+  );
+
+  if (stagedQuestions.length === 0 && !isGenerating && effectiveTotal <= 1) {
     return null;
   }
 
-  // Clamped active question
-  const validIdx = Math.max(0, Math.min(activeIdx, stagedQuestions.length - 1));
-  const activeQuestion = stagedQuestions[validIdx];
+  // Clamped active question for single view
+  const validIdx = Math.max(0, Math.min(activeIdx, Math.max(0, stagedQuestions.length - 1)));
+  const activeQuestion = stagedQuestions[validIdx] || null;
 
   // Batch stats
-  const totalCount = stagedQuestions.length;
+  const totalCompleted = stagedQuestions.length;
   const selectedCount = selectedIds.size;
-  const isAllSelected = totalCount > 0 && selectedCount === totalCount;
+  const isAllSelected = totalCompleted > 0 && selectedCount === totalCompleted;
 
   const { singleCount, multiCount, passageCount, avgScore } = useMemo(() => {
     let single = 0;
@@ -83,9 +95,9 @@ export default function StagedBatchReview({
       singleCount: single,
       multiCount: multi,
       passageCount: passage,
-      avgScore: totalCount > 0 ? (scoreSum / totalCount).toFixed(1) : '95.0'
+      avgScore: totalCompleted > 0 ? (scoreSum / totalCompleted).toFixed(1) : '95.0'
     };
-  }, [stagedQuestions, totalCount]);
+  }, [stagedQuestions, totalCompleted]);
 
   // Toggle selection for an individual question
   const handleToggleSelect = (id) => {
@@ -132,7 +144,7 @@ export default function StagedBatchReview({
 
   // Commit all questions to database
   const handleApproveAllClick = async () => {
-    if (isSaving) return;
+    if (isSaving || totalCompleted === 0) return;
     const unsaved = stagedQuestions.filter(q => !savedIds.has(q.id));
     if (unsaved.length === 0) return;
 
@@ -185,14 +197,16 @@ export default function StagedBatchReview({
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Sparkles size={16} color="var(--brand-primary)" />
               <h2 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                Staged Batch Review &amp; Confirmation
+                Review Generated Questions
               </h2>
               <span className="badge badge-indigo" style={{ fontSize: '0.7rem' }}>
-                {totalCount} Generated
+                {isGenerating
+                  ? `${totalCompleted} of ${effectiveTotal} Ready (Generating...)`
+                  : `${totalCompleted} Generated`}
               </span>
             </div>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px', margin: 0 }}>
-              Verify candidates. Select which questions to commit to the Question Bank or approve all at once.
+              Review the questions below. You can save all questions to your Question Bank, select individual ones, or edit them before saving.
             </p>
           </div>
 
@@ -207,27 +221,6 @@ export default function StagedBatchReview({
               border: '1px solid var(--border-light)'
             }}
           >
-            <button
-              type="button"
-              id="btn-view-tabs"
-              onClick={() => setViewMode('tabs')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '5px 10px',
-                borderRadius: 'var(--radius-xs)',
-                border: 'none',
-                background: viewMode === 'tabs' ? 'var(--bg-surface-elevated)' : 'transparent',
-                color: viewMode === 'tabs' ? 'var(--text-primary)' : 'var(--text-muted)',
-                fontSize: '0.725rem',
-                fontWeight: viewMode === 'tabs' ? 700 : 500,
-                cursor: 'pointer'
-              }}
-            >
-              <Eye size={13} />
-              <span>Detail Tab</span>
-            </button>
             <button
               type="button"
               id="btn-view-grid"
@@ -247,12 +240,33 @@ export default function StagedBatchReview({
               }}
             >
               <LayoutGrid size={13} />
-              <span>Grid View</span>
+              <span>Grid View (All Questions)</span>
+            </button>
+            <button
+              type="button"
+              id="btn-view-tabs"
+              onClick={() => setViewMode('tabs')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '5px 10px',
+                borderRadius: 'var(--radius-xs)',
+                border: 'none',
+                background: viewMode === 'tabs' ? 'var(--bg-surface-elevated)' : 'transparent',
+                color: viewMode === 'tabs' ? 'var(--text-primary)' : 'var(--text-muted)',
+                fontSize: '0.725rem',
+                fontWeight: viewMode === 'tabs' ? 700 : 500,
+                cursor: 'pointer'
+              }}
+            >
+              <Eye size={13} />
+              <span>Detailed View</span>
             </button>
           </div>
         </div>
 
-        {/* Breakdown Chips & Psychometric Quality Metrics */}
+        {/* Breakdown Chips & Quality Metrics */}
         <div
           style={{
             display: 'flex',
@@ -267,32 +281,32 @@ export default function StagedBatchReview({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span style={{ color: 'var(--text-muted)' }}>Composition:</span>
+            <span style={{ color: 'var(--text-muted)' }}>Question Mix:</span>
             <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-              {singleCount} Single Choice
+              {singleCount} Single Answer
             </span>
             <span style={{ color: 'var(--border-light)' }}>•</span>
             <span style={{ fontWeight: 600, color: multiCount > 0 ? '#818cf8' : 'var(--text-secondary)' }}>
-              {multiCount} Multi-Choice
+              {multiCount} Multiple Answers
             </span>
             <span style={{ color: 'var(--border-light)' }}>•</span>
             <span style={{ fontWeight: 600, color: passageCount > 0 ? '#38bdf8' : 'var(--text-secondary)' }}>
-              {passageCount} Reading Passage{passageCount !== 1 ? 's' : ''}
+              {passageCount} With Reading Passage{passageCount !== 1 ? 's' : ''}
             </span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)' }}>
               <ShieldCheck size={13} color="var(--status-success)" />
-              <span>Avg Quality:</span>
+              <span>Average Quality:</span>
               <strong style={{ color: 'var(--text-primary)' }}>{avgScore}/100</strong>
             </span>
 
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)' }}>
               <CheckCircle2 size={13} color="var(--brand-primary)" />
-              <span>Saved in DB:</span>
+              <span>Saved in Bank:</span>
               <strong style={{ color: savedIds.size > 0 ? 'var(--status-success)' : 'var(--text-secondary)' }}>
-                {savedIds.size} of {totalCount}
+                {savedIds.size} of {totalCompleted}
               </strong>
             </span>
           </div>
@@ -316,15 +330,16 @@ export default function StagedBatchReview({
               type="checkbox"
               checked={isAllSelected}
               onChange={handleToggleSelectAll}
+              disabled={totalCompleted === 0}
               style={{
                 accentColor: 'var(--brand-primary)',
                 width: '15px',
                 height: '15px',
-                cursor: 'pointer'
+                cursor: totalCompleted === 0 ? 'not-allowed' : 'pointer'
               }}
             />
             <span style={{ fontSize: '0.775rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-              Select All ({totalCount})
+              Select All Ready ({totalCompleted})
             </span>
             <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
               ({selectedCount} selected)
@@ -341,59 +356,388 @@ export default function StagedBatchReview({
                 onClick={onDiscardAll}
                 className="btn-secondary"
                 style={{
-                  padding: '6px 12px',
+                  padding: '7px 12px',
                   fontSize: '0.75rem',
                   color: 'var(--status-danger)'
                 }}
                 title="Discard all generated candidate questions"
               >
                 <Trash2 size={13} />
-                <span>Discard Batch</span>
+                <span>Discard All</span>
               </button>
             )}
 
-            {/* Approve Selected Button */}
+            {/* Save Selected Button */}
             <button
               type="button"
               id="btn-approve-selected"
               onClick={handleApproveSelectedClick}
               disabled={selectedCount === 0 || isSaving}
-              className="btn-primary"
+              className="btn-secondary"
               style={{
-                padding: '6px 14px',
+                padding: '7px 14px',
                 fontSize: '0.75rem',
-                background: 'var(--status-success)',
-                borderColor: 'var(--status-success)',
                 gap: '6px'
               }}
             >
               <Check size={14} />
               <span>
-                {isSaving ? 'Saving to DB...' : `Approve Selected (${selectedCount})`}
+                {isSaving ? 'Saving...' : `Save Selected (${selectedCount}) to Bank`}
               </span>
             </button>
 
-            {/* Approve All Button */}
+            {/* Accept All Questions Button (Prominent Primary Action) */}
             <button
               type="button"
               id="btn-approve-all"
               onClick={handleApproveAllClick}
-              disabled={isSaving || savedIds.size === totalCount}
-              className="btn-secondary"
+              disabled={isSaving || totalCompleted === 0 || savedIds.size === totalCompleted}
+              className="btn-primary"
               style={{
-                padding: '6px 14px',
+                padding: '7px 16px',
                 fontSize: '0.75rem',
-                gap: '6px'
+                fontWeight: 700,
+                background: 'var(--status-success)',
+                borderColor: 'var(--status-success)',
+                gap: '6px',
+                boxShadow: 'var(--shadow-sm)'
               }}
             >
-              <CheckCircle2 size={14} color="var(--brand-primary)" />
-              <span>Approve All ({totalCount})</span>
+              <CheckCircle2 size={15} color="#ffffff" />
+              <span>
+                {savedIds.size === totalCompleted && totalCompleted > 0
+                  ? 'All Saved in Question Bank'
+                  : `Accept All Questions (${totalCompleted}) into Bank`}
+              </span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* VIEW MODE 1: TABBED CAROUSEL VIEW */}
+      {/* VIEW MODE 1: GRID VIEW (DEFAULT - ALL REQUESTED QUESTIONS DISPLAYED SIDE BY SIDE) */}
+      {viewMode === 'grid' && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
+            gap: '16px'
+          }}
+        >
+          {Array.from({ length: effectiveTotal }).map((_, idx) => {
+            const q = stagedQuestions[idx];
+
+            // State A: Question has been generated and ready for review
+            if (q) {
+              const isChecked = selectedIds.has(q.id);
+              const isSaved = savedIds.has(q.id);
+              const isMulti = q.interaction_type === 'multi_choice' || (Array.isArray(q.correct_answer_ids) && q.correct_answer_ids.length > 1);
+              const wordCount = q.stimulus_text ? q.stimulus_text.trim().split(/\s+/).length : 0;
+              const isPassage = q.passage_required === 'Yes' || wordCount >= 180;
+              const correctKeysList = Array.isArray(q.correct_answer_ids) && q.correct_answer_ids.length > 0
+                ? q.correct_answer_ids.map(k => String(k).trim().toUpperCase())
+                : (q.correct_answer_id || '').split(',').map(k => k.trim().toUpperCase()).filter(Boolean);
+
+              return (
+                <div
+                  key={q.id || idx}
+                  className="glass-panel"
+                  style={{
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    borderRadius: 'var(--radius-md)',
+                    border: isChecked ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
+                    position: 'relative'
+                  }}
+                >
+                  {/* Card Top Header */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => handleToggleSelect(q.id)}
+                        style={{
+                          accentColor: 'var(--brand-primary)',
+                          width: '16px',
+                          height: '16px',
+                          cursor: 'pointer'
+                        }}
+                        title="Select this question to keep in Question Bank"
+                      />
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                        Question {idx + 1}
+                      </span>
+                      <span className="badge badge-indigo" style={{ fontSize: '0.675rem', textTransform: 'capitalize' }}>
+                        {q.difficulty}
+                      </span>
+                      {isMulti ? (
+                        <span className="badge" style={{ fontSize: '0.675rem', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8' }}>
+                          Multiple Answers
+                        </span>
+                      ) : (
+                        <span className="badge badge-neutral" style={{ fontSize: '0.675rem' }}>
+                          Single Answer
+                        </span>
+                      )}
+                      {isPassage && (
+                        <span className="badge" style={{ fontSize: '0.675rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
+                          Reading Passage
+                        </span>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span className="badge badge-emerald" style={{ fontSize: '0.7rem' }}>
+                        {q.final_score || 95}/100 Quality
+                      </span>
+                      {isSaved && (
+                        <span className="badge badge-emerald" style={{ fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                          <Check size={10} /> In Bank
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Scenario / Reading Passage Box */}
+                  {q.stimulus_text && (
+                    <div
+                      style={{
+                        padding: '8px 10px',
+                        background: 'var(--bg-surface-subtle)',
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '0.725rem',
+                        color: 'var(--text-secondary)',
+                        lineHeight: 1.5,
+                        maxHeight: '75px',
+                        overflowY: 'auto'
+                      }}
+                    >
+                      <strong style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '2px', fontSize: '0.675rem' }}>
+                        {isPassage ? `Reading Passage (${wordCount} words):` : 'Scenario / Vignette:'}
+                      </strong>
+                      {q.stimulus_text}
+                    </div>
+                  )}
+
+                  {/* Question Stem */}
+                  <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.4 }}>
+                    {q.question_stem}
+                  </div>
+
+                  {/* Options with marked correct answer */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {q.options && q.options.map(opt => {
+                      const isCorrect = correctKeysList.includes(String(opt.id).toUpperCase());
+                      return (
+                        <div
+                          key={opt.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '4px 8px',
+                            borderRadius: 'var(--radius-sm)',
+                            background: isCorrect ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-surface-subtle)',
+                            border: isCorrect ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid transparent',
+                            fontSize: '0.725rem',
+                            color: isCorrect ? 'var(--status-success)' : 'var(--text-secondary)'
+                          }}
+                        >
+                          <span style={{ fontWeight: 700, minWidth: '14px' }}>{opt.id}.</span>
+                          <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {opt.text}
+                          </span>
+                          {isCorrect && <Check size={11} color="var(--status-success)" />}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Card Actions Footer */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginTop: 'auto',
+                      paddingTop: '8px',
+                      borderTop: '1px solid var(--border-light)'
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveIdx(idx);
+                        setViewMode('tabs');
+                      }}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--brand-primary)',
+                        fontSize: '0.725rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      <Eye size={12} />
+                      <span>Detailed View</span>
+                    </button>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {onOpenAudit && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenAudit(q)}
+                          className="btn-secondary"
+                          style={{ padding: '4px 8px', fontSize: '0.7rem' }}
+                          title="View Quality Audit Scorecard"
+                        >
+                          <Award size={12} />
+                          <span>Quality Details</span>
+                        </button>
+                      )}
+
+                      {!isSaved ? (
+                        <button
+                          type="button"
+                          onClick={() => handleApproveSingle(q)}
+                          disabled={isSaving}
+                          className="btn-primary"
+                          style={{
+                            padding: '4px 10px',
+                            fontSize: '0.7rem',
+                            background: 'var(--status-success)',
+                            borderColor: 'var(--status-success)'
+                          }}
+                          title="Keep this question in the bank"
+                        >
+                          <Check size={12} />
+                          <span>Save to Bank</span>
+                        </button>
+                      ) : (
+                        <span style={{ fontSize: '0.7rem', color: 'var(--status-success)', fontWeight: 600 }}>
+                          ✓ In Bank
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            // State B: Question is currently being generated by AI
+            const isCurrentlyGenerating = idx === stagedQuestions.length && isGenerating;
+            if (isCurrentlyGenerating) {
+              return (
+                <div
+                  key={`generating-${idx}`}
+                  className="glass-panel"
+                  style={{
+                    padding: '24px 18px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    textAlign: 'center',
+                    gap: '12px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px dashed var(--brand-primary)',
+                    background: 'var(--bg-surface-elevated)',
+                    minHeight: '280px',
+                    boxShadow: '0 0 16px rgba(99, 102, 241, 0.15)'
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '50%',
+                      background: 'rgba(99, 102, 241, 0.15)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--brand-primary)'
+                    }}
+                  >
+                    <Loader2 size={22} className="spin-slow" />
+                  </div>
+
+                  <div>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                      Question {idx + 1}
+                    </span>
+                    <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--brand-primary)', margin: '4px 0 2px 0' }}>
+                      AI is Creating This Question...
+                    </h4>
+                    <p style={{ fontSize: '0.725rem', color: 'var(--text-muted)', margin: 0, maxWidth: '240px' }}>
+                      Writing realistic scenario, setting answer options, and checking quality standards.
+                    </p>
+                  </div>
+
+                  <span className="badge badge-indigo" style={{ fontSize: '0.675rem' }}>
+                    Active Slot {idx + 1} of {effectiveTotal}
+                  </span>
+                </div>
+              );
+            }
+
+            // State C: Queued slot waiting to start
+            return (
+              <div
+                key={`queued-${idx}`}
+                className="glass-panel"
+                style={{
+                  padding: '24px 18px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  gap: '10px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px dashed var(--border-light)',
+                  opacity: 0.65,
+                  minHeight: '280px'
+                }}
+              >
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    background: 'var(--bg-surface-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--text-muted)'
+                  }}
+                >
+                  <Clock size={18} />
+                </div>
+
+                <div>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                    Question {idx + 1}
+                  </span>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                    Queued in Batch
+                  </p>
+                  <p style={{ fontSize: '0.675rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+                    Will generate automatically next
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* VIEW MODE 2: DETAILED SINGLE VIEW WITH QUESTION PILLS RAIL */}
       {viewMode === 'tabs' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {/* Horizontal Question Pills Rail */}
@@ -406,12 +750,39 @@ export default function StagedBatchReview({
               paddingBottom: '4px'
             }}
           >
-            {stagedQuestions.map((q, idx) => {
-              const isCurrent = idx === validIdx;
-              const isChecked = selectedIds.has(q.id);
-              const isSaved = savedIds.has(q.id);
-              const isMulti = q.interaction_type === 'multi_choice';
-              const isPassage = q.passage_required === 'Yes' || (q.stimulus_text && q.stimulus_text.trim().split(/\s+/).length >= 180);
+            {Array.from({ length: effectiveTotal }).map((_, idx) => {
+              const q = stagedQuestions[idx];
+              const isCurrent = idx === validIdx && Boolean(q);
+              const isChecked = q && selectedIds.has(q.id);
+              const isSaved = q && savedIds.has(q.id);
+              const isMulti = q && (q.interaction_type === 'multi_choice' || (Array.isArray(q.correct_answer_ids) && q.correct_answer_ids.length > 1));
+              const isPassage = q && (q.passage_required === 'Yes' || (q.stimulus_text && q.stimulus_text.trim().split(/\s+/).length >= 180));
+
+              if (!q) {
+                // Pending/generating pill
+                const isGeneratingSlot = idx === stagedQuestions.length && isGenerating;
+                return (
+                  <div
+                    key={`pill-placeholder-${idx}`}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 12px',
+                      borderRadius: 'var(--radius-md)',
+                      background: isGeneratingSlot ? 'rgba(99, 102, 241, 0.1)' : 'var(--bg-surface-subtle)',
+                      border: isGeneratingSlot ? '1px dashed var(--brand-primary)' : '1px dashed var(--border-light)',
+                      color: isGeneratingSlot ? 'var(--brand-primary)' : 'var(--text-muted)',
+                      fontSize: '0.75rem',
+                      opacity: isGeneratingSlot ? 1 : 0.6,
+                      flexShrink: 0
+                    }}
+                  >
+                    {isGeneratingSlot ? <Loader2 size={12} className="spin-slow" /> : <Clock size={12} />}
+                    <span>Q{idx + 1} {isGeneratingSlot ? 'Creating...' : 'Queued'}</span>
+                  </div>
+                );
+              }
 
               return (
                 <div
@@ -447,99 +818,81 @@ export default function StagedBatchReview({
                       height: '14px',
                       cursor: 'pointer'
                     }}
-                    title={isChecked ? 'Selected for commit' : 'Click to select for commit'}
+                    title={isChecked ? 'Selected to keep in Bank' : 'Click to select for Bank'}
                   />
 
-                  {/* Question Number */}
-                  <span style={{ fontSize: '0.8rem', fontWeight: isCurrent ? 700 : 600, color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-                    Q{idx + 1}
-                  </span>
-
-                  {/* Format Indicator Badges */}
-                  {isMulti && (
-                    <span
-                      style={{
-                        fontSize: '0.625rem',
-                        fontWeight: 700,
-                        padding: '1px 4px',
-                        borderRadius: 'var(--radius-xs)',
-                        background: 'rgba(99, 102, 241, 0.15)',
-                        color: '#818cf8'
-                      }}
-                      title="Multi-Choice Question"
-                    >
-                      MC
+                  {/* Question Number & Tags */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '0.775rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      Q{idx + 1}
                     </span>
-                  )}
-                  {isPassage && (
-                    <span
-                      style={{
-                        fontSize: '0.625rem',
-                        fontWeight: 700,
-                        padding: '1px 4px',
-                        borderRadius: 'var(--radius-xs)',
-                        background: 'rgba(56, 189, 248, 0.15)',
-                        color: '#38bdf8'
-                      }}
-                      title="Long Reading Passage"
-                    >
-                      DOC
+                    <span className="badge badge-neutral" style={{ fontSize: '0.625rem' }}>
+                      {q.difficulty}
                     </span>
-                  )}
-
-                  {/* Score */}
-                  <span
-                    style={{
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      color: (q.final_score || 95) >= 90 ? 'var(--status-success)' : 'var(--status-warning)'
-                    }}
-                  >
-                    {q.final_score || 95}
-                  </span>
+                    {isMulti && (
+                      <span className="badge" style={{ fontSize: '0.625rem', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8' }}>
+                        Multi
+                      </span>
+                    )}
+                    {isPassage && (
+                      <span className="badge" style={{ fontSize: '0.625rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
+                        Passage
+                      </span>
+                    )}
+                  </div>
 
                   {/* Saved Status Indicator */}
-                  {isSaved && (
-                    <CheckCircle2 size={13} color="var(--status-success)" title="Already saved in Question Bank" />
+                  {isSaved ? (
+                    <span
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '16px',
+                        height: '16px',
+                        borderRadius: '50%',
+                        background: 'var(--status-success)',
+                        color: '#ffffff'
+                      }}
+                      title="Saved in Question Bank"
+                    >
+                      <Check size={10} />
+                    </span>
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: '0.675rem',
+                        fontWeight: 600,
+                        color: 'var(--text-muted)'
+                      }}
+                    >
+                      {q.final_score || 95}/100
+                    </span>
                   )}
                 </div>
               );
             })}
           </div>
 
-          {/* Active Question Top Banner */}
+          {/* Stepper Navigation Strip */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              padding: '8px 14px',
+              padding: '6px 12px',
               background: 'var(--bg-surface-subtle)',
               borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border-light)'
+              fontSize: '0.75rem'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem' }}>
-              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
-                Candidate {validIdx + 1} of {totalCount}
-              </span>
-              <span style={{ color: 'var(--text-muted)' }}>•</span>
-              <span style={{ color: 'var(--text-secondary)' }}>
-                {activeQuestion.section_label || activeQuestion.section}
-              </span>
-              <span style={{ color: 'var(--text-muted)' }}>•</span>
-              <span style={{ color: 'var(--text-secondary)', textTransform: 'capitalize' }}>
-                {activeQuestion.interaction_type === 'multi_choice' ? 'Multi-Choice' : 'Single Choice'}
-              </span>
-              {activeQuestion.passage_required === 'Yes' && (
-                <>
-                  <span style={{ color: 'var(--text-muted)' }}>•</span>
-                  <span style={{ color: '#38bdf8', fontWeight: 600 }}>Reading Passage</span>
-                </>
-              )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Viewing Question:</span>
+              <strong style={{ color: 'var(--text-primary)' }}>
+                {validIdx + 1} of {totalCompleted}
+              </strong>
             </div>
 
-            {/* Stepper Navigation Buttons */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <button
                 type="button"
@@ -548,7 +901,7 @@ export default function StagedBatchReview({
                 disabled={validIdx === 0}
                 className="btn-secondary"
                 style={{ padding: '4px 8px', fontSize: '0.725rem' }}
-                title="Previous Candidate"
+                title="Previous Question"
               >
                 <ChevronLeft size={13} />
                 <span>Prev</span>
@@ -556,11 +909,11 @@ export default function StagedBatchReview({
               <button
                 type="button"
                 id="btn-next-candidate"
-                onClick={() => setActiveIdx(prev => Math.min(totalCount - 1, prev + 1))}
-                disabled={validIdx === totalCount - 1}
+                onClick={() => setActiveIdx(prev => Math.min(totalCompleted - 1, prev + 1))}
+                disabled={validIdx >= totalCompleted - 1}
                 className="btn-secondary"
                 style={{ padding: '4px 8px', fontSize: '0.725rem' }}
-                title="Next Candidate"
+                title="Next Question"
               >
                 <span>Next</span>
                 <ChevronRight size={13} />
@@ -569,218 +922,32 @@ export default function StagedBatchReview({
           </div>
 
           {/* Embedded Full Question Card */}
-          <QuestionCard
-            question={activeQuestion}
-            isSaved={savedIds.has(activeQuestion.id)}
-            onApprove={handleApproveSingle}
-            onDiscard={() => {
-              if (onDiscardQuestion) {
-                onDiscardQuestion(activeQuestion.id);
-              }
-            }}
-            onOpenAudit={onOpenAudit}
-            onUpdateQuestion={onUpdateQuestion}
-          />
-        </div>
-      )}
-
-      {/* VIEW MODE 2: GRID / COMPARISON VIEW */}
-      {viewMode === 'grid' && (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
-            gap: '16px'
-          }}
-        >
-          {stagedQuestions.map((q, idx) => {
-            const isChecked = selectedIds.has(q.id);
-            const isSaved = savedIds.has(q.id);
-            const isMulti = q.interaction_type === 'multi_choice';
-            const wordCount = q.stimulus_text ? q.stimulus_text.trim().split(/\s+/).length : 0;
-            const isPassage = q.passage_required === 'Yes' || wordCount >= 180;
-            const correctKeysList = Array.isArray(q.correct_answer_ids) && q.correct_answer_ids.length > 0
-              ? q.correct_answer_ids.map(k => String(k).trim().toUpperCase())
-              : (q.correct_answer_id || '').split(',').map(k => k.trim().toUpperCase()).filter(Boolean);
-
-            return (
-              <div
-                key={q.id || idx}
-                className="glass-panel"
-                style={{
-                  padding: '16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                  borderRadius: 'var(--radius-md)',
-                  border: isChecked ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
-                  position: 'relative'
-                }}
-              >
-                {/* Card Header */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => handleToggleSelect(q.id)}
-                      style={{
-                        accentColor: 'var(--brand-primary)',
-                        width: '16px',
-                        height: '16px',
-                        cursor: 'pointer'
-                      }}
-                      title="Select for confirmation"
-                    />
-                    <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                      Q{idx + 1}
-                    </span>
-                    <span className="badge badge-indigo" style={{ fontSize: '0.675rem' }}>
-                      {q.difficulty}
-                    </span>
-                    {isMulti && (
-                      <span className="badge" style={{ fontSize: '0.675rem', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8' }}>
-                        Multi-Key
-                      </span>
-                    )}
-                    {isPassage && (
-                      <span className="badge" style={{ fontSize: '0.675rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
-                        Passage
-                      </span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span className="badge badge-emerald" style={{ fontSize: '0.7rem' }}>
-                      {q.final_score || 95}/100
-                    </span>
-                    {isSaved && (
-                      <span className="badge badge-emerald" style={{ fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                        <Check size={10} /> Saved
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Stimulus Snippet if Passage */}
-                {q.stimulus_text && (
-                  <div
-                    style={{
-                      padding: '8px 10px',
-                      background: 'var(--bg-surface-subtle)',
-                      borderRadius: 'var(--radius-sm)',
-                      fontSize: '0.725rem',
-                      color: 'var(--text-secondary)',
-                      lineHeight: 1.5,
-                      maxHeight: '70px',
-                      overflowY: 'auto'
-                    }}
-                  >
-                    <strong style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '2px', fontSize: '0.675rem' }}>
-                      {isPassage ? `Stimulus Passage (${wordCount} words):` : 'Clinical Vignette:'}
-                    </strong>
-                    {q.stimulus_text}
-                  </div>
-                )}
-
-                {/* Question Stem */}
-                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.4 }}>
-                  {q.question_stem}
-                </div>
-
-                {/* Compact Options Preview */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  {q.options && q.options.map(opt => {
-                    const isCorrect = correctKeysList.includes(String(opt.id).toUpperCase());
-                    return (
-                      <div
-                        key={opt.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '4px 8px',
-                          borderRadius: 'var(--radius-sm)',
-                          background: isCorrect ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-surface-subtle)',
-                          border: isCorrect ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid transparent',
-                          fontSize: '0.725rem',
-                          color: isCorrect ? 'var(--status-success)' : 'var(--text-secondary)'
-                        }}
-                      >
-                        <span style={{ fontWeight: 700, minWidth: '14px' }}>{opt.id}.</span>
-                        <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {opt.text}
-                        </span>
-                        {isCorrect && <Check size={11} color="var(--status-success)" />}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Card Actions Footer */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginTop: 'auto',
-                    paddingTop: '8px',
-                    borderTop: '1px solid var(--border-light)'
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveIdx(idx);
-                      setViewMode('tabs');
-                    }}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'var(--brand-primary)',
-                      fontSize: '0.725rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}
-                  >
-                    <Eye size={12} />
-                    <span>Focus in Detail</span>
-                  </button>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {onOpenAudit && (
-                      <button
-                        type="button"
-                        onClick={() => onOpenAudit(q)}
-                        className="btn-secondary"
-                        style={{ padding: '4px 8px', fontSize: '0.7rem' }}
-                        title="Audit Scorecard"
-                      >
-                        <Award size={12} />
-                        <span>Audit</span>
-                      </button>
-                    )}
-
-                    {!isSaved && (
-                      <button
-                        type="button"
-                        onClick={() => handleApproveSingle(q)}
-                        disabled={isSaving}
-                        className="btn-primary"
-                        style={{ padding: '4px 10px', fontSize: '0.7rem', background: 'var(--status-success)', borderColor: 'var(--status-success)' }}
-                      >
-                        <Check size={12} />
-                        <span>Approve</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {activeQuestion ? (
+            <QuestionCard
+              question={activeQuestion}
+              isSaved={savedIds.has(activeQuestion.id)}
+              onApprove={handleApproveSingle}
+              onDiscard={() => {
+                if (onDiscardQuestion) {
+                  onDiscardQuestion(activeQuestion.id);
+                }
+              }}
+              onOpenAudit={onOpenAudit}
+              onUpdateQuestion={onUpdateQuestion}
+            />
+          ) : (
+            <div
+              className="glass-panel"
+              style={{
+                padding: '40px',
+                textAlign: 'center',
+                color: 'var(--text-muted)'
+              }}
+            >
+              <Loader2 size={24} className="spin-slow" style={{ margin: '0 auto 12px auto' }} />
+              <p>Waiting for questions to generate...</p>
+            </div>
+          )}
         </div>
       )}
     </div>

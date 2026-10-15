@@ -274,10 +274,10 @@ export default function GeneratorPanel({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <h2 style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-            Question Configuration
+            Question Setup
           </h2>
           <p style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
-            Set subtest and pacing parameters
+            Choose subtest, quantity, and question formats
           </p>
         </div>
 
@@ -444,7 +444,7 @@ export default function GeneratorPanel({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
             <Layers size={13} color="var(--brand-primary)" />
-            <span>Quantity (Batch Size)</span>
+            <span>Number of Questions to Generate</span>
           </label>
           <span
             style={{
@@ -456,7 +456,7 @@ export default function GeneratorPanel({
               color: totalQuestions > 1 ? '#c084fc' : 'var(--text-muted)'
             }}
           >
-            {totalQuestions > 1 ? `${totalQuestions} Questions Batch` : 'Single Item'}
+            {totalQuestions > 1 ? `${totalQuestions} Questions` : '1 Question'}
           </span>
         </div>
 
@@ -570,10 +570,10 @@ export default function GeneratorPanel({
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              Batch Format Allocation
+              Question Types in this Batch
             </span>
             <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>
-              Total: {totalQuestions} Items
+              Total: {totalQuestions} Questions
             </span>
           </div>
 
@@ -581,7 +581,7 @@ export default function GeneratorPanel({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <ListChecks size={12} color="var(--brand-primary)" />
-              <span>Answer Mode Split</span>
+              <span>Answer Type</span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -597,7 +597,7 @@ export default function GeneratorPanel({
                   border: '1px solid var(--border-light)'
                 }}
               >
-                <span style={{ fontSize: '0.725rem', color: 'var(--text-secondary)' }}>Single</span>
+                <span style={{ fontSize: '0.725rem', color: 'var(--text-secondary)' }}>Single Answer</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <button
                     type="button"
@@ -635,7 +635,7 @@ export default function GeneratorPanel({
                   border: '1px solid var(--border-light)'
                 }}
               >
-                <span style={{ fontSize: '0.725rem', color: 'var(--text-secondary)' }}>Multi</span>
+                <span style={{ fontSize: '0.725rem', color: 'var(--text-secondary)' }}>Multiple Answers</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <button
                     type="button"
@@ -667,7 +667,7 @@ export default function GeneratorPanel({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <BookOpen size={12} color="var(--brand-primary)" />
-              <span>Stimulus Format Split</span>
+              <span>Passage Length</span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -683,7 +683,7 @@ export default function GeneratorPanel({
                   border: '1px solid var(--border-light)'
                 }}
               >
-                <span style={{ fontSize: '0.725rem', color: 'var(--text-secondary)' }}>Passage</span>
+                <span style={{ fontSize: '0.725rem', color: 'var(--text-secondary)' }}>Reading Passage (~350w)</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <button
                     type="button"
@@ -721,7 +721,7 @@ export default function GeneratorPanel({
                   border: '1px solid var(--border-light)'
                 }}
               >
-                <span style={{ fontSize: '0.725rem', color: 'var(--text-secondary)' }}>Standard</span>
+                <span style={{ fontSize: '0.725rem', color: 'var(--text-secondary)' }}>Short Scenario</span>
                 <span style={{ fontSize: '0.75rem', fontWeight: 700, paddingRight: '6px', color: 'var(--text-muted)' }}>
                   {totalQuestions - passageCount}
                 </span>
@@ -742,9 +742,9 @@ export default function GeneratorPanel({
               justifyContent: 'space-between'
             }}
           >
-            <span>Target Composition:</span>
+            <span>Questions To Create:</span>
             <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-              {singleChoiceCount} Single • {multiChoiceCount} Multi • {passageCount} Passage
+              {singleChoiceCount} Single • {multiChoiceCount} Multi • {passageCount} With Passage
             </span>
           </div>
         </div>
@@ -755,7 +755,7 @@ export default function GeneratorPanel({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
                 <ListChecks size={13} color="var(--brand-primary)" />
-                <span>Answer Mode</span>
+                <span>Answer Type</span>
               </label>
               <span
                 style={{
@@ -767,7 +767,7 @@ export default function GeneratorPanel({
                   color: interactionType === 'multi_choice' ? '#818cf8' : 'var(--text-muted)'
                 }}
               >
-                {interactionType === 'multi_choice' ? 'Multi-Key' : 'Single Key'}
+                {interactionType === 'multi_choice' ? 'Multiple Answers' : 'Single Answer'}
               </span>
             </div>
 
@@ -783,8 +783,8 @@ export default function GeneratorPanel({
               }}
             >
               {[
-                { id: 'single_choice', label: 'Single Choice', desc: '1 Key' },
-                { id: 'multi_choice', label: 'Multi-Choice', desc: 'Select All' }
+                { id: 'single_choice', label: 'Single Answer', desc: '1 choice' },
+                { id: 'multi_choice', label: 'Multiple Answers', desc: 'Select all that apply' }
               ].map(opt => {
                 const isSel = interactionType === opt.id;
                 return (
@@ -822,12 +822,12 @@ export default function GeneratorPanel({
             </div>
           </div>
 
-          {/* Passage Format (Standard Vignette vs Long Reading Passage) */}
+          {/* Passage Format (Short Scenario vs Long Reading Passage) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
                 <BookOpen size={13} color="var(--brand-primary)" />
-                <span>Passage Format</span>
+                <span>Passage Length</span>
               </label>
               <span
                 style={{
@@ -839,7 +839,7 @@ export default function GeneratorPanel({
                   color: passageRequired === 'Yes' ? '#38bdf8' : 'var(--text-muted)'
                 }}
               >
-                {passageRequired === 'Yes' ? 'Long (~350w)' : 'Standard'}
+                {passageRequired === 'Yes' ? 'Reading Passage (~350w)' : 'Short Scenario'}
               </span>
             </div>
 
@@ -855,8 +855,8 @@ export default function GeneratorPanel({
               }}
             >
               {[
-                { id: 'No', label: 'Standard Vignette' },
-                { id: 'Yes', label: 'Long Reading Passage' }
+                { id: 'No', label: 'Short Scenario' },
+                { id: 'Yes', label: 'Reading Passage (~350w)' }
               ].map(opt => {
                 const isSel = passageRequired === opt.id;
                 return (
@@ -893,12 +893,12 @@ export default function GeneratorPanel({
         </>
       )}
 
-      {/* Cognitive Distractor Trap Selector */}
+      {/* Question Trick / Common Trap Selector */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '5px' }}>
             <Target size={13} color="var(--brand-primary)" />
-            <span>Target Cognitive Trap</span>
+            <span>Question Trick / Common Trap</span>
           </label>
         </div>
 
@@ -917,17 +917,17 @@ export default function GeneratorPanel({
             cursor: 'pointer'
           }}
         >
-          <option value="Automatic">Automatic (Balanced Adaptive Traps)</option>
-          <option value="Keyword_Trap">Keyword Trap (Verbal matching with inverted meaning)</option>
-          <option value="Partial_Match">Partial Match (Incomplete computation / partial fact)</option>
-          <option value="Extreme_Language">Extreme Language (Always, Never, Solely, Entirely)</option>
-          <option value="Correlation_vs_Causation">Correlation vs Causation (Confusing link with cause)</option>
-          <option value="Scope_Shift">Scope Shift (Extrapolating outside premises)</option>
-          <option value="Half_Truth">Half-Truth (Factually true but irrelevant)</option>
+          <option value="Automatic">Automatic (AI selects best realistic traps)</option>
+          <option value="Keyword_Trap">Matching Words Trap (similar words with opposite meaning)</option>
+          <option value="Partial_Match">Incomplete Information (partial answer or missing step)</option>
+          <option value="Extreme_Language">Extreme Words (always, never, only, definitely)</option>
+          <option value="Correlation_vs_Causation">Assuming Cause from Link (correlation vs causation)</option>
+          <option value="Scope_Shift">Out-of-Scope Conclusion (drawing conclusions beyond facts)</option>
+          <option value="Half_Truth">True Fact but Irrelevant (distractor doesn't answer question)</option>
         </select>
       </div>
 
-      {/* Advanced Directives & Visuals Accordion */}
+      {/* Optional Directives & Diagrams Accordion */}
       <div>
         <button
           type="button"
@@ -937,7 +937,7 @@ export default function GeneratorPanel({
         >
           <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <SlidersHorizontal size={13} color="var(--brand-primary)" />
-            <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Advanced Directives &amp; Visuals</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Optional Directives &amp; Diagrams</span>
           </span>
           {showAdvanced ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
@@ -986,10 +986,10 @@ export default function GeneratorPanel({
             >
               <div>
                 <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Visual Stimulus
+                  Include Diagram / Chart
                 </div>
                 <div style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>
-                  Include SVG diagram / graph
+                  Add visual illustration with question
                 </div>
               </div>
 
@@ -1034,13 +1034,13 @@ export default function GeneratorPanel({
             {/* Custom Instructions Textarea */}
             <div>
               <label style={{ display: 'block', fontSize: '0.725rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                Custom Clinical Directives
+                Custom Instructions / Topic Focus
               </label>
               <textarea
                 id="input-custom-prompt"
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
-                placeholder="e.g. Focus on cardiology drug dosages or GMC Good Medical Practice..."
+                placeholder="e.g. Focus on medical ethics, data interpretation, or emergency situations..."
                 rows={2}
                 style={{ width: '100%', fontSize: '0.775rem', resize: 'vertical' }}
               />
@@ -1061,7 +1061,7 @@ export default function GeneratorPanel({
           <Sparkles size={15} />
           <span>
             {isGenerating
-              ? (totalQuestions > 1 ? `Generating Batch (${totalQuestions})...` : 'Generating Question...')
+              ? (totalQuestions > 1 ? `Creating ${totalQuestions} Questions...` : 'Creating Question...')
               : (totalQuestions > 1 ? `Generate ${totalQuestions} Questions` : 'Generate Question')}
           </span>
           {!isGenerating && (

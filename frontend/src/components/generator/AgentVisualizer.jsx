@@ -74,10 +74,10 @@ export default function AgentVisualizer({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <CheckCircle2 size={16} color="var(--status-success)" />
           <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-            {batchProgress && batchProgress.total > 1 ? `Batch Verification Passed (${batchProgress.total} Questions Staged)` : 'Psychometric Verification Passed'}
+            {batchProgress && batchProgress.total > 1 ? `All Questions Ready (${batchProgress.total} Questions Generated)` : 'Quality Check Passed'}
           </span>
           <span className="badge badge-emerald" style={{ fontSize: '0.7rem' }}>
-            {latestReview?.total_score || 95}/100
+            {latestReview?.total_score || 95}/100 Quality
           </span>
         </div>
 
@@ -103,7 +103,7 @@ export default function AgentVisualizer({
             }}
           >
             <Terminal size={12} />
-            {showTelemetry ? 'Hide Telemetry' : 'Telemetry'}
+            {showTelemetry ? 'Hide Details' : 'Details'}
           </button>
         </div>
 
@@ -136,10 +136,10 @@ export default function AgentVisualizer({
 
   // When Generating: Precision Horizontal Step Stepper
   const steps = [
-    { label: 'Drafting', active: isGeneratorActive, done: hasGenerated, icon: PenTool },
-    { label: 'Audit', active: isReviewerActive, done: hasReviewed, icon: ShieldCheck },
-    { label: 'Calibrate', active: isRegeneratorActive || (iterationCount > 1), done: false, icon: RotateCcw },
-    { label: 'Stimulus', active: isImageActive, done: false, icon: Sparkles }
+    { label: 'Writing', active: isGeneratorActive, done: hasGenerated, icon: PenTool },
+    { label: 'Quality Check', active: isReviewerActive, done: hasReviewed, icon: ShieldCheck },
+    { label: 'Fine-Tuning', active: isRegeneratorActive || (iterationCount > 1), done: false, icon: RotateCcw },
+    { label: 'Illustration', active: isImageActive, done: false, icon: Sparkles }
   ];
 
   return (
@@ -164,10 +164,10 @@ export default function AgentVisualizer({
             }}
           />
           <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-            Multi-Agent Swarm Active
+            AI Creating Your Questions...
           </span>
           <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
-            ({activeAgent || 'Orchestrating'}...)
+            ({activeAgent === 'Question Generator' ? 'Drafting scenario & options' : activeAgent === 'Question Reviewer' ? 'Verifying quality & answers' : activeAgent === 'Question Re-Generator' ? 'Fine-tuning question' : 'Generating'}...)
           </span>
         </div>
 
@@ -186,7 +186,7 @@ export default function AgentVisualizer({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '6px 8px', background: 'var(--bg-surface-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.725rem' }}>
             <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-              Batch Progress: Question {batchProgress.current || 1} of {batchProgress.total}
+              Progress: Question {batchProgress.current || 1} of {batchProgress.total}
             </span>
             <span style={{ color: 'var(--brand-primary)', fontWeight: 700 }}>
               {Math.min(100, Math.round(((Math.max(0, (batchProgress.current || 1) - 1)) / batchProgress.total) * 100))}%

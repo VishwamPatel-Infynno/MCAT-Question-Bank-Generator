@@ -156,15 +156,15 @@ export default function App() {
       setIsQuestionSaved(true);
       showToast({
         type: 'success',
-        title: 'Question Approved & Saved',
-        message: 'Psychometrically verified item is now stored in PostgreSQL Question Bank.'
+        title: 'Question Saved',
+        message: 'Question has been saved into your Question Bank.'
       });
     } catch (err) {
       console.error('Failed to approve and save question:', err);
       showToast({
         type: 'error',
         title: 'Save Failed',
-        message: 'Could not connect to database to persist question.'
+        message: 'Could not connect to database to save question.'
       });
     }
   }, [showToast]);
@@ -174,15 +174,15 @@ export default function App() {
       await batchApproveQuestions(questionsToSave);
       showToast({
         type: 'success',
-        title: 'Batch Items Saved',
-        message: `${questionsToSave.length} question(s) successfully committed to PostgreSQL Question Bank.`
+        title: 'Questions Saved',
+        message: `${questionsToSave.length} question(s) saved to your Question Bank.`
       });
     } catch (err) {
       console.error('Failed to batch save questions:', err);
       showToast({
         type: 'error',
-        title: 'Batch Save Failed',
-        message: 'Could not connect to database to persist questions.'
+        title: 'Save Failed',
+        message: 'Could not connect to database to save questions.'
       });
       throw err;
     }
@@ -193,8 +193,8 @@ export default function App() {
     setIsQuestionSaved(false);
     showToast({
       type: 'info',
-      title: 'Candidate Discarded',
-      message: 'Candidate question was discarded from studio view.'
+      title: 'Question Discarded',
+      message: 'Question was removed.'
     });
   }, [setActiveQuestion, showToast]);
 
@@ -204,8 +204,8 @@ export default function App() {
     setIsQuestionSaved(false);
     showToast({
       type: 'info',
-      title: 'Batch Discarded',
-      message: 'Generated candidate batch was discarded.'
+      title: 'Questions Discarded',
+      message: 'All generated questions were removed.'
     });
   }, [setStagedQuestions, setActiveQuestion, showToast]);
 
@@ -213,8 +213,8 @@ export default function App() {
     setStagedQuestions(prev => prev.filter(q => q.id !== qId));
     showToast({
       type: 'info',
-      title: 'Candidate Discarded',
-      message: 'Question removed from staged batch.'
+      title: 'Question Removed',
+      message: 'Question removed from batch.'
     });
   }, [setStagedQuestions, showToast]);
 
@@ -326,9 +326,12 @@ export default function App() {
                   rejectionData={rejectedData}
                   onRetry={handleGenerate}
                 />
-              ) : stagedQuestions.length > 1 ? (
+              ) : (totalQuestions > 1 || stagedQuestions.length > 1 || (isGenerating && (batchProgress?.total > 1 || totalQuestions > 1))) ? (
                 <StagedBatchReview
                   stagedQuestions={stagedQuestions}
+                  targetTotal={totalQuestions}
+                  isGenerating={isGenerating}
+                  batchProgress={batchProgress}
                   onApproveSelected={handleBatchApprove}
                   onApproveAll={handleBatchApprove}
                   onDiscardQuestion={handleDiscardQuestionInBatch}
