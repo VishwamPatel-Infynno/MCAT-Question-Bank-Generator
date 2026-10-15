@@ -96,22 +96,23 @@ export default function StudioBlueprint({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Live Generation Blueprint Card */}
-      <div className="blueprint-card" style={{ padding: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
+      <div className="blueprint-card" style={{ padding: '20px 24px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px', marginBottom: '16px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span className="badge badge-indigo" style={{ fontSize: '0.675rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                 Generation Blueprint
               </span>
-              <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
-                Live Studio Mirror
+              <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>•</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                Targeting 90+ Score Gate
               </span>
             </div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
               Ready to Create {totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'}
             </h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px', margin: 0 }}>
-              AI agents are calibrated to generate your questions according to the blueprint below.
+            <p style={{ fontSize: '0.775rem', color: 'var(--text-secondary)', marginTop: '2px', margin: 0 }}>
+              Autonomous agents will collaborate to draft, audit, and calibrate your question set.
             </p>
           </div>
 
@@ -121,16 +122,16 @@ export default function StudioBlueprint({
             onClick={onGenerate}
             className="btn-primary"
             style={{
-              padding: '9px 18px',
-              fontSize: '0.825rem',
-              fontWeight: 700,
+              padding: '8px 16px',
+              fontSize: '0.8rem',
+              fontWeight: 600,
               gap: '6px',
-              boxShadow: 'var(--infynno-glow)'
+              borderRadius: 'var(--radius-xs)'
             }}
           >
-            <Sparkles size={15} />
+            <Sparkles size={14} />
             <span>Generate Now</span>
-            <span className="kbd-hint" style={{ background: 'rgba(255,255,255,0.2)', color: '#ffffff', border: 'none' }}>
+            <span className="kbd-hint" style={{ background: 'rgba(255,255,255,0.2)', color: '#ffffff', border: 'none', padding: '1px 4px' }}>
               ⌘↵
             </span>
           </button>
@@ -140,21 +141,21 @@ export default function StudioBlueprint({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '12px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '10px',
             background: 'var(--bg-surface-subtle)',
-            padding: '16px',
-            borderRadius: 'var(--radius-md)',
+            padding: '14px',
+            borderRadius: 'var(--radius-xs)',
             border: '1px solid var(--border-light)'
           }}
         >
           {/* Subtest & Pacing */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
             <div
               style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: 'var(--radius-sm)',
+                width: '28px',
+                height: '28px',
+                borderRadius: 'var(--radius-xs)',
                 background: 'var(--brand-light)',
                 color: 'var(--brand-primary)',
                 display: 'flex',
@@ -163,28 +164,28 @@ export default function StudioBlueprint({
                 flexShrink: 0
               }}
             >
-              <SectionIcon size={16} />
+              <SectionIcon size={14} />
             </div>
             <div>
-              <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Target Subtest
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Subtest
               </span>
-              <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                 {currentSectionObj.label}
               </div>
-              <span style={{ fontSize: '0.7rem', color: 'var(--brand-primary)' }}>
-                {pacing.target || '~28s / question'} • {difficulty.toUpperCase()}
+              <span style={{ fontSize: '0.675rem', color: 'var(--brand-primary)' }}>
+                {pacing.target || '~28s / Q'} • {difficulty.toUpperCase()}
               </span>
             </div>
           </div>
 
           {/* Question Mix */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
             <div
               style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: 'var(--radius-sm)',
+                width: '28px',
+                height: '28px',
+                borderRadius: 'var(--radius-xs)',
                 background: 'var(--status-purple-bg)',
                 color: 'var(--status-purple)',
                 display: 'flex',
@@ -193,28 +194,28 @@ export default function StudioBlueprint({
                 flexShrink: 0
               }}
             >
-              <ListChecks size={16} />
+              <ListChecks size={14} />
             </div>
             <div>
-              <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Answer Formats
               </span>
-              <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                 {singleChoiceCount} Single • {multiChoiceCount} Multi
               </div>
-              <span style={{ fontSize: '0.7rem', color: multiChoiceCount > 0 ? 'var(--status-purple)' : 'var(--text-muted)' }}>
-                {multiChoiceCount > 0 ? 'Multiple answers supported' : 'Single correct choice'}
+              <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>
+                {multiChoiceCount > 0 ? 'Multiple answers' : 'Single correct choice'}
               </span>
             </div>
           </div>
 
           {/* Stimulus Length */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
             <div
               style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: 'var(--radius-sm)',
+                width: '28px',
+                height: '28px',
+                borderRadius: 'var(--radius-xs)',
                 background: 'var(--brand-light)',
                 color: 'var(--brand-primary)',
                 display: 'flex',
@@ -223,28 +224,28 @@ export default function StudioBlueprint({
                 flexShrink: 0
               }}
             >
-              <BookOpen size={16} />
+              <BookOpen size={14} />
             </div>
             <div>
-              <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Passage Setup
               </span>
-              <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                 {passageCount} Reading Passage{passageCount !== 1 ? 's' : ''}
               </div>
-              <span style={{ fontSize: '0.7rem', color: passageCount > 0 ? 'var(--brand-primary)' : 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>
                 {totalQuestions - passageCount} short scenario{totalQuestions - passageCount !== 1 ? 's' : ''}
               </span>
             </div>
           </div>
 
           {/* Trap & Quality */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
             <div
               style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: 'var(--radius-sm)',
+                width: '28px',
+                height: '28px',
+                borderRadius: 'var(--radius-xs)',
                 background: 'var(--status-success-bg)',
                 color: 'var(--status-success)',
                 display: 'flex',
@@ -253,17 +254,17 @@ export default function StudioBlueprint({
                 flexShrink: 0
               }}
             >
-              <Target size={16} />
+              <Target size={14} />
             </div>
             <div>
-              <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Trap &amp; Rigor
               </span>
-              <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                 {primaryTrap ? primaryTrap.replace(/_/g, ' ') : 'Balanced Traps'}
               </div>
-              <span style={{ fontSize: '0.7rem', color: 'var(--status-success)' }}>
-                ✓ Guaranteed 90+ Score
+              <span style={{ fontSize: '0.675rem', color: 'var(--status-success)' }}>
+                Score Gate 90+
               </span>
             </div>
           </div>

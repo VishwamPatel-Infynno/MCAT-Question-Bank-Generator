@@ -5,11 +5,8 @@ import {
   RotateCcw,
   PenTool,
   CheckCircle2,
-  Cpu,
-  Terminal,
-  Activity
+  Terminal
 } from 'lucide-react';
-import InfynnoLogo from '../common/InfynnoLogo';
 
 export default function MultiAgentPipelineVisualizer({
   activeAgent = null,
@@ -53,10 +50,7 @@ export default function MultiAgentPipelineVisualizer({
       stepNum: '01',
       title: 'Question Generator',
       subtitle: 'Drafting Specialist',
-      engine: 'Infynno Cognitive Reasoning Core',
-      engineTag: 'Cognitive Core',
-      role: 'Synthesizes clinical stimuli, authentic question stems, and subtle distractor options.',
-      guarantee: 'Sub-30s Latency',
+      guarantee: 'Authentic Stem & Distractors',
       icon: PenTool,
       accentColor: 'var(--brand-primary)',
       isActive: isGenActive,
@@ -66,11 +60,8 @@ export default function MultiAgentPipelineVisualizer({
       id: 'reviewer',
       stepNum: '02',
       title: 'Psychometric Auditor',
-      subtitle: 'Quality & Rigor Reviewer',
-      engine: 'Infynno Psychometric Scoring Engine',
-      engineTag: 'Auditor AI',
-      role: 'Audits authenticity, clarity, distractor plausibility, and mathematical working steps.',
-      guarantee: latestReview?.total_score ? `Verified ${latestReview.total_score}/100 Quality` : 'Strict 90+ Score Gate',
+      subtitle: 'Quality Reviewer',
+      guarantee: latestReview?.total_score ? `${latestReview.total_score}/100 Quality Score` : 'Strict 90+ Score Gate',
       icon: ShieldCheck,
       accentColor: 'var(--status-success)',
       isActive: isRevActive,
@@ -80,11 +71,8 @@ export default function MultiAgentPipelineVisualizer({
       id: 'regenerator',
       stepNum: '03',
       title: 'Remediation Engine',
-      subtitle: 'Self-Correction Agent',
-      engine: 'Autonomous Remediation Engine',
-      engineTag: 'Self-Correction',
-      role: 'Automatically refines draft if score ≤ 90; eliminates loopholes and rebalances traps.',
-      guarantee: 'Autonomous Self-Correction',
+      subtitle: 'Self-Correction',
+      guarantee: 'Autonomous Remediation',
       icon: RotateCcw,
       accentColor: 'var(--status-warning)',
       isActive: isRegenActive,
@@ -93,12 +81,9 @@ export default function MultiAgentPipelineVisualizer({
     {
       id: 'image',
       stepNum: '04',
-      title: 'Stimulus & Diagram Artist',
+      title: 'Stimulus & Diagram',
       subtitle: 'Visual Generator',
-      engine: 'Infynno Visual & Vector Engine',
-      engineTag: 'Visual Synthesis',
-      role: 'Generates geometric figures, abstract shapes, and crisp medical charts.',
-      guarantee: 'Vector & 1024px High-Res',
+      guarantee: 'High-Res Charts & Shapes',
       icon: Sparkles,
       accentColor: 'var(--status-purple)',
       isActive: isImgActive,
@@ -107,25 +92,7 @@ export default function MultiAgentPipelineVisualizer({
   ];
 
   return (
-    <div
-      className="glass-panel agent-pipeline-hub"
-      style={{
-        padding: '22px',
-        position: 'relative',
-        overflow: 'hidden'
-      }}
-    >
-      {/* Background Decorative Grid Lines */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0, left: 0, right: 0, bottom: 0,
-          backgroundImage: 'radial-gradient(ellipse 60% 40% at 50% 20%, rgba(56, 189, 248, 0.08), transparent 70%)',
-          pointerEvents: 'none'
-        }}
-        aria-hidden="true"
-      />
-
+    <div className="pipeline-stepper-container">
       {/* Header Bar */}
       <div
         style={{
@@ -133,94 +100,68 @@ export default function MultiAgentPipelineVisualizer({
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '12px',
-          marginBottom: '20px',
-          position: 'relative',
-          zIndex: 2
+          gap: '12px'
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span
-              className="badge"
               style={{
-                background: 'var(--infynno-gradient)',
-                color: '#ffffff',
-                border: 'none',
-                gap: '5px',
                 fontSize: '0.675rem',
                 fontWeight: 700,
-                letterSpacing: '0.5px'
-              }}
-            >
-              <InfynnoLogo width={14} height={9} />
-              <span>INFYNNO MULTI-AGENT SWARM</span>
-            </span>
-
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                fontSize: '0.725rem',
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
                 color: 'var(--text-muted)'
               }}
             >
-              <Cpu size={12} color="var(--brand-primary)" />
-              Proprietary Cyclic State Machine
+              Pipeline Architecture
+            </span>
+            <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>•</span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+              4 Specialized Autonomous Agents
             </span>
           </div>
-
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-            {isGenerating ? 'Multi-Agent Pipeline Executing...' : 'Live 4-Agent Cognitive Architecture'}
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', margin: '2px 0 0' }}>
+            {isGenerating ? 'Pipeline Executing...' : 'Psychometric Synthesis & Verification'}
           </h3>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px', margin: 0 }}>
-            {isGenerating
-              ? `Autonomous agents are actively collaborating to reach a 90+ psychometric score.`
-              : 'Every question is autonomously drafted, audited, calibrated, and illustrated by 4 specialized AI agents.'}
-          </p>
         </div>
 
-        {/* Live Status or Mode Indicator */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Status / Stopwatch Indicator */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {isGenerating ? (
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '6px 12px',
-                borderRadius: 'var(--radius-full)',
+                gap: '6px',
+                padding: '4px 10px',
+                borderRadius: 'var(--radius-xs)',
                 background: 'var(--brand-light)',
                 border: '1px solid var(--border-brand)',
                 color: 'var(--brand-primary)',
-                fontSize: '0.75rem',
-                fontWeight: 700
+                fontSize: '0.725rem',
+                fontWeight: 600
               }}
             >
               <span className="agent-pulse-dot" />
               <span>{elapsedTime}s</span>
               <span>•</span>
-              <span>Iteration {iterationCount}</span>
+              <span>Pass {iterationCount}</span>
             </div>
           ) : (
-            <div
+            <span
               style={{
+                fontSize: '0.7rem',
+                color: 'var(--status-success)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                padding: '5px 10px',
-                borderRadius: 'var(--radius-full)',
-                background: 'var(--bg-surface-elevated)',
-                border: '1px solid var(--border-light)',
-                color: 'var(--status-success)',
-                fontSize: '0.725rem',
-                fontWeight: 600
+                gap: '5px',
+                fontWeight: 500
               }}
             >
-              <Activity size={12} />
-              <span>Live Neural Pipeline Active</span>
-            </div>
+              <CheckCircle2 size={12} />
+              <span>Calibrated for 90+ Score Gate</span>
+            </span>
           )}
 
           {events.length > 0 && (
@@ -228,246 +169,101 @@ export default function MultiAgentPipelineVisualizer({
               type="button"
               onClick={() => setShowLogs(!showLogs)}
               className="btn-secondary"
-              style={{ padding: '5px 10px', fontSize: '0.725rem', gap: '4px' }}
+              style={{ padding: '4px 8px', fontSize: '0.7rem', borderRadius: 'var(--radius-xs)', gap: '4px' }}
             >
-              <Terminal size={12} />
-              <span>{showLogs ? 'Hide Logs' : 'Agent Logs'}</span>
+              <Terminal size={11} />
+              <span>{showLogs ? 'Hide Logs' : 'Logs'}</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* 4-Agent Interactive Grid & Conduits */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '14px',
-          position: 'relative',
-          zIndex: 2
-        }}
-      >
+      {/* 4-Agent Stepper Grid */}
+      <div className="pipeline-stepper">
         {agents.map((agent) => {
           const Icon = agent.icon;
           const isCurrentlyActive = isGenerating && agent.isActive;
-          const isFinished = !isCurrentlyActive && (agent.isDone || (!isGenerating && agent.id !== 'regenerator'));
+          const isFinished = agent.isDone || (!isGenerating && events.length > 0 && !agent.isActive);
+
+          let nodeClass = 'pipeline-step-node';
+          if (isCurrentlyActive) nodeClass += ' active';
+          else if (isFinished) nodeClass += ' completed';
 
           return (
             <div
               key={agent.id}
-              className={`agent-node-card ${isCurrentlyActive ? 'agent-node-active' : ''}`}
+              className={nodeClass}
               style={{
-                borderTop: isCurrentlyActive ? '2px solid var(--brand-primary)' : `2px solid ${agent.accentColor}`
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: '6px',
+                padding: '10px 12px'
               }}
             >
-              {/* Card Header: Step & Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: 'var(--radius-sm)',
-                      background: isCurrentlyActive
-                        ? 'var(--brand-light)'
-                        : 'var(--bg-surface-subtle)',
-                      color: isCurrentlyActive ? 'var(--brand-primary)' : agent.accentColor,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <Icon size={15} />
-                  </div>
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      color: 'var(--text-muted)'
-                    }}
-                  >
-                    AGENT {agent.stepNum}
+                  <Icon size={13} color={isCurrentlyActive ? 'var(--brand-primary)' : 'var(--text-muted)'} />
+                  <span style={{ fontSize: '0.675rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                    {agent.stepNum}
                   </span>
                 </div>
-
-                <span
-                  className="badge"
-                  style={{
-                    fontSize: '0.625rem',
-                    background: isCurrentlyActive ? 'var(--brand-light)' : 'var(--bg-surface-subtle)',
-                    color: isCurrentlyActive ? 'var(--brand-primary)' : 'var(--text-muted)',
-                    border: '1px solid var(--border-light)'
-                  }}
-                >
-                  {agent.engineTag}
-                </span>
+                {isCurrentlyActive && <span className="agent-pulse-dot" />}
+                {isFinished && <CheckCircle2 size={12} color="var(--status-success)" />}
               </div>
 
-              {/* Title & Role */}
               <div>
-                <h4 style={{ fontSize: '0.875rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+                <div style={{ fontSize: '0.775rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                   {agent.title}
-                </h4>
-                <div style={{ fontSize: '0.7rem', color: agent.accentColor, fontWeight: 600, marginTop: '2px' }}>
+                </div>
+                <div style={{ fontSize: '0.675rem', color: 'var(--text-muted)', marginTop: '1px' }}>
                   {agent.subtitle}
                 </div>
-                <p style={{ fontSize: '0.725rem', color: 'var(--text-secondary)', margin: '6px 0 0', lineHeight: 1.45 }}>
-                  {agent.role}
-                </p>
               </div>
 
-              {/* Technical Model Spec */}
               <div
                 style={{
-                  background: 'var(--bg-surface-subtle)',
-                  padding: '6px 8px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border-light)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  fontSize: '0.675rem',
-                  marginTop: 'auto'
+                  fontSize: '0.65rem',
+                  color: isCurrentlyActive ? 'var(--brand-primary)' : 'var(--text-secondary)',
+                  marginTop: 'auto',
+                  paddingTop: '4px'
                 }}
               >
-                <span style={{ color: 'var(--text-muted)' }}>Engine:</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {agent.engine}
-                </span>
-              </div>
-
-              {/* Status / Guarantee Pill */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  fontSize: '0.7rem',
-                  paddingTop: '6px',
-                  borderTop: '1px solid var(--border-light)'
-                }}
-              >
-                <span style={{ color: 'var(--text-muted)' }}>Standard:</span>
-                <span
-                  style={{
-                    fontWeight: 700,
-                    color: isCurrentlyActive
-                      ? 'var(--brand-primary)'
-                      : isFinished
-                      ? 'var(--status-success)'
-                      : 'var(--text-secondary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  {isCurrentlyActive ? (
-                    <>
-                      <span className="agent-pulse-dot" />
-                      <span>Processing...</span>
-                    </>
-                  ) : isFinished ? (
-                    <>
-                      <CheckCircle2 size={12} color="var(--status-success)" />
-                      <span>{agent.guarantee}</span>
-                    </>
-                  ) : (
-                    <span>{agent.guarantee}</span>
-                  )}
-                </span>
+                {isCurrentlyActive ? 'Processing...' : agent.guarantee}
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Animated Electric Pipeline SVG Connector */}
-      <div
-        style={{
-          marginTop: '16px',
-          padding: '12px 16px',
-          background: 'var(--bg-surface-subtle)',
-          borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--border-light)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.725rem' }}>
-          <span style={{ color: 'var(--text-muted)' }}>Continuous Dataflow:</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>01 Draft</span>
-            <span style={{ color: 'var(--text-muted)' }}>→</span>
-            <span style={{ fontWeight: 700, color: 'var(--status-success)' }}>02 Audit (90+)</span>
-            <span style={{ color: 'var(--text-muted)' }}>⇄</span>
-            <span style={{ fontWeight: 700, color: 'var(--status-warning)' }}>03 Self-Correct</span>
-            <span style={{ color: 'var(--text-muted)' }}>→</span>
-            <span style={{ fontWeight: 700, color: 'var(--status-purple)' }}>04 Stimulus</span>
-            <span style={{ color: 'var(--text-muted)' }}>→</span>
-            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Approved Question Bank</span>
-          </div>
-        </div>
-
-        {/* Live Wiring Animation Visual SVG */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <svg width="120" height="12" viewBox="0 0 120 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line
-              x1="0"
-              y1="6"
-              x2="120"
-              y2="6"
-              stroke="var(--brand-primary)"
-              strokeWidth="2"
-              className="agent-conduit-line"
-            />
-          </svg>
-          <span
-            style={{
-              fontSize: '0.675rem',
-              fontFamily: 'var(--font-mono)',
-              color: 'var(--brand-primary)',
-              fontWeight: 700,
-              letterSpacing: '0.5px'
-            }}
-          >
-            PULSE SYNCHRONIZED
-          </span>
-        </div>
-      </div>
-
-      {/* Collapsible Agent Event Logs Tray */}
+      {/* Collapsible Event Log Tray */}
       {showLogs && events.length > 0 && (
         <div
           style={{
-            marginTop: '12px',
-            padding: '12px',
-            background: 'var(--bg-app)',
-            borderRadius: 'var(--radius-sm)',
+            marginTop: '8px',
+            padding: '10px 12px',
+            background: 'var(--bg-surface-subtle)',
+            borderRadius: 'var(--radius-xs)',
             border: '1px solid var(--border-light)',
             fontFamily: 'var(--font-mono)',
             fontSize: '0.7rem',
-            maxHeight: '160px',
+            maxHeight: '140px',
             overflowY: 'auto'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', color: 'var(--text-muted)' }}>
-            <span>Live Agent Event Log Stream ({events.length} events)</span>
-            <span>Agent Swarm Telemetry</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', color: 'var(--text-muted)', fontSize: '0.65rem' }}>
+            <span>Live Agent Event Stream ({events.length} events)</span>
           </div>
           {events.map((ev, i) => (
             <div
               key={i}
               style={{
                 color: ev.event_type === 'error' ? 'var(--status-danger)' : 'var(--text-secondary)',
-                marginBottom: '4px',
+                marginBottom: '3px',
                 lineHeight: 1.4
               }}
             >
-              <span style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>[{ev.agent_name || 'Swarm'}]</span>{' '}
+              <span style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>[{ev.agent_name || 'Pipeline'}]</span>{' '}
               {ev.message}
             </div>
           ))}

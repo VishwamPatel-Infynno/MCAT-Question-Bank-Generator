@@ -16,12 +16,13 @@ export default function Navbar({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '12px 24px',
+        padding: '8px 24px',
         borderBottom: '1px solid var(--border-light)',
         background: 'var(--bg-surface)',
         position: 'sticky',
         top: 0,
-        zIndex: 50
+        zIndex: 50,
+        backdropFilter: 'blur(12px)'
       }}
     >
       {/* Brand & Subtitle */}
@@ -38,18 +39,18 @@ export default function Navbar({
             gap: '8px',
             textDecoration: 'none',
             padding: '4px 8px',
-            borderRadius: 'var(--radius-md)',
-            background: 'var(--bg-surface-elevated)',
+            borderRadius: 'var(--radius-sm)',
+            background: 'var(--bg-surface-subtle)',
             border: '1px solid var(--border-light)',
             transition: 'all var(--transition-fast)'
           }}
         >
-          <InfynnoLogo width={30} height={19} />
+          <InfynnoLogo width={28} height={18} />
           <span
             style={{
               fontWeight: 800,
-              fontSize: '0.75rem',
-              letterSpacing: '0.04em',
+              fontSize: '0.725rem',
+              letterSpacing: '0.05em',
               color: 'var(--text-primary)'
             }}
           >
@@ -57,49 +58,54 @@ export default function Navbar({
           </span>
         </a>
 
-        {/* Vertical Divider */}
+        {/* Hairline Divider */}
         <div
           style={{
             width: '1px',
-            height: '24px',
-            background: 'var(--border-medium)'
+            height: '20px',
+            background: 'var(--border-light)'
           }}
           aria-hidden="true"
         />
 
         {/* Product Identity */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1
-              style={{
-                fontSize: '0.975rem',
-                fontWeight: 700,
-                letterSpacing: '-0.02em',
-                color: 'var(--text-primary)',
-                margin: 0
-              }}
-            >
-              UK UCAT Question Studio
-            </h1>
-            <span className="badge badge-neutral" style={{ fontSize: '0.625rem' }}>
-              v2.0
-            </span>
-          </div>
-          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>
-            An Infynno Solutions Product • <span className="infynno-text-gradient" style={{ fontWeight: 600 }}>Infinite Innovations</span>
-          </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h1
+            style={{
+              fontSize: '0.9rem',
+              fontWeight: 700,
+              letterSpacing: '-0.01em',
+              color: 'var(--text-primary)',
+              margin: 0
+            }}
+          >
+            UK UCAT Question Studio
+          </h1>
+          <span
+            style={{
+              fontSize: '0.625rem',
+              fontWeight: 600,
+              color: 'var(--text-muted)',
+              background: 'var(--bg-surface-subtle)',
+              border: '1px solid var(--border-light)',
+              padding: '1px 6px',
+              borderRadius: 'var(--radius-xs)'
+            }}
+          >
+            v2.0
+          </span>
         </div>
       </div>
 
-      {/* Center Nav Tabs */}
+      {/* Center Nav Tabs (Quiet Segmented Switcher) */}
       <nav
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: '2px',
-          padding: '3px',
-          background: 'var(--bg-surface-elevated)',
-          borderRadius: 'var(--radius-md)',
+          padding: '2px',
+          background: 'var(--bg-surface-subtle)',
+          borderRadius: 'var(--radius-sm)',
           border: '1px solid var(--border-light)'
         }}
       >
@@ -109,20 +115,21 @@ export default function Navbar({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '7px',
-            padding: '6px 14px',
-            borderRadius: 'var(--radius-sm)',
-            background: activeTab === 'generator' ? 'var(--brand-primary)' : 'transparent',
-            border: 'none',
-            color: activeTab === 'generator' ? '#ffffff' : 'var(--text-secondary)',
-            fontWeight: 600,
-            fontSize: '0.825rem',
+            gap: '6px',
+            padding: '5px 14px',
+            borderRadius: 'var(--radius-xs)',
+            background: activeTab === 'generator' ? 'var(--bg-surface-elevated)' : 'transparent',
+            border: activeTab === 'generator' ? '1px solid var(--border-medium)' : '1px solid transparent',
+            color: activeTab === 'generator' ? 'var(--text-primary)' : 'var(--text-secondary)',
+            fontWeight: activeTab === 'generator' ? 600 : 500,
+            fontSize: '0.8rem',
             cursor: 'pointer',
+            boxShadow: activeTab === 'generator' ? 'var(--shadow-sm)' : 'none',
             transition: 'all var(--transition-fast)'
           }}
         >
-          <Sparkles size={14} />
-          Generator Studio
+          <Sparkles size={13} color={activeTab === 'generator' ? 'var(--brand-primary)' : 'currentColor'} />
+          <span>Generator Studio</span>
         </button>
 
         <button
@@ -131,20 +138,21 @@ export default function Navbar({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '7px',
-            padding: '6px 14px',
-            borderRadius: 'var(--radius-sm)',
-            background: activeTab === 'bank' ? 'var(--brand-primary)' : 'transparent',
-            border: 'none',
-            color: activeTab === 'bank' ? '#ffffff' : 'var(--text-secondary)',
-            fontWeight: 600,
-            fontSize: '0.825rem',
+            gap: '6px',
+            padding: '5px 14px',
+            borderRadius: 'var(--radius-xs)',
+            background: activeTab === 'bank' ? 'var(--bg-surface-elevated)' : 'transparent',
+            border: activeTab === 'bank' ? '1px solid var(--border-medium)' : '1px solid transparent',
+            color: activeTab === 'bank' ? 'var(--text-primary)' : 'var(--text-secondary)',
+            fontWeight: activeTab === 'bank' ? 600 : 500,
+            fontSize: '0.8rem',
             cursor: 'pointer',
+            boxShadow: activeTab === 'bank' ? 'var(--shadow-sm)' : 'none',
             transition: 'all var(--transition-fast)'
           }}
         >
-          <Database size={14} />
-          Question Bank
+          <Database size={13} color={activeTab === 'bank' ? 'var(--brand-primary)' : 'currentColor'} />
+          <span>Question Bank</span>
         </button>
       </nav>
 
@@ -158,9 +166,10 @@ export default function Navbar({
           className="infynno-pill-link"
           id="btn-nav-infynno"
           title="Visit Infynno Solutions (infynno.com)"
+          style={{ padding: '4px 10px', fontSize: '0.725rem' }}
         >
           <span>Visit Infynno</span>
-          <ExternalLink size={12} />
+          <ExternalLink size={11} />
         </a>
 
         {/* Backend Status Indicator */}
@@ -169,15 +178,15 @@ export default function Navbar({
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '5px 10px',
-            background: 'var(--bg-surface-elevated)',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '0.725rem',
-            fontWeight: 600,
+            padding: '4px 8px',
+            background: 'var(--bg-surface-subtle)',
+            borderRadius: 'var(--radius-xs)',
+            fontSize: '0.7rem',
+            fontWeight: 500,
             border: '1px solid var(--border-light)'
           }}
         >
-          <div
+          <span
             style={{
               width: '6px',
               height: '6px',
@@ -195,11 +204,11 @@ export default function Navbar({
           id="btn-toggle-theme"
           onClick={onToggleTheme}
           className="btn-secondary"
-          style={{ padding: '6px 10px' }}
+          style={{ padding: '5px 8px', fontSize: '0.75rem', borderRadius: 'var(--radius-xs)' }}
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode (Press T)`}
         >
-          {theme === 'dark' ? <Sun size={14} color="#fbbf24" /> : <Moon size={14} color="#0284c7" />}
-          <span className="kbd-hint" style={{ fontSize: '0.6rem', marginLeft: '2px' }}>T</span>
+          {theme === 'dark' ? <Sun size={13} color="#fbbf24" /> : <Moon size={13} color="var(--brand-primary)" />}
+          <span className="kbd-hint" style={{ fontSize: '0.575rem', padding: '1px 3px', marginLeft: '3px' }}>T</span>
         </button>
 
         {/* Settings Button */}
@@ -207,11 +216,11 @@ export default function Navbar({
           id="btn-settings-open"
           onClick={onOpenSettings}
           className="btn-secondary"
-          style={{ padding: '6px 10px' }}
-          title="Configure Models & DeepInfra API Key"
+          style={{ padding: '5px 10px', fontSize: '0.75rem', borderRadius: 'var(--radius-xs)', gap: '5px' }}
+          title="Configure API Keys & Settings"
         >
-          <Settings size={14} />
-          Settings
+          <Settings size={13} />
+          <span>Settings</span>
         </button>
       </div>
     </header>

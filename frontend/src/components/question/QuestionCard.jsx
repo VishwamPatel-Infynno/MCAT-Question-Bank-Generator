@@ -377,38 +377,17 @@ export default function QuestionCard({
             {(question.options || []).map((opt, idx) => {
               const optId = (opt.id || '').trim().toUpperCase();
               const isCorrectKey = correctKeysList.includes(optId);
+              let cardClass = 'choice-option-card';
+              if (isCorrectKey) cardClass += ' is-correct';
+
               return (
                 <div
                   key={opt.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '12px',
-                    padding: '12px 16px',
-                    borderRadius: 'var(--radius-md)',
-                    background: isCorrectKey ? 'var(--status-success-bg)' : 'var(--bg-surface-elevated)',
-                    border: isCorrectKey ? '1px solid var(--status-success)' : '1px solid var(--border-light)',
-                    transition: 'all var(--transition-fast)'
-                  }}
+                  className={cardClass}
                 >
                   {/* Option Letter Indicator */}
-                  <div
-                    style={{
-                      width: '26px',
-                      height: '26px',
-                      borderRadius: isMulti ? 'var(--radius-sm)' : '50%',
-                      background: isCorrectKey ? 'var(--status-success)' : 'var(--bg-surface-subtle)',
-                      color: isCorrectKey ? '#ffffff' : 'var(--text-secondary)',
-                      border: isCorrectKey ? 'none' : '1px solid var(--border-medium)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 700,
-                      fontSize: '0.8rem',
-                      flexShrink: 0
-                    }}
-                  >
-                    {isMulti && isCorrectKey ? <Check size={14} /> : opt.id}
+                  <div className="choice-letter-badge">
+                    {isMulti && isCorrectKey ? <Check size={13} /> : opt.id}
                   </div>
 
                   {/* Option Text */}
@@ -422,7 +401,7 @@ export default function QuestionCard({
                           updated[idx] = { ...updated[idx], text: e.target.value };
                           setEditedOptions(updated);
                         }}
-                        style={{ width: '100%', fontSize: '0.875rem' }}
+                        style={{ width: '100%', fontSize: '0.85rem' }}
                       />
                     ) : (
                       <div
@@ -442,12 +421,12 @@ export default function QuestionCard({
                   {isCorrectKey ? (
                     <span
                       className="badge badge-emerald"
-                      style={{ fontSize: '0.7rem', padding: '3px 8px', flexShrink: 0 }}
+                      style={{ fontSize: '0.675rem', padding: '2px 8px', flexShrink: 0 }}
                     >
-                      <CheckCircle size={12} /> {isMulti ? `Key (${opt.id})` : 'Correct Key'}
+                      <CheckCircle size={11} /> {isMulti ? `Key (${opt.id})` : 'Correct Key'}
                     </span>
                   ) : (
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', flexShrink: 0, marginTop: '3px' }}>
+                    <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)', flexShrink: 0, marginTop: '3px' }}>
                       Distractor
                     </span>
                   )}

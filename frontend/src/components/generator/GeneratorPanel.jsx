@@ -195,78 +195,50 @@ export default function GeneratorPanel({
     );
   }
 
-  // Render Full 3-Stage Progressive Studio Dock
+  // Render Full Unified Studio Dock
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+    <div className="dock-panel">
       {/* Studio Top Header */}
       <div
-        className="glass-panel"
         style={{
-          padding: '12px 16px',
+          padding: '12px 18px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderRadius: 'var(--radius-md)'
+          borderBottom: '1px solid var(--border-light)',
+          background: 'var(--bg-surface-subtle)'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div
-            style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'var(--brand-light)',
-              color: 'var(--brand-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <Compass size={15} />
-          </div>
-          <div>
-            <h2 style={{ fontSize: '0.875rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-              Question Setup Studio
-            </h2>
-            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>
-              3-Stage Guided Workflow
-            </p>
-          </div>
+          <Compass size={14} color="var(--brand-primary)" />
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+            Question Setup
+          </span>
         </div>
 
         {onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
             className="btn-secondary"
-            style={{ padding: '5px 8px', fontSize: '0.75rem', border: 'none' }}
+            style={{ padding: '4px 6px', fontSize: '0.7rem', border: 'none', background: 'transparent' }}
             title="Collapse dock to maximize review space"
           >
-            <PanelLeftClose size={15} />
+            <PanelLeftClose size={14} />
           </button>
         )}
       </div>
 
-      {/* STAGE 1: SUBTEST & TOPIC FOCUS */}
-      <div className="stage-card stage-card-active">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="stage-badge">1</span>
-            <div>
-              <h3 style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                Subtest &amp; Topic Focus
-              </h3>
-              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>
-                Select UCAT section and subcategory
-              </p>
-            </div>
-          </div>
-          <span className="badge badge-indigo" style={{ fontSize: '0.65rem' }}>
+      {/* SECTION 1: SUBTEST & TOPIC FOCUS */}
+      <div className="dock-section">
+        <div className="dock-kicker">
+          <span>01 / Subtest &amp; Topic</span>
+          <span className="badge badge-neutral" style={{ fontSize: '0.625rem', padding: '1px 6px' }}>
             {pacing.target || '~28s / Q'}
           </span>
         </div>
 
         {/* Subtest Selection Grid */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
           {sectionsData.map(sec => {
             const Icon = SECTION_ICONS[sec.id] || FileText;
             const isSelected = selectedSection === sec.id;
@@ -286,11 +258,11 @@ export default function GeneratorPanel({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px',
+                  gap: '9px',
                   padding: '7px 10px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: isSelected ? 'var(--brand-light)' : 'var(--bg-surface-subtle)',
-                  border: isSelected ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
+                  borderRadius: 'var(--radius-xs)',
+                  background: isSelected ? 'var(--brand-light)' : 'transparent',
+                  border: isSelected ? '1px solid var(--border-brand)' : '1px solid transparent',
                   color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
                   cursor: 'pointer',
                   textAlign: 'left',
@@ -300,11 +272,11 @@ export default function GeneratorPanel({
                 <div style={{ color: isSelected ? 'var(--brand-primary)' : 'var(--text-muted)', display: 'flex' }}>
                   <Icon size={14} />
                 </div>
-                <span style={{ fontSize: '0.775rem', fontWeight: isSelected ? 700 : 500, flex: 1 }}>
+                <span style={{ fontSize: '0.775rem', fontWeight: isSelected ? 600 : 400, flex: 1 }}>
                   {sec.label}
                 </span>
                 {isSelected && (
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--brand-primary)' }} />
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--brand-primary)' }} />
                 )}
               </button>
             );
@@ -314,7 +286,7 @@ export default function GeneratorPanel({
         {/* Subtopic Focus Dropdown */}
         {subtopics.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+            <label style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Subtopic Focus
             </label>
             <select
@@ -323,9 +295,9 @@ export default function GeneratorPanel({
               onChange={(e) => setSelectedSubtopic(e.target.value)}
               style={{
                 width: '100%',
-                fontSize: '0.775rem',
+                fontSize: '0.75rem',
                 padding: '6px 8px',
-                borderRadius: 'var(--radius-sm)',
+                borderRadius: 'var(--radius-xs)',
                 background: 'var(--bg-surface-subtle)',
                 border: '1px solid var(--border-light)',
                 color: 'var(--text-primary)',
@@ -341,17 +313,17 @@ export default function GeneratorPanel({
 
         {/* Difficulty Segmented Chips */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-            Exam Rigor / Difficulty
+          <label style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Difficulty Rigor
           </label>
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '4px',
+              gap: '2px',
               background: 'var(--bg-surface-subtle)',
-              padding: '3px',
-              borderRadius: 'var(--radius-sm)',
+              padding: '2px',
+              borderRadius: 'var(--radius-xs)',
               border: '1px solid var(--border-light)'
             }}
           >
@@ -378,11 +350,12 @@ export default function GeneratorPanel({
                     background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
                     color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
                     fontSize: '0.725rem',
-                    fontWeight: isSel ? 700 : 500,
-                    cursor: 'pointer'
+                    fontWeight: isSel ? 600 : 400,
+                    cursor: 'pointer',
+                    boxShadow: isSel ? 'var(--shadow-sm)' : 'none'
                   }}
                 >
-                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: opt.color }} />
+                  <span style={{ width: 4, height: 4, borderRadius: '50%', background: opt.color }} />
                   <span>{opt.label}</span>
                 </button>
               );
@@ -391,24 +364,11 @@ export default function GeneratorPanel({
         </div>
       </div>
 
-      {/* STAGE 2: FORMATS & QUANTITY */}
-      <div className="stage-card">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="stage-badge">2</span>
-            <div>
-              <h3 style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                Formats &amp; Quantity
-              </h3>
-              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>
-                Set questions count and mix
-              </p>
-            </div>
-          </div>
-          <span
-            className={`badge ${totalQuestions > 1 ? 'badge-purple' : 'badge-neutral'}`}
-            style={{ fontSize: '0.65rem' }}
-          >
+      {/* SECTION 2: FORMATS & QUANTITY */}
+      <div className="dock-section">
+        <div className="dock-kicker">
+          <span>02 / Format &amp; Rigor</span>
+          <span className="badge badge-neutral" style={{ fontSize: '0.625rem', padding: '1px 6px' }}>
             {totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'}
           </span>
         </div>
@@ -421,7 +381,7 @@ export default function GeneratorPanel({
               alignItems: 'center',
               background: 'var(--bg-surface-subtle)',
               border: '1px solid var(--border-light)',
-              borderRadius: 'var(--radius-sm)',
+              borderRadius: 'var(--radius-xs)',
               padding: '2px',
               flex: 1
             }}
@@ -432,8 +392,8 @@ export default function GeneratorPanel({
               onClick={() => handleTotalChange(totalQuestions - 1)}
               disabled={totalQuestions <= 1}
               style={{
-                width: '28px',
-                height: '26px',
+                width: '26px',
+                height: '24px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -444,9 +404,9 @@ export default function GeneratorPanel({
               }}
               title="Decrease questions"
             >
-              <Minus size={12} />
+              <Minus size={11} />
             </button>
-            <div style={{ flex: 1, textAlign: 'center', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            <div style={{ flex: 1, textAlign: 'center', fontSize: '0.775rem', fontWeight: 700, color: 'var(--text-primary)' }}>
               {totalQuestions}
             </div>
             <button
@@ -455,8 +415,8 @@ export default function GeneratorPanel({
               onClick={() => handleTotalChange(totalQuestions + 1)}
               disabled={totalQuestions >= 10}
               style={{
-                width: '28px',
-                height: '26px',
+                width: '26px',
+                height: '24px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -467,11 +427,11 @@ export default function GeneratorPanel({
               }}
               title="Increase questions"
             >
-              <Plus size={12} />
+              <Plus size={11} />
             </button>
           </div>
 
-          <div style={{ display: 'flex', gap: '4px' }}>
+          <div style={{ display: 'flex', gap: '3px' }}>
             {[1, 3, 5, 10].map(cnt => (
               <button
                 key={cnt}
@@ -479,10 +439,10 @@ export default function GeneratorPanel({
                 id={`btn-chip-qty-${cnt}`}
                 onClick={() => handleTotalChange(cnt)}
                 style={{
-                  padding: '5px 8px',
+                  padding: '4px 7px',
                   borderRadius: 'var(--radius-xs)',
-                  fontSize: '0.725rem',
-                  fontWeight: totalQuestions === cnt ? 700 : 500,
+                  fontSize: '0.7rem',
+                  fontWeight: totalQuestions === cnt ? 600 : 400,
                   background: totalQuestions === cnt ? 'var(--brand-primary)' : 'var(--bg-surface-subtle)',
                   color: totalQuestions === cnt ? '#ffffff' : 'var(--text-muted)',
                   border: totalQuestions === cnt ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
@@ -500,7 +460,7 @@ export default function GeneratorPanel({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {/* Answer Mode Breakdown */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Answer Type Split
               </span>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -584,7 +544,7 @@ export default function GeneratorPanel({
 
             {/* Stimulus Length Breakdown */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Passage Length Split
               </span>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -645,40 +605,21 @@ export default function GeneratorPanel({
                 </div>
               </div>
             </div>
-
-            {/* Target Breakdown Summary Tag */}
-            <div
-              style={{
-                padding: '6px 8px',
-                background: 'var(--bg-surface-elevated)',
-                borderRadius: 'var(--radius-xs)',
-                fontSize: '0.675rem',
-                color: 'var(--text-muted)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <span>Mix:</span>
-              <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                {singleChoiceCount} Single • {multiChoiceCount} Multi • {passageCount} Reading Passage
-              </span>
-            </div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {/* Answer Type Switch for 1 question */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Answer Type
               </span>
               <div
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: '3px',
+                  gap: '2px',
                   background: 'var(--bg-surface-subtle)',
-                  padding: '3px',
+                  padding: '2px',
                   borderRadius: 'var(--radius-xs)',
                   border: '1px solid var(--border-light)'
                 }}
@@ -701,14 +642,15 @@ export default function GeneratorPanel({
                         }
                       }}
                       style={{
-                        padding: '6px',
+                        padding: '5px',
                         borderRadius: 'var(--radius-xs)',
                         border: 'none',
                         background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
                         color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
                         fontSize: '0.725rem',
-                        fontWeight: isSel ? 700 : 500,
-                        cursor: 'pointer'
+                        fontWeight: isSel ? 600 : 400,
+                        cursor: 'pointer',
+                        boxShadow: isSel ? 'var(--shadow-sm)' : 'none'
                       }}
                     >
                       {opt.label}
@@ -720,23 +662,23 @@ export default function GeneratorPanel({
 
             {/* Passage Length Switch for 1 question */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Passage Length
               </span>
               <div
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: '3px',
+                  gap: '2px',
                   background: 'var(--bg-surface-subtle)',
-                  padding: '3px',
+                  padding: '2px',
                   borderRadius: 'var(--radius-xs)',
                   border: '1px solid var(--border-light)'
                 }}
               >
                 {[
                   { id: 'No', label: 'Short Scenario' },
-                  { id: 'Yes', label: 'Reading Passage (~350w)' }
+                  { id: 'Yes', label: 'Reading Passage' }
                 ].map(opt => {
                   const isSel = passageRequired === opt.id;
                   return (
@@ -749,14 +691,15 @@ export default function GeneratorPanel({
                         if (setPassageCount) setPassageCount(opt.id === 'Yes' ? 1 : 0);
                       }}
                       style={{
-                        padding: '6px',
+                        padding: '5px',
                         borderRadius: 'var(--radius-xs)',
                         border: 'none',
                         background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
                         color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
                         fontSize: '0.725rem',
-                        fontWeight: isSel ? 700 : 500,
-                        cursor: 'pointer'
+                        fontWeight: isSel ? 600 : 400,
+                        cursor: 'pointer',
+                        boxShadow: isSel ? 'var(--shadow-sm)' : 'none'
                       }}
                     >
                       {opt.label}
@@ -769,27 +712,17 @@ export default function GeneratorPanel({
         )}
       </div>
 
-      {/* STAGE 3: TRAPS & CUSTOM FOCUS */}
-      <div className="stage-card">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="stage-badge">3</span>
-            <div>
-              <h3 style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                Traps &amp; Directives
-              </h3>
-              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>
-                Common traps and custom prompt
-              </p>
-            </div>
-          </div>
-          <Target size={14} color="var(--brand-primary)" />
+      {/* SECTION 3: TRAPS & DIRECTIVES */}
+      <div className="dock-section">
+        <div className="dock-kicker">
+          <span>03 / Directives &amp; Traps</span>
+          <Target size={12} color="var(--text-muted)" />
         </div>
 
         {/* Question Trick Selector */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-            Question Trick / Common Trap
+          <label style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Trap / Distractor Mechanism
           </label>
           <select
             id="select-primary-trap"
@@ -799,7 +732,7 @@ export default function GeneratorPanel({
               width: '100%',
               fontSize: '0.75rem',
               padding: '6px 8px',
-              borderRadius: 'var(--radius-sm)',
+              borderRadius: 'var(--radius-xs)',
               background: 'var(--bg-surface-subtle)',
               border: '1px solid var(--border-light)',
               color: 'var(--text-primary)',
@@ -822,13 +755,13 @@ export default function GeneratorPanel({
             type="button"
             className="btn-secondary"
             onClick={() => setShowAdvancedDirectives(!showAdvancedDirectives)}
-            style={{ width: '100%', justifyContent: 'space-between', padding: '6px 10px', fontSize: '0.725rem' }}
+            style={{ width: '100%', justifyContent: 'space-between', padding: '5px 8px', fontSize: '0.725rem', borderRadius: 'var(--radius-xs)' }}
           >
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <SlidersHorizontal size={12} color="var(--brand-primary)" />
-              <span>Optional Diagram &amp; Custom Directives</span>
+              <SlidersHorizontal size={11} color="var(--brand-primary)" />
+              <span>Diagram &amp; Custom Directives</span>
             </span>
-            {showAdvancedDirectives ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+            {showAdvancedDirectives ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
           </button>
 
           {showAdvancedDirectives && (
@@ -837,7 +770,7 @@ export default function GeneratorPanel({
                 marginTop: '8px',
                 padding: '10px',
                 background: 'var(--bg-surface-subtle)',
-                borderRadius: 'var(--radius-sm)',
+                borderRadius: 'var(--radius-xs)',
                 border: '1px solid var(--border-light)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -855,7 +788,7 @@ export default function GeneratorPanel({
                   </div>
                 </div>
 
-                <label style={{ position: 'relative', display: 'inline-block', width: '30px', height: '16px', cursor: 'pointer' }}>
+                <label style={{ position: 'relative', display: 'inline-block', width: '28px', height: '16px', cursor: 'pointer' }}>
                   <input
                     id="toggle-require-image"
                     type="checkbox"
@@ -882,7 +815,7 @@ export default function GeneratorPanel({
                         position: 'absolute',
                         height: '10px',
                         width: '10px',
-                        left: (requireImage || selectedSection === 'abstract_reasoning') ? '15px' : '3px',
+                        left: (requireImage || selectedSection === 'abstract_reasoning') ? '14px' : '2px',
                         bottom: '2px',
                         backgroundColor: '#ffffff',
                         borderRadius: '50%',
@@ -895,16 +828,16 @@ export default function GeneratorPanel({
 
               {/* Custom Prompt Textarea */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '3px' }}>
-                  Custom Topic Focus / Instructions
+                <label style={{ display: 'block', fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '3px' }}>
+                  Custom Topic Focus / Prompt
                 </label>
                 <textarea
                   id="input-custom-prompt"
                   value={customPrompt}
                   onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder="e.g. Focus on cardiology dosages, medical ethics, or pediatric emergencies..."
+                  placeholder="e.g. Focus on cardiology dosages or medical ethics..."
                   rows={2}
-                  style={{ width: '100%', fontSize: '0.75rem', resize: 'vertical' }}
+                  style={{ width: '100%', fontSize: '0.725rem', resize: 'vertical', borderRadius: 'var(--radius-xs)' }}
                 />
               </div>
             </div>
@@ -912,21 +845,20 @@ export default function GeneratorPanel({
         </div>
       </div>
 
-      {/* STICKY BOTTOM GENERATE BAR */}
+      {/* DOCK FOOTER: ACTION BAR */}
       <div
-        className="glass-panel"
         style={{
-          padding: '12px 14px',
+          padding: '14px 18px',
+          background: 'var(--bg-surface-subtle)',
+          borderTop: '1px solid var(--border-light)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '8px',
-          borderRadius: 'var(--radius-md)',
-          boxShadow: 'var(--shadow-md)'
+          gap: '10px'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.7rem' }}>
-          <span style={{ color: 'var(--text-muted)' }}>Configured:</span>
-          <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+          <span style={{ color: 'var(--text-muted)' }}>Target:</span>
+          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
             {totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'} • {currentSectionObj.label}
           </span>
         </div>
@@ -939,20 +871,20 @@ export default function GeneratorPanel({
             className="btn-primary"
             style={{
               flex: 1,
-              padding: '10px 16px',
-              fontWeight: 700,
-              fontSize: '0.825rem',
-              boxShadow: 'var(--infynno-glow)'
+              padding: '9px 16px',
+              fontWeight: 600,
+              fontSize: '0.8rem',
+              borderRadius: 'var(--radius-xs)'
             }}
           >
-            <Sparkles size={15} />
+            <Sparkles size={14} />
             <span>
               {isGenerating
                 ? (totalQuestions > 1 ? `Creating ${totalQuestions} Questions...` : 'Creating Question...')
                 : (totalQuestions > 1 ? `Create ${totalQuestions} Questions` : 'Create Question')}
             </span>
             {!isGenerating && (
-              <span className="kbd-hint" style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.2)', color: '#ffffff', border: 'none' }}>
+              <span className="kbd-hint" style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.2)', color: '#ffffff', border: 'none', padding: '1px 4px' }}>
                 ⌘↵
               </span>
             )}
@@ -964,10 +896,10 @@ export default function GeneratorPanel({
               type="button"
               onClick={onCancel}
               className="btn-danger"
-              style={{ padding: '10px 14px', fontSize: '0.8rem', whiteSpace: 'nowrap', gap: '6px' }}
+              style={{ padding: '9px 12px', fontSize: '0.775rem', whiteSpace: 'nowrap', gap: '5px', borderRadius: 'var(--radius-xs)' }}
               title="Stop and abort question generation"
             >
-              <X size={14} />
+              <X size={13} />
               <span>Cancel</span>
             </button>
           )}
