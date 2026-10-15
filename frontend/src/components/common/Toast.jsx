@@ -10,15 +10,15 @@ export function ToastItem({ toast, onDismiss }) {
   }, [toast, onDismiss]);
 
   const icons = {
-    success: <CheckCircle2 size={18} color="#10b981" />,
-    error: <AlertCircle size={18} color="#f43f5e" />,
-    info: <Info size={18} color="#38bdf8" />
+    success: <CheckCircle2 size={18} color="var(--status-success)" />,
+    error: <AlertCircle size={18} color="var(--status-danger)" />,
+    info: <Info size={18} color="var(--brand-primary)" />
   };
 
   const borderColors = {
-    success: 'rgba(16, 185, 129, 0.4)',
-    error: 'rgba(244, 63, 94, 0.4)',
-    info: 'rgba(56, 189, 248, 0.4)'
+    success: 'var(--status-success-border)',
+    error: 'var(--status-danger-border)',
+    info: 'var(--border-brand)'
   };
 
   return (

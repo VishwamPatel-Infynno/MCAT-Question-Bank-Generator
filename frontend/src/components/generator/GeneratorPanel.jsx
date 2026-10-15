@@ -156,11 +156,11 @@ export default function GeneratorPanel({
               width: '28px',
               height: '24px',
               borderRadius: 'var(--radius-sm)',
-              background: 'rgba(168, 85, 247, 0.15)',
-              color: '#c084fc',
+              background: 'var(--status-purple-bg)',
+              color: 'var(--status-purple)',
               fontSize: '0.65rem',
               fontWeight: 800,
-              border: '1px solid rgba(168, 85, 247, 0.3)'
+              border: '1px solid var(--status-purple-border)'
             }}
             title={`Batch Size: ${totalQuestions} Questions`}
           >
@@ -289,7 +289,7 @@ export default function GeneratorPanel({
                   gap: '10px',
                   padding: '7px 10px',
                   borderRadius: 'var(--radius-sm)',
-                  background: isSelected ? 'var(--bg-surface-elevated)' : 'var(--bg-surface-subtle)',
+                  background: isSelected ? 'var(--brand-light)' : 'var(--bg-surface-subtle)',
                   border: isSelected ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
                   color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
                   cursor: 'pointer',
@@ -406,12 +406,8 @@ export default function GeneratorPanel({
             </div>
           </div>
           <span
-            className="badge"
-            style={{
-              fontSize: '0.65rem',
-              background: totalQuestions > 1 ? 'rgba(168, 85, 247, 0.15)' : 'var(--bg-surface-subtle)',
-              color: totalQuestions > 1 ? '#c084fc' : 'var(--text-muted)'
-            }}
+            className={`badge ${totalQuestions > 1 ? 'badge-purple' : 'badge-neutral'}`}
+            style={{ fontSize: '0.65rem' }}
           >
             {totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'}
           </span>
@@ -569,7 +565,7 @@ export default function GeneratorPanel({
                     >
                       <Minus size={9} />
                     </button>
-                    <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: multiChoiceCount > 0 ? '#818cf8' : 'var(--text-primary)' }}>
+                    <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: multiChoiceCount > 0 ? 'var(--brand-indigo)' : 'var(--text-primary)' }}>
                       {multiChoiceCount}
                     </span>
                     <button
@@ -615,7 +611,7 @@ export default function GeneratorPanel({
                     >
                       <Minus size={9} />
                     </button>
-                    <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: passageCount > 0 ? '#38bdf8' : 'var(--text-primary)' }}>
+                    <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: passageCount > 0 ? 'var(--brand-primary)' : 'var(--text-primary)' }}>
                       {passageCount}
                     </span>
                     <button

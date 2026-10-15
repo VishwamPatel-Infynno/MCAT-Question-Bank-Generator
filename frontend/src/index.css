@@ -17,6 +17,7 @@
   /* Subtle Crisp Dividers & Borders */
   --border-light: rgba(255, 255, 255, 0.08);
   --border-medium: rgba(255, 255, 255, 0.14);
+  --border-subtle: rgba(255, 255, 255, 0.08);
   --border-brand: rgba(56, 189, 248, 0.35);
 
   /* High-Legibility Typography */
@@ -24,6 +25,7 @@
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   --text-dim: #475569;
+  --text-disabled: #475569;
 
   /* Restrained Accents */
   --brand-primary: #0284c7;
@@ -80,12 +82,14 @@
 
   --border-light: #e2e8f0;
   --border-medium: #cbd5e1;
+  --border-subtle: #e2e8f0;
   --border-brand: #93c5fd;
 
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #64748b;
   --text-dim: #94a3b8;
+  --text-disabled: #94a3b8;
 
   --brand-primary: #0284c7;
   --brand-hover: #0369a1;
@@ -231,6 +235,13 @@ body {
   transform: translateY(-1px);
 }
 
+[data-theme="light"] .infynno-pill-link:hover {
+  color: var(--brand-primary);
+  border-color: var(--border-brand);
+  background: var(--brand-light);
+  box-shadow: 0 2px 12px rgba(51, 90, 207, 0.12);
+}
+
 .btn-primary:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -322,11 +333,21 @@ body {
 .badge-cyan { background: var(--brand-light); color: #0284c7; border: 1px solid var(--border-brand); }
 [data-theme="dark"] .badge-cyan { color: #38bdf8; }
 
+.badge-indigo { background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); }
+[data-theme="light"] .badge-indigo { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
+
 .badge-emerald { background: var(--status-success-bg); color: var(--status-success); border: 1px solid var(--status-success-border); }
 .badge-amber { background: var(--status-warning-bg); color: var(--status-warning); border: 1px solid var(--status-warning-border); }
 .badge-purple { background: var(--status-purple-bg); color: var(--status-purple); border: 1px solid var(--status-purple-border); }
 .badge-rose { background: var(--status-danger-bg); color: var(--status-danger); border: 1px solid var(--status-danger-border); }
 .badge-neutral { background: var(--bg-surface-elevated); color: var(--text-secondary); border: 1px solid var(--border-light); }
+
+[data-theme="light"] .badge-cyan { background: #f0f9ff; color: #0369a1; border-color: #bae6fd; }
+[data-theme="light"] .badge-purple { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+[data-theme="light"] .badge-emerald { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+[data-theme="light"] .badge-amber { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+[data-theme="light"] .badge-rose { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
+[data-theme="light"] .badge-neutral { background: #f1f5f9; color: #334155; border-color: #e2e8f0; }
 
 /* Form Controls */
 input, select, textarea {
@@ -532,6 +553,23 @@ input:focus, select:focus, textarea:focus {
   overflow: hidden;
 }
 
+.agent-pipeline-hub {
+  background: linear-gradient(135deg, rgba(15, 20, 34, 0.95) 0%, rgba(21, 27, 45, 0.98) 100%);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="light"] .blueprint-card,
+[data-theme="light"] .agent-pipeline-hub {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--border-light);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+}
+
 .spin-slow {
   animation: spin 1.2s linear infinite;
 }
@@ -598,6 +636,21 @@ input:focus, select:focus, textarea:focus {
   border-color: #38bdf8 !important;
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%) !important;
   animation: pulseHalo 2s infinite ease-in-out;
+}
+
+[data-theme="light"] .agent-node-active {
+  border-color: var(--brand-primary) !important;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important;
+  animation: pulseHaloLight 2s infinite ease-in-out;
+}
+
+@keyframes pulseHaloLight {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.3), 0 0 16px rgba(2, 132, 199, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(2, 132, 199, 0.12), 0 0 24px rgba(2, 132, 199, 0.25);
+  }
 }
 
 .agent-pulse-dot {

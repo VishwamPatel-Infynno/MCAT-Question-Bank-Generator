@@ -231,7 +231,7 @@ export default function StageJsonInspector({ question }) {
           {jsonString ? (
             <div
               style={{
-                background: '#040711',
+                background: 'var(--bg-canvas)',
                 borderRadius: 'var(--radius-sm)',
                 padding: '14px',
                 maxHeight: '280px',
@@ -239,10 +239,10 @@ export default function StageJsonInspector({ question }) {
                 fontFamily: 'var(--font-mono)',
                 fontSize: '0.775rem',
                 lineHeight: 1.5,
-                border: '1px solid rgba(255, 255, 255, 0.08)'
+                border: '1px solid var(--border-subtle)'
               }}
             >
-              <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#38bdf8' }}>
+              <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: 'var(--brand-primary)' }}>
                 {jsonString}
               </pre>
             </div>

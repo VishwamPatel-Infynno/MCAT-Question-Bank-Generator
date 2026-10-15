@@ -8,10 +8,10 @@ export default function ReviewAuditView({ question, onClose }) {
   const history = question.iterations_history || [];
 
   const pillars = [
-    { label: 'UCAT Authenticity & Tone', score: review?.authenticity_score ?? 24, max: 25, color: '#38bdf8' },
-    { label: 'Clarity & Logical Soundness', score: review?.clarity_score ?? 24, max: 25, color: '#6366f1' },
-    { label: 'Distractor Trap Quality', score: review?.distractor_score ?? 23, max: 25, color: '#f59e0b' },
-    { label: 'Explanation & Key Rigor', score: review?.explanation_score ?? 24, max: 25, color: '#10b981' },
+    { label: 'UCAT Authenticity & Tone', score: review?.authenticity_score ?? 24, max: 25, color: 'var(--brand-primary)' },
+    { label: 'Clarity & Logical Soundness', score: review?.clarity_score ?? 24, max: 25, color: 'var(--brand-indigo)' },
+    { label: 'Distractor Trap Quality', score: review?.distractor_score ?? 23, max: 25, color: 'var(--status-warning)' },
+    { label: 'Explanation & Key Rigor', score: review?.explanation_score ?? 24, max: 25, color: 'var(--status-success)' },
   ];
 
   return (
@@ -125,19 +125,19 @@ export default function ReviewAuditView({ question, onClose }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
             <div style={{ background: 'var(--bg-canvas)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
               <div style={{ fontSize: '0.675rem', color: 'var(--text-muted)', fontWeight: 600 }}>PROMPT TOKENS</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#38bdf8' }}>{(question.prompt_tokens || 0).toLocaleString()}</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--brand-primary)' }}>{(question.prompt_tokens || 0).toLocaleString()}</div>
             </div>
             <div style={{ background: 'var(--bg-canvas)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
               <div style={{ fontSize: '0.675rem', color: 'var(--text-muted)', fontWeight: 600 }}>COMPLETION TOKENS</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#818cf8' }}>{(question.completion_tokens || 0).toLocaleString()}</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--brand-indigo)' }}>{(question.completion_tokens || 0).toLocaleString()}</div>
             </div>
             <div style={{ background: 'var(--bg-canvas)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
               <div style={{ fontSize: '0.675rem', color: 'var(--text-muted)', fontWeight: 600 }}>TOTAL TOKENS</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#10b981' }}>{(question.total_tokens || 0).toLocaleString()}</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--status-success)' }}>{(question.total_tokens || 0).toLocaleString()}</div>
             </div>
             <div style={{ background: 'var(--bg-canvas)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
               <div style={{ fontSize: '0.675rem', color: 'var(--text-muted)', fontWeight: 600 }}>ACCUMULATED COST</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#f59e0b' }}>${(question.cost_usd || 0).toFixed(5)}</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--status-warning)' }}>${(question.cost_usd || 0).toFixed(5)}</div>
             </div>
           </div>
         </div>
@@ -189,7 +189,7 @@ export default function ReviewAuditView({ question, onClose }) {
                 padding: '16px 18px'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontWeight: 800, fontSize: '0.85rem', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--status-success)', fontWeight: 800, fontSize: '0.85rem', marginBottom: '8px' }}>
                 <CheckCircle size={16} /> Observed Strengths
               </div>
               <ul style={{ paddingLeft: '18px', fontSize: '0.825rem', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -210,7 +210,7 @@ export default function ReviewAuditView({ question, onClose }) {
                 padding: '16px 18px'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f59e0b', fontWeight: 800, fontSize: '0.85rem', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--status-warning)', fontWeight: 800, fontSize: '0.85rem', marginBottom: '8px' }}>
                 <AlertTriangle size={16} /> Remediation Guidelines
               </div>
               <ul style={{ paddingLeft: '18px', fontSize: '0.825rem', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', gap: '4px' }}>

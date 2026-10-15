@@ -113,7 +113,7 @@ export default function Footer() {
                 fontSize: '0.725rem'
               }}
             >
-              <Sparkles size={14} style={{ color: '#818cf8' }} />
+              <Sparkles size={14} style={{ color: 'var(--brand-indigo)' }} />
               <span>Zero Hallucination Traps</span>
             </div>
           </div>

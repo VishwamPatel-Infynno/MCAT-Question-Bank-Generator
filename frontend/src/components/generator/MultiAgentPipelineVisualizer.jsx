@@ -58,7 +58,7 @@ export default function MultiAgentPipelineVisualizer({
       role: 'Synthesizes clinical stimuli, authentic question stems, and subtle distractor options.',
       guarantee: 'Sub-30s Latency',
       icon: PenTool,
-      accentColor: '#38bdf8',
+      accentColor: 'var(--brand-primary)',
       isActive: isGenActive,
       isDone: hasGenCompleted
     },
@@ -72,7 +72,7 @@ export default function MultiAgentPipelineVisualizer({
       role: 'Audits authenticity, clarity, distractor plausibility, and mathematical working steps.',
       guarantee: latestReview?.total_score ? `Verified ${latestReview.total_score}/100 Quality` : 'Strict 90+ Score Gate',
       icon: ShieldCheck,
-      accentColor: '#10b981',
+      accentColor: 'var(--status-success)',
       isActive: isRevActive,
       isDone: hasRevCompleted
     },
@@ -86,7 +86,7 @@ export default function MultiAgentPipelineVisualizer({
       role: 'Automatically refines draft if score ≤ 90; eliminates loopholes and rebalances traps.',
       guarantee: 'Autonomous Self-Correction',
       icon: RotateCcw,
-      accentColor: '#f59e0b',
+      accentColor: 'var(--status-warning)',
       isActive: isRegenActive,
       isDone: hasRegenFired && !isRegenActive
     },
@@ -100,7 +100,7 @@ export default function MultiAgentPipelineVisualizer({
       role: 'Generates geometric figures, abstract shapes, and crisp medical charts.',
       guarantee: 'Vector & 1024px High-Res',
       icon: Sparkles,
-      accentColor: '#a855f7',
+      accentColor: 'var(--status-purple)',
       isActive: isImgActive,
       isDone: hasImgCompleted
     }
@@ -108,14 +108,11 @@ export default function MultiAgentPipelineVisualizer({
 
   return (
     <div
-      className="glass-panel"
+      className="glass-panel agent-pipeline-hub"
       style={{
         padding: '22px',
         position: 'relative',
-        overflow: 'hidden',
-        background: 'linear-gradient(135deg, rgba(15, 20, 34, 0.95) 0%, rgba(21, 27, 45, 0.98) 100%)',
-        border: '1px solid var(--border-medium)',
-        borderRadius: 'var(--radius-lg)'
+        overflow: 'hidden'
       }}
     >
       {/* Background Decorative Grid Lines */}
@@ -194,9 +191,9 @@ export default function MultiAgentPipelineVisualizer({
                 gap: '8px',
                 padding: '6px 12px',
                 borderRadius: 'var(--radius-full)',
-                background: 'rgba(56, 189, 248, 0.12)',
-                border: '1px solid rgba(56, 189, 248, 0.3)',
-                color: '#38bdf8',
+                background: 'var(--brand-light)',
+                border: '1px solid var(--border-brand)',
+                color: 'var(--brand-primary)',
                 fontSize: '0.75rem',
                 fontWeight: 700
               }}
@@ -260,7 +257,7 @@ export default function MultiAgentPipelineVisualizer({
               key={agent.id}
               className={`agent-node-card ${isCurrentlyActive ? 'agent-node-active' : ''}`}
               style={{
-                borderTop: isCurrentlyActive ? '2px solid #38bdf8' : `2px solid ${agent.accentColor}`
+                borderTop: isCurrentlyActive ? '2px solid var(--brand-primary)' : `2px solid ${agent.accentColor}`
               }}
             >
               {/* Card Header: Step & Badge */}
@@ -272,9 +269,9 @@ export default function MultiAgentPipelineVisualizer({
                       height: '28px',
                       borderRadius: 'var(--radius-sm)',
                       background: isCurrentlyActive
-                        ? 'rgba(56, 189, 248, 0.2)'
-                        : `${agent.accentColor}18`,
-                      color: isCurrentlyActive ? '#38bdf8' : agent.accentColor,
+                        ? 'var(--brand-light)'
+                        : 'var(--bg-surface-subtle)',
+                      color: isCurrentlyActive ? 'var(--brand-primary)' : agent.accentColor,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
@@ -298,8 +295,8 @@ export default function MultiAgentPipelineVisualizer({
                   className="badge"
                   style={{
                     fontSize: '0.625rem',
-                    background: isCurrentlyActive ? 'rgba(56, 189, 248, 0.2)' : 'var(--bg-surface-subtle)',
-                    color: isCurrentlyActive ? '#38bdf8' : 'var(--text-muted)',
+                    background: isCurrentlyActive ? 'var(--brand-light)' : 'var(--bg-surface-subtle)',
+                    color: isCurrentlyActive ? 'var(--brand-primary)' : 'var(--text-muted)',
                     border: '1px solid var(--border-light)'
                   }}
                 >
@@ -356,7 +353,7 @@ export default function MultiAgentPipelineVisualizer({
                   style={{
                     fontWeight: 700,
                     color: isCurrentlyActive
-                      ? '#38bdf8'
+                      ? 'var(--brand-primary)'
                       : isFinished
                       ? 'var(--status-success)'
                       : 'var(--text-secondary)',
@@ -403,13 +400,13 @@ export default function MultiAgentPipelineVisualizer({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.725rem' }}>
           <span style={{ color: 'var(--text-muted)' }}>Continuous Dataflow:</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontWeight: 700, color: '#38bdf8' }}>01 Draft</span>
+            <span style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>01 Draft</span>
             <span style={{ color: 'var(--text-muted)' }}>→</span>
-            <span style={{ fontWeight: 700, color: '#10b981' }}>02 Audit (90+)</span>
+            <span style={{ fontWeight: 700, color: 'var(--status-success)' }}>02 Audit (90+)</span>
             <span style={{ color: 'var(--text-muted)' }}>⇄</span>
-            <span style={{ fontWeight: 700, color: '#f59e0b' }}>03 Self-Correct</span>
+            <span style={{ fontWeight: 700, color: 'var(--status-warning)' }}>03 Self-Correct</span>
             <span style={{ color: 'var(--text-muted)' }}>→</span>
-            <span style={{ fontWeight: 700, color: '#a855f7' }}>04 Stimulus</span>
+            <span style={{ fontWeight: 700, color: 'var(--status-purple)' }}>04 Stimulus</span>
             <span style={{ color: 'var(--text-muted)' }}>→</span>
             <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Approved Question Bank</span>
           </div>
@@ -423,7 +420,7 @@ export default function MultiAgentPipelineVisualizer({
               y1="6"
               x2="120"
               y2="6"
-              stroke="#0284c7"
+              stroke="var(--brand-primary)"
               strokeWidth="2"
               className="agent-conduit-line"
             />
@@ -432,7 +429,8 @@ export default function MultiAgentPipelineVisualizer({
             style={{
               fontSize: '0.675rem',
               fontFamily: 'var(--font-mono)',
-              color: '#38bdf8',
+              color: 'var(--brand-primary)',
+              fontWeight: 700,
               letterSpacing: '0.5px'
             }}
           >

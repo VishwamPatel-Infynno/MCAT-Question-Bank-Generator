@@ -279,11 +279,11 @@ export default function StagedBatchReview({
               {singleCount} Single Answer
             </span>
             <span style={{ color: 'var(--border-light)' }}>•</span>
-            <span style={{ fontWeight: 600, color: multiCount > 0 ? '#818cf8' : 'var(--text-secondary)' }}>
+            <span style={{ fontWeight: 600, color: multiCount > 0 ? 'var(--brand-indigo)' : 'var(--text-secondary)' }}>
               {multiCount} Multiple Answers
             </span>
             <span style={{ color: 'var(--border-light)' }}>•</span>
-            <span style={{ fontWeight: 600, color: passageCount > 0 ? '#38bdf8' : 'var(--text-secondary)' }}>
+            <span style={{ fontWeight: 600, color: passageCount > 0 ? 'var(--brand-primary)' : 'var(--text-secondary)' }}>
               {passageCount} With Reading Passage{passageCount !== 1 ? 's' : ''}
             </span>
           </div>
@@ -466,7 +466,7 @@ export default function StagedBatchReview({
                         {q.difficulty}
                       </span>
                       {isMulti ? (
-                        <span className="badge" style={{ fontSize: '0.675rem', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8' }}>
+                        <span className="badge badge-indigo" style={{ fontSize: '0.675rem' }}>
                           Multiple Answers
                         </span>
                       ) : (
@@ -475,7 +475,7 @@ export default function StagedBatchReview({
                         </span>
                       )}
                       {isPassage && (
-                        <span className="badge" style={{ fontSize: '0.675rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
+                        <span className="badge badge-cyan" style={{ fontSize: '0.675rem' }}>
                           Reading Passage
                         </span>
                       )}
@@ -642,7 +642,7 @@ export default function StagedBatchReview({
                     border: '1px dashed var(--brand-primary)',
                     background: 'var(--bg-surface-elevated)',
                     minHeight: '280px',
-                    boxShadow: '0 0 16px rgba(99, 102, 241, 0.15)'
+                    boxShadow: 'var(--shadow-md)'
                   }}
                 >
                   <div
@@ -650,7 +650,7 @@ export default function StagedBatchReview({
                       width: '42px',
                       height: '42px',
                       borderRadius: '50%',
-                      background: 'rgba(99, 102, 241, 0.15)',
+                      background: 'var(--brand-light)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -763,7 +763,7 @@ export default function StagedBatchReview({
                       gap: '6px',
                       padding: '8px 12px',
                       borderRadius: 'var(--radius-md)',
-                      background: isGeneratingSlot ? 'rgba(99, 102, 241, 0.1)' : 'var(--bg-surface-subtle)',
+                      background: isGeneratingSlot ? 'var(--brand-light)' : 'var(--bg-surface-subtle)',
                       border: isGeneratingSlot ? '1px dashed var(--brand-primary)' : '1px dashed var(--border-light)',
                       color: isGeneratingSlot ? 'var(--brand-primary)' : 'var(--text-muted)',
                       fontSize: '0.75rem',
@@ -823,12 +823,12 @@ export default function StagedBatchReview({
                       {q.difficulty}
                     </span>
                     {isMulti && (
-                      <span className="badge" style={{ fontSize: '0.625rem', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8' }}>
+                      <span className="badge badge-indigo" style={{ fontSize: '0.625rem' }}>
                         Multi
                       </span>
                     )}
                     {isPassage && (
-                      <span className="badge" style={{ fontSize: '0.625rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
+                      <span className="badge badge-cyan" style={{ fontSize: '0.625rem' }}>
                         Passage
                       </span>
                     )}

@@ -41,9 +41,9 @@ export default function StudioBlueprint({
       id: 'official-simulation',
       title: 'Official Exam Simulation',
       tag: 'Most Popular',
-      tagColor: '#818cf8',
+      badgeClass: 'badge-purple',
       icon: Sparkles,
-      iconColor: '#6366f1',
+      iconColor: 'var(--status-purple)',
       description: 'Balanced 5-question mock reflecting official UCAT question distribution with reading passages and multiple answers.',
       config: {
         section: 'verbal_reasoning',
@@ -59,9 +59,9 @@ export default function StudioBlueprint({
       id: 'speed-drill',
       title: 'Rapid Speed Drill',
       tag: 'Time Training',
-      tagColor: '#10b981',
+      badgeClass: 'badge-emerald',
       icon: Zap,
-      iconColor: '#10b981',
+      iconColor: 'var(--status-success)',
       description: '10 quick-paced single answer questions to train sub-30 second decision making without lengthy passages.',
       config: {
         section: selectedSection || 'decision_making',
@@ -77,9 +77,9 @@ export default function StudioBlueprint({
       id: 'passage-master',
       title: 'Passage Master Challenge',
       tag: 'High Rigor',
-      tagColor: '#38bdf8',
+      badgeClass: 'badge-cyan',
       icon: BookOpen,
-      iconColor: '#38bdf8',
+      iconColor: 'var(--brand-primary)',
       description: '3 comprehensive ~350-word reading passages with multi-answer questions testing critical inference.',
       config: {
         section: 'verbal_reasoning',
@@ -185,8 +185,8 @@ export default function StudioBlueprint({
                 width: '32px',
                 height: '32px',
                 borderRadius: 'var(--radius-sm)',
-                background: 'rgba(99, 102, 241, 0.15)',
-                color: '#818cf8',
+                background: 'var(--status-purple-bg)',
+                color: 'var(--status-purple)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -202,7 +202,7 @@ export default function StudioBlueprint({
               <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                 {singleChoiceCount} Single • {multiChoiceCount} Multi
               </div>
-              <span style={{ fontSize: '0.7rem', color: multiChoiceCount > 0 ? '#818cf8' : 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.7rem', color: multiChoiceCount > 0 ? 'var(--status-purple)' : 'var(--text-muted)' }}>
                 {multiChoiceCount > 0 ? 'Multiple answers supported' : 'Single correct choice'}
               </span>
             </div>
@@ -215,8 +215,8 @@ export default function StudioBlueprint({
                 width: '32px',
                 height: '32px',
                 borderRadius: 'var(--radius-sm)',
-                background: 'rgba(56, 189, 248, 0.15)',
-                color: '#38bdf8',
+                background: 'var(--brand-light)',
+                color: 'var(--brand-primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -232,7 +232,7 @@ export default function StudioBlueprint({
               <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                 {passageCount} Reading Passage{passageCount !== 1 ? 's' : ''}
               </div>
-              <span style={{ fontSize: '0.7rem', color: passageCount > 0 ? '#38bdf8' : 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.7rem', color: passageCount > 0 ? 'var(--brand-primary)' : 'var(--text-muted)' }}>
                 {totalQuestions - passageCount} short scenario{totalQuestions - passageCount !== 1 ? 's' : ''}
               </span>
             </div>
@@ -245,8 +245,8 @@ export default function StudioBlueprint({
                 width: '32px',
                 height: '32px',
                 borderRadius: 'var(--radius-sm)',
-                background: 'rgba(16, 185, 129, 0.15)',
-                color: '#10b981',
+                background: 'var(--status-success-bg)',
+                color: 'var(--status-success)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -349,17 +349,7 @@ export default function StudioBlueprint({
                   >
                     <Icon size={16} />
                   </div>
-                  <span
-                    style={{
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      padding: '2px 8px',
-                      borderRadius: 'var(--radius-full)',
-                      background: 'var(--bg-surface-subtle)',
-                      color: preset.tagColor,
-                      border: `1px solid ${preset.tagColor}33`
-                    }}
-                  >
+                  <span className={`badge ${preset.badgeClass}`} style={{ fontSize: '0.65rem' }}>
                     {preset.tag}
                   </span>
                 </div>

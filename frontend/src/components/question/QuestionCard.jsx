@@ -82,10 +82,10 @@ export default function QuestionCard({
 
   const review = question.review_rubric;
   const pillars = [
-    { label: 'UCAT Authenticity & Tone', score: review?.authenticity_score ?? 24, max: 25, color: '#38bdf8' },
-    { label: 'Clarity & Logical Soundness', score: review?.clarity_score ?? 24, max: 25, color: '#6366f1' },
-    { label: 'Distractor Trap Quality', score: review?.distractor_score ?? 23, max: 25, color: '#f59e0b' },
-    { label: 'Explanation & Key Rigor', score: review?.explanation_score ?? 24, max: 25, color: '#10b981' },
+    { label: 'UCAT Authenticity & Tone', score: review?.authenticity_score ?? 24, max: 25, color: 'var(--brand-primary)' },
+    { label: 'Clarity & Logical Soundness', score: review?.clarity_score ?? 24, max: 25, color: 'var(--brand-indigo)' },
+    { label: 'Distractor Trap Quality', score: review?.distractor_score ?? 23, max: 25, color: 'var(--status-warning)' },
+    { label: 'Explanation & Key Rigor', score: review?.explanation_score ?? 24, max: 25, color: 'var(--status-success)' },
   ];
 
   const diffLower = (question.difficulty || '').toLowerCase();
@@ -142,11 +142,8 @@ export default function QuestionCard({
 
           {isMulti && (
             <span
-              className="badge"
+              className="badge badge-indigo"
               style={{
-                background: 'rgba(99, 102, 241, 0.15)',
-                color: '#818cf8',
-                border: '1px solid rgba(99, 102, 241, 0.3)',
                 fontWeight: 600,
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -159,11 +156,8 @@ export default function QuestionCard({
 
           {isPassage && (
             <span
-              className="badge"
+              className="badge badge-cyan"
               style={{
-                background: 'rgba(56, 189, 248, 0.15)',
-                color: '#38bdf8',
-                border: '1px solid rgba(56, 189, 248, 0.3)',
                 fontWeight: 600,
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -176,11 +170,8 @@ export default function QuestionCard({
 
           {question.primary_trap && question.primary_trap !== 'Automatic' && (
             <span
-              className="badge"
+              className="badge badge-amber"
               style={{
-                background: 'rgba(245, 158, 11, 0.15)',
-                color: '#f59e0b',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
                 fontWeight: 600,
                 display: 'inline-flex',
                 alignItems: 'center',
