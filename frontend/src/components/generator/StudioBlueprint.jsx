@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { SECTION_ICONS, PACING_INFO } from '../../constants/ucat';
 import InfynnoLogo from '../common/InfynnoLogo';
+import MultiAgentPipelineVisualizer from './MultiAgentPipelineVisualizer';
 
 export default function StudioBlueprint({
   selectedSection,
@@ -24,7 +25,12 @@ export default function StudioBlueprint({
   customPrompt,
   sectionsData,
   onGenerate,
-  onApplyPreset
+  onApplyPreset,
+  isGenerating = false,
+  activeAgent = null,
+  iterationCount = 1,
+  events = [],
+  latestReview = null
 }) {
   const currentSectionObj = sectionsData?.find(s => s.id === selectedSection) || { label: 'Verbal Reasoning', id: 'verbal_reasoning' };
   const SectionIcon = SECTION_ICONS[selectedSection] || FileText;
@@ -289,6 +295,17 @@ export default function StudioBlueprint({
           </div>
         )}
       </div>
+
+      {/* Live 4-Agent Cognitive Architecture Showcase (shown in idle mode; during active generation AgentVisualizer renders the live swarm) */}
+      {!isGenerating && (
+        <MultiAgentPipelineVisualizer
+          isGenerating={false}
+          activeAgent={activeAgent}
+          iterationCount={iterationCount}
+          events={events}
+          latestReview={latestReview}
+        />
+      )}
 
       {/* Quick-Start Practice Sets Section */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

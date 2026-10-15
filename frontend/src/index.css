@@ -545,3 +545,79 @@ input:focus, select:focus, textarea:focus {
     transform: rotate(360deg);
   }
 }
+
+/* --- Multi-Agent Architecture & Live Wiring Styles --- */
+@keyframes flowElectric {
+  from {
+    stroke-dashoffset: 48;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes pulseHalo {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4), 0 0 20px rgba(51, 90, 207, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(56, 189, 248, 0.15), 0 0 28px rgba(56, 189, 248, 0.55);
+  }
+}
+
+@keyframes loopPulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+.agent-node-card {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  transition: all var(--transition-normal);
+  text-align: left;
+}
+
+.agent-node-card:hover {
+  border-color: var(--border-medium);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.agent-node-active {
+  border-color: #38bdf8 !important;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%) !important;
+  animation: pulseHalo 2s infinite ease-in-out;
+}
+
+.agent-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  display: inline-block;
+  box-shadow: 0 0 10px var(--brand-primary);
+  animation: loopPulse 1.4s infinite ease-in-out;
+}
+
+.agent-conduit-line {
+  stroke-dasharray: 6 6;
+  animation: flowElectric 1.2s linear infinite;
+}
+
+.agent-loop-conduit {
+  stroke-dasharray: 5 5;
+  animation: flowElectric 1.5s linear infinite reverse;
+}
+

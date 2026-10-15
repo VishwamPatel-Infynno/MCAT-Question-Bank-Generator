@@ -400,6 +400,11 @@ export default function App() {
                   sectionsData={sectionsData}
                   onGenerate={handleGenerate}
                   onApplyPreset={handleApplyPreset}
+                  isGenerating={isGenerating}
+                  activeAgent={activeAgent}
+                  iterationCount={iterationCount}
+                  events={events}
+                  latestReview={latestReview}
                 />
               )}
             </div>
