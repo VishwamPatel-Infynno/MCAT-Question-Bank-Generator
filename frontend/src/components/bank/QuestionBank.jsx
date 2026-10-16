@@ -7,7 +7,6 @@ import {
   Award, 
   Copy, 
   Check, 
-  Coins, 
   Eye, 
   ChevronDown, 
   ChevronUp, 
@@ -522,61 +521,53 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                     </button>
 
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {/* Metadata Badges */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <span className="badge badge-cyan">{q.section_label || q.section}</span>
-                        <span className="badge badge-purple">{q.subtopic}</span>
+                      {/* Metadata Row */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', fontSize: '0.725rem' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                          {q.section_label || q.section}
+                        </span>
+
+                        {q.subtopic && (
+                          <>
+                            <span style={{ color: 'var(--border-medium)' }}>•</span>
+                            <span style={{ color: 'var(--text-secondary)' }}>{q.subtopic}</span>
+                          </>
+                        )}
+
+                        <span style={{ color: 'var(--border-medium)' }}>•</span>
+
                         <span
                           className={`badge ${(q.difficulty || '').toLowerCase() === 'easy' ? 'badge-emerald' : (q.difficulty || '').toLowerCase() === 'hard' ? 'badge-rose' : 'badge-amber'}`}
-                          style={{ textTransform: 'capitalize' }}
+                          style={{ textTransform: 'capitalize', fontSize: '0.65rem' }}
                         >
                           {q.difficulty}
                         </span>
-                        <span className="badge badge-emerald">
-                          <Award size={11} /> {q.final_score}/100
+
+                        <span className="badge badge-emerald" style={{ fontSize: '0.65rem', fontWeight: 600 }}>
+                          <Award size={10} /> {q.final_score}/100
                         </span>
 
-                        {q.id && (
-                          <span
-                            className="badge badge-cyan"
-                            style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', cursor: 'pointer' }}
-                            title={`UUID: ${q.id} (Click to copy)`}
-                            onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(q.id); }}
-                          >
-                            ID: {q.id.slice(0, 8)}...
-                          </span>
-                        )}
-
-                        {q.combination_id && (
-                          <span
-                            className="badge badge-indigo"
-                            style={{ fontFamily: 'var(--font-mono)' }}
-                          >
-                            {q.combination_id}
-                          </span>
-                        )}
-
                         {((q.correct_answer_ids && q.correct_answer_ids.length > 1) || q.interaction_type === 'multi_choice') && (
-                          <span className="badge badge-purple" style={{ fontWeight: 600 }}>
-                            Multi-Choice ({q.correct_answer_ids?.join(', ') || q.correct_answer_id})
+                          <span style={{ color: 'var(--brand-indigo)', fontWeight: 500, fontSize: '0.7rem' }}>
+                            • Multi-Choice
                           </span>
                         )}
 
                         {(q.passage_required === 'Yes' || (q.stimulus_text && q.stimulus_text.split(/\s+/).length >= 180)) && (
-                          <span className="badge badge-cyan" style={{ fontWeight: 600 }}>
-                            Passage
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
+                            • Passage
                           </span>
                         )}
 
                         {q.primary_trap && q.primary_trap !== 'Automatic' && (
-                          <span className="badge badge-rose">
-                            Trap: {q.primary_trap.replace(/_/g, ' ')}
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
+                            • Trap: {q.primary_trap.replace(/_/g, ' ')}
                           </span>
                         )}
 
-                        {q.total_tokens !== undefined && q.total_tokens > 0 && (
-                          <span className="badge badge-cyan" style={{ fontSize: '0.68rem' }}>
-                            <Coins size={11} /> {q.total_tokens.toLocaleString()} tok &bull; ${q.cost_usd?.toFixed(5)}
+                        {q.cost_usd !== undefined && q.cost_usd > 0 && (
+                          <span style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.65rem' }}>
+                            ${q.cost_usd.toFixed(4)}
                           </span>
                         )}
                       </div>

@@ -61,11 +61,11 @@ export default function ReviewAuditView({ question, onClose }) {
               <ShieldCheck size={22} />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Question Quality &amp; Cost Breakdown
               </h2>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Official 100-Point Quality Check &bull; AI Token Tracking &bull; Step-by-Step Improvements
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                Quality Score Review &bull; AI Token Tracking &bull; Improvements
               </p>
             </div>
           </div>
@@ -75,7 +75,7 @@ export default function ReviewAuditView({ question, onClose }) {
             className="btn-secondary"
             style={{ padding: '6px', borderRadius: '50%' }}
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
@@ -85,59 +85,59 @@ export default function ReviewAuditView({ question, onClose }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '18px 24px',
+            padding: '16px 20px',
             background: 'var(--brand-light)',
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--border-brand)'
           }}
         >
           <div>
-            <div style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--brand-primary)' }}>Overall Quality Score</div>
-            <div style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--brand-primary)', lineHeight: 1.1 }}>
-              {question.final_score} <span style={{ fontSize: '1.1rem', fontWeight: 500, color: 'var(--text-muted)' }}>/ 100</span>
+            <div style={{ fontSize: '0.775rem', fontWeight: 600, color: 'var(--brand-primary)' }}>Overall Quality Score</div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--brand-primary)', lineHeight: 1.1 }}>
+              {question.final_score} <span style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--text-muted)' }}>/ 100</span>
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <span
               className={`badge ${question.final_score > 90 ? 'badge-emerald' : 'badge-amber'}`}
-              style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+              style={{ fontSize: '0.75rem', padding: '4px 10px' }}
             >
               {question.final_score > 90 ? 'PASSED (> 90 Benchmark)' : 'CONDITIONAL PASS'}
             </span>
-            <div style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)', marginTop: '6px' }}>
+            <div style={{ fontSize: '0.725rem', fontWeight: 500, color: 'var(--text-muted)', marginTop: '4px' }}>
               Cycles: {question.iteration_count || 1} of 3
             </div>
           </div>
         </div>
 
         {/* Token Usage & Cost Audit Section */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h4 style={{ fontSize: '0.825rem', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <h4 style={{ fontSize: '0.775rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               AI Usage &amp; Cost Breakdown
             </h4>
-            <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              Infynno Cognitive Core ($0.10 in &bull; $0.32 out / 1M tokens)
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              DeepInfra Engine ($0.10 in &bull; $0.32 out / 1M tokens)
             </span>
           </div>
 
           {/* Metric Cards Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
-            <div style={{ background: 'var(--bg-canvas)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.675rem', color: 'var(--text-muted)', fontWeight: 600 }}>PROMPT TOKENS</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--brand-primary)' }}>{(question.prompt_tokens || 0).toLocaleString()}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+            <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>PROMPT TOKENS</div>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--brand-primary)' }}>{(question.prompt_tokens || 0).toLocaleString()}</div>
             </div>
-            <div style={{ background: 'var(--bg-canvas)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.675rem', color: 'var(--text-muted)', fontWeight: 600 }}>COMPLETION TOKENS</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--brand-indigo)' }}>{(question.completion_tokens || 0).toLocaleString()}</div>
+            <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>COMPLETION TOKENS</div>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--brand-indigo)' }}>{(question.completion_tokens || 0).toLocaleString()}</div>
             </div>
-            <div style={{ background: 'var(--bg-canvas)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.675rem', color: 'var(--text-muted)', fontWeight: 600 }}>TOTAL TOKENS</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--status-success)' }}>{(question.total_tokens || 0).toLocaleString()}</div>
+            <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>TOTAL TOKENS</div>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--status-success)' }}>{(question.total_tokens || 0).toLocaleString()}</div>
             </div>
-            <div style={{ background: 'var(--bg-canvas)', padding: '12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.675rem', color: 'var(--text-muted)', fontWeight: 600 }}>ACCUMULATED COST</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--status-warning)' }}>${(question.cost_usd || 0).toFixed(5)}</div>
+            <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>ACCUMULATED COST</div>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--status-warning)' }}>${(question.cost_usd || 0).toFixed(5)}</div>
             </div>
           </div>
         </div>

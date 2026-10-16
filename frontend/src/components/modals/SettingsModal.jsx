@@ -93,11 +93,11 @@ export default function SettingsModal({ onClose }) {
               <Settings size={22} />
             </div>
             <div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                Enterprise Engine &amp; Gateway Configuration
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                Engine &amp; API Settings
               </h3>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Configure high-throughput inference keys, multi-agent reasoning thresholds, and visual stimulus parameters.
+                Configure AI models, API keys, and image generation settings.
               </p>
             </div>
           </div>
@@ -111,8 +111,8 @@ export default function SettingsModal({ onClose }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           {/* Text Model */}
           <div>
-            <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
-              Autonomous Reasoning Engine
+            <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
+              AI Model for Question Writing
             </label>
             <select
               id="settings-select-model"
@@ -125,32 +125,32 @@ export default function SettingsModal({ onClose }) {
               ))}
             </select>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              High-throughput multi-agent inference: $0.10 input / $0.32 output per 1M tokens.
+              $0.10 input / $0.32 output per 1M tokens.
             </div>
           </div>
 
           {/* Gateway API Key Input */}
           <div
             style={{
-              background: 'var(--brand-light)',
+              background: 'var(--bg-surface-subtle)',
               padding: '14px',
               borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-brand)'
+              border: '1px solid var(--border-light)'
             }}
           >
-            <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 800, color: 'var(--brand-primary)', marginBottom: '6px' }}>
-              Inference Gateway Key
+            <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
+              DeepInfra API Key
             </label>
             <input
               id="settings-input-deepinfra-key"
               type="password"
-              placeholder="Enter gateway credentials or configure via server environment (.env)"
+              placeholder="Enter key or leave blank to use server environment (.env)"
               value={deepinfraKey}
               onChange={(e) => setDeepinfraKey(e.target.value)}
               style={{ width: '100%' }}
             />
-            <div style={{ fontSize: '0.75rem', color: 'var(--brand-primary)', marginTop: '6px', fontWeight: 500 }}>
-              Supply your enterprise gateway key for high-throughput generation, or set in backend environment.
+            <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+              Leave blank to use the DEEPINFRA_API_KEY from your backend .env file.
             </div>
           </div>
 
@@ -169,11 +169,11 @@ export default function SettingsModal({ onClose }) {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Image size={16} color="var(--brand-primary)" />
-                <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                  Stimulus Engine: High-Resolution Psychometric Diagram Engine
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Diagram &amp; Image Settings (FLUX)
                 </span>
               </div>
-              <span className="badge badge-cyan" style={{ fontSize: '0.72rem', fontWeight: 700 }}>
+              <span className="badge badge-cyan" style={{ fontSize: '0.7rem' }}>
                 ${liveImageCost} / image
               </span>
             </div>

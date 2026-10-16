@@ -467,35 +467,32 @@ export default function StagedBatchReview({
                         }}
                         title="Select this question to keep in Question Bank"
                       />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                         Question {q.index || slotNumber}
                       </span>
-                      <span className="badge badge-indigo" style={{ fontSize: '0.675rem', textTransform: 'capitalize' }}>
+                      <span style={{ color: 'var(--border-medium)' }}>•</span>
+                      <span style={{ fontSize: '0.725rem', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>
                         {q.difficulty}
                       </span>
-                      {isMulti ? (
-                        <span className="badge badge-indigo" style={{ fontSize: '0.675rem' }}>
-                          Multiple Answers
-                        </span>
-                      ) : (
-                        <span className="badge badge-neutral" style={{ fontSize: '0.675rem' }}>
-                          Single Answer
+                      {isMulti && (
+                        <span style={{ fontSize: '0.7rem', color: 'var(--brand-indigo)', fontWeight: 500 }}>
+                          • Multi
                         </span>
                       )}
                       {isPassage && (
-                        <span className="badge badge-cyan" style={{ fontSize: '0.675rem' }}>
-                          Reading Passage
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                          • Passage ({wordCount}w)
                         </span>
                       )}
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span className="badge badge-emerald" style={{ fontSize: '0.7rem' }}>
-                        {q.final_score || 95}/100 Quality
+                      <span className="badge badge-emerald" style={{ fontSize: '0.675rem', fontWeight: 600 }}>
+                        {q.final_score || 95}/100
                       </span>
                       {isSaved && (
-                        <span className="badge badge-emerald" style={{ fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                          <Check size={10} /> In Bank
+                        <span style={{ fontSize: '0.7rem', color: 'var(--status-success)', display: 'flex', alignItems: 'center', gap: '3px', fontWeight: 600 }}>
+                          <Check size={10} /> Saved
                         </span>
                       )}
                     </div>

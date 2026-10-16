@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Sparkles, Shield, Cpu } from 'lucide-react';
+import { ExternalLink, ShieldCheck, Sparkles, Cpu } from 'lucide-react';
 import InfynnoLogo from '../common/InfynnoLogo';
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -11,9 +11,9 @@ export default function Footer() {
         marginTop: 'auto',
         borderTop: '1px solid var(--border-light)',
         background: 'var(--bg-surface)',
-        padding: '32px 24px 24px',
+        padding: '20px 24px',
         color: 'var(--text-secondary)',
-        fontSize: '0.8rem'
+        fontSize: '0.75rem'
       }}
     >
       <div
@@ -21,173 +21,63 @@ export default function Footer() {
           maxWidth: '1440px',
           margin: '0 auto',
           display: 'flex',
-          flexDirection: 'column',
-          gap: '24px'
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '16px'
         }}
       >
-        {/* Main Footer Row */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '24px'
-          }}
-        >
-          {/* Brand Info */}
-          <div style={{ maxWidth: '440px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-              <a
-                href="https://infynno.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}
-              >
-                <InfynnoLogo width={36} height={22} showText={true} />
-              </a>
-              <span
-                style={{
-                  fontSize: '0.7rem',
-                  fontWeight: 600,
-                  color: 'var(--text-muted)',
-                  borderLeft: '1px solid var(--border-medium)',
-                  paddingLeft: '10px'
-                }}
-              >
-                Solutions LLP
-              </span>
-            </div>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
-              <span className="infynno-text-gradient" style={{ fontWeight: 700 }}>
-                Infinite Innovations
-              </span>{' '}
-              — Infynno UCAT Question Bank Generator is an AI-powered question writing platform created by{' '}
-              <strong style={{ color: 'var(--text-primary)' }}>Infynno Solutions LLP</strong>.
-            </p>
-          </div>
-
-          {/* Product Badges */}
-          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: 'var(--radius-full)',
-                background: 'var(--bg-surface-elevated)',
-                border: '1px solid var(--border-light)',
-                fontSize: '0.725rem'
-              }}
-            >
-              <Cpu size={14} style={{ color: 'var(--brand-primary)' }} />
-              <span>4-Step AI Team</span>
-            </div>
-
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: 'var(--radius-full)',
-                background: 'var(--bg-surface-elevated)',
-                border: '1px solid var(--border-light)',
-                fontSize: '0.725rem'
-              }}
-            >
-              <Shield size={14} style={{ color: 'var(--status-success)' }} />
-              <span>90+ Quality Standard</span>
-            </div>
-
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: 'var(--radius-full)',
-                background: 'var(--bg-surface-elevated)',
-                border: '1px solid var(--border-light)',
-                fontSize: '0.725rem'
-              }}
-            >
-              <Sparkles size={14} style={{ color: 'var(--brand-indigo)' }} />
-              <span>Realistic Exam Traps</span>
-            </div>
-          </div>
-
-          {/* Corporate Links */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-            <a
-              href="https://infynno.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="infynno-pill-link"
-              id="link-infynno-home"
-            >
-              <span>Infynno Website</span>
-              <ExternalLink size={12} />
-            </a>
-
-            <a
-              href="https://infynno.com/case-studies"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="infynno-pill-link"
-              id="link-infynno-case-studies"
-            >
-              <span>Case Studies</span>
-              <ExternalLink size={12} />
-            </a>
-
-            <a
-              href="https://infynno.com/contact-us"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="infynno-pill-link"
-              id="link-infynno-contact"
-            >
-              <span>Contact Team</span>
-              <ExternalLink size={12} />
-            </a>
-          </div>
+        {/* Left: Brand Identity & Tagline */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <a
+            href="https://infynno.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
+            title="Infynno Solutions LLP"
+          >
+            <InfynnoLogo width={26} height={16} showText={true} />
+          </a>
+          <span style={{ color: 'var(--border-medium)' }}>|</span>
+          <span style={{ color: 'var(--text-muted)' }}>
+            AI-powered question bank generator for UK UCAT medical exams.
+          </span>
         </div>
 
-        {/* Divider */}
-        <div style={{ borderTop: '1px solid var(--border-light)' }} />
+        {/* Center: Subtle Quality Assurance Indicators */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <Cpu size={12} style={{ color: 'var(--brand-primary)' }} />
+            4-Step AI Pipeline
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <ShieldCheck size={12} style={{ color: 'var(--status-success)' }} />
+            90+ Quality Threshold
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <Sparkles size={12} style={{ color: 'var(--status-purple)' }} />
+            Realistic Exam Traps
+          </span>
+        </div>
 
-        {/* Bottom Attribution */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '12px',
-            fontSize: '0.725rem',
-            color: 'var(--text-muted)'
-          }}
-        >
-          <div>
-            © {CURRENT_YEAR} <strong>Infynno Solutions LLP</strong>. All rights reserved.
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <span>Custom Software &amp; AI Product Engineering</span>
-            <span>•</span>
-            <a
-              href="https://infynno.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
-            >
-              infynno.com
-            </a>
-          </div>
+        {/* Right: Corporate Links & Copyright */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+          <a
+            href="https://infynno.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="infynno-pill-link"
+            style={{ padding: '3px 8px', fontSize: '0.7rem' }}
+          >
+            <span>infynno.com</span>
+            <ExternalLink size={10} />
+          </a>
+          <span style={{ color: 'var(--text-muted)' }}>
+            © {CURRENT_YEAR} Infynno Solutions LLP
+          </span>
         </div>
       </div>
     </footer>
   );
 }
+

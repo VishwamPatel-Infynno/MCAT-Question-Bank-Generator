@@ -14,10 +14,7 @@ import {
   FileText,
   BarChart3,
   Code2,
-  ShieldCheck,
-  ListChecks,
-  BookOpen,
-  Target
+  ShieldCheck
 } from 'lucide-react';
 import StageJsonInspector from './StageJsonInspector';
 
@@ -117,83 +114,68 @@ export default function QuestionCard({
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '10px',
+          gap: '12px',
           paddingBottom: '14px',
           borderBottom: '1px solid var(--border-light)'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {isSaved ? (
-            <span className="badge badge-emerald">
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.725rem', fontWeight: 600, color: 'var(--status-success)' }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--status-success)' }} />
               Saved in Bank
             </span>
           ) : (
-            <span className="badge badge-amber">
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.725rem', fontWeight: 600, color: 'var(--status-warning)' }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--status-warning)' }} />
               Ready for Review
             </span>
           )}
 
-          <span className="badge badge-neutral">{question.section_label || question.section}</span>
-          <span className={`badge ${diffBadgeClass}`} style={{ textTransform: 'capitalize' }}>
+          <span style={{ color: 'var(--border-medium)' }}>|</span>
+
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+            {question.section_label || question.section}
+          </span>
+
+          <span className={`badge ${diffBadgeClass}`} style={{ fontSize: '0.65rem', textTransform: 'capitalize' }}>
             {question.difficulty}
           </span>
 
           {isMulti && (
-            <span
-              className="badge badge-indigo"
-              style={{
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              <ListChecks size={11} /> Multiple Answers ({correctKeysList.length} choices)
+            <span style={{ fontSize: '0.7rem', color: 'var(--brand-indigo)', fontWeight: 500 }}>
+              Multiple Answers ({correctKeysList.length})
             </span>
           )}
 
           {isPassage && (
-            <span
-              className="badge badge-cyan"
-              style={{
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              <BookOpen size={11} /> Reading Passage ({wordCount}w)
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              • Reading Passage ({wordCount} words)
             </span>
           )}
 
           {question.primary_trap && question.primary_trap !== 'Automatic' && (
-            <span
-              className="badge badge-amber"
-              style={{
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              <Target size={11} /> Common Trap: {question.primary_trap.replace(/_/g, ' ')}
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              • Trap: {question.primary_trap.replace(/_/g, ' ')}
             </span>
           )}
 
-          <span className="badge badge-emerald" style={{ fontWeight: 700 }}>
-            <Award size={12} /> {question.final_score}/100 Quality
+          <span className="badge badge-emerald" style={{ fontSize: '0.675rem', fontWeight: 600 }}>
+            <Award size={11} /> {question.final_score}/100 Quality
           </span>
 
           {question.id && (
             <span
-              className="badge badge-neutral"
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '0.675rem', cursor: 'pointer' }}
-              title={`Question UUID: ${question.id} (Click to copy)`}
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.65rem',
+                color: 'var(--text-muted)',
+                cursor: 'pointer'
+              }}
+              title={`UUID: ${question.id} (Click to copy)`}
               onClick={() => handleCopyText(question.id, 'id')}
             >
-              {copiedId === 'id' ? <Check size={10} color="var(--status-success)" /> : null} {question.id.slice(0, 8)}...
+              {copiedId === 'id' ? <Check size={9} color="var(--status-success)" /> : null} {question.id.slice(0, 8)}
             </span>
           )}
         </div>
@@ -230,10 +212,10 @@ export default function QuestionCard({
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '4px',
-          padding: '3px',
-          background: 'var(--bg-surface-elevated)',
-          borderRadius: 'var(--radius-sm)',
+          gap: '2px',
+          padding: '2px',
+          background: 'var(--bg-surface-subtle)',
+          borderRadius: 'var(--radius-xs)',
           width: 'fit-content',
           border: '1px solid var(--border-light)'
         }}
@@ -253,18 +235,19 @@ export default function QuestionCard({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '5px 12px',
-                borderRadius: 'var(--radius-sm)',
-                border: 'none',
-                background: isSel ? 'var(--brand-primary)' : 'transparent',
-                color: isSel ? '#ffffff' : 'var(--text-secondary)',
-                fontWeight: isSel ? 600 : 500,
-                fontSize: '0.775rem',
+                padding: '4px 12px',
+                borderRadius: 'var(--radius-xs)',
+                border: isSel ? '1px solid var(--border-medium)' : '1px solid transparent',
+                background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
+                color: isSel ? 'var(--text-primary)' : 'var(--text-secondary)',
+                fontWeight: isSel ? 600 : 400,
+                fontSize: '0.75rem',
                 cursor: 'pointer',
+                boxShadow: isSel ? 'var(--shadow-sm)' : 'none',
                 transition: 'all var(--transition-fast)'
               }}
             >
-              <Icon size={13} />
+              <Icon size={12} />
               <span>{tab.label}</span>
             </button>
           );
@@ -418,16 +401,12 @@ export default function QuestionCard({
                   </div>
 
                   {/* Answer Key Badge */}
-                  {isCorrectKey ? (
+                  {isCorrectKey && (
                     <span
                       className="badge badge-emerald"
                       style={{ fontSize: '0.675rem', padding: '2px 8px', flexShrink: 0 }}
                     >
                       <CheckCircle size={11} /> {isMulti ? `Correct Choice (${opt.id})` : 'Correct Answer'}
-                    </span>
-                  ) : (
-                    <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)', flexShrink: 0, marginTop: '3px' }}>
-                      Wrong Choice
                     </span>
                   )}
                 </div>
