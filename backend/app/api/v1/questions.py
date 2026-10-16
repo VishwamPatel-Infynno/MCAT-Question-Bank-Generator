@@ -10,7 +10,9 @@ from app.repositories.question_repo import (
     delete_question,
     get_question_by_id,
     get_questions,
+    get_repository_metrics,
     save_question,
+    save_questions_batch,
 )
 from app.schemas import Question
 
@@ -39,10 +41,13 @@ async def list_questions(
     )
     dumped = [q.model_dump() for q in questions]
 
-    total_tokens = sum(q.total_tokens or 0 for q in questions)
-    total_cost_usd = round(sum(q.cost_usd or 0.0 for q in questions), 5)
+    metrics = await get_repository_metrics()
 
-    return {"questions": dumped, "total_tokens": total_tokens, "total_cost_usd": total_cost_usd}
+    return {
+        "questions": dumped,
+        "total_tokens": metrics["total_tokens"],
+        "total_cost_usd": metrics["total_cost_usd"],
+    }
 
 
 @router.get("/questions/{question_id}")
@@ -69,13 +74,10 @@ async def approve_and_save_question(question: Question):
 @router.post("/questions/batch")
 async def batch_approve_and_save_questions(questions: list[Question]):
     """
-    Bulk Admin approval endpoint: persists an array of approved candidate questions into PostgreSQL.
+    Bulk Admin approval endpoint: persists an array of approved candidate questions into PostgreSQL in a single atomic transaction.
     """
-    saved_list = []
-    for q in questions:
-        saved = await save_question(q)
-        saved_list.append(saved.id)
-    logger.info(f"Batch approved {len(saved_list)} questions into Question Bank.")
+    saved_list = await save_questions_batch(questions)
+    logger.info(f"Atomic batch approved {len(saved_list)} questions into Question Bank.")
     return {"success": True, "saved_count": len(saved_list), "ids": saved_list}
 
 

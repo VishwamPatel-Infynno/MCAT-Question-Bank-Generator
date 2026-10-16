@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { 
   Database, 
   Search, 
@@ -11,6 +11,8 @@ import {
   Eye, 
   ChevronDown, 
   ChevronUp, 
+  ChevronLeft,
+  ChevronRight,
   CheckSquare, 
   Square,
   Sparkles,
@@ -69,6 +71,30 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
   const [selectedIds, setSelectedIds] = useState([]);
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
 
+  // Client-Side Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15); // 10, 15, 25, 50, -1 (All)
+
+  // Reset to first page when filtering or sorting changes (React-recommended pattern)
+  const filterKey = `${searchQuery}|${sectionFilter}|${diffFilter}|${sortBy}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (prevFilterKey !== filterKey) {
+    setPrevFilterKey(filterKey);
+    setCurrentPage(1);
+  }
+
+  const totalPages = pageSize === -1 ? 1 : Math.max(1, Math.ceil(questions.length / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedQuestions = useMemo(() => {
+    if (pageSize === -1) return questions;
+    const start = (safeCurrentPage - 1) * pageSize;
+    return questions.slice(start, start + pageSize);
+  }, [questions, safeCurrentPage, pageSize]);
+
+  const startIndex = questions.length === 0 ? 0 : (pageSize === -1 ? 1 : (safeCurrentPage - 1) * pageSize + 1);
+  const endIndex = pageSize === -1 ? questions.length : Math.min(safeCurrentPage * pageSize, questions.length);
+
   // Focus search listener on '/'
   useEffect(() => {
     const handleSlash = (e) => {
@@ -89,10 +115,12 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
   };
 
   const handleSelectAll = () => {
-    if (selectedIds.length === questions.length) {
-      setSelectedIds([]);
+    const currentIds = paginatedQuestions.map(q => q.id);
+    const allCurrentSelected = currentIds.length > 0 && currentIds.every(id => selectedIds.includes(id));
+    if (allCurrentSelected) {
+      setSelectedIds(prev => prev.filter(id => !currentIds.includes(id)));
     } else {
-      setSelectedIds(questions.map(q => q.id));
+      setSelectedIds(prev => Array.from(new Set([...prev, ...currentIds])));
     }
   };
 
@@ -450,7 +478,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {questions.map((q) => {
+          {paginatedQuestions.map((q) => {
             const isSelected = selectedIds.includes(q.id);
             const isExpanded = expandedId === q.id;
 
@@ -698,6 +726,130 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
           })}
         </div>
       )}
+
+      {/* Pagination Controls Bar */}
+      {!loading && questions.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 18px',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-md)',
+            marginTop: '16px',
+            flexWrap: 'wrap',
+            gap: '12px'
+          }}
+        >
+          {/* Summary Text */}
+          <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            Showing <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{startIndex}–{endIndex}</strong> of <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{questions.length}</strong> questions
+          </div>
+
+          {/* Controls: Page Size & Navigation */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {/* Page Size Selector */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              <span>Show</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                style={{
+                  background: 'var(--bg-surface-elevated)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-medium)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '4px 8px',
+                  fontSize: '0.78rem',
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
+              >
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={-1}>All</option>
+              </select>
+              <span>per page</span>
+            </div>
+
+            {/* Page Buttons (only if not 'All' and totalPages > 1) */}
+            {pageSize !== -1 && totalPages > 1 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, Math.min(safeCurrentPage, prev) - 1))}
+                  disabled={safeCurrentPage === 1}
+                  className="btn-secondary"
+                  style={{
+                    padding: '5px 8px',
+                    fontSize: '0.76rem',
+                    opacity: safeCurrentPage === 1 ? 0.35 : 1,
+                    cursor: safeCurrentPage === 1 ? 'not-allowed' : 'pointer'
+                  }}
+                  title="Previous page"
+                >
+                  <ChevronLeft size={13} />
+                </button>
+
+                {/* Numbered page chips */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(p => p === 1 || p === totalPages || Math.abs(p - safeCurrentPage) <= 1)
+                  .map((p, idx, arr) => {
+                    const prevPage = arr[idx - 1];
+                    const showEllipsis = prevPage && p - prevPage > 1;
+                    return (
+                      <React.Fragment key={p}>
+                        {showEllipsis && (
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem', padding: '0 2px' }}>...</span>
+                        )}
+                        <button
+                          onClick={() => setCurrentPage(p)}
+                          style={{
+                            minWidth: '28px',
+                            height: '28px',
+                            padding: '0 6px',
+                            borderRadius: 'var(--radius-sm)',
+                            fontSize: '0.78rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            border: p === safeCurrentPage ? '1px solid var(--border-brand)' : '1px solid var(--border-subtle)',
+                            background: p === safeCurrentPage ? 'var(--brand-light)' : 'var(--bg-surface-elevated)',
+                            color: p === safeCurrentPage ? 'var(--brand-primary)' : 'var(--text-secondary)',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          {p}
+                        </button>
+                      </React.Fragment>
+                    );
+                  })}
+
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, Math.max(safeCurrentPage, prev) + 1))}
+                  disabled={safeCurrentPage === totalPages}
+                  className="btn-secondary"
+                  style={{
+                    padding: '5px 8px',
+                    fontSize: '0.76rem',
+                    opacity: safeCurrentPage === totalPages ? 0.35 : 1,
+                    cursor: safeCurrentPage === totalPages ? 'not-allowed' : 'pointer'
+                  }}
+                  title="Next page"
+                >
+                  <ChevronRight size={13} />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

@@ -36,12 +36,16 @@ async def health_check():
     }
 
 
+_CACHED_SECTIONS_PAYLOAD = {
+    "sections": [
+        {"id": sec.value, "label": UCAT_SECTION_LABELS[sec], "subtopics": UCAT_SUBTOPICS[sec]}
+        for sec in UCATSection
+    ]
+}
+
+
 @router.get("/sections")
 async def get_sections():
-    """Returns official UK UCAT sections and their categorized subtopics."""
-    return {
-        "sections": [
-            {"id": sec.value, "label": UCAT_SECTION_LABELS[sec], "subtopics": UCAT_SUBTOPICS[sec]}
-            for sec in UCATSection
-        ]
-    }
+    """Returns official UK UCAT sections and their categorized subtopics (in-memory pre-cached)."""
+    return _CACHED_SECTIONS_PAYLOAD
+

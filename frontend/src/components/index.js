@@ -16,11 +16,4 @@ export { default as StudioBlueprint } from './generator/StudioBlueprint';
 // Question & Review
 export { default as QuestionCard } from './question/QuestionCard';
 export { default as StagedBatchReview } from './question/StagedBatchReview';
-export { default as ReviewAuditView } from './question/ReviewAuditView';
-export { default as StageJsonInspector } from './question/StageJsonInspector';
 
-// Question Bank
-export { default as QuestionBank } from './bank/QuestionBank';
-
-// Modals
-export { default as SettingsModal } from './modals/SettingsModal';

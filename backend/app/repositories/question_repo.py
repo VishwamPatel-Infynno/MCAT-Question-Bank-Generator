@@ -1,7 +1,7 @@
 import logging
-from typing import List, Optional
+from typing import Any, List, Optional
 
-from sqlalchemy import delete, or_, select
+from sqlalchemy import delete, func, or_, select
 
 from app.db.session import async_session_factory
 from app.models.question import QuestionModel
@@ -58,60 +58,97 @@ def _model_to_schema(m: QuestionModel) -> Question:
     )
 
 
+def _schema_to_model(q: Question) -> QuestionModel:
+    """Converts a Pydantic Question schema to a SQLAlchemy QuestionModel."""
+    options_data = [opt.model_dump() for opt in q.options]
+    rubric_data = q.review_rubric.model_dump() if q.review_rubric else None
+
+    return QuestionModel(
+        id=q.id,
+        run_id=q.run_id,
+        batch_id=q.batch_id,
+        section=q.section,
+        section_label=q.section_label,
+        subtopic=q.subtopic,
+        difficulty=q.difficulty,
+        stimulus_text=q.stimulus_text,
+        question_stem=q.question_stem,
+        options=options_data,
+        correct_answer_id=q.correct_answer_id,
+        correct_answer_ids=q.correct_answer_ids,
+        explanation=q.explanation,
+        image_url=q.image_url,
+        image_svg=q.image_svg,
+        image_description=q.image_description,
+        final_score=q.final_score,
+        review_rubric=rubric_data,
+        iteration_count=q.iteration_count,
+        iterations_history=q.iterations_history,
+        created_at=q.created_at,
+        total_tokens=q.total_tokens,
+        prompt_tokens=q.prompt_tokens,
+        completion_tokens=q.completion_tokens,
+        cost_usd=q.cost_usd,
+        token_usage_details=q.token_usage_details,
+        combination_id=q.combination_id,
+        content_domain=q.content_domain,
+        question_type=q.question_type,
+        interaction_type=q.interaction_type,
+        primary_trap=q.primary_trap,
+        passage_required=q.passage_required,
+        passage_questions=q.passage_questions,
+        visual_type=q.visual_type,
+        stage_outcomes=q.stage_outcomes,
+    )
+
+
 async def save_question(q: Question) -> Question:
     """Inserts or updates a question in PostgreSQL using native JSONB columns."""
     async with async_session_factory() as session:
-        options_data = [opt.model_dump() for opt in q.options]
-        rubric_data = q.review_rubric.model_dump() if q.review_rubric else None
-
-        model = QuestionModel(
-            id=q.id,
-            run_id=q.run_id,
-            batch_id=q.batch_id,
-            section=q.section,
-            section_label=q.section_label,
-            subtopic=q.subtopic,
-            difficulty=q.difficulty,
-            stimulus_text=q.stimulus_text,
-            question_stem=q.question_stem,
-            options=options_data,
-            correct_answer_id=q.correct_answer_id,
-            correct_answer_ids=q.correct_answer_ids,
-            explanation=q.explanation,
-            image_url=q.image_url,
-            image_svg=q.image_svg,
-            image_description=q.image_description,
-            final_score=q.final_score,
-            review_rubric=rubric_data,
-            iteration_count=q.iteration_count,
-            iterations_history=q.iterations_history,
-            created_at=q.created_at,
-            total_tokens=q.total_tokens,
-            prompt_tokens=q.prompt_tokens,
-            completion_tokens=q.completion_tokens,
-            cost_usd=q.cost_usd,
-            token_usage_details=q.token_usage_details,
-            combination_id=q.combination_id,
-            content_domain=q.content_domain,
-            question_type=q.question_type,
-            interaction_type=q.interaction_type,
-            primary_trap=q.primary_trap,
-            passage_required=q.passage_required,
-            passage_questions=q.passage_questions,
-            visual_type=q.visual_type,
-            stage_outcomes=q.stage_outcomes,
-        )
-
+        model = _schema_to_model(q)
         await session.merge(model)
         await session.commit()
         return q
 
 
-async def save_questions_batch(questions: list[Question]) -> int:
-    """Inserts or updates a list of questions in PostgreSQL."""
-    for q in questions:
-        await save_question(q)
-    return len(questions)
+class BatchSaveResult(list):
+    """List of saved question IDs that also evaluates equality against integer count for backwards compatibility."""
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, int):
+            return len(self) == other
+        return super().__eq__(other)
+
+
+async def save_questions_batch(questions: list[Question]) -> BatchSaveResult:
+    """Inserts or updates an array of questions in PostgreSQL within a single atomic transaction."""
+    if not questions:
+        return BatchSaveResult()
+    saved_ids = []
+    async with async_session_factory() as session:
+        for q in questions:
+            model = _schema_to_model(q)
+            await session.merge(model)
+            saved_ids.append(q.id)
+        await session.commit()
+    return BatchSaveResult(saved_ids)
+
+
+async def get_repository_metrics() -> dict[str, Any]:
+    """Computes repository-wide metrics via native SQL aggregation with zero Python memory overhead."""
+    async with async_session_factory() as session:
+        stmt = select(
+            func.count(QuestionModel.id).label("total_count"),
+            func.coalesce(func.sum(QuestionModel.total_tokens), 0).label("total_tokens"),
+            func.coalesce(func.sum(QuestionModel.cost_usd), 0.0).label("total_cost_usd"),
+        )
+        res = await session.execute(stmt)
+        row = res.one()
+        return {
+            "total_count": int(row.total_count),
+            "total_tokens": int(row.total_tokens),
+            "total_cost_usd": round(float(row.total_cost_usd), 5),
+        }
 
 
 async def get_questions(

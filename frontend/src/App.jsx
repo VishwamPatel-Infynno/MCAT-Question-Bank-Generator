@@ -1,13 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import {
   Navbar,
   GeneratorPanel,
   AgentVisualizer,
   QuestionCard,
   StagedBatchReview,
-  QuestionBank,
-  ReviewAuditView,
-  SettingsModal,
   RejectionCard,
   ToastContainer,
   StudioBlueprint,
@@ -18,6 +15,42 @@ import { useTheme } from './hooks/useTheme';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { UCAT_SECTIONS_FALLBACK } from './constants/ucat';
 import { fetchSections, fetchHealth, approveQuestion, batchApproveQuestions } from './services/api';
+
+// Dynamic code-split chunk imports for optimal bundle size
+const QuestionBank = lazy(() => import('./components/bank/QuestionBank'));
+const ReviewAuditView = lazy(() => import('./components/question/ReviewAuditView'));
+const SettingsModal = lazy(() => import('./components/modals/SettingsModal'));
+
+function LazyLoadingSpinner({ label = 'Loading...' }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '360px',
+        width: '100%',
+        gap: '16px',
+        color: 'var(--text-muted)'
+      }}
+    >
+      <div
+        style={{
+          width: '32px',
+          height: '32px',
+          border: '2px solid var(--border-medium)',
+          borderTopColor: 'var(--brand-primary)',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite'
+        }}
+      />
+      <span style={{ fontSize: '0.85rem', fontWeight: 500, letterSpacing: '0.02em' }}>
+        {label}
+      </span>
+    </div>
+  );
+}
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
@@ -413,10 +446,12 @@ export default function App() {
 
 
         {activeTab === 'bank' && (
-          <QuestionBank
-            onSelectQuestion={handleSelectFromBank}
-            onShowToast={showToast}
-          />
+          <Suspense fallback={<LazyLoadingSpinner label="Loading Question Bank..." />}>
+            <QuestionBank
+              onSelectQuestion={handleSelectFromBank}
+              onShowToast={showToast}
+            />
+          </Suspense>
         )}
 
       </main>
@@ -426,15 +461,19 @@ export default function App() {
 
       {/* Audit Modal */}
       {auditQuestion && (
-        <ReviewAuditView
-          question={auditQuestion}
-          onClose={() => setAuditQuestion(null)}
-        />
+        <Suspense fallback={null}>
+          <ReviewAuditView
+            question={auditQuestion}
+            onClose={() => setAuditQuestion(null)}
+          />
+        </Suspense>
       )}
 
       {/* Settings Modal */}
       {showSettings && (
-        <SettingsModal onClose={() => setShowSettings(false)} />
+        <Suspense fallback={null}>
+          <SettingsModal onClose={() => setShowSettings(false)} />
+        </Suspense>
       )}
 
       {/* Toast Notification Container */}
