@@ -76,10 +76,10 @@ Accept: text/event-stream
 | `difficulty` | `string` | No | `"medium"` | `easy`, `medium`, `hard` |
 | `require_image` | `boolean` | No | `false` | Force visual stimulus generation |
 | `custom_prompt` | `string` | No | `null` | Contextual steer or clinical vignette guidance |
-| `questions_to_generate` | `integer` | No | `1` | Number of questions to generate in batch (1–10) |
-| `single_choice_count` | `integer` | No | `null` | Number of single-choice items in batch (0–10) |
-| `multi_choice_count` | `integer` | No | `null` | Number of multi-choice items in batch (0–10) |
-| `passage_count` | `integer` | No | `null` | Number of passage-linked items in batch (0–10) |
+| `questions_to_generate` | `integer` | No | `1` | Number of questions to generate in batch (1–5) |
+| `single_choice_count` | `integer` | No | `null` | Number of single-choice items in batch (0–5) |
+| `multi_choice_count` | `integer` | No | `null` | Number of multi-choice items in batch (0–5) |
+| `passage_count` | `integer` | No | `null` | Number of passage-linked items in batch (0–5) |
 | `interaction_type` | `string` | No | `"single_choice"` | `single_choice`, `multi_choice`, `drag_drop` |
 | `passage_required` | `string \| boolean` | No | `null` | `"Yes"`, `"No"`, or boolean flag |
 | `passage_questions` | `integer` | No | `null` | Target question count per passage (e.g. 3, 4) |

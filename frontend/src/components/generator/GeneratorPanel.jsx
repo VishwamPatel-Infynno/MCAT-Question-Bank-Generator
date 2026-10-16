@@ -50,7 +50,7 @@ export default function GeneratorPanel({
   const [showAdvancedDirectives, setShowAdvancedDirectives] = useState(false);
 
   const handleTotalChange = (newTotal) => {
-    const clamped = Math.max(1, Math.min(10, newTotal));
+    const clamped = Math.max(1, Math.min(5, newTotal));
     if (setTotalQuestions) setTotalQuestions(clamped);
     if (setSingleChoiceCount && setMultiChoiceCount) {
       if (clamped === 1) {
@@ -413,7 +413,7 @@ export default function GeneratorPanel({
               type="button"
               id="btn-qty-plus"
               onClick={() => handleTotalChange(totalQuestions + 1)}
-              disabled={totalQuestions >= 10}
+              disabled={totalQuestions >= 5}
               style={{
                 width: '26px',
                 height: '24px',
@@ -422,8 +422,8 @@ export default function GeneratorPanel({
                 justifyContent: 'center',
                 border: 'none',
                 background: 'transparent',
-                color: totalQuestions >= 10 ? 'var(--text-disabled)' : 'var(--text-primary)',
-                cursor: totalQuestions >= 10 ? 'not-allowed' : 'pointer'
+                color: totalQuestions >= 5 ? 'var(--text-disabled)' : 'var(--text-primary)',
+                cursor: totalQuestions >= 5 ? 'not-allowed' : 'pointer'
               }}
               title="Increase questions"
             >
@@ -432,7 +432,7 @@ export default function GeneratorPanel({
           </div>
 
           <div style={{ display: 'flex', gap: '3px' }}>
-            {[1, 3, 5, 10].map(cnt => (
+            {[1, 2, 3, 4, 5].map(cnt => (
               <button
                 key={cnt}
                 type="button"

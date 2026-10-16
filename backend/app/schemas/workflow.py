@@ -41,16 +41,16 @@ class GenerationRequest(BaseModel):
     image_required: str | bool | None = Field(None, description="Yes or No")
     visual_type: str | None = Field("None", description="e.g. None, SVG_Diagram, AI_FLUX_Image")
     questions_to_generate: int | None = Field(
-        1, ge=1, le=10, description="Quantity to generate in batch (1-10)"
+        1, ge=1, le=5, description="Quantity to generate in batch (1-5)"
     )
     single_choice_count: int | None = Field(
-        None, ge=0, le=10, description="Number of single-choice items in batch"
+        None, ge=0, le=5, description="Number of single-choice items in batch"
     )
     multi_choice_count: int | None = Field(
-        None, ge=0, le=10, description="Number of multi-choice items in batch"
+        None, ge=0, le=5, description="Number of multi-choice items in batch"
     )
     passage_count: int | None = Field(
-        None, ge=0, le=10, description="Number of passage-type items in batch"
+        None, ge=0, le=5, description="Number of passage-type items in batch"
     )
     auto_save: bool = Field(
         False,

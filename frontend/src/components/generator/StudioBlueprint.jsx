@@ -59,12 +59,12 @@ export default function StudioBlueprint({
       badgeClass: 'badge-emerald',
       icon: Zap,
       iconColor: 'var(--status-success)',
-      description: '10 quick single-answer questions to train fast decision making without lengthy passages.',
+      description: '5 quick single-answer questions to train fast decision making without lengthy passages.',
       config: {
         section: selectedSection || 'decision_making',
         difficulty: 'medium',
-        totalQuestions: 10,
-        singleChoiceCount: 10,
+        totalQuestions: 5,
+        singleChoiceCount: 5,
         multiChoiceCount: 0,
         passageCount: 0,
         primaryTrap: 'Keyword_Trap'

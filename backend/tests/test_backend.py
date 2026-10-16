@@ -45,6 +45,23 @@ async def test_schemas_validation():
     assert len(draft.options) == 4
     assert draft.correct_answer_id == "B"
 
+    # Test batch limit <= 5 constraint
+    valid_batch_req = GenerationRequest(
+        section=UCATSection.VERBAL_REASONING,
+        questions_to_generate=5,
+        single_choice_count=3,
+        multi_choice_count=2,
+    )
+    assert valid_batch_req.questions_to_generate == 5
+
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
+        GenerationRequest(
+            section=UCATSection.VERBAL_REASONING,
+            questions_to_generate=6,
+        )
+
 
 @pytest.mark.asyncio
 async def test_all_ucat_sections_mock():

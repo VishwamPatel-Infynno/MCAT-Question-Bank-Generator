@@ -443,7 +443,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
     Emits batch_progress and question_generated as each question finishes,
     culminating in workflow_complete with all staged questions for user confirmation.
     """
-    total_qty = min(max(req.questions_to_generate or 1, 1), 10)
+    total_qty = min(max(req.questions_to_generate or 1, 1), 5)
     batch_id = req.batch_id or (str(uuid.uuid4()) if total_qty > 1 else None)
 
     # Determine format breakdown
