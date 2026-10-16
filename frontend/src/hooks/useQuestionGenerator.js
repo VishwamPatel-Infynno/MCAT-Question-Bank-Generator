@@ -12,6 +12,7 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
   const [targetBatchTotal, setTargetBatchTotal] = useState(1);
   const [rejectedData, setRejectedData] = useState(null);
   const [latestReview, setLatestReview] = useState(null);
+  const [perQuestionState, setPerQuestionState] = useState({});
   const abortControllerRef = useRef(null);
 
   const cancelGeneration = useCallback(() => {
@@ -43,12 +44,101 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
     setIterationCount(1);
     setActiveAgent('Question Generator');
 
+    // Pre-populate per-question swarm state for all target questions
+    const multiCount = payload?.interaction_type_split?.multi || 0;
+    const passageCount = payload?.passage_length_split?.passage || 0;
+    const initialMap = {};
+    for (let i = 1; i <= reqTotal; i++) {
+      const isMulti = i <= multiCount;
+      const isPassage = i <= passageCount;
+      initialMap[i] = {
+        index: i,
+        stage: 'drafting',
+        agentName: 'Question Generator',
+        message: `Drafting ${isMulti ? 'Multi-Choice' : 'Single Choice'} question (${isPassage ? 'Reading Passage' : 'Standard Vignette'})...`,
+        iteration: 1,
+        score: null,
+        interactionType: isMulti ? 'multi_choice' : 'single_choice',
+        passageRequired: isPassage ? 'Yes' : 'No',
+        isComplete: false,
+        question: null,
+        startTime: Date.now()
+      };
+    }
+    setPerQuestionState(initialMap);
+
     generateQuestionStream(
       payload,
       (evt) => {
         setEvents((prev) => [...prev, evt]);
         if (evt.agent_name && evt.agent_name !== 'System') {
           setActiveAgent(evt.agent_name);
+        }
+
+        // Determine target question index for per-question state tracking
+        let targetIdx = evt.data?.index || evt.data?.current_index || null;
+        if (!targetIdx && evt.message) {
+          const match = evt.message.match(/(?:Q|Question|draft\s+)(\d+)/i);
+          if (match) targetIdx = parseInt(match[1], 10);
+        }
+
+        if (targetIdx && targetIdx >= 1 && targetIdx <= reqTotal) {
+          setPerQuestionState((prev) => {
+            const current = prev[targetIdx] || {
+              index: targetIdx,
+              stage: 'drafting',
+              iteration: 1,
+              agentName: 'Question Generator',
+              message: evt.message
+            };
+
+            let nextStage = current.stage;
+            if (evt.data?.stage) {
+              nextStage = evt.data.stage;
+            } else if (evt.agent_name === 'Question Generator') {
+              nextStage = 'drafting';
+            } else if (evt.agent_name === 'Question Reviewer') {
+              nextStage = 'reviewing';
+            } else if (evt.agent_name === 'Question Re-Generator') {
+              nextStage = 'remediating';
+            } else if (evt.agent_name === 'Image Generator') {
+              nextStage = 'image';
+            }
+
+            let nextScore = current.score;
+            if (evt.data?.score != null) {
+              nextScore = evt.data.score;
+            } else if (evt.data?.review?.total_score != null) {
+              nextScore = evt.data.review.total_score;
+            }
+
+            let nextIter = evt.data?.iteration || current.iteration;
+            let isDone = current.isComplete;
+            let qObj = current.question;
+
+            if (evt.event_type === 'question_generated' && evt.data?.question) {
+              nextStage = 'completed';
+              isDone = true;
+              qObj = evt.data.question;
+              nextScore = evt.data.question.final_score || nextScore || 95;
+            }
+
+            return {
+              ...prev,
+              [targetIdx]: {
+                ...current,
+                stage: nextStage,
+                agentName: (evt.agent_name && evt.agent_name !== 'System') ? evt.agent_name : current.agentName,
+                message: evt.message || current.message,
+                iteration: nextIter,
+                score: nextScore,
+                isComplete: isDone,
+                question: qObj,
+                interactionType: evt.data?.interaction_type || current.interactionType,
+                passageRequired: evt.data?.passage_required || current.passageRequired
+              }
+            };
+          });
         }
 
         if (evt.event_type === 'batch_progress' && evt.data) {
@@ -135,6 +225,7 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
     setActiveQuestion(null);
     setStagedQuestions([]);
     setBatchProgress(null);
+    setPerQuestionState({});
     setRejectedData(null);
     setLatestReview(null);
     setIterationCount(1);
@@ -151,6 +242,7 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
     setStagedQuestions,
     batchProgress,
     targetBatchTotal,
+    perQuestionState,
     rejectedData,
     latestReview,
     startGeneration,

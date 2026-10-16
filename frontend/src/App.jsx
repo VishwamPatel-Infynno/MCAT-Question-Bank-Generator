@@ -99,6 +99,7 @@ export default function App() {
     stagedQuestions,
     setStagedQuestions,
     batchProgress,
+    perQuestionState,
     rejectedData,
     latestReview,
     startGeneration,
@@ -370,6 +371,7 @@ export default function App() {
                 latestReview={latestReview}
                 isGenerating={isGenerating}
                 batchProgress={batchProgress}
+                perQuestionState={perQuestionState}
               />
 
               {/* Output: Rejection Card, Staged Batch Review, Single Question Card, or Empty State Placeholder */}
@@ -384,6 +386,7 @@ export default function App() {
                   targetTotal={totalQuestions}
                   isGenerating={isGenerating}
                   batchProgress={batchProgress}
+                  perQuestionState={perQuestionState}
                   onApproveSelected={handleBatchApprove}
                   onApproveAll={handleBatchApprove}
                   onDiscardQuestion={handleDiscardQuestionInBatch}

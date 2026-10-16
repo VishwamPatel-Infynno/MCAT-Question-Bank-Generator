@@ -621,3 +621,59 @@ async def test_section_image_guard_routing():
     }
     assert route_after_review(ar_state) == "image_generator"
 
+
+@pytest.mark.asyncio
+async def test_per_question_stage_metadata_in_events(monkeypatch):
+    import json
+
+    from app.core.config import config
+    from app.workflow.graph import run_workflow_stream
+
+    monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
+    monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
+
+    req = GenerationRequest(
+        section=UCATSection.DECISION_MAKING,
+        difficulty=Difficulty.MEDIUM,
+        questions_to_generate=2,
+    )
+
+    events = []
+    async for chunk in run_workflow_stream(req):
+        line = chunk.strip()
+        if line.startswith("data: "):
+            events.append(json.loads(line[6:]))
+
+    # Assert agent_start events carry index, total, and stage
+    gen_starts = [
+        e
+        for e in events
+        if e["event_type"] == "agent_start" and e["agent_name"] == "Question Generator"
+    ]
+    assert len(gen_starts) == 2
+    for e in gen_starts:
+        assert e["data"]["index"] in (1, 2)
+        assert e["data"]["total"] == 2
+        assert e["data"]["stage"] == "drafting"
+
+    rev_starts = [
+        e
+        for e in events
+        if e["event_type"] == "agent_start" and e["agent_name"] == "Question Reviewer"
+    ]
+    assert len(rev_starts) >= 2
+    for e in rev_starts:
+        assert e["data"]["index"] in (1, 2)
+        assert e["data"]["total"] == 2
+        assert e["data"]["stage"] == "reviewing"
+        assert e["data"]["iteration"] >= 1
+
+    q_gens = [e for e in events if e["event_type"] == "question_generated"]
+    assert len(q_gens) == 2
+    for e in q_gens:
+        assert e["data"]["index"] in (1, 2)
+        assert e["data"]["total"] == 2
+        assert e["data"]["stage"] == "completed"
+        assert e["data"]["question"]["index"] in (1, 2)
+
+

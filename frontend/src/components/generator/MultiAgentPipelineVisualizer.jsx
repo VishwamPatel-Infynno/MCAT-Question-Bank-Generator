@@ -5,7 +5,8 @@ import {
   RotateCcw,
   PenTool,
   CheckCircle2,
-  Terminal
+  Terminal,
+  Check
 } from 'lucide-react';
 
 export default function MultiAgentPipelineVisualizer({
@@ -13,7 +14,9 @@ export default function MultiAgentPipelineVisualizer({
   iterationCount = 1,
   events = [],
   isGenerating = false,
-  latestReview = null
+  latestReview = null,
+  totalBatch = 1,
+  perQuestionState = {}
 }) {
   const [elapsedTime, setElapsedTime] = useState('0.0');
   const [showLogs, setShowLogs] = useState(false);
@@ -32,15 +35,36 @@ export default function MultiAgentPipelineVisualizer({
     return () => clearInterval(interval);
   }, [isGenerating]);
 
-  // Determine current active node
-  const isGenActive = activeAgent === 'Question Generator';
-  const isRevActive = activeAgent === 'Question Reviewer';
-  const isRegenActive = activeAgent === 'Question Re-Generator';
-  const isImgActive = activeAgent === 'Image Generator';
+  // For multi-question swarms, inspect perQuestionState to see which agents are actively processing
+  const qList = Object.values(perQuestionState);
+  const isSwarm = totalBatch > 1 && qList.length > 0;
 
-  // Completion states
-  const hasGenCompleted = events.some(e => e.agent_name === 'Question Generator' && e.event_type === 'agent_complete');
-  const hasRevCompleted = events.some(e => e.agent_name === 'Question Reviewer' && e.event_type === 'agent_complete');
+  // Swarm-aware active states
+  const isGenActive = isSwarm
+    ? isGenerating && qList.some(q => !q.isComplete && q.stage === 'drafting')
+    : activeAgent === 'Question Generator';
+
+  const isRevActive = isSwarm
+    ? isGenerating && qList.some(q => !q.isComplete && q.stage === 'reviewing')
+    : activeAgent === 'Question Reviewer';
+
+  const isRegenActive = isSwarm
+    ? isGenerating && qList.some(q => !q.isComplete && q.stage === 'remediating')
+    : activeAgent === 'Question Re-Generator';
+
+  const isImgActive = isSwarm
+    ? isGenerating && qList.some(q => !q.isComplete && q.stage === 'image')
+    : activeAgent === 'Image Generator';
+
+  // Completion states: in a swarm, a stage is fully completed only when NO question is at or before that stage
+  const hasGenCompleted = isSwarm
+    ? qList.length > 0 && qList.every(q => q.stage !== 'drafting' && (q.stage !== 'queued'))
+    : events.some(e => e.agent_name === 'Question Generator' && e.event_type === 'agent_complete');
+
+  const hasRevCompleted = isSwarm
+    ? qList.length > 0 && qList.every(q => q.isComplete)
+    : events.some(e => e.agent_name === 'Question Reviewer' && e.event_type === 'agent_complete');
+
   const hasRegenFired = iterationCount > 1 || events.some(e => e.agent_name === 'Question Re-Generator');
   const hasImgCompleted = events.some(e => e.agent_name === 'Image Generator' && e.event_type === 'agent_complete');
 
@@ -50,7 +74,7 @@ export default function MultiAgentPipelineVisualizer({
       stepNum: '01',
       title: 'Question Generator',
       subtitle: 'Drafting Specialist',
-      guarantee: 'Authentic Stem & Distractors',
+      guarantee: isSwarm ? 'Concurrent Draft Synthesis' : 'Authentic Stem & Distractors',
       icon: PenTool,
       accentColor: 'var(--brand-primary)',
       isActive: isGenActive,
@@ -177,6 +201,107 @@ export default function MultiAgentPipelineVisualizer({
           )}
         </div>
       </div>
+
+      {/* Multi-Question Swarm Status Rail (Parallel Batch Execution) */}
+      {isSwarm && (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            padding: '10px 14px',
+            background: 'var(--bg-surface-subtle)',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--border-light)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.725rem' }}>
+            <span style={{ fontWeight: 700, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="agent-pulse-dot" />
+              Live Multi-Agent Swarm Tracker ({totalBatch} Questions Generating Concurrently)
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              {qList.filter(q => q.isComplete).length} of {totalBatch} Completed
+            </span>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(auto-fit, minmax(140px, 1fr))`,
+              gap: '8px'
+            }}
+          >
+            {qList.sort((a, b) => a.index - b.index).map((qState) => {
+              const isDone = qState.isComplete;
+              const agentShort = qState.agentName === 'Question Generator'
+                ? 'Drafting'
+                : qState.agentName === 'Question Reviewer'
+                ? 'Auditing'
+                : qState.agentName === 'Question Re-Generator'
+                ? 'Remediating'
+                : qState.agentName === 'Image Generator'
+                ? 'Diagram'
+                : (qState.agentName || 'Queued');
+
+              return (
+                <div
+                  key={qState.index}
+                  style={{
+                    padding: '8px 10px',
+                    borderRadius: 'var(--radius-xs)',
+                    background: isDone ? 'var(--bg-surface-elevated)' : 'var(--bg-surface-elevated)',
+                    border: isDone ? '1px solid var(--border-brand)' : '1px solid var(--border-medium)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    boxShadow: 'var(--shadow-xs)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: 800, fontSize: '0.75rem', color: 'var(--text-primary)' }}>
+                      Question {qState.index}
+                    </span>
+                    {isDone ? (
+                      <span className="badge badge-emerald" style={{ fontSize: '0.625rem', padding: '1px 6px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        <Check size={9} /> {qState.score || 95}/100
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          color: qState.stage === 'remediating' ? 'var(--status-warning)' : 'var(--brand-primary)',
+                          fontWeight: 700,
+                          fontSize: '0.675rem'
+                        }}
+                      >
+                        <span className="agent-pulse-dot" style={{ width: '6px', height: '6px' }} />
+                        {agentShort}
+                      </span>
+                    )}
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: '0.65rem',
+                      color: 'var(--text-muted)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                    title={qState.message}
+                  >
+                    {isDone ? 'Verified & Staged' : (qState.message || 'Processing in swarm...')}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* 4-Agent Stepper Grid */}
       <div className="pipeline-stepper">

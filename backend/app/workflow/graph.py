@@ -572,6 +572,13 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                     event_type="agent_start",
                     agent_name="Question Generator",
                     message=f"Synthesizing UCAT draft {idx + 1}/{total_qty} ({'Multi-Choice' if is_item_multi else 'Single Choice'})...",
+                    data={
+                        "index": idx + 1,
+                        "total": total_qty,
+                        "stage": "drafting",
+                        "interaction_type": item_interaction,
+                        "passage_required": item_passage,
+                    },
                     run_id=item_run_id,
                 )
                 await event_queue.put(gen_evt)
@@ -588,6 +595,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         "draft": state["current_draft"],
                         "latest_usage": gen_usage,
                         "index": idx + 1,
+                        "total": total_qty,
+                        "stage": "drafting",
                     },
                     run_id=item_run_id,
                 )
@@ -602,6 +611,12 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         event_type="agent_start",
                         agent_name="Question Reviewer",
                         message=f"Auditing draft {idx + 1}/{total_qty} (Iteration {iteration}) against 100-point rubric...",
+                        data={
+                            "index": idx + 1,
+                            "total": total_qty,
+                            "stage": "reviewing",
+                            "iteration": iteration,
+                        },
                         run_id=item_run_id,
                     )
                     await event_queue.put(rev_start_evt)
@@ -622,6 +637,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             "iteration": iteration,
                             "latest_usage": rev_usage,
                             "index": idx + 1,
+                            "total": total_qty,
+                            "stage": "reviewing",
+                            "score": score,
                         },
                         run_id=item_run_id,
                     )
@@ -634,6 +652,13 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             event_type="agent_start",
                             agent_name="Question Re-Generator",
                             message=f"Q{idx + 1} Score {score} <= {config.PASSING_SCORE_THRESHOLD}! Initiating Re-Generator Agent...",
+                            data={
+                                "index": idx + 1,
+                                "total": total_qty,
+                                "stage": "remediating",
+                                "iteration": iteration,
+                                "score": score,
+                            },
                             run_id=item_run_id,
                         )
                         await event_queue.put(regen_start_evt)
@@ -650,6 +675,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                                 "draft": state["current_draft"],
                                 "latest_usage": regen_usage,
                                 "index": idx + 1,
+                                "total": total_qty,
+                                "stage": "remediating",
                             },
                             run_id=item_run_id,
                         )
@@ -659,11 +686,15 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         rej_res = await reject_node(state)
                         state.update(rej_res)
                         question_passed = False
+                        rej_data = state.get("rejection_data") or {}
+                        if isinstance(rej_data, dict):
+                            rej_data["index"] = idx + 1
+                            rej_data["stage"] = "rejected"
                         rej_evt = make_event(
                             event_type="workflow_rejected",
                             agent_name="Quality Gate",
                             message=f"Strict Quality Halt on question {idx + 1}: Score {score}/100 after {iteration} attempts.",
-                            data=state.get("rejection_data"),
+                            data=rej_data,
                             run_id=item_run_id,
                         )
                         await event_queue.put(rej_evt)
@@ -698,6 +729,11 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             event_type="agent_start",
                             agent_name="Image Generator",
                             message=f"Generating visual stimulus diagram for Q{idx + 1}...",
+                            data={
+                                "index": idx + 1,
+                                "total": total_qty,
+                                "stage": "image",
+                            },
                             run_id=item_run_id,
                         )
                         await event_queue.put(img_start_evt)
@@ -714,6 +750,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                                 "image_url": state.get("image_url"),
                                 "usage": state.get("latest_usage"),
                                 "index": idx + 1,
+                                "total": total_qty,
+                                "stage": "image",
                             },
                             run_id=item_run_id,
                         )
@@ -724,6 +762,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                     state.update(fin_res)
 
                     final_q_dict = state["final_question"]
+                    final_q_dict["index"] = idx + 1
                     outcomes_questions[idx] = final_q_dict
 
                     # Emit question_generated event
@@ -736,6 +775,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             "index": idx + 1,
                             "total": total_qty,
                             "batch_id": batch_id,
+                            "stage": "completed",
                         },
                         run_id=item_run_id,
                     )
