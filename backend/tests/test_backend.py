@@ -1,3 +1,4 @@
+import json
 import uuid
 
 import pytest
@@ -22,6 +23,7 @@ from app.workflow.graph import (
     image_node,
     reviewer_node,
     route_after_review,
+    run_workflow_stream,
 )
 
 
@@ -692,5 +694,137 @@ async def test_per_question_stage_metadata_in_events(monkeypatch):
         assert e["data"]["total"] == 2
         assert e["data"]["stage"] == "completed"
         assert e["data"]["question"]["index"] in (1, 2)
+
+
+@pytest.mark.asyncio
+async def test_single_passage_multi_question_set(monkeypatch):
+    """Verifies that 1 shared reading passage is generated for multiple linked questions (Single & Multi-choice)."""
+    monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
+    monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
+
+    req = GenerationRequest(
+        section=UCATSection.VERBAL_REASONING,
+        difficulty=Difficulty.MEDIUM,
+        questions_to_generate=3,
+        single_choice_count=2,
+        multi_choice_count=1,
+        passage_required="Yes",
+        passage_mode="single_passage",
+    )
+
+    events = []
+    async for chunk in run_workflow_stream(req):
+        line = chunk.strip()
+        if line.startswith("data: "):
+            events.append(json.loads(line[6:]))
+
+    # Assert Passage Writer events exist
+    passage_starts = [e for e in events if e["agent_name"] == "Passage Writer" and e["event_type"] == "agent_start"]
+    passage_completes = [e for e in events if e["agent_name"] == "Passage Writer" and e["event_type"] == "agent_complete"]
+    assert len(passage_starts) == 1
+    assert len(passage_completes) == 1
+
+    shared_passage_text = passage_completes[0]["data"]["passage_text"]
+    shared_passage_id = passage_completes[0]["data"]["passage_id"]
+    assert shared_passage_text and len(shared_passage_text.split()) > 100
+    assert shared_passage_id
+
+    # Check workflow_complete
+    complete_events = [e for e in events if e["event_type"] == "workflow_complete"]
+    assert len(complete_events) == 1
+    data = complete_events[0]["data"]
+    questions = data["questions"]
+    assert len(questions) == 3
+
+    # Verify all questions share the exact same passage_id and stimulus_text
+    single_count = 0
+    multi_count = 0
+    for q in questions:
+        assert q["passage_id"] == shared_passage_id
+        assert q["stimulus_text"] == shared_passage_text
+        assert q["final_score"] > 90
+        if q["interaction_type"] == "multi_choice":
+            multi_count += 1
+        elif q["interaction_type"] == "single_choice":
+            single_count += 1
+
+    assert single_count == 2
+    assert multi_count == 1
+
+
+@pytest.mark.asyncio
+async def test_mixed_passage_and_independent_batch(monkeypatch):
+    """Verifies hybrid batch with 2 questions on a shared passage and 3 independent questions (Single & Multi-choice)."""
+    monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
+    monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
+
+    req = GenerationRequest(
+        section=UCATSection.VERBAL_REASONING,
+        difficulty=Difficulty.MEDIUM,
+        questions_to_generate=5,
+        passage_mode="single_passage",
+        passage_question_count=2,
+        passage_single_count=1,
+        passage_multi_count=1,
+        independent_single_count=2,
+        independent_multi_count=1,
+    )
+
+    events = []
+    async for chunk in run_workflow_stream(req):
+        line = chunk.strip()
+        if line.startswith("data: "):
+            events.append(json.loads(line[6:]))
+
+    # Verify workflow_start metadata
+    start_events = [e for e in events if e["event_type"] == "workflow_start"]
+    assert len(start_events) == 1
+    start_data = start_events[0]["data"]
+    assert start_data["is_mixed_set"] is True
+    assert start_data["passage_question_count"] == 2
+    assert start_data["independent_question_count"] == 3
+    assert start_data["passage_single_count"] == 1
+    assert start_data["passage_multi_count"] == 1
+    assert start_data["independent_single_count"] == 2
+    assert start_data["independent_multi_count"] == 1
+
+    # Verify workflow_complete
+    complete_events = [e for e in events if e["event_type"] == "workflow_complete"]
+    assert len(complete_events) == 1
+    comp_data = complete_events[0]["data"]
+    assert comp_data["is_mixed_set"] is True
+    questions = comp_data["questions"]
+    assert len(questions) == 5
+
+    shared_passage_id = comp_data["passage_id"]
+    shared_passage_text = comp_data["shared_passage"]
+    assert shared_passage_id is not None
+    assert shared_passage_text is not None
+
+    # First 2 questions belong to the shared passage
+    p_questions = questions[:2]
+    for q in p_questions:
+        assert q["passage_id"] == shared_passage_id
+        assert q["stimulus_text"] == shared_passage_text
+        assert q["final_score"] > 90
+
+    p_singles = sum(1 for q in p_questions if q["interaction_type"] == "single_choice")
+    p_multis = sum(1 for q in p_questions if q["interaction_type"] == "multi_choice")
+    assert p_singles == 1
+    assert p_multis == 1
+
+    # Remaining 3 questions are independent
+    ind_questions = questions[2:]
+    for q in ind_questions:
+        assert q.get("passage_id") is None
+        assert q.get("stimulus_text") != shared_passage_text
+        assert q["final_score"] > 90
+
+    ind_singles = sum(1 for q in ind_questions if q["interaction_type"] == "single_choice")
+    ind_multis = sum(1 for q in ind_questions if q["interaction_type"] == "multi_choice")
+    assert ind_singles == 2
+    assert ind_multis == 1
+
+
 
 

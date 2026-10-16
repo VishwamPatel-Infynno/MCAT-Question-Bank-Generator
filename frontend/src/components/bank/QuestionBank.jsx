@@ -553,11 +553,15 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                           </span>
                         )}
 
-                        {(q.passage_required === 'Yes' || (q.stimulus_text && q.stimulus_text.split(/\s+/).length >= 180)) && (
+                        {q.passage_id ? (
+                          <span className="badge badge-cyan" style={{ fontSize: '0.625rem', padding: '1px 6px' }}>
+                            Passage Set
+                          </span>
+                        ) : (q.passage_required === 'Yes' || (q.stimulus_text && q.stimulus_text.split(/\s+/).length >= 180)) ? (
                           <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
                             • Passage
                           </span>
-                        )}
+                        ) : null}
 
                         {q.primary_trap && q.primary_trap !== 'Automatic' && (
                           <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>

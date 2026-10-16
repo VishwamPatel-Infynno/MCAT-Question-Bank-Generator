@@ -115,6 +115,7 @@ class Question(BaseModel):
         default_factory=list, description="Per-agent granular token and cost breakdown"
     )
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
+    updated_at: str | None = None
 
     # Manager Combination Matrix attributes
     combination_id: str | None = Field(
@@ -128,6 +129,13 @@ class Question(BaseModel):
     )
     primary_trap: str | None = Field(None, description="e.g. Keyword_Trap, Partial_Match")
     passage_required: str | None = Field(None, description="Yes or No")
+    passage_mode: str | None = Field(
+        "single_passage",
+        description="single_passage (1 shared passage) or independent (separate scenarios)",
+    )
+    passage_id: str | None = Field(
+        None, description="Shared UUID for questions linked to the same passage"
+    )
     passage_questions: int | None = Field(None, description="Number of passage questions e.g. 3, 4")
     visual_type: str | None = Field("None", description="e.g. None, SVG_Diagram, AI_FLUX_Image")
 
@@ -135,3 +143,30 @@ class Question(BaseModel):
     stage_outcomes: dict[str, Any] | None = Field(
         default_factory=dict, description="Raw outcome JSON of all agent workflow stages"
     )
+
+
+class Passage(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str | None = None
+    text: str
+    word_count: int | None = None
+    section: str | None = None
+    subtopic: str | None = None
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
+    updated_at: str | None = None
+
+
+class GenerationBatch(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    section: str | None = None
+    subtopic: str | None = None
+    difficulty: str | None = None
+    passage_mode: str | None = None
+    target_count: int = 0
+    actual_count: int = 0
+    total_tokens: int = 0
+    cost_usd: float = 0.0
+    status: str = "completed"
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
+    updated_at: str | None = None
+

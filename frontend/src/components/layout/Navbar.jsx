@@ -68,15 +68,32 @@ export default function Navbar({
           aria-hidden="true"
         />
 
-        {/* Product Identity */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Product Identity (Click to refresh/reload) */}
+        <a
+          href="/"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = '/';
+          }}
+          className="brand-refresh-link"
+          title="Refresh application and return to home"
+          aria-label="Infynno UCAT Question Bank Generator home - click to reload application"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            textDecoration: 'none',
+            cursor: 'pointer'
+          }}
+        >
           <h1
             style={{
               fontSize: '0.9rem',
               fontWeight: 700,
               letterSpacing: '-0.01em',
               color: 'var(--text-primary)',
-              margin: 0
+              margin: 0,
+              transition: 'color var(--transition-fast)'
             }}
           >
             Infynno UCAT Question Bank Generator
@@ -89,12 +106,13 @@ export default function Navbar({
               background: 'var(--bg-surface-subtle)',
               border: '1px solid var(--border-light)',
               padding: '1px 6px',
-              borderRadius: 'var(--radius-xs)'
+              borderRadius: 'var(--radius-xs)',
+              transition: 'border-color var(--transition-fast), color var(--transition-fast)'
             }}
           >
             v2.0
           </span>
-        </div>
+        </a>
       </div>
 
       {/* Center Nav Tabs (Quiet Segmented Switcher) */}

@@ -683,3 +683,29 @@ input:focus, select:focus, textarea:focus {
   display: inline-block;
 }
 
+/* Brand Title Refresh Link */
+.brand-refresh-link {
+  transition: all var(--transition-fast);
+}
+
+.brand-refresh-link:hover h1 {
+  color: var(--brand-primary) !important;
+}
+
+.brand-refresh-link:hover span {
+  border-color: var(--border-medium) !important;
+  color: var(--text-secondary) !important;
+  background: var(--bg-surface-hover) !important;
+}
+
+.brand-refresh-link:active {
+  transform: scale(0.99);
+}
+
+.brand-refresh-link:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 4px;
+  border-radius: var(--radius-xs);
+}
+
+

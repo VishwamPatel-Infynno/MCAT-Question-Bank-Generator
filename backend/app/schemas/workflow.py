@@ -37,6 +37,16 @@ class GenerationRequest(BaseModel):
     )
     primary_trap: str | None = Field(None, description="e.g. Keyword_Trap, Partial_Match")
     passage_required: str | bool | None = Field(None, description="Yes or No")
+    passage_mode: str | None = Field(
+        "single_passage",
+        description="single_passage (1 shared passage with linked questions) or independent (separate scenarios)",
+    )
+    passage_id: str | None = Field(
+        None, description="Shared UUID for questions linked to the same passage"
+    )
+    shared_stimulus: str | None = Field(
+        None, description="Pre-generated shared passage text"
+    )
     passage_questions: int | None = Field(None, description="Number of passage questions e.g. 3, 4")
     image_required: str | bool | None = Field(None, description="Yes or No")
     visual_type: str | None = Field("None", description="e.g. None, SVG_Diagram, AI_FLUX_Image")
@@ -51,6 +61,21 @@ class GenerationRequest(BaseModel):
     )
     passage_count: int | None = Field(
         None, ge=0, le=5, description="Number of passage-type items in batch"
+    )
+    passage_question_count: int | None = Field(
+        None, ge=1, le=5, description="Number of questions linked to the shared passage"
+    )
+    passage_single_count: int | None = Field(
+        None, ge=0, le=5, description="Single choice count under shared passage"
+    )
+    passage_multi_count: int | None = Field(
+        None, ge=0, le=5, description="Multi choice count under shared passage"
+    )
+    independent_single_count: int | None = Field(
+        None, ge=0, le=5, description="Single choice count for independent questions"
+    )
+    independent_multi_count: int | None = Field(
+        None, ge=0, le=5, description="Multi choice count for independent questions"
     )
     auto_save: bool = Field(
         False,

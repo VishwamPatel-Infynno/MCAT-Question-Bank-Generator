@@ -29,6 +29,7 @@ class QuestionModel(Base):
     iteration_count: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     iterations_history: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    updated_at: Mapped[str | None] = mapped_column(String(64), nullable=True)
     run_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     batch_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
 
@@ -46,6 +47,8 @@ class QuestionModel(Base):
     interaction_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
     primary_trap: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     passage_required: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    passage_mode: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    passage_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     passage_questions: Mapped[int | None] = mapped_column(Integer, nullable=True)
     visual_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
 

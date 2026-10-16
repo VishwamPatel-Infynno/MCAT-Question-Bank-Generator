@@ -31,6 +31,18 @@ export default function GeneratorPanel({
   setMultiChoiceCount,
   passageCount = 0,
   setPassageCount,
+  passageMode = 'single_passage',
+  setPassageMode,
+  passageQuestionCount = 2,
+  setPassageQuestionCount,
+  passageSingleCount = 1,
+  setPassageSingleCount,
+  passageMultiCount = 1,
+  setPassageMultiCount,
+  independentSingleCount = 2,
+  setIndependentSingleCount,
+  independentMultiCount = 1,
+  setIndependentMultiCount,
   interactionType = 'single_choice',
   setInteractionType,
   passageRequired = 'No',
@@ -52,20 +64,116 @@ export default function GeneratorPanel({
   const handleTotalChange = (newTotal) => {
     const clamped = Math.max(1, Math.min(5, newTotal));
     if (setTotalQuestions) setTotalQuestions(clamped);
-    if (setSingleChoiceCount && setMultiChoiceCount) {
-      if (clamped === 1) {
-        setSingleChoiceCount(interactionType === 'multi_choice' ? 0 : 1);
-        setMultiChoiceCount(interactionType === 'multi_choice' ? 1 : 0);
-        if (setPassageCount) setPassageCount(passageRequired === 'Yes' ? 1 : 0);
+    if (clamped === 1) {
+      if (setSingleChoiceCount) setSingleChoiceCount(interactionType === 'multi_choice' ? 0 : 1);
+      if (setMultiChoiceCount) setMultiChoiceCount(interactionType === 'multi_choice' ? 1 : 0);
+      if (setPassageCount) setPassageCount(passageRequired === 'Yes' ? 1 : 0);
+    } else {
+      if (passageMode === 'single_passage') {
+        const clampedPassage = Math.max(1, Math.min(clamped, passageQuestionCount));
+        if (setPassageQuestionCount) setPassageQuestionCount(clampedPassage);
+        const pMulti = Math.min(passageMultiCount, clampedPassage);
+        const pSingle = clampedPassage - pMulti;
+        if (setPassageMultiCount) setPassageMultiCount(pMulti);
+        if (setPassageSingleCount) setPassageSingleCount(pSingle);
+        const indTotal = clamped - clampedPassage;
+        let indMulti = 0;
+        let indSingle = 0;
+        if (indTotal > 0) {
+          indMulti = Math.min(independentMultiCount, indTotal);
+          indSingle = indTotal - indMulti;
+          if (setIndependentMultiCount) setIndependentMultiCount(indMulti);
+          if (setIndependentSingleCount) setIndependentSingleCount(indSingle);
+        }
+        if (setSingleChoiceCount) setSingleChoiceCount(pSingle + indSingle);
+        if (setMultiChoiceCount) setMultiChoiceCount(pMulti + indMulti);
+        if (setPassageCount) setPassageCount(clampedPassage);
       } else {
         const curMulti = Math.min(multiChoiceCount, clamped);
-        setMultiChoiceCount(curMulti);
-        setSingleChoiceCount(clamped - curMulti);
-        if (setPassageCount && passageCount > clamped) {
-          setPassageCount(clamped);
-        }
+        if (setMultiChoiceCount) setMultiChoiceCount(curMulti);
+        if (setSingleChoiceCount) setSingleChoiceCount(clamped - curMulti);
+        if (setPassageCount) setPassageCount(Math.min(passageCount, clamped));
       }
     }
+  };
+
+  const handlePassageModeChange = (mode) => {
+    if (setPassageMode) setPassageMode(mode);
+    if (mode === 'single_passage') {
+      if (setPassageRequired) setPassageRequired('Yes');
+      if (setPassageCount) setPassageCount(passageQuestionCount);
+    } else {
+      if (setPassageRequired) setPassageRequired('No');
+      if (setPassageCount) setPassageCount(0);
+    }
+  };
+
+  const handlePassageQuestionCountChange = (newVal) => {
+    const val = Math.max(1, Math.min(totalQuestions, newVal));
+    if (setPassageQuestionCount) setPassageQuestionCount(val);
+    const pMulti = Math.min(passageMultiCount, val);
+    const pSingle = val - pMulti;
+    if (setPassageMultiCount) setPassageMultiCount(pMulti);
+    if (setPassageSingleCount) setPassageSingleCount(pSingle);
+
+    const indTotal = totalQuestions - val;
+    let indMulti = 0;
+    let indSingle = 0;
+    if (indTotal > 0) {
+      indMulti = Math.min(independentMultiCount, indTotal);
+      indSingle = indTotal - indMulti;
+      if (setIndependentMultiCount) setIndependentMultiCount(indMulti);
+      if (setIndependentSingleCount) setIndependentSingleCount(indSingle);
+    }
+    if (setSingleChoiceCount) setSingleChoiceCount(pSingle + indSingle);
+    if (setMultiChoiceCount) setMultiChoiceCount(pMulti + indMulti);
+    if (setPassageCount) setPassageCount(val);
+  };
+
+  const handlePassageSingleChange = (newVal) => {
+    const val = Math.max(0, Math.min(passageQuestionCount, newVal));
+    const pMulti = passageQuestionCount - val;
+    if (setPassageSingleCount) setPassageSingleCount(val);
+    if (setPassageMultiCount) setPassageMultiCount(pMulti);
+    const indTotal = totalQuestions - passageQuestionCount;
+    const indSingle = indTotal > 0 ? independentSingleCount : 0;
+    const indMulti = indTotal > 0 ? independentMultiCount : 0;
+    if (setSingleChoiceCount) setSingleChoiceCount(val + indSingle);
+    if (setMultiChoiceCount) setMultiChoiceCount(pMulti + indMulti);
+  };
+
+  const handlePassageMultiChange = (newVal) => {
+    const val = Math.max(0, Math.min(passageQuestionCount, newVal));
+    const pSingle = passageQuestionCount - val;
+    if (setPassageMultiCount) setPassageMultiCount(val);
+    if (setPassageSingleCount) setPassageSingleCount(pSingle);
+    const indTotal = totalQuestions - passageQuestionCount;
+    const indSingle = indTotal > 0 ? independentSingleCount : 0;
+    const indMulti = indTotal > 0 ? independentMultiCount : 0;
+    if (setSingleChoiceCount) setSingleChoiceCount(pSingle + indSingle);
+    if (setMultiChoiceCount) setMultiChoiceCount(val + indMulti);
+  };
+
+  const handleIndependentSingleChange = (newVal) => {
+    const indTotal = totalQuestions - passageQuestionCount;
+    if (indTotal <= 0) return;
+    const val = Math.max(0, Math.min(indTotal, newVal));
+    const indMulti = indTotal - val;
+    if (setIndependentSingleCount) setIndependentSingleCount(val);
+    if (setIndependentMultiCount) setIndependentMultiCount(indMulti);
+    if (setSingleChoiceCount) setSingleChoiceCount(passageSingleCount + val);
+    if (setMultiChoiceCount) setMultiChoiceCount(passageMultiCount + indMulti);
+  };
+
+  const handleIndependentMultiChange = (newVal) => {
+    const indTotal = totalQuestions - passageQuestionCount;
+    if (indTotal <= 0) return;
+    const val = Math.max(0, Math.min(indTotal, newVal));
+    const indSingle = indTotal - val;
+    if (setIndependentMultiCount) setIndependentMultiCount(val);
+    if (setIndependentSingleCount) setIndependentSingleCount(indSingle);
+    if (setSingleChoiceCount) setSingleChoiceCount(passageSingleCount + indSingle);
+    if (setMultiChoiceCount) setMultiChoiceCount(passageMultiCount + val);
   };
 
   const handleSingleCountChange = (newVal) => {
@@ -457,157 +565,547 @@ export default function GeneratorPanel({
 
         {/* Batch Allocation (when totalQuestions > 1) */}
         {totalQuestions > 1 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {/* Answer Mode Breakdown */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {/* Reading Material Mode: Single Passage Set vs Independent Questions */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Answer Style Breakdown
-              </span>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                {/* Single Choice Counter */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '5px 8px',
-                    background: 'var(--bg-surface-subtle)',
-                    borderRadius: 'var(--radius-xs)',
-                    border: '1px solid var(--border-light)'
-                  }}
-                >
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Single</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <button
-                      type="button"
-                      id="btn-single-count-minus"
-                      onClick={() => handleSingleCountChange(singleChoiceCount - 1)}
-                      disabled={singleChoiceCount <= 0}
-                      style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                    >
-                      <Minus size={9} />
-                    </button>
-                    <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center' }}>
-                      {singleChoiceCount}
-                    </span>
-                    <button
-                      type="button"
-                      id="btn-single-count-plus"
-                      onClick={() => handleSingleCountChange(singleChoiceCount + 1)}
-                      disabled={singleChoiceCount >= totalQuestions}
-                      style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                    >
-                      <Plus size={9} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Multi Choice Counter */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '5px 8px',
-                    background: 'var(--bg-surface-subtle)',
-                    borderRadius: 'var(--radius-xs)',
-                    border: '1px solid var(--border-light)'
-                  }}
-                >
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Multiple</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <button
-                      type="button"
-                      id="btn-multi-count-minus"
-                      onClick={() => handleMultiCountChange(multiChoiceCount - 1)}
-                      disabled={multiChoiceCount <= 0}
-                      style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                    >
-                      <Minus size={9} />
-                    </button>
-                    <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: multiChoiceCount > 0 ? 'var(--brand-indigo)' : 'var(--text-primary)' }}>
-                      {multiChoiceCount}
-                    </span>
-                    <button
-                      type="button"
-                      id="btn-multi-count-plus"
-                      onClick={() => handleMultiCountChange(multiChoiceCount + 1)}
-                      disabled={multiChoiceCount >= totalQuestions}
-                      style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                    >
-                      <Plus size={9} />
-                    </button>
-                  </div>
-                </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Reading Material
+                </span>
+                <span className="badge badge-purple" style={{ fontSize: '0.6rem', padding: '1px 5px' }}>
+                  {passageMode === 'single_passage' ? '1 Passage • N Questions' : 'Separate Vignettes'}
+                </span>
               </div>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '2px',
+                  background: 'var(--bg-surface-subtle)',
+                  padding: '2px',
+                  borderRadius: 'var(--radius-xs)',
+                  border: '1px solid var(--border-light)'
+                }}
+              >
+                {[
+                  { id: 'single_passage', label: 'Single Passage Set' },
+                  { id: 'independent', label: 'Independent Questions' }
+                ].map(opt => {
+                  const isSel = passageMode === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      id={`btn-passage-mode-${opt.id}`}
+                      onClick={() => handlePassageModeChange(opt.id)}
+                      style={{
+                        padding: '5px',
+                        borderRadius: 'var(--radius-xs)',
+                        border: 'none',
+                        background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
+                        color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
+                        fontSize: '0.725rem',
+                        fontWeight: isSel ? 600 : 400,
+                        cursor: 'pointer',
+                        boxShadow: isSel ? 'var(--shadow-sm)' : 'none',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {passageMode === 'single_passage' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginTop: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      Questions on Shared Passage
+                    </span>
+                    <span className="badge badge-purple" style={{ fontSize: '0.625rem', padding: '1px 6px' }}>
+                      {passageQuestionCount} Passage • {totalQuestions - passageQuestionCount} Independent
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        background: 'var(--bg-surface-subtle)',
+                        border: '1px solid var(--border-light)',
+                        borderRadius: 'var(--radius-xs)',
+                        padding: '2px',
+                        flex: 1
+                      }}
+                    >
+                      <button
+                        type="button"
+                        id="btn-passage-qty-minus"
+                        onClick={() => handlePassageQuestionCountChange(passageQuestionCount - 1)}
+                        disabled={passageQuestionCount <= 1}
+                        style={{
+                          width: '26px',
+                          height: '24px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: 'none',
+                          background: 'transparent',
+                          color: passageQuestionCount <= 1 ? 'var(--text-disabled)' : 'var(--text-primary)',
+                          cursor: passageQuestionCount <= 1 ? 'not-allowed' : 'pointer'
+                        }}
+                        title="Decrease passage question count"
+                      >
+                        <Minus size={11} />
+                      </button>
+                      <div style={{ flex: 1, textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                        {passageQuestionCount} of {totalQuestions}
+                      </div>
+                      <button
+                        type="button"
+                        id="btn-passage-qty-plus"
+                        onClick={() => handlePassageQuestionCountChange(passageQuestionCount + 1)}
+                        disabled={passageQuestionCount >= totalQuestions}
+                        style={{
+                          width: '26px',
+                          height: '24px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: 'none',
+                          background: 'transparent',
+                          color: passageQuestionCount >= totalQuestions ? 'var(--text-disabled)' : 'var(--text-primary)',
+                          cursor: passageQuestionCount >= totalQuestions ? 'not-allowed' : 'pointer'
+                        }}
+                        title="Increase passage question count"
+                      >
+                        <Plus size={11} />
+                      </button>
+                    </div>
+
+                    {/* Quick Allocation Chips */}
+                    <div style={{ display: 'flex', gap: '3px' }}>
+                      {Array.from({ length: totalQuestions }, (_, i) => i + 1).map(cnt => (
+                        <button
+                          key={cnt}
+                          type="button"
+                          id={`btn-chip-passage-qty-${cnt}`}
+                          onClick={() => handlePassageQuestionCountChange(cnt)}
+                          style={{
+                            padding: '4px 7px',
+                            borderRadius: 'var(--radius-xs)',
+                            fontSize: '0.675rem',
+                            fontWeight: passageQuestionCount === cnt ? 600 : 400,
+                            background: passageQuestionCount === cnt ? 'var(--status-purple-bg)' : 'var(--bg-surface-subtle)',
+                            color: passageQuestionCount === cnt ? 'var(--status-purple)' : 'var(--text-muted)',
+                            border: passageQuestionCount === cnt ? '1px solid var(--status-purple-border)' : '1px solid var(--border-light)',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {cnt}P
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: '6px 8px',
+                      borderRadius: 'var(--radius-xs)',
+                      background: 'var(--brand-light)',
+                      border: '1px solid var(--border-brand)',
+                      fontSize: '0.675rem',
+                      color: 'var(--text-secondary)',
+                      lineHeight: 1.35
+                    }}
+                  >
+                    {passageQuestionCount === totalQuestions ? (
+                      <>
+                        <strong style={{ color: 'var(--brand-primary)' }}>Full Passage Set:</strong> All {totalQuestions} questions reference 1 shared comprehensive passage (250–400 words).
+                      </>
+                    ) : (
+                      <>
+                        <strong style={{ color: 'var(--status-purple)' }}>Mixed Set:</strong> {passageQuestionCount} questions linked to 1 shared passage (250–400w); remaining {totalQuestions - passageQuestionCount} questions are independent standalone scenarios.
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Stimulus Length Breakdown */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Reading Material Breakdown
-              </span>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                {/* Passage Counter */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '5px 8px',
-                    background: 'var(--bg-surface-subtle)',
-                    borderRadius: 'var(--radius-xs)',
-                    border: '1px solid var(--border-light)'
-                  }}
-                >
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Reading Passage</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <button
-                      type="button"
-                      id="btn-passage-count-minus"
-                      onClick={() => handlePassageCountChange(passageCount - 1)}
-                      disabled={passageCount <= 0}
-                      style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                    >
-                      <Minus size={9} />
-                    </button>
-                    <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: passageCount > 0 ? 'var(--brand-primary)' : 'var(--text-primary)' }}>
-                      {passageCount}
-                    </span>
-                    <button
-                      type="button"
-                      id="btn-passage-count-plus"
-                      onClick={() => handlePassageCountChange(passageCount + 1)}
-                      disabled={passageCount >= totalQuestions}
-                      style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                    >
-                      <Plus size={9} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Short Scenario (Derived) */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '5px 8px',
-                    background: 'var(--bg-surface-subtle)',
-                    borderRadius: 'var(--radius-xs)',
-                    border: '1px solid var(--border-light)'
-                  }}
-                >
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Short Scenario</span>
-                  <span style={{ fontSize: '0.725rem', fontWeight: 700, paddingRight: '4px', color: 'var(--text-muted)' }}>
-                    {totalQuestions - passageCount}
+            {/* Answer Style Breakdown */}
+            {passageMode === 'single_passage' && passageQuestionCount < totalQuestions ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {/* Passage Group Formats */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Passage Items ({passageQuestionCount} Qs) Style
                   </span>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '5px 8px',
+                        background: 'var(--bg-surface-subtle)',
+                        borderRadius: 'var(--radius-xs)',
+                        border: '1px solid var(--border-light)'
+                      }}
+                    >
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Single</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <button
+                          type="button"
+                          id="btn-p-single-minus"
+                          onClick={() => handlePassageSingleChange(passageSingleCount - 1)}
+                          disabled={passageSingleCount <= 0}
+                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        >
+                          <Minus size={9} />
+                        </button>
+                        <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center' }}>
+                          {passageSingleCount}
+                        </span>
+                        <button
+                          type="button"
+                          id="btn-p-single-plus"
+                          onClick={() => handlePassageSingleChange(passageSingleCount + 1)}
+                          disabled={passageSingleCount >= passageQuestionCount}
+                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        >
+                          <Plus size={9} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '5px 8px',
+                        background: 'var(--bg-surface-subtle)',
+                        borderRadius: 'var(--radius-xs)',
+                        border: '1px solid var(--border-light)'
+                      }}
+                    >
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Multi</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <button
+                          type="button"
+                          id="btn-p-multi-minus"
+                          onClick={() => handlePassageMultiChange(passageMultiCount - 1)}
+                          disabled={passageMultiCount <= 0}
+                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        >
+                          <Minus size={9} />
+                        </button>
+                        <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: passageMultiCount > 0 ? 'var(--brand-indigo)' : 'var(--text-primary)' }}>
+                          {passageMultiCount}
+                        </span>
+                        <button
+                          type="button"
+                          id="btn-p-multi-plus"
+                          onClick={() => handlePassageMultiChange(passageMultiCount + 1)}
+                          disabled={passageMultiCount >= passageQuestionCount}
+                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        >
+                          <Plus size={9} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Independent Group Formats */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Independent Items ({totalQuestions - passageQuestionCount} Qs) Style
+                  </span>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '5px 8px',
+                        background: 'var(--bg-surface-subtle)',
+                        borderRadius: 'var(--radius-xs)',
+                        border: '1px solid var(--border-light)'
+                      }}
+                    >
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Single</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <button
+                          type="button"
+                          id="btn-ind-single-minus"
+                          onClick={() => handleIndependentSingleChange(independentSingleCount - 1)}
+                          disabled={independentSingleCount <= 0}
+                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        >
+                          <Minus size={9} />
+                        </button>
+                        <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center' }}>
+                          {independentSingleCount}
+                        </span>
+                        <button
+                          type="button"
+                          id="btn-ind-single-plus"
+                          onClick={() => handleIndependentSingleChange(independentSingleCount + 1)}
+                          disabled={independentSingleCount >= (totalQuestions - passageQuestionCount)}
+                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        >
+                          <Plus size={9} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '5px 8px',
+                        background: 'var(--bg-surface-subtle)',
+                        borderRadius: 'var(--radius-xs)',
+                        border: '1px solid var(--border-light)'
+                      }}
+                    >
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Multi</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <button
+                          type="button"
+                          id="btn-ind-multi-minus"
+                          onClick={() => handleIndependentMultiChange(independentMultiCount - 1)}
+                          disabled={independentMultiCount <= 0}
+                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        >
+                          <Minus size={9} />
+                        </button>
+                        <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: independentMultiCount > 0 ? 'var(--brand-indigo)' : 'var(--text-primary)' }}>
+                          {independentMultiCount}
+                        </span>
+                        <button
+                          type="button"
+                          id="btn-ind-multi-plus"
+                          onClick={() => handleIndependentMultiChange(independentMultiCount + 1)}
+                          disabled={independentMultiCount >= (totalQuestions - passageQuestionCount)}
+                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        >
+                          <Plus size={9} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Question Style Mix ({singleChoiceCount} Single, {multiChoiceCount} Multi)
+                </span>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                  {/* Single Choice Counter */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '5px 8px',
+                      background: 'var(--bg-surface-subtle)',
+                      borderRadius: 'var(--radius-xs)',
+                      border: '1px solid var(--border-light)'
+                    }}
+                  >
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Single Choice</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <button
+                        type="button"
+                        id="btn-single-count-minus"
+                        onClick={() => handleSingleCountChange(singleChoiceCount - 1)}
+                        disabled={singleChoiceCount <= 0}
+                        style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                      >
+                        <Minus size={9} />
+                      </button>
+                      <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center' }}>
+                        {singleChoiceCount}
+                      </span>
+                      <button
+                        type="button"
+                        id="btn-single-count-plus"
+                        onClick={() => handleSingleCountChange(singleChoiceCount + 1)}
+                        disabled={singleChoiceCount >= totalQuestions}
+                        style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                      >
+                        <Plus size={9} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Multi Choice Counter */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '5px 8px',
+                      background: 'var(--bg-surface-subtle)',
+                      borderRadius: 'var(--radius-xs)',
+                      border: '1px solid var(--border-light)'
+                    }}
+                  >
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Multiple Choice</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <button
+                        type="button"
+                        id="btn-multi-count-minus"
+                        onClick={() => handleMultiCountChange(multiChoiceCount - 1)}
+                        disabled={multiChoiceCount <= 0}
+                        style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                      >
+                        <Minus size={9} />
+                      </button>
+                      <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: multiChoiceCount > 0 ? 'var(--brand-indigo)' : 'var(--text-primary)' }}>
+                        {multiChoiceCount}
+                      </span>
+                      <button
+                        type="button"
+                        id="btn-multi-count-plus"
+                        onClick={() => handleMultiCountChange(multiChoiceCount + 1)}
+                        disabled={multiChoiceCount >= totalQuestions}
+                        style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                      >
+                        <Plus size={9} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Stimulus Length Breakdown (Only when passageMode === 'independent') */}
+            {passageMode === 'independent' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Independent Scenarios Breakdown
+                </span>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                  {/* Passage Counter */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '5px 8px',
+                      background: 'var(--bg-surface-subtle)',
+                      borderRadius: 'var(--radius-xs)',
+                      border: '1px solid var(--border-light)'
+                    }}
+                  >
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Reading Passage</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <button
+                        type="button"
+                        id="btn-passage-count-minus"
+                        onClick={() => handlePassageCountChange(passageCount - 1)}
+                        disabled={passageCount <= 0}
+                        style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                      >
+                        <Minus size={9} />
+                      </button>
+                      <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: passageCount > 0 ? 'var(--brand-primary)' : 'var(--text-primary)' }}>
+                        {passageCount}
+                      </span>
+                      <button
+                        type="button"
+                        id="btn-passage-count-plus"
+                        onClick={() => handlePassageCountChange(passageCount + 1)}
+                        disabled={passageCount >= totalQuestions}
+                        style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+                      >
+                        <Plus size={9} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Short Scenario (Derived) */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '5px 8px',
+                      background: 'var(--bg-surface-subtle)',
+                      borderRadius: 'var(--radius-xs)',
+                      border: '1px solid var(--border-light)'
+                    }}
+                  >
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Short Scenario</span>
+                    <span style={{ fontSize: '0.725rem', fontWeight: 700, paddingRight: '4px', color: 'var(--text-muted)' }}>
+                      {totalQuestions - passageCount}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {/* Reading Material Switch for 1 question */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Reading Material
+              </span>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '2px',
+                  background: 'var(--bg-surface-subtle)',
+                  padding: '2px',
+                  borderRadius: 'var(--radius-xs)',
+                  border: '1px solid var(--border-light)'
+                }}
+              >
+                {[
+                  { id: 'No', label: 'Short Scenario' },
+                  { id: 'Yes', label: 'Reading Passage' }
+                ].map(opt => {
+                  const isSel = passageRequired === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      id={`btn-passage-${opt.id.toLowerCase()}`}
+                      onClick={() => {
+                        if (setPassageRequired) setPassageRequired(opt.id);
+                        if (setPassageCount) setPassageCount(opt.id === 'Yes' ? 1 : 0);
+                        if (setPassageMode) setPassageMode(opt.id === 'Yes' ? 'single_passage' : 'independent');
+                      }}
+                      style={{
+                        padding: '5px',
+                        borderRadius: 'var(--radius-xs)',
+                        border: 'none',
+                        background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
+                        color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
+                        fontSize: '0.725rem',
+                        fontWeight: isSel ? 600 : 400,
+                        cursor: 'pointer',
+                        boxShadow: isSel ? 'var(--shadow-sm)' : 'none'
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Answer Type Switch for 1 question */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -640,55 +1138,6 @@ export default function GeneratorPanel({
                           setSingleChoiceCount(opt.id === 'multi_choice' ? 0 : 1);
                           setMultiChoiceCount(opt.id === 'multi_choice' ? 1 : 0);
                         }
-                      }}
-                      style={{
-                        padding: '5px',
-                        borderRadius: 'var(--radius-xs)',
-                        border: 'none',
-                        background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
-                        color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
-                        fontSize: '0.725rem',
-                        fontWeight: isSel ? 600 : 400,
-                        cursor: 'pointer',
-                        boxShadow: isSel ? 'var(--shadow-sm)' : 'none'
-                      }}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Passage Length Switch for 1 question */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Reading Material
-              </span>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: '2px',
-                  background: 'var(--bg-surface-subtle)',
-                  padding: '2px',
-                  borderRadius: 'var(--radius-xs)',
-                  border: '1px solid var(--border-light)'
-                }}
-              >
-                {[
-                  { id: 'No', label: 'Short Scenario' },
-                  { id: 'Yes', label: 'Reading Passage' }
-                ].map(opt => {
-                  const isSel = passageRequired === opt.id;
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      id={`btn-passage-${opt.id.toLowerCase()}`}
-                      onClick={() => {
-                        if (setPassageRequired) setPassageRequired(opt.id);
-                        if (setPassageCount) setPassageCount(opt.id === 'Yes' ? 1 : 0);
                       }}
                       style={{
                         padding: '5px',
@@ -859,7 +1308,9 @@ export default function GeneratorPanel({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.7rem' }}>
           <span style={{ color: 'var(--text-muted)' }}>Target:</span>
           <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-            {totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'} • {currentSectionObj.label}
+            {totalQuestions > 1 && passageMode === 'single_passage'
+              ? `${totalQuestions} Questions Set (1 Shared Passage)`
+              : `${totalQuestions} ${totalQuestions === 1 ? 'Question' : 'Questions'} • ${currentSectionObj.label}`}
           </span>
         </div>
 
@@ -880,8 +1331,12 @@ export default function GeneratorPanel({
             <Sparkles size={14} />
             <span>
               {isGenerating
-                ? (totalQuestions > 1 ? `Creating ${totalQuestions} Questions...` : 'Creating Question...')
-                : (totalQuestions > 1 ? `Create ${totalQuestions} Questions` : 'Create Question')}
+                ? (totalQuestions > 1
+                    ? (passageMode === 'single_passage' ? `Creating ${totalQuestions}-Question Passage Set...` : `Creating ${totalQuestions} Questions...`)
+                    : 'Creating Question...')
+                : (totalQuestions > 1
+                    ? (passageMode === 'single_passage' ? `Create Passage Set (${totalQuestions} Qs)` : `Create ${totalQuestions} Questions`)
+                    : 'Create Question')}
             </span>
             {!isGenerating && (
               <span className="kbd-hint" style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.2)', color: '#ffffff', border: 'none', padding: '1px 4px' }}>

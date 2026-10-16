@@ -30,6 +30,7 @@ async def list_questions(
     combination_id: str | None = Query(None),
     run_id: str | None = Query(None),
     batch_id: str | None = Query(None),
+    passage_id: str | None = Query(None),
 ):
     """Lists saved questions from the PostgreSQL Question Bank along with aggregated metrics."""
     questions = await get_questions(
@@ -39,6 +40,7 @@ async def list_questions(
         combination_id=combination_id,
         run_id=run_id,
         batch_id=batch_id,
+        passage_id=passage_id,
     )
     dumped = [q.model_dump() for q in questions]
 

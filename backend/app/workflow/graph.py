@@ -7,7 +7,7 @@ from typing import Any
 
 from langgraph.graph import END, StateGraph
 
-from app.agents.generator import generate_question
+from app.agents.generator import generate_passage_stimulus, generate_question
 from app.agents.image_generator import generate_image_stimulus
 from app.agents.regenerator import regenerate_question
 from app.agents.reviewer import review_question
@@ -333,6 +333,8 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
         "interaction_type": req.interaction_type or "single_choice",
         "primary_trap": req.primary_trap,
         "passage_required": str(req.passage_required) if req.passage_required is not None else None,
+        "passage_mode": req.passage_mode or "single_passage",
+        "passage_id": req.passage_id,
         "passage_questions": req.passage_questions,
         "visual_type": req.visual_type or "None",
         "final_score": review.total_score if review else 95,
@@ -373,6 +375,8 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
         interaction_type=req.interaction_type or "single_choice",
         primary_trap=req.primary_trap,
         passage_required=str(req.passage_required) if req.passage_required is not None else None,
+        passage_mode=req.passage_mode or "single_passage",
+        passage_id=req.passage_id,
         passage_questions=req.passage_questions,
         visual_type=req.visual_type or "None",
         stage_outcomes=outcomes,
@@ -462,6 +466,61 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
     else:
         passage_count = 0
 
+    passage_mode = req.passage_mode or "single_passage"
+    # Single passage set activated when passage_mode == "single_passage" and passage required or passage questions requested
+    is_passage_mode_active = (
+        passage_mode == "single_passage"
+        and (
+            str(req.passage_required).lower() in ("yes", "true")
+            or passage_count > 0
+            or req.passage_question_count is not None
+        )
+    )
+
+    if is_passage_mode_active:
+        effective_passage_count = min(req.passage_question_count if req.passage_question_count is not None else total_qty, total_qty)
+        is_single_passage_set = effective_passage_count > 0
+    else:
+        effective_passage_count = 0
+        is_single_passage_set = False
+
+    independent_count = total_qty - effective_passage_count
+    is_mixed_set = effective_passage_count > 0 and independent_count > 0
+
+    # Format breakdown for passage-linked questions
+    if req.passage_multi_count is not None:
+        p_multi = min(req.passage_multi_count, effective_passage_count)
+    elif req.multi_choice_count is not None:
+        p_multi = min(req.multi_choice_count, effective_passage_count)
+    elif req.interaction_type == "multi_choice":
+        p_multi = effective_passage_count
+    else:
+        p_multi = 0
+    p_single = effective_passage_count - p_multi
+
+    # Format breakdown for independent questions
+    if req.independent_multi_count is not None:
+        ind_multi = min(req.independent_multi_count, independent_count)
+    elif req.multi_choice_count is not None:
+        rem_multi = max(0, req.multi_choice_count - p_multi)
+        ind_multi = min(rem_multi, independent_count)
+    elif req.interaction_type == "multi_choice":
+        ind_multi = independent_count
+    else:
+        ind_multi = 0
+    ind_single = independent_count - ind_multi
+
+    # Total aggregated single and multi counts across the entire batch
+    total_batch_multi = p_multi + ind_multi
+    total_batch_single = p_single + ind_single
+
+    shared_passage_id = req.passage_id or (str(uuid.uuid4()) if is_single_passage_set else None)
+    shared_passage_text = req.shared_stimulus
+    passage_tokens = 0
+    passage_prompt_tokens = 0
+    passage_completion_tokens = 0
+    passage_cost = 0.0
+
     def make_event(
         event_type: str,
         agent_name: str,
@@ -487,22 +546,84 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
     tasks: list[asyncio.Task] = []
 
     try:
+        # If Single Passage Set mode, generate the shared reading passage first if not already provided
+        if is_single_passage_set:
+            if not shared_passage_text:
+                passage_start_evt = make_event(
+                    event_type="agent_start",
+                    agent_name="Passage Writer",
+                    message=f"Writing 250-400 word shared reading passage for {effective_passage_count} linked questions ({req.section.value})...",
+                    data={
+                        "stage": "passage_drafting",
+                        "total_questions": total_qty,
+                        "passage_question_count": effective_passage_count,
+                        "independent_question_count": independent_count,
+                        "batch_id": batch_id,
+                        "passage_id": shared_passage_id,
+                    },
+                )
+                yield f"data: {passage_start_evt.model_dump_json()}\n\n"
+
+                shared_passage_text, passage_usage = await generate_passage_stimulus(req)
+                passage_tokens = passage_usage.total_tokens
+                passage_prompt_tokens = passage_usage.prompt_tokens
+                passage_completion_tokens = passage_usage.completion_tokens
+                passage_cost = passage_usage.cost_usd
+
+                all_agent_usage.append({
+                    "agent": "Passage Writer",
+                    "iteration": 1,
+                    "prompt_tokens": passage_usage.prompt_tokens,
+                    "completion_tokens": passage_usage.completion_tokens,
+                    "total_tokens": passage_usage.total_tokens,
+                    "cost_usd": passage_usage.cost_usd,
+                })
+
+                word_count = len(shared_passage_text.split())
+                passage_done_evt = make_event(
+                    event_type="agent_complete",
+                    agent_name="Passage Writer",
+                    message=f"Shared reading passage completed ({word_count} words). Now drafting questions ({effective_passage_count} linked, {independent_count} independent)...",
+                    data={
+                        "stage": "passage_drafting",
+                        "passage_text": shared_passage_text,
+                        "passage_id": shared_passage_id,
+                        "word_count": word_count,
+                        "latest_usage": passage_usage.model_dump(),
+                    },
+                )
+                yield f"data: {passage_done_evt.model_dump_json()}\n\n"
+
         # Initial workflow start
-        start_msg = (
-            f"Starting UK UCAT Generation Workflow for {req.section.value} ({req.difficulty.value}) using {req.model_name or config.DEFAULT_TEXT_MODEL}..."
-            if total_qty == 1
-            else f"Starting UK UCAT Parallel Batch Generation: {total_qty} questions ({single_count} Single, {multi_count} Multi-Choice, {passage_count} Passage-based) in parallel..."
-        )
+        if is_mixed_set:
+            start_msg = f"Starting UK UCAT Mixed Batch ({total_qty} questions: {effective_passage_count} linked to shared passage [{p_single} Single, {p_multi} Multi], {independent_count} independent [{ind_single} Single, {ind_multi} Multi])..."
+        elif is_single_passage_set:
+            start_msg = f"Starting UK UCAT Passage Set ({total_qty} questions: {p_single} Single, {p_multi} Multi-Choice) on shared passage..."
+        elif total_qty == 1:
+            start_msg = f"Starting UK UCAT Generation Workflow for {req.section.value} ({req.difficulty.value}) using {req.model_name or config.DEFAULT_TEXT_MODEL}..."
+        else:
+            start_msg = f"Starting UK UCAT Parallel Batch Generation: {total_qty} questions ({total_batch_single} Single, {total_batch_multi} Multi-Choice) in parallel..."
+
         start_evt = make_event(
             event_type="workflow_start",
             agent_name="System",
             message=start_msg,
             data={
                 "total_questions": total_qty,
-                "single_count": single_count,
-                "multi_count": multi_count,
-                "passage_count": passage_count,
+                "single_count": total_batch_single,
+                "multi_count": total_batch_multi,
+                "passage_count": effective_passage_count,
+                "passage_question_count": effective_passage_count,
+                "independent_question_count": independent_count,
+                "passage_single_count": p_single,
+                "passage_multi_count": p_multi,
+                "independent_single_count": ind_single,
+                "independent_multi_count": ind_multi,
+                "is_mixed_set": is_mixed_set,
                 "batch_id": batch_id,
+                "passage_id": shared_passage_id,
+                "passage_mode": "mixed_set" if is_mixed_set else ("single_passage" if is_single_passage_set else "independent"),
+                "shared_passage": shared_passage_text if is_single_passage_set else None,
             },
         )
         yield f"data: {start_evt.model_dump_json()}\n\n"
@@ -521,10 +642,23 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         async def _worker(idx: int) -> None:
             async with semaphore:
                 item_run_id = str(uuid.uuid4()) if total_qty > 1 else req.run_id
-                is_item_multi = idx < multi_count
-                is_item_passage = idx < passage_count
-                item_interaction = "multi_choice" if is_item_multi else "single_choice"
-                item_passage = "Yes" if is_item_passage else "No"
+                is_passage_item = (idx < effective_passage_count)
+
+                if is_passage_item:
+                    is_item_multi = (idx < p_multi)
+                    item_interaction = "multi_choice" if is_item_multi else "single_choice"
+                    item_passage = "Yes"
+                    item_passage_mode = "single_passage"
+                    item_passage_id = shared_passage_id
+                    item_stimulus = shared_passage_text
+                else:
+                    rel_idx = idx - effective_passage_count
+                    is_item_multi = (rel_idx < ind_multi)
+                    item_interaction = "multi_choice" if is_item_multi else "single_choice"
+                    item_passage = "No"
+                    item_passage_mode = "independent"
+                    item_passage_id = None
+                    item_stimulus = None
 
                 item_req = req.model_copy(
                     update={
@@ -533,19 +667,30 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         "questions_to_generate": 1,
                         "interaction_type": item_interaction,
                         "passage_required": item_passage,
+                        "passage_mode": item_passage_mode,
+                        "passage_id": item_passage_id,
+                        "shared_stimulus": item_stimulus,
                     }
                 )
 
                 if total_qty > 1:
+                    if is_passage_item:
+                        worker_msg = f"[{idx + 1}/{total_qty}] Writing linked {item_interaction.replace('_', ' ').title()} question from shared passage..."
+                    else:
+                        worker_msg = f"[{idx + 1}/{total_qty}] Writing independent {item_interaction.replace('_', ' ').title()} question (standalone scenario)..."
+
                     batch_prog_evt = make_event(
                         event_type="batch_progress",
                         agent_name="System",
-                        message=f"[{idx + 1}/{total_qty}] Writing {item_interaction.replace('_', ' ').title()} question ({'Reading Passage' if is_item_passage else 'Short Scenario'})...",
+                        message=worker_msg,
                         data={
                             "current_index": idx + 1,
                             "total_count": total_qty,
                             "interaction_type": item_interaction,
                             "passage_required": item_passage,
+                            "passage_mode": item_passage_mode,
+                            "passage_id": item_passage_id,
+                            "is_passage_item": is_passage_item,
                             "batch_id": batch_id,
                         },
                         run_id=item_run_id,
@@ -804,18 +949,30 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             yield f"data: {evt.model_dump_json()}\n\n"
 
         all_staged_questions = [q for q in outcomes_questions if q is not None]
-        cumulative_tokens = sum(outcomes_tokens)
-        cumulative_prompt_tokens = sum(outcomes_prompt_tokens)
-        cumulative_completion_tokens = sum(outcomes_completion_tokens)
-        cumulative_cost = round(sum(outcomes_costs), 7)
+        cumulative_tokens = sum(outcomes_tokens) + passage_tokens
+        cumulative_prompt_tokens = sum(outcomes_prompt_tokens) + passage_prompt_tokens
+        cumulative_completion_tokens = sum(outcomes_completion_tokens) + passage_completion_tokens
+        cumulative_cost = round(sum(outcomes_costs) + passage_cost, 7)
         for usage_list in outcomes_usage:
             all_agent_usage.extend(usage_list)
 
-        complete_msg = (
-            f"Parallel batch generation completed! {len(all_staged_questions)} of {total_qty} questions staged for User Confirmation. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
-            if total_qty > 1
-            else f"Multi-Agent workflow completed! Candidate question scored {all_staged_questions[0].get('final_score', 95) if all_staged_questions else 95}/100 and is staged for Confirmation. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
-        )
+        if is_mixed_set:
+            complete_msg = (
+                f"Mixed Batch generated! {len(all_staged_questions)} questions ({effective_passage_count} linked to shared passage, {independent_count} independent) staged for Review. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
+            )
+        elif is_single_passage_set and total_qty > 1:
+            complete_msg = (
+                f"Passage Set generated! {len(all_staged_questions)} questions linked to shared reading passage staged for Review. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
+            )
+        elif total_qty > 1:
+            complete_msg = (
+                f"Parallel batch generation completed! {len(all_staged_questions)} of {total_qty} questions staged for User Confirmation. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
+            )
+        else:
+            complete_msg = (
+                f"Multi-Agent workflow completed! Candidate question scored {all_staged_questions[0].get('final_score', 95) if all_staged_questions else 95}/100 and is staged for Confirmation. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
+            )
+
         complete_evt = make_event(
             event_type="workflow_complete",
             agent_name="System",
@@ -824,6 +981,12 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 "questions": all_staged_questions,
                 "question": all_staged_questions[0] if all_staged_questions else None,
                 "batch_id": batch_id,
+                "passage_id": shared_passage_id if is_single_passage_set else None,
+                "passage_mode": "mixed_set" if is_mixed_set else ("single_passage" if is_single_passage_set else "independent"),
+                "is_mixed_set": is_mixed_set,
+                "passage_question_count": effective_passage_count,
+                "independent_question_count": independent_count,
+                "shared_passage": shared_passage_text if is_single_passage_set else None,
                 "cumulative_usage": {
                     "total_tokens": cumulative_tokens,
                     "total_prompt_tokens": cumulative_prompt_tokens,

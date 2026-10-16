@@ -12,6 +12,78 @@ from app.schemas.workflow import GenerationRequest
 logger = logging.getLogger(__name__)
 
 
+async def generate_passage_stimulus(req: GenerationRequest) -> tuple[str, TokenUsage]:
+    """Generates a standalone, publication-caliber 250-400 word UK UCAT academic/clinical reading passage."""
+    section_name = UCAT_SECTION_LABELS.get(req.section, req.section.value)
+    domain = req.content_domain or "Clinical & Medical Sciences"
+    topic = req.subtopic or "Evidence-Based Clinical Practice & Biomedical Research"
+
+    prompt = f"""Generate a high-yield, authentic UK UCAT Academic Reading Passage for {section_name}.
+Content Domain: {domain}
+Topic Focus: {topic}
+Difficulty Calibration: {req.difficulty.value}
+Target Length: 280 to 380 words.
+
+STANDARDS FOR UK UCAT PASSAGES:
+1. Dense, formal, intellectual academic register using flawless British English (e.g. randomised, paediatric, categorise).
+2. Well-structured in 3 to 4 distinct paragraphs.
+3. Contains nuanced factual claims, quantitative research figures/percentages, contrasting scientific hypotheses, and clinical or ethical considerations.
+4. Provides rich material for multiple distinct reasoning questions (e.g. direct fact retrieval, negative inferences, syllogisms, and author tone).
+5. DO NOT include questions, multiple choices, or answers in this output. Output ONLY the pure reading passage text."""
+
+    system_prompt = (
+        "You are a Senior UCAT Lead Passage Author for the official UK medical admissions consortium. "
+        "Write authoritative, dense, high-caliber reading passages suitable for university medical and dental applicants."
+    )
+
+    try:
+        raw_output, usage = await call_llm(
+            prompt=prompt,
+            system_prompt=system_prompt,
+            model=req.model_name,
+            api_key=req.api_key,
+            temperature=0.7,
+        )
+        cleaned = raw_output.strip()
+        # Clean any accidental markdown or quotes
+        if cleaned.startswith("```"):
+            lines = cleaned.split("\n")
+            cleaned = "\n".join(lines[1:-1] if lines[-1].strip().startswith("```") else lines[1:])
+        cleaned = cleaned.strip('" \n')
+        return cleaned, usage
+    except Exception as e:
+        logger.warning(f"Passage generation LLM failed or not configured, using authentic fallback passage: {e}")
+        fallback_passage = (
+            "The emergence of multidrug-resistant pathogens represents one of the most critical threats to modern global public health, "
+            "with antimicrobial resistance (AMR) directly implicated in an estimated 1.27 million deaths globally in 2019. In response, "
+            "clinical guidelines across UK NHS trusts have increasingly prioritized antimicrobial stewardship programmes (ASPs), "
+            "aiming to restrict empirical usage of broad-spectrum carbapenems and fluoroquinolones while optimizing targeted therapy. "
+            "However, implementation across secondary care environments reveals significant operational friction between protocol adherence "
+            "and clinician autonomy in acutely decompensating patients.\n\n"
+            "A prospective multi-centre audit of 820 adult acute medical admissions investigated the efficacy of rapid biomarker-guided prescribing, "
+            "specifically utilizing quantitative serum procalcitonin (PCT) assays alongside point-of-care multiplex polymerase chain reaction (PCR) platforms. "
+            "Baseline PCT concentrations below 0.25 ng/mL demonstrated a negative predictive value of 93.8% for invasive bacterial infections, "
+            "permitting early antibiotic cessation in 44% of culture-negative presentations within 36 hours. Furthermore, 30-day all-cause mortality "
+            "did not differ significantly between protocol-compliant wards (6.2%) and control cohorts receiving standard care (6.8%, p = 0.58), "
+            "suggesting that biomarker-guided de-escalation does not compromise patient survival.\n\n"
+            "Despite these objective clinical outcomes, semi-structured interviews with attending medical consultants highlighted persistent "
+            "reluctance to withdraw antimicrobial coverage in patients demonstrating persistent systemic inflammatory response syndrome (SIRS) criteria, "
+            "even when serial blood cultures and microbiological swabs yielded no identifiable pathogen at 48 hours. Clinicians frequently cited "
+            "diagnostic anxiety and institutional fear of rapid septic deterioration as paramount factors overruling algorithmic recommendations. "
+            "Consequently, while technological diagnostics offer robust diagnostic discrimination, institutional culture and risk aversion continue "
+            "to dictate empirical prescribing behaviours in acute clinical settings."
+        )
+        mock_p_tokens = 380
+        mock_c_tokens = 290
+        mock_usage = TokenUsage(
+            prompt_tokens=mock_p_tokens,
+            completion_tokens=mock_c_tokens,
+            total_tokens=mock_p_tokens + mock_c_tokens,
+            cost_usd=calculate_token_cost(mock_p_tokens, mock_c_tokens),
+        )
+        return fallback_passage, mock_usage
+
+
 async def generate_question(req: GenerationRequest) -> tuple[QuestionDraft, TokenUsage]:
     """Invokes the Question Generator Agent to draft a publication-grade UCAT question."""
     section_name = UCAT_SECTION_LABELS.get(req.section, req.section.value)
@@ -39,12 +111,22 @@ Image Required: {"Yes - formulate visual pattern requirements" if req.require_im
         user_prompt += f"\nQuestion Type Format: {req.question_type}"
     if req.primary_trap and req.primary_trap != "Automatic":
         user_prompt += f"\nPrimary Distractor Trap to Emphasize: {req.primary_trap}"
-    if req.passage_required and str(req.passage_required).lower() in ("yes", "true"):
+
+    # Handle pre-existing shared passage (Single Passage Set) vs new passage
+    if req.shared_stimulus and req.shared_stimulus.strip():
+        user_prompt += f"""\nCRITICAL PASSAGE INSTRUCTION:
+You MUST formulate this question strictly and exclusively based on the following PRE-EXISTING READING PASSAGE.
+Do NOT write a new passage. Formulate your question stem, options, correct key(s), and explanation directly against this text:
+---
+{req.shared_stimulus.strip()}
+---"""
+    elif req.passage_required and str(req.passage_required).lower() in ("yes", "true"):
         user_prompt += "\nPassage Required: Yes - Provide a rigorous, substantive 250-400 word academic or clinical passage with dense data and structured paragraphs."
     elif req.passage_required and str(req.passage_required).lower() in ("no", "false"):
         user_prompt += (
             "\nPassage Required: No - Keep stimulus brief (1-3 sentences or direct vignette)."
         )
+
     if req.visual_type and req.visual_type != "None":
         user_prompt += f"\nVisual Stimulus Type: {req.visual_type}"
     if req.custom_prompt:
@@ -79,8 +161,11 @@ Image Required: {"Yes - formulate visual pattern requirements" if req.require_im
 
         correct_id_str = ", ".join(keys_list)
 
+        # If a shared stimulus passage was provided, enforce it on the draft
+        effective_stimulus = req.shared_stimulus.strip() if req.shared_stimulus else data.get("stimulus_text", "")
+
         draft = QuestionDraft(
-            stimulus_text=data.get("stimulus_text", ""),
+            stimulus_text=effective_stimulus,
             question_stem=data["question_stem"],
             options=options,
             correct_answer_id=correct_id_str,
@@ -110,4 +195,7 @@ Image Required: {"Yes - formulate visual pattern requirements" if req.require_im
             total_tokens=mock_p_tokens + mock_c_tokens,
             cost_usd=calculate_token_cost(mock_p_tokens, mock_c_tokens),
         )
-        return get_mock_draft(req), mock_usage
+        mock_draft = get_mock_draft(req)
+        if req.shared_stimulus:
+            mock_draft.stimulus_text = req.shared_stimulus.strip()
+        return mock_draft, mock_usage

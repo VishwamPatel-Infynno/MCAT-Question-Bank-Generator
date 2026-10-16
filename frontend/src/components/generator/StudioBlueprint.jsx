@@ -18,6 +18,12 @@ export default function StudioBlueprint({
   singleChoiceCount,
   multiChoiceCount,
   passageCount,
+  passageMode = 'single_passage',
+  passageQuestionCount = 2,
+  passageSingleCount = 1,
+  passageMultiCount = 1,
+  independentSingleCount = 2,
+  independentMultiCount = 1,
   primaryTrap,
   customPrompt,
   sectionsData,
@@ -33,22 +39,55 @@ export default function StudioBlueprint({
   const SectionIcon = SECTION_ICONS[selectedSection] || FileText;
   const pacing = PACING_INFO[selectedSection] || PACING_INFO.verbal_reasoning;
 
+  const isPassageSet = totalQuestions > 1 && passageMode === 'single_passage';
+  const isMixedSet = isPassageSet && passageQuestionCount < totalQuestions;
+
   const quickPresets = [
     {
-      id: 'official-simulation',
-      title: 'Official Exam Simulation',
-      tag: 'Recommended',
+      id: 'mixed-drill',
+      title: 'Mixed Verbal Set (2 Passage + 3 Standalone)',
+      tag: 'Hybrid Recommended',
       badgeClass: 'badge-purple',
       icon: Sparkles,
       iconColor: 'var(--status-purple)',
-      description: 'Balanced 5-question mock reflecting official UCAT distribution with reading passages and multiple answers.',
+      description: '1 shared academic passage (250–400w) with 2 linked questions + 3 standalone independent questions with separate scenarios.',
       config: {
         section: 'verbal_reasoning',
         difficulty: 'medium',
         totalQuestions: 5,
+        passageMode: 'single_passage',
+        passageQuestionCount: 2,
+        passageSingleCount: 1,
+        passageMultiCount: 1,
+        independentSingleCount: 2,
+        independentMultiCount: 1,
         singleChoiceCount: 3,
         multiChoiceCount: 2,
         passageCount: 2,
+        primaryTrap: 'Automatic'
+      }
+    },
+    {
+      id: 'official-simulation',
+      title: 'Full Verbal Passage Set (4 Qs)',
+      tag: 'Full Passage',
+      badgeClass: 'badge-cyan',
+      icon: BookOpen,
+      iconColor: 'var(--brand-primary)',
+      description: 'Authentic 4-question passage set: all 4 questions reference 1 shared dense academic passage (250–400w).',
+      config: {
+        section: 'verbal_reasoning',
+        difficulty: 'medium',
+        totalQuestions: 4,
+        singleChoiceCount: 3,
+        multiChoiceCount: 1,
+        passageCount: 4,
+        passageMode: 'single_passage',
+        passageQuestionCount: 4,
+        passageSingleCount: 3,
+        passageMultiCount: 1,
+        independentSingleCount: 0,
+        independentMultiCount: 0,
         primaryTrap: 'Automatic'
       }
     },
@@ -67,25 +106,8 @@ export default function StudioBlueprint({
         singleChoiceCount: 5,
         multiChoiceCount: 0,
         passageCount: 0,
+        passageMode: 'independent',
         primaryTrap: 'Keyword_Trap'
-      }
-    },
-    {
-      id: 'passage-master',
-      title: 'Passage Master Challenge',
-      tag: 'High Rigor',
-      badgeClass: 'badge-cyan',
-      icon: BookOpen,
-      iconColor: 'var(--brand-primary)',
-      description: '3 comprehensive ~350-word reading passages with multi-answer questions testing critical inference.',
-      config: {
-        section: 'verbal_reasoning',
-        difficulty: 'hard',
-        totalQuestions: 3,
-        singleChoiceCount: 1,
-        multiChoiceCount: 2,
-        passageCount: 3,
-        primaryTrap: 'Extreme_Language'
       }
     }
   ];
@@ -104,10 +126,29 @@ export default function StudioBlueprint({
               <span style={{ fontSize: '0.7rem', color: 'var(--brand-primary)', fontWeight: 500 }}>
                 90+ Quality Standard
               </span>
+              {isMixedSet ? (
+                <>
+                  <span style={{ color: 'var(--border-medium)' }}>•</span>
+                  <span className="badge badge-purple" style={{ fontSize: '0.625rem', padding: '1px 6px' }}>
+                    Mixed Set: {passageQuestionCount} Passage • {totalQuestions - passageQuestionCount} Independent
+                  </span>
+                </>
+              ) : isPassageSet ? (
+                <>
+                  <span style={{ color: 'var(--border-medium)' }}>•</span>
+                  <span className="badge badge-purple" style={{ fontSize: '0.625rem', padding: '1px 6px' }}>
+                    1 Shared Passage Set
+                  </span>
+                </>
+              ) : null}
             </div>
 
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
-              Ready to Create {totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'}
+              {isMixedSet
+                ? `Ready to Create Mixed Set (${passageQuestionCount} Passage + ${totalQuestions - passageQuestionCount} Independent)`
+                : isPassageSet
+                  ? `Ready to Create Passage Set (${totalQuestions} Linked Questions)`
+                  : `Ready to Create ${totalQuestions} ${totalQuestions === 1 ? 'Question' : 'Questions'}`}
             </h2>
 
             {/* Quiet Inline Specification Row */}
@@ -130,12 +171,26 @@ export default function StudioBlueprint({
               <span style={{ textTransform: 'capitalize' }}>{difficulty} Difficulty</span>
               <span style={{ color: 'var(--border-medium)' }}>•</span>
               <span>
-                {singleChoiceCount > 0 && `${singleChoiceCount} Single`}
-                {singleChoiceCount > 0 && multiChoiceCount > 0 && ', '}
-                {multiChoiceCount > 0 && `${multiChoiceCount} Multi`}
+                {isMixedSet ? (
+                  <>
+                    Passage: {passageSingleCount}S/{passageMultiCount}M • Ind: {independentSingleCount}S/{independentMultiCount}M
+                  </>
+                ) : (
+                  <>
+                    {singleChoiceCount > 0 && `${singleChoiceCount} Single`}
+                    {singleChoiceCount > 0 && multiChoiceCount > 0 && ', '}
+                    {multiChoiceCount > 0 && `${multiChoiceCount} Multi`}
+                  </>
+                )}
               </span>
               <span style={{ color: 'var(--border-medium)' }}>•</span>
-              <span>{passageCount > 0 ? `${passageCount} Passage${passageCount !== 1 ? 's' : ''}` : 'Short Scenarios'}</span>
+              <span>
+                {isMixedSet
+                  ? `${passageQuestionCount} on 1 Shared Passage + ${totalQuestions - passageQuestionCount} Standalone`
+                  : isPassageSet
+                    ? '1 Shared Academic Passage (250–400w)'
+                    : (passageCount > 0 ? `${passageCount} Passage${passageCount !== 1 ? 's' : ''}` : 'Short Scenarios')}
+              </span>
               <span style={{ color: 'var(--border-medium)' }}>•</span>
               <span style={{ color: 'var(--text-muted)' }}>
                 {primaryTrap && primaryTrap !== 'Automatic' ? primaryTrap.replace(/_/g, ' ') : 'Balanced Traps'}

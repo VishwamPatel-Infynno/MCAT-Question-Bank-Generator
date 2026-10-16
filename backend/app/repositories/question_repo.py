@@ -1,11 +1,14 @@
 import logging
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import delete, func, or_, select
 
 from app.db.session import async_session_factory
+from app.models.batch import GenerationBatchModel
+from app.models.passage import PassageModel
 from app.models.question import QuestionModel
-from app.schemas import OptionChoice, Question, ReviewScore
+from app.schemas import GenerationBatch, OptionChoice, Passage, Question, ReviewScore
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +44,7 @@ def _model_to_schema(m: QuestionModel) -> Question:
         iteration_count=m.iteration_count,
         iterations_history=m.iterations_history or [],
         created_at=m.created_at,
+        updated_at=getattr(m, "updated_at", None),
         total_tokens=m.total_tokens or 0,
         prompt_tokens=m.prompt_tokens or 0,
         completion_tokens=m.completion_tokens or 0,
@@ -53,6 +57,8 @@ def _model_to_schema(m: QuestionModel) -> Question:
         primary_trap=m.primary_trap,
         passage_required=m.passage_required,
         passage_questions=m.passage_questions,
+        passage_id=getattr(m, "passage_id", None),
+        passage_mode=getattr(m, "passage_mode", None),
         visual_type=m.visual_type or "None",
         stage_outcomes=m.stage_outcomes or {},
     )
@@ -85,6 +91,7 @@ def _schema_to_model(q: Question) -> QuestionModel:
         iteration_count=q.iteration_count,
         iterations_history=q.iterations_history,
         created_at=q.created_at,
+        updated_at=q.updated_at or datetime.now(UTC).isoformat(),
         total_tokens=q.total_tokens,
         prompt_tokens=q.prompt_tokens,
         completion_tokens=q.completion_tokens,
@@ -97,14 +104,132 @@ def _schema_to_model(q: Question) -> QuestionModel:
         primary_trap=q.primary_trap,
         passage_required=q.passage_required,
         passage_questions=q.passage_questions,
+        passage_id=q.passage_id,
+        passage_mode=q.passage_mode,
         visual_type=q.visual_type,
         stage_outcomes=q.stage_outcomes,
     )
 
 
+def _passage_model_to_schema(m: PassageModel) -> Passage:
+    """Converts a SQLAlchemy PassageModel to a Pydantic Passage schema."""
+    return Passage(
+        id=m.id,
+        title=m.title,
+        text=m.text,
+        word_count=m.word_count,
+        section=m.section,
+        subtopic=m.subtopic,
+        created_at=m.created_at,
+        updated_at=m.updated_at,
+    )
+
+
+def _passage_schema_to_model(p: Passage) -> PassageModel:
+    """Converts a Pydantic Passage schema to a SQLAlchemy PassageModel."""
+    word_count = p.word_count or (len(p.text.split()) if p.text else 0)
+    return PassageModel(
+        id=p.id,
+        title=p.title,
+        text=p.text,
+        word_count=word_count,
+        section=p.section,
+        subtopic=p.subtopic,
+        created_at=p.created_at,
+        updated_at=p.updated_at or datetime.now(UTC).isoformat(),
+    )
+
+
+def _batch_model_to_schema(m: GenerationBatchModel) -> GenerationBatch:
+    """Converts a SQLAlchemy GenerationBatchModel to a Pydantic GenerationBatch schema."""
+    return GenerationBatch(
+        id=m.id,
+        section=m.section,
+        subtopic=m.subtopic,
+        difficulty=m.difficulty,
+        passage_mode=m.passage_mode,
+        target_count=m.target_count or 0,
+        actual_count=m.actual_count or 0,
+        total_tokens=m.total_tokens or 0,
+        cost_usd=float(m.cost_usd) if m.cost_usd is not None else 0.0,
+        status=m.status or "completed",
+        created_at=m.created_at,
+        updated_at=m.updated_at,
+    )
+
+
+def _batch_schema_to_model(b: GenerationBatch) -> GenerationBatchModel:
+    """Converts a Pydantic GenerationBatch schema to a SQLAlchemy GenerationBatchModel."""
+    return GenerationBatchModel(
+        id=b.id,
+        section=b.section,
+        subtopic=b.subtopic,
+        difficulty=b.difficulty,
+        passage_mode=b.passage_mode,
+        target_count=b.target_count,
+        actual_count=b.actual_count,
+        total_tokens=b.total_tokens,
+        cost_usd=b.cost_usd,
+        status=b.status,
+        created_at=b.created_at,
+        updated_at=b.updated_at or datetime.now(UTC).isoformat(),
+    )
+
+
 async def save_question(q: Question) -> Question:
-    """Inserts or updates a question in PostgreSQL using native JSONB columns."""
+    """Inserts or updates a question in PostgreSQL, auto-syncing passages and batches."""
+    now_iso = datetime.now(UTC).isoformat()
+    q.updated_at = now_iso
+
     async with async_session_factory() as session:
+        # 1. Auto-sync Passage record if passage_id and stimulus_text exist
+        if q.passage_id and q.stimulus_text and q.stimulus_text.strip():
+            existing_passage = await session.get(PassageModel, q.passage_id)
+            if not existing_passage:
+                p_model = PassageModel(
+                    id=q.passage_id,
+                    title=f"{q.subtopic or q.section} Passage",
+                    text=q.stimulus_text.strip(),
+                    word_count=len(q.stimulus_text.split()),
+                    section=q.section,
+                    subtopic=q.subtopic,
+                    created_at=q.created_at or now_iso,
+                    updated_at=now_iso,
+                )
+                session.add(p_model)
+            else:
+                existing_passage.text = q.stimulus_text.strip()
+                existing_passage.word_count = len(q.stimulus_text.split())
+                existing_passage.updated_at = now_iso
+
+        # 2. Auto-sync GenerationBatch record if batch_id exists
+        if q.batch_id:
+            existing_batch = await session.get(GenerationBatchModel, q.batch_id)
+            if not existing_batch:
+                b_model = GenerationBatchModel(
+                    id=q.batch_id,
+                    section=q.section,
+                    subtopic=q.subtopic,
+                    difficulty=q.difficulty,
+                    passage_mode=q.passage_mode,
+                    target_count=1,
+                    actual_count=1,
+                    total_tokens=q.total_tokens or 0,
+                    cost_usd=q.cost_usd or 0.0,
+                    status="completed",
+                    created_at=q.created_at or now_iso,
+                    updated_at=now_iso,
+                )
+                session.add(b_model)
+            else:
+                existing_batch.actual_count = (existing_batch.actual_count or 0) + 1
+                existing_batch.total_tokens = (existing_batch.total_tokens or 0) + (
+                    q.total_tokens or 0
+                )
+                existing_batch.cost_usd = (existing_batch.cost_usd or 0.0) + (q.cost_usd or 0.0)
+                existing_batch.updated_at = now_iso
+
+        # 3. Save QuestionModel
         model = _schema_to_model(q)
         await session.merge(model)
         await session.commit()
@@ -121,16 +246,96 @@ class BatchSaveResult(list):
 
 
 async def save_questions_batch(questions: list[Question]) -> BatchSaveResult:
-    """Inserts or updates an array of questions in PostgreSQL within a single atomic transaction."""
+    """Inserts or updates an array of questions in PostgreSQL within a single atomic transaction, auto-syncing passages and batches."""
     if not questions:
         return BatchSaveResult()
+
+    now_iso = datetime.now(UTC).isoformat()
     saved_ids = []
+
     async with async_session_factory() as session:
+        # Pre-group passages and batches to optimize DB roundtrips
+        passages_to_upsert: dict[str, PassageModel] = {}
+        batches_to_upsert: dict[str, dict[str, Any]] = {}
+
+        for q in questions:
+            q.updated_at = now_iso
+
+            # Aggregate passages
+            if q.passage_id and q.stimulus_text and q.stimulus_text.strip():
+                if q.passage_id not in passages_to_upsert:
+                    passages_to_upsert[q.passage_id] = PassageModel(
+                        id=q.passage_id,
+                        title=f"{q.subtopic or q.section} Passage",
+                        text=q.stimulus_text.strip(),
+                        word_count=len(q.stimulus_text.split()),
+                        section=q.section,
+                        subtopic=q.subtopic,
+                        created_at=q.created_at or now_iso,
+                        updated_at=now_iso,
+                    )
+
+            # Aggregate batches
+            if q.batch_id:
+                if q.batch_id not in batches_to_upsert:
+                    batches_to_upsert[q.batch_id] = {
+                        "section": q.section,
+                        "subtopic": q.subtopic,
+                        "difficulty": q.difficulty,
+                        "passage_mode": q.passage_mode,
+                        "count": 0,
+                        "tokens": 0,
+                        "cost": 0.0,
+                        "created_at": q.created_at or now_iso,
+                    }
+                b_info = batches_to_upsert[q.batch_id]
+                b_info["count"] += 1
+                b_info["tokens"] += q.total_tokens or 0
+                b_info["cost"] += q.cost_usd or 0.0
+
+        # Upsert passages
+        for pid, p_mod in passages_to_upsert.items():
+            existing_p = await session.get(PassageModel, pid)
+            if not existing_p:
+                session.add(p_mod)
+            else:
+                existing_p.text = p_mod.text
+                existing_p.word_count = p_mod.word_count
+                existing_p.updated_at = now_iso
+
+        # Upsert batches
+        for bid, b_info in batches_to_upsert.items():
+            existing_b = await session.get(GenerationBatchModel, bid)
+            if not existing_b:
+                b_model = GenerationBatchModel(
+                    id=bid,
+                    section=b_info["section"],
+                    subtopic=b_info["subtopic"],
+                    difficulty=b_info["difficulty"],
+                    passage_mode=b_info["passage_mode"],
+                    target_count=b_info["count"],
+                    actual_count=b_info["count"],
+                    total_tokens=b_info["tokens"],
+                    cost_usd=b_info["cost"],
+                    status="completed",
+                    created_at=b_info["created_at"],
+                    updated_at=now_iso,
+                )
+                session.add(b_model)
+            else:
+                existing_b.actual_count = (existing_b.actual_count or 0) + b_info["count"]
+                existing_b.total_tokens = (existing_b.total_tokens or 0) + b_info["tokens"]
+                existing_b.cost_usd = (existing_b.cost_usd or 0.0) + b_info["cost"]
+                existing_b.updated_at = now_iso
+
+        # Upsert questions
         for q in questions:
             model = _schema_to_model(q)
             await session.merge(model)
             saved_ids.append(q.id)
+
         await session.commit()
+
     return BatchSaveResult(saved_ids)
 
 
@@ -158,8 +363,9 @@ async def get_questions(
     combination_id: str | None = None,
     run_id: str | None = None,
     batch_id: str | None = None,
+    passage_id: str | None = None,
 ) -> list[Question]:
-    """Retrieves questions from PostgreSQL with optional filtering and full-text search."""
+    """Retrieves questions from PostgreSQL with optional filtering and hybrid full-text search."""
     async with async_session_factory() as session:
         stmt = select(QuestionModel)
 
@@ -173,17 +379,38 @@ async def get_questions(
             stmt = stmt.where(QuestionModel.run_id == run_id)
         if batch_id:
             stmt = stmt.where(QuestionModel.batch_id == batch_id)
+        if passage_id:
+            stmt = stmt.where(QuestionModel.passage_id == passage_id)
+
         if search:
-            wildcard = f"%{search}%"
+            search_clean = search.strip()
+            wildcard = f"%{search_clean}%"
+
+            # Hybrid PostgreSQL search: tsvector full-text match + ILIKE substring fallback
+            fts_vector = func.to_tsvector(
+                "english",
+                func.coalesce(QuestionModel.question_stem, "")
+                + " "
+                + func.coalesce(QuestionModel.stimulus_text, "")
+                + " "
+                + func.coalesce(QuestionModel.subtopic, "")
+                + " "
+                + func.coalesce(QuestionModel.explanation, ""),
+            )
+            fts_condition = fts_vector.op("@@")(func.plainto_tsquery("english", search_clean))
+
             stmt = stmt.where(
                 or_(
+                    fts_condition,
                     QuestionModel.question_stem.ilike(wildcard),
                     QuestionModel.stimulus_text.ilike(wildcard),
                     QuestionModel.subtopic.ilike(wildcard),
+                    QuestionModel.explanation.ilike(wildcard),
                     QuestionModel.combination_id.ilike(wildcard),
                     QuestionModel.content_domain.ilike(wildcard),
                     QuestionModel.run_id.ilike(wildcard),
                     QuestionModel.batch_id.ilike(wildcard),
+                    QuestionModel.passage_id.ilike(wildcard),
                 )
             )
 
@@ -221,3 +448,97 @@ async def delete_questions_batch(question_ids: list[str]) -> int:
         await session.commit()
         return result.rowcount or 0
 
+
+# ============================================================================
+# Dedicated Passage Repository Operations
+# ============================================================================
+
+
+async def get_passages(
+    section: str | None = None,
+    subtopic: str | None = None,
+    search: str | None = None,
+) -> list[Passage]:
+    """Retrieves shared reading passages with optional filtering and search."""
+    async with async_session_factory() as session:
+        stmt = select(PassageModel)
+        if section:
+            stmt = stmt.where(PassageModel.section == section)
+        if subtopic:
+            stmt = stmt.where(PassageModel.subtopic == subtopic)
+        if search:
+            wildcard = f"%{search.strip()}%"
+            stmt = stmt.where(
+                or_(
+                    PassageModel.text.ilike(wildcard),
+                    PassageModel.title.ilike(wildcard),
+                    PassageModel.subtopic.ilike(wildcard),
+                    PassageModel.id.ilike(wildcard),
+                )
+            )
+
+        stmt = stmt.order_by(PassageModel.created_at.desc())
+        result = await session.execute(stmt)
+        models = result.scalars().all()
+        return [_passage_model_to_schema(m) for m in models]
+
+
+async def get_passage_by_id(passage_id: str) -> Passage | None:
+    """Retrieves a single passage by primary key ID."""
+    async with async_session_factory() as session:
+        model = await session.get(PassageModel, passage_id)
+        if not model:
+            return None
+        return _passage_model_to_schema(model)
+
+
+async def save_passage(passage: Passage) -> Passage:
+    """Creates or updates a passage record."""
+    passage.updated_at = datetime.now(UTC).isoformat()
+    async with async_session_factory() as session:
+        model = _passage_schema_to_model(passage)
+        await session.merge(model)
+        await session.commit()
+        return passage
+
+
+# ============================================================================
+# Dedicated Generation Batch Repository Operations
+# ============================================================================
+
+
+async def get_batches(
+    section: str | None = None,
+    status: str | None = None,
+) -> list[GenerationBatch]:
+    """Retrieves generation batch logs with optional section and status filtering."""
+    async with async_session_factory() as session:
+        stmt = select(GenerationBatchModel)
+        if section:
+            stmt = stmt.where(GenerationBatchModel.section == section)
+        if status:
+            stmt = stmt.where(GenerationBatchModel.status == status)
+
+        stmt = stmt.order_by(GenerationBatchModel.created_at.desc())
+        result = await session.execute(stmt)
+        models = result.scalars().all()
+        return [_batch_model_to_schema(m) for m in models]
+
+
+async def get_batch_by_id(batch_id: str) -> GenerationBatch | None:
+    """Retrieves a single generation batch by primary key ID."""
+    async with async_session_factory() as session:
+        model = await session.get(GenerationBatchModel, batch_id)
+        if not model:
+            return None
+        return _batch_model_to_schema(model)
+
+
+async def save_batch(batch: GenerationBatch) -> GenerationBatch:
+    """Creates or updates a generation batch record."""
+    batch.updated_at = datetime.now(UTC).isoformat()
+    async with async_session_factory() as session:
+        model = _batch_schema_to_model(batch)
+        await session.merge(model)
+        await session.commit()
+        return batch

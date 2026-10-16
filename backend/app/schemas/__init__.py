@@ -1,4 +1,11 @@
-from app.schemas.question import OptionChoice, Question, QuestionDraft, ReviewScore
+from app.schemas.question import (
+    GenerationBatch,
+    OptionChoice,
+    Passage,
+    Question,
+    QuestionDraft,
+    ReviewScore,
+)
 from app.schemas.token import TokenUsage
 from app.schemas.ucat import (
     CONTENT_DOMAINS,
@@ -28,6 +35,9 @@ __all__ = [
     "ReviewScore",
     "QuestionDraft",
     "Question",
+    "Passage",
+    "GenerationBatch",
     "GenerationRequest",
     "WorkflowEvent",
 ]
+

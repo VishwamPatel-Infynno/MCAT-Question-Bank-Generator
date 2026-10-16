@@ -148,11 +148,15 @@ export default function QuestionCard({
             </span>
           )}
 
-          {isPassage && (
+          {question.passage_mode === 'single_passage' || question.passage_id ? (
+            <span className="badge badge-cyan" style={{ fontSize: '0.675rem' }}>
+              Passage Set Linked
+            </span>
+          ) : isPassage ? (
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
               • Reading Passage ({wordCount} words)
             </span>
-          )}
+          ) : null}
 
           {question.primary_trap && question.primary_trap !== 'Automatic' && (
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>

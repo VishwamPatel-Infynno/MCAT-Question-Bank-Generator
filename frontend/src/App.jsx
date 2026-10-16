@@ -63,6 +63,12 @@ export default function App() {
   const [singleChoiceCount, setSingleChoiceCount] = useState(1);
   const [multiChoiceCount, setMultiChoiceCount] = useState(0);
   const [passageCount, setPassageCount] = useState(0);
+  const [passageMode, setPassageMode] = useState('single_passage'); // 'single_passage' | 'independent'
+  const [passageQuestionCount, setPassageQuestionCount] = useState(2);
+  const [passageSingleCount, setPassageSingleCount] = useState(1);
+  const [passageMultiCount, setPassageMultiCount] = useState(1);
+  const [independentSingleCount, setIndependentSingleCount] = useState(2);
+  const [independentMultiCount, setIndependentMultiCount] = useState(1);
   const [interactionType, setInteractionType] = useState('single_choice');
   const [passageRequired, setPassageRequired] = useState('No');
   const [primaryTrap, setPrimaryTrap] = useState('Automatic');
@@ -142,10 +148,13 @@ export default function App() {
   }, []);
 
   const [isQuestionSaved, setIsQuestionSaved] = useState(false);
+  const [savedQuestionIds, setSavedQuestionIds] = useState(() => new Set());
 
   const handleGenerate = useCallback(() => {
     if (isGenerating) return;
     setIsQuestionSaved(false);
+    setSavedQuestionIds(new Set());
+    const isMixedSet = totalQuestions > 1 && passageMode === 'single_passage' && passageQuestionCount < totalQuestions;
     const payload = {
       section: selectedSection,
       subtopic: selectedSubtopic,
@@ -154,6 +163,12 @@ export default function App() {
       single_choice_count: totalQuestions > 1 ? singleChoiceCount : (interactionType === 'multi_choice' ? 0 : 1),
       multi_choice_count: totalQuestions > 1 ? multiChoiceCount : (interactionType === 'multi_choice' ? 1 : 0),
       passage_count: totalQuestions > 1 ? passageCount : (passageRequired === 'Yes' ? 1 : 0),
+      passage_mode: passageMode,
+      passage_question_count: (totalQuestions > 1 && passageMode === 'single_passage') ? passageQuestionCount : undefined,
+      passage_single_count: (totalQuestions > 1 && passageMode === 'single_passage') ? passageSingleCount : undefined,
+      passage_multi_count: (totalQuestions > 1 && passageMode === 'single_passage') ? passageMultiCount : undefined,
+      independent_single_count: (totalQuestions > 1 && passageMode === 'single_passage') ? independentSingleCount : undefined,
+      independent_multi_count: (totalQuestions > 1 && passageMode === 'single_passage') ? independentMultiCount : undefined,
       interaction_type: interactionType,
       passage_required: passageRequired,
       primary_trap: primaryTrap !== 'Automatic' ? primaryTrap : undefined,
@@ -164,9 +179,11 @@ export default function App() {
     showToast({
       type: 'info',
       title: totalQuestions > 1 ? `Batch Generation Started (${totalQuestions})` : 'Generation Started',
-      message: totalQuestions > 1
-        ? `Drafting ${totalQuestions} questions (${singleChoiceCount} Single, ${multiChoiceCount} Multi, ${passageCount} Passage)...`
-        : `Multi-agent swarm drafting ${difficulty.toUpperCase()} question...`
+      message: isMixedSet
+        ? `Drafting mixed batch: ${passageQuestionCount} linked to Shared Passage + ${totalQuestions - passageQuestionCount} Independent Questions...`
+        : totalQuestions > 1
+          ? `Drafting ${totalQuestions} questions (${singleChoiceCount} Single, ${multiChoiceCount} Multi)...`
+          : `Multi-agent swarm drafting ${difficulty.toUpperCase()} question...`
     });
   }, [
     isGenerating,
@@ -177,6 +194,12 @@ export default function App() {
     singleChoiceCount,
     multiChoiceCount,
     passageCount,
+    passageMode,
+    passageQuestionCount,
+    passageSingleCount,
+    passageMultiCount,
+    independentSingleCount,
+    independentMultiCount,
     interactionType,
     passageRequired,
     primaryTrap,
@@ -190,6 +213,7 @@ export default function App() {
     try {
       await approveQuestion(q);
       setIsQuestionSaved(true);
+      setSavedQuestionIds(prev => new Set([...prev, q.id]));
       showToast({
         type: 'success',
         title: 'Question Saved',
@@ -208,6 +232,7 @@ export default function App() {
   const handleBatchApprove = useCallback(async (questionsToSave) => {
     try {
       await batchApproveQuestions(questionsToSave);
+      setSavedQuestionIds(prev => new Set([...prev, ...questionsToSave.map(item => item.id)]));
       showToast({
         type: 'success',
         title: 'Questions Saved',
@@ -225,6 +250,14 @@ export default function App() {
   }, [showToast]);
 
   const handleDiscardQuestion = useCallback(() => {
+    if (isQuestionSaved) {
+      showToast({
+        type: 'info',
+        title: 'Question Protected',
+        message: 'This question has already been accepted and saved in your Question Bank.'
+      });
+      return;
+    }
     setActiveQuestion(null);
     setIsQuestionSaved(false);
     showToast({
@@ -232,16 +265,39 @@ export default function App() {
       title: 'Question Discarded',
       message: 'Question was removed.'
     });
-  }, [setActiveQuestion, showToast]);
+  }, [isQuestionSaved, setActiveQuestion, showToast]);
 
   const handleDiscardBatch = useCallback(() => {
     setStagedQuestions([]);
     setActiveQuestion(null);
     setIsQuestionSaved(false);
+    setSavedQuestionIds(new Set());
     showToast({
       type: 'info',
       title: 'Questions Discarded',
-      message: 'All generated questions were removed.'
+      message: 'All unaccepted generated questions were removed.'
+    });
+  }, [setStagedQuestions, setActiveQuestion, showToast]);
+
+  const handleDiscardUnsaved = useCallback((unsavedIds) => {
+    const idSet = unsavedIds instanceof Set ? unsavedIds : new Set(unsavedIds);
+    setStagedQuestions(prev => prev.filter(q => !idSet.has(q.id)));
+    showToast({
+      type: 'info',
+      title: 'Unsaved Questions Discarded',
+      message: `${idSet.size} unaccepted question(s) removed. Accepted questions remain safely in your Question Bank.`
+    });
+  }, [setStagedQuestions, showToast]);
+
+  const handleFinishBatch = useCallback(() => {
+    setStagedQuestions([]);
+    setActiveQuestion(null);
+    setIsQuestionSaved(false);
+    setSavedQuestionIds(new Set());
+    showToast({
+      type: 'success',
+      title: 'Batch Completed',
+      message: 'Batch finished. All accepted questions are safely in your Question Bank.'
     });
   }, [setStagedQuestions, setActiveQuestion, showToast]);
 
@@ -258,7 +314,7 @@ export default function App() {
   useKeyboardShortcuts({
     onGenerate: activeTab === 'generator' ? handleGenerate : undefined,
     onApprove: activeQuestion && !isQuestionSaved ? () => handleApproveQuestion(activeQuestion) : undefined,
-    onDiscard: activeQuestion ? handleDiscardQuestion : undefined,
+    onDiscard: activeQuestion && !isQuestionSaved ? handleDiscardQuestion : undefined,
     onToggleTheme: toggleTheme,
     onEscape: () => {
       if (showSettings) setShowSettings(false);
@@ -279,6 +335,12 @@ export default function App() {
       setPassageCount(cfg.passageCount);
       setPassageRequired(cfg.passageCount > 0 ? 'Yes' : 'No');
     }
+    if (cfg.passageMode) setPassageMode(cfg.passageMode);
+    if (cfg.passageQuestionCount !== undefined) setPassageQuestionCount(cfg.passageQuestionCount);
+    if (cfg.passageSingleCount !== undefined) setPassageSingleCount(cfg.passageSingleCount);
+    if (cfg.passageMultiCount !== undefined) setPassageMultiCount(cfg.passageMultiCount);
+    if (cfg.independentSingleCount !== undefined) setIndependentSingleCount(cfg.independentSingleCount);
+    if (cfg.independentMultiCount !== undefined) setIndependentMultiCount(cfg.independentMultiCount);
     if (cfg.primaryTrap) setPrimaryTrap(cfg.primaryTrap);
     showToast({
       type: 'info',
@@ -343,6 +405,18 @@ export default function App() {
                 setMultiChoiceCount={setMultiChoiceCount}
                 passageCount={passageCount}
                 setPassageCount={setPassageCount}
+                passageMode={passageMode}
+                setPassageMode={setPassageMode}
+                passageQuestionCount={passageQuestionCount}
+                setPassageQuestionCount={setPassageQuestionCount}
+                passageSingleCount={passageSingleCount}
+                setPassageSingleCount={setPassageSingleCount}
+                passageMultiCount={passageMultiCount}
+                setPassageMultiCount={setPassageMultiCount}
+                independentSingleCount={independentSingleCount}
+                setIndependentSingleCount={setIndependentSingleCount}
+                independentMultiCount={independentMultiCount}
+                setIndependentMultiCount={setIndependentMultiCount}
                 interactionType={interactionType}
                 setInteractionType={setInteractionType}
                 passageRequired={passageRequired}
@@ -384,6 +458,7 @@ export default function App() {
                 <StagedBatchReview
                   stagedQuestions={stagedQuestions}
                   targetTotal={totalQuestions}
+                  savedQuestionIds={savedQuestionIds}
                   isGenerating={isGenerating}
                   batchProgress={batchProgress}
                   perQuestionState={perQuestionState}
@@ -391,6 +466,9 @@ export default function App() {
                   onApproveAll={handleBatchApprove}
                   onDiscardQuestion={handleDiscardQuestionInBatch}
                   onDiscardAll={handleDiscardBatch}
+                  onDiscardUnsaved={handleDiscardUnsaved}
+                  onFinishBatch={handleFinishBatch}
+                  onNavigateToBank={() => setActiveTab('bank')}
                   onOpenAudit={(q) => setAuditQuestion(q)}
                   onUpdateQuestion={(updated) => {
                     setStagedQuestions(prev => prev.map(item => item.id === updated.id ? updated : item));
@@ -431,6 +509,12 @@ export default function App() {
                   singleChoiceCount={singleChoiceCount}
                   multiChoiceCount={multiChoiceCount}
                   passageCount={passageCount}
+                  passageMode={passageMode}
+                  passageQuestionCount={passageQuestionCount}
+                  passageSingleCount={passageSingleCount}
+                  passageMultiCount={passageMultiCount}
+                  independentSingleCount={independentSingleCount}
+                  independentMultiCount={independentMultiCount}
                   primaryTrap={primaryTrap}
                   customPrompt={customPrompt}
                   sectionsData={sectionsData}
