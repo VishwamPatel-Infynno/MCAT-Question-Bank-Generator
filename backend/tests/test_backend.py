@@ -1,11 +1,9 @@
-import asyncio
 import uuid
 
 import pytest
-from app.agents.generator import generate_question, get_mock_draft
+from app.agents.generator import get_mock_draft
 from app.agents.image_generator import calculate_flux_image_cost, generate_image_stimulus
-from app.agents.regenerator import improve_draft_heuristically, regenerate_question
-from app.agents.reviewer import evaluate_heuristically, review_question
+from app.agents.reviewer import evaluate_heuristically
 from app.core.config import config
 from app.db.session import init_db
 from app.repositories.question_repo import delete_question, get_questions, save_question
@@ -320,9 +318,18 @@ async def test_deepinfra_strict_api_key_enforcement():
 async def test_admin_approval_and_persistence_endpoints():
     import uuid
 
-    from app.api.v1.questions import approve_and_save_question, batch_approve_and_save_questions
-    from app.repositories.question_repo import delete_question, get_question_by_id
-    from app.schemas import OptionChoice, Question, ReviewScore
+    from app.api.v1.questions import (
+        BatchDeleteRequest,
+        approve_and_save_question,
+        batch_approve_and_save_questions,
+        remove_questions_batch,
+    )
+    from app.repositories.question_repo import (
+        delete_question,
+        delete_questions_batch,
+        get_question_by_id,
+    )
+    from app.schemas import OptionChoice, Question
 
     # 1. Test finalize_node with auto_save=False (Default for Admin Review)
     req = GenerationRequest(
@@ -422,10 +429,19 @@ async def test_admin_approval_and_persistence_endpoints():
     assert batch_res["success"] is True
     assert batch_res["saved_count"] == 2
 
-    # Clean up test questions
-    await delete_question(cand_id)
-    await delete_question(batch_q1.id)
-    await delete_question(batch_q2.id)
+    # Clean up single test question
+    del_single = await delete_question(cand_id)
+    assert del_single is True
+    assert await get_question_by_id(cand_id) is None
+
+    # Test atomic batch deletion endpoint
+    del_batch_res = await remove_questions_batch(BatchDeleteRequest(ids=[batch_q1.id, batch_q2.id]))
+    assert del_batch_res["success"] is True
+    assert del_batch_res["deleted_count"] == 2
+    assert await get_question_by_id(batch_q1.id) is None
+    assert await get_question_by_id(batch_q2.id) is None
+    assert await delete_questions_batch([]) == 0
+
 
 
 @pytest.mark.asyncio

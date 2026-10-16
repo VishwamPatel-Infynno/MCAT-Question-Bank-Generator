@@ -32,6 +32,17 @@ export async function deleteQuestion(id) {
   return res.json();
 }
 
+export async function batchDeleteQuestions(ids) {
+  const res = await fetch(`${API_BASE}/questions/delete-batch`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids })
+  });
+  if (!res.ok) throw new Error('Failed to bulk delete questions');
+  return res.json();
+}
+
+
 export async function approveQuestion(question) {
   const res = await fetch(`${API_BASE}/questions`, {
     method: 'POST',

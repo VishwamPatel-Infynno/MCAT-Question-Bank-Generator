@@ -1,13 +1,14 @@
 import csv
 import io
 import logging
-from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from app.repositories.question_repo import (
     delete_question,
+    delete_questions_batch,
     get_question_by_id,
     get_questions,
     get_repository_metrics,
@@ -86,6 +87,19 @@ async def remove_question(question_id: str):
     """Deletes a question by primary key ID."""
     success = await delete_question(question_id)
     return {"success": success}
+
+
+class BatchDeleteRequest(BaseModel):
+    ids: list[str]
+
+
+@router.post("/questions/delete-batch")
+async def remove_questions_batch(payload: BatchDeleteRequest):
+    """Bulk Admin deletion endpoint: removes multiple questions in a single atomic SQL transaction."""
+    deleted_count = await delete_questions_batch(payload.ids)
+    logger.info(f"Bulk deleted {deleted_count} questions from Question Bank.")
+    return {"success": True, "deleted_count": deleted_count}
+
 
 
 @router.get("/export")

@@ -20,7 +20,7 @@ import {
   FileDown,
   ArrowUpDown
 } from 'lucide-react';
-import { getExportUrl, deleteQuestion } from '../../services/api';
+import { getExportUrl, batchDeleteQuestions } from '../../services/api';
 import { useQuestionBank } from '../../hooks/useQuestionBank';
 
 const SORT_OPTIONS = [
@@ -126,23 +126,29 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
-    if (!window.confirm(`Delete ${selectedIds.length} selected question(s) from the Question Bank?`)) return;
+    const countToDelete = selectedIds.length;
+    if (!window.confirm(`Delete ${countToDelete} selected question(s) from the Question Bank?`)) return;
     setIsDeletingBulk(true);
     try {
-      for (const id of selectedIds) {
-        await deleteQuestion(id);
-      }
+      await batchDeleteQuestions(selectedIds);
       setSelectedIds([]);
       await loadQuestions();
       if (onShowToast) {
         onShowToast({
           type: 'success',
           title: 'Questions Deleted',
-          message: `Successfully removed ${selectedIds.length} question(s).`
+          message: `Successfully removed ${countToDelete} question(s) from the Question Bank.`
         });
       }
     } catch (err) {
       console.error('Failed to bulk delete questions:', err);
+      if (onShowToast) {
+        onShowToast({
+          type: 'error',
+          title: 'Deletion Failed',
+          message: err.message || 'Could not delete selected questions.'
+        });
+      }
     } finally {
       setIsDeletingBulk(false);
     }

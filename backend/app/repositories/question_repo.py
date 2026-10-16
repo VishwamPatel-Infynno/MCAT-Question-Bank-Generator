@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List, Optional
+from typing import Any
 
 from sqlalchemy import delete, func, or_, select
 
@@ -209,3 +209,15 @@ async def delete_question(question_id: str) -> bool:
         await session.execute(stmt)
         await session.commit()
         return True
+
+
+async def delete_questions_batch(question_ids: list[str]) -> int:
+    """Deletes multiple questions by primary key IDs in a single atomic SQL transaction."""
+    if not question_ids:
+        return 0
+    async with async_session_factory() as session:
+        stmt = delete(QuestionModel).where(QuestionModel.id.in_(question_ids))
+        result = await session.execute(stmt)
+        await session.commit()
+        return result.rowcount or 0
+

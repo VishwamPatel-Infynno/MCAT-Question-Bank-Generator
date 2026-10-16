@@ -1,7 +1,7 @@
 """Isolated mock drafts and heuristic evaluation fixtures for offline testing and graceful fallback."""
 
 from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
-from app.schemas.ucat import Difficulty, UCATSection
+from app.schemas.ucat import UCATSection
 from app.schemas.workflow import GenerationRequest
 
 

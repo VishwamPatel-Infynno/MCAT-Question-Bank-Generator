@@ -23,12 +23,13 @@ select = [
 ]
 ignore = [
     "E501",  # line length handled by ruff format
-    "F401",  # unused imports in __init__.py facades
     "UP042", # preserve (str, Enum) for pydantic serialization
-    "UP035", # allow typing.Dict, typing.List, typing.Tuple
     "W291",  # trailing whitespace in multiline prompts
     "W293",  # blank line whitespace in multiline SVG strings
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
 
 [tool.ruff.format]
 quote-style = "double"

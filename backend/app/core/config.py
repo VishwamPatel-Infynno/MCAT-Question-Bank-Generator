@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     IMAGE_COST_PER_BASE_UNIT: float = float(os.getenv("IMAGE_COST_PER_BASE_UNIT", "0.0005"))
 
     def calculate_flux_image_cost(
-        self, width: int = None, height: int = None, iters: int = None
+        self, width: int | None = None, height: int | None = None, iters: int | None = None
     ) -> float:
         """
         Calculates FLUX-1-schnell image generation cost using DeepInfra formula:

@@ -1,6 +1,5 @@
 import json
 import logging
-from typing import Tuple
 
 from app.agents.base import calculate_token_cost, call_llm, clean_json_text
 from app.agents.mock_fixtures import get_mock_draft

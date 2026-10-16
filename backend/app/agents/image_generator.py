@@ -1,6 +1,5 @@
 import logging
-import os
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 import httpx
 

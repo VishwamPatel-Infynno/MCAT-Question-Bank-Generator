@@ -5,7 +5,7 @@ import json
 import httpx
 import pytest
 from app.core.config import config
-from app.schemas import QuestionDraft, ReviewScore
+from app.schemas import ReviewScore
 from app.workflow.graph import reject_node, route_after_review
 
 BASE_URL = "http://127.0.0.1:8000/api"

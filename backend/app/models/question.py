@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import Float, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
