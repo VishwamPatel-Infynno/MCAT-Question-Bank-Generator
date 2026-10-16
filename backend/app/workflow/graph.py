@@ -192,11 +192,27 @@ def route_after_review(state: AgentWorkflowState) -> str:
             return "reject"
 
     # Passing score (> 90): check if image generation is required
-    requires_image = (
-        req_data.get("require_image", False)
-        or req_data.get("section") == UCATSection.ABSTRACT_REASONING.value
-        or state.get("current_draft", {}).get("image_needed", False)
-    )
+    sec_raw = req_data.get("section", "")
+    section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)
+    explicit_image = req_data.get("require_image", False)
+    visual_type = req_data.get("visual_type", "None")
+
+    if explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
+        requires_image = True
+    elif section_val in (
+        UCATSection.VERBAL_REASONING.value,
+        UCATSection.SITUATIONAL_JUDGEMENT.value,
+        "VR",
+        "SJT",
+    ):
+        # Strict Exam Rubric Guard: Verbal Reasoning and SJT are 100% textual, bypass image generator
+        requires_image = False
+    elif section_val in (UCATSection.ABSTRACT_REASONING.value, "AR"):
+        # Abstract Reasoning always requires visual geometric stimulus
+        requires_image = True
+    else:
+        # Decision Making (Venn/Logic) or Quantitative Reasoning: respect draft image_needed flag
+        requires_image = bool(state.get("current_draft", {}).get("image_needed", False))
 
     if requires_image:
         logger.info(f"Score {score} > {threshold}. Routing to Image Generator.")
@@ -468,13 +484,14 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
     cumulative_completion_tokens = 0
     cumulative_cost = 0.0
     all_agent_usage = []
+    tasks: list[asyncio.Task] = []
 
     try:
         # Initial workflow start
         start_msg = (
             f"Starting UK UCAT Generation Workflow for {req.section.value} ({req.difficulty.value}) using {req.model_name or config.DEFAULT_TEXT_MODEL}..."
             if total_qty == 1
-            else f"Starting UK UCAT Batch Generation: {total_qty} questions ({single_count} Single, {multi_count} Multi-Choice, {passage_count} Passage-based)..."
+            else f"Starting UK UCAT Parallel Batch Generation: {total_qty} questions ({single_count} Single, {multi_count} Multi-Choice, {passage_count} Passage-based) in parallel..."
         )
         start_evt = make_event(
             event_type="workflow_start",
@@ -490,224 +507,272 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         )
         yield f"data: {start_evt.model_dump_json()}\n\n"
 
-        for idx in range(total_qty):
-            item_run_id = str(uuid.uuid4()) if total_qty > 1 else req.run_id
-            is_item_multi = idx < multi_count
-            is_item_passage = idx < passage_count
-            item_interaction = "multi_choice" if is_item_multi else "single_choice"
-            item_passage = "Yes" if is_item_passage else "No"
+        MAX_CONCURRENCY = 5
+        semaphore = asyncio.Semaphore(MAX_CONCURRENCY)
+        event_queue: asyncio.Queue[WorkflowEvent | None] = asyncio.Queue()
 
-            # Create specific sub-request for this question
-            item_req = req.model_copy(
-                update={
-                    "run_id": item_run_id,
-                    "batch_id": batch_id,
-                    "questions_to_generate": 1,
-                    "interaction_type": item_interaction,
-                    "passage_required": item_passage,
-                }
-            )
+        outcomes_questions: list[dict[str, Any] | None] = [None] * total_qty
+        outcomes_tokens: list[int] = [0] * total_qty
+        outcomes_prompt_tokens: list[int] = [0] * total_qty
+        outcomes_completion_tokens: list[int] = [0] * total_qty
+        outcomes_costs: list[float] = [0.0] * total_qty
+        outcomes_usage: list[list[dict[str, Any]]] = [[] for _ in range(total_qty)]
 
-            if total_qty > 1:
-                batch_prog_evt = make_event(
-                    event_type="batch_progress",
-                    agent_name="System",
-                    message=f"[{idx + 1}/{total_qty}] Drafting {item_interaction.replace('_', ' ').title()} question ({'Reading Passage' if is_item_passage else 'Standard Vignette'})...",
-                    data={
-                        "current_index": idx + 1,
-                        "total_count": total_qty,
+        async def _worker(idx: int) -> None:
+            async with semaphore:
+                item_run_id = str(uuid.uuid4()) if total_qty > 1 else req.run_id
+                is_item_multi = idx < multi_count
+                is_item_passage = idx < passage_count
+                item_interaction = "multi_choice" if is_item_multi else "single_choice"
+                item_passage = "Yes" if is_item_passage else "No"
+
+                item_req = req.model_copy(
+                    update={
+                        "run_id": item_run_id,
+                        "batch_id": batch_id,
+                        "questions_to_generate": 1,
                         "interaction_type": item_interaction,
                         "passage_required": item_passage,
-                        "batch_id": batch_id,
-                    },
-                    run_id=item_run_id,
+                    }
                 )
-                yield f"data: {batch_prog_evt.model_dump_json()}\n\n"
 
-            state: AgentWorkflowState = {
-                "request": item_req.model_dump(),
-                "run_id": item_run_id,
-                "batch_id": batch_id,
-                "iteration_count": 1,
-                "iterations_history": [],
-                "log_messages": [],
-                "total_tokens": 0,
-                "total_prompt_tokens": 0,
-                "total_completion_tokens": 0,
-                "total_cost_usd": 0.0,
-                "agent_usage_breakdown": [],
-                "stage_outcomes": {},
-            }
+                if total_qty > 1:
+                    batch_prog_evt = make_event(
+                        event_type="batch_progress",
+                        agent_name="System",
+                        message=f"[{idx + 1}/{total_qty}] Drafting {item_interaction.replace('_', ' ').title()} question ({'Reading Passage' if is_item_passage else 'Standard Vignette'})...",
+                        data={
+                            "current_index": idx + 1,
+                            "total_count": total_qty,
+                            "interaction_type": item_interaction,
+                            "passage_required": item_passage,
+                            "batch_id": batch_id,
+                        },
+                        run_id=item_run_id,
+                    )
+                    await event_queue.put(batch_prog_evt)
 
-            # Step 1: Generator
-            gen_evt = make_event(
-                event_type="agent_start",
-                agent_name="Question Generator",
-                message=f"Synthesizing UCAT draft {idx + 1}/{total_qty} ({'Multi-Choice' if is_item_multi else 'Single Choice'})...",
-                run_id=item_run_id,
-            )
-            yield f"data: {gen_evt.model_dump_json()}\n\n"
+                state: AgentWorkflowState = {
+                    "request": item_req.model_dump(),
+                    "run_id": item_run_id,
+                    "batch_id": batch_id,
+                    "iteration_count": 1,
+                    "iterations_history": [],
+                    "log_messages": [],
+                    "total_tokens": 0,
+                    "total_prompt_tokens": 0,
+                    "total_completion_tokens": 0,
+                    "total_cost_usd": 0.0,
+                    "agent_usage_breakdown": [],
+                    "stage_outcomes": {},
+                }
 
-            gen_res = await generator_node(state)
-            state.update(gen_res)
-
-            gen_usage = state.get("latest_usage", {})
-            gen_done_evt = make_event(
-                event_type="agent_complete",
-                agent_name="Question Generator",
-                message=f"Draft v1 generated ({gen_usage.get('total_tokens', 0)} tokens, ${gen_usage.get('cost_usd', 0.0):.5f}). Passing to Reviewer.",
-                data={
-                    "draft": state["current_draft"],
-                    "latest_usage": gen_usage,
-                },
-                run_id=item_run_id,
-            )
-            yield f"data: {gen_done_evt.model_dump_json()}\n\n"
-
-            # Loop Reviewer <-> Re-Generator
-            question_passed = True
-            while True:
-                iteration = state.get("iteration_count", 1)
-
-                rev_start_evt = make_event(
+                # Step 1: Generator
+                gen_evt = make_event(
                     event_type="agent_start",
-                    agent_name="Question Reviewer",
-                    message=f"Auditing draft {idx + 1}/{total_qty} (Iteration {iteration}) against 100-point rubric...",
+                    agent_name="Question Generator",
+                    message=f"Synthesizing UCAT draft {idx + 1}/{total_qty} ({'Multi-Choice' if is_item_multi else 'Single Choice'})...",
                     run_id=item_run_id,
                 )
-                yield f"data: {rev_start_evt.model_dump_json()}\n\n"
+                await event_queue.put(gen_evt)
 
-                rev_res = await reviewer_node(state)
-                state.update(rev_res)
+                gen_res = await generator_node(state)
+                state.update(gen_res)
 
-                review = state["current_review"]
-                score = review["total_score"]
-                rev_usage = state.get("latest_usage", {})
-
-                rev_done_evt = make_event(
+                gen_usage = state.get("latest_usage", {})
+                gen_done_evt = make_event(
                     event_type="agent_complete",
-                    agent_name="Question Reviewer",
-                    message=f"Review completed. Score: {score}/100.",
+                    agent_name="Question Generator",
+                    message=f"Draft v1 generated for Q{idx + 1} ({gen_usage.get('total_tokens', 0)} tokens, ${gen_usage.get('cost_usd', 0.0):.5f}). Passing to Reviewer.",
                     data={
-                        "review": review,
-                        "iteration": iteration,
-                        "latest_usage": rev_usage,
-                    },
-                    run_id=item_run_id,
-                )
-                yield f"data: {rev_done_evt.model_dump_json()}\n\n"
-
-                # Route
-                next_step = route_after_review(state)
-                if next_step == "regenerator":
-                    regen_start_evt = make_event(
-                        event_type="agent_start",
-                        agent_name="Question Re-Generator",
-                        message=f"Score {score} <= {config.PASSING_SCORE_THRESHOLD}! Initiating Re-Generator Agent...",
-                        run_id=item_run_id,
-                    )
-                    yield f"data: {regen_start_evt.model_dump_json()}\n\n"
-
-                    regen_res = await regenerator_node(state)
-                    state.update(regen_res)
-
-                    regen_usage = state.get("latest_usage", {})
-                    regen_done_evt = make_event(
-                        event_type="agent_complete",
-                        agent_name="Question Re-Generator",
-                        message=f"Re-generation complete (Draft v{state['iteration_count']} • {regen_usage.get('total_tokens', 0)} tokens, ${regen_usage.get('cost_usd', 0.0):.5f}). Resubmitting to Reviewer...",
-                        data={
-                            "draft": state["current_draft"],
-                            "latest_usage": regen_usage,
-                        },
-                        run_id=item_run_id,
-                    )
-                    yield f"data: {regen_done_evt.model_dump_json()}\n\n"
-                    continue
-                elif next_step == "reject":
-                    rej_res = await reject_node(state)
-                    state.update(rej_res)
-                    question_passed = False
-                    rej_evt = make_event(
-                        event_type="workflow_rejected",
-                        agent_name="Quality Gate",
-                        message=f"Strict Quality Halt on question {idx + 1}: Score {score}/100 after {iteration} attempts.",
-                        data=state.get("rejection_data"),
-                        run_id=item_run_id,
-                    )
-                    yield f"data: {rej_evt.model_dump_json()}\n\n"
-                    break
-                else:
-                    break
-
-            if not question_passed and total_qty == 1:
-                return
-
-            if question_passed:
-                # Image Generation if required
-                req_data = state["request"]
-                requires_image = (
-                    req_data.get("require_image", False)
-                    or req_data.get("section") == UCATSection.ABSTRACT_REASONING.value
-                    or state.get("current_draft", {}).get("image_needed", False)
-                )
-
-                if requires_image:
-                    img_start_evt = make_event(
-                        event_type="agent_start",
-                        agent_name="Image Generator",
-                        message="Generating visual stimulus diagram...",
-                        run_id=item_run_id,
-                    )
-                    yield f"data: {img_start_evt.model_dump_json()}\n\n"
-
-                    img_res = await image_node(state)
-                    state.update(img_res)
-
-                    img_done_evt = make_event(
-                        event_type="agent_complete",
-                        agent_name="Image Generator",
-                        message="Visual stimulus created and linked.",
-                        data={
-                            "has_svg": bool(state.get("image_svg")),
-                            "image_url": state.get("image_url"),
-                            "usage": state.get("latest_usage"),
-                        },
-                        run_id=item_run_id,
-                    )
-                    yield f"data: {img_done_evt.model_dump_json()}\n\n"
-
-                # Finalize
-                fin_res = await finalize_node(state)
-                state.update(fin_res)
-
-                final_q_dict = state["final_question"]
-                all_staged_questions.append(final_q_dict)
-
-                # Emit question_generated event
-                q_gen_evt = make_event(
-                    event_type="question_generated",
-                    agent_name="System",
-                    message=f"Question {idx + 1} of {total_qty} successfully verified (Score: {final_q_dict.get('final_score')}/100) and staged for confirmation.",
-                    data={
-                        "question": final_q_dict,
+                        "draft": state["current_draft"],
+                        "latest_usage": gen_usage,
                         "index": idx + 1,
-                        "total": total_qty,
-                        "batch_id": batch_id,
                     },
                     run_id=item_run_id,
                 )
-                yield f"data: {q_gen_evt.model_dump_json()}\n\n"
+                await event_queue.put(gen_done_evt)
 
-            # Accumulate metrics
-            cumulative_tokens += state.get("total_tokens", 0)
-            cumulative_prompt_tokens += state.get("total_prompt_tokens", 0)
-            cumulative_completion_tokens += state.get("total_completion_tokens", 0)
-            cumulative_cost += state.get("total_cost_usd", 0.0)
-            all_agent_usage.extend(state.get("agent_usage_breakdown", []))
+                # Loop Reviewer <-> Re-Generator
+                question_passed = True
+                while True:
+                    iteration = state.get("iteration_count", 1)
+
+                    rev_start_evt = make_event(
+                        event_type="agent_start",
+                        agent_name="Question Reviewer",
+                        message=f"Auditing draft {idx + 1}/{total_qty} (Iteration {iteration}) against 100-point rubric...",
+                        run_id=item_run_id,
+                    )
+                    await event_queue.put(rev_start_evt)
+
+                    rev_res = await reviewer_node(state)
+                    state.update(rev_res)
+
+                    review = state["current_review"]
+                    score = review["total_score"]
+                    rev_usage = state.get("latest_usage", {})
+
+                    rev_done_evt = make_event(
+                        event_type="agent_complete",
+                        agent_name="Question Reviewer",
+                        message=f"Review completed for Q{idx + 1}. Score: {score}/100.",
+                        data={
+                            "review": review,
+                            "iteration": iteration,
+                            "latest_usage": rev_usage,
+                            "index": idx + 1,
+                        },
+                        run_id=item_run_id,
+                    )
+                    await event_queue.put(rev_done_evt)
+
+                    # Route
+                    next_step = route_after_review(state)
+                    if next_step == "regenerator":
+                        regen_start_evt = make_event(
+                            event_type="agent_start",
+                            agent_name="Question Re-Generator",
+                            message=f"Q{idx + 1} Score {score} <= {config.PASSING_SCORE_THRESHOLD}! Initiating Re-Generator Agent...",
+                            run_id=item_run_id,
+                        )
+                        await event_queue.put(regen_start_evt)
+
+                        regen_res = await regenerator_node(state)
+                        state.update(regen_res)
+
+                        regen_usage = state.get("latest_usage", {})
+                        regen_done_evt = make_event(
+                            event_type="agent_complete",
+                            agent_name="Question Re-Generator",
+                            message=f"Re-generation complete for Q{idx + 1} (Draft v{state['iteration_count']} • {regen_usage.get('total_tokens', 0)} tokens, ${regen_usage.get('cost_usd', 0.0):.5f}). Resubmitting to Reviewer...",
+                            data={
+                                "draft": state["current_draft"],
+                                "latest_usage": regen_usage,
+                                "index": idx + 1,
+                            },
+                            run_id=item_run_id,
+                        )
+                        await event_queue.put(regen_done_evt)
+                        continue
+                    elif next_step == "reject":
+                        rej_res = await reject_node(state)
+                        state.update(rej_res)
+                        question_passed = False
+                        rej_evt = make_event(
+                            event_type="workflow_rejected",
+                            agent_name="Quality Gate",
+                            message=f"Strict Quality Halt on question {idx + 1}: Score {score}/100 after {iteration} attempts.",
+                            data=state.get("rejection_data"),
+                            run_id=item_run_id,
+                        )
+                        await event_queue.put(rej_evt)
+                        break
+                    else:
+                        break
+
+                if question_passed:
+                    # Image Generation if required (guarded by Section Image Guard)
+                    req_data = state["request"]
+                    sec_raw = req_data.get("section", "")
+                    section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)
+                    explicit_image = req_data.get("require_image", False)
+                    visual_type = req_data.get("visual_type", "None")
+
+                    if explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
+                        requires_image = True
+                    elif section_val in (
+                        UCATSection.VERBAL_REASONING.value,
+                        UCATSection.SITUATIONAL_JUDGEMENT.value,
+                        "VR",
+                        "SJT",
+                    ):
+                        requires_image = False
+                    elif section_val in (UCATSection.ABSTRACT_REASONING.value, "AR"):
+                        requires_image = True
+                    else:
+                        requires_image = bool(state.get("current_draft", {}).get("image_needed", False))
+
+                    if requires_image:
+                        img_start_evt = make_event(
+                            event_type="agent_start",
+                            agent_name="Image Generator",
+                            message=f"Generating visual stimulus diagram for Q{idx + 1}...",
+                            run_id=item_run_id,
+                        )
+                        await event_queue.put(img_start_evt)
+
+                        img_res = await image_node(state)
+                        state.update(img_res)
+
+                        img_done_evt = make_event(
+                            event_type="agent_complete",
+                            agent_name="Image Generator",
+                            message=f"Visual stimulus created and linked for Q{idx + 1}.",
+                            data={
+                                "has_svg": bool(state.get("image_svg")),
+                                "image_url": state.get("image_url"),
+                                "usage": state.get("latest_usage"),
+                                "index": idx + 1,
+                            },
+                            run_id=item_run_id,
+                        )
+                        await event_queue.put(img_done_evt)
+
+                    # Finalize
+                    fin_res = await finalize_node(state)
+                    state.update(fin_res)
+
+                    final_q_dict = state["final_question"]
+                    outcomes_questions[idx] = final_q_dict
+
+                    # Emit question_generated event
+                    q_gen_evt = make_event(
+                        event_type="question_generated",
+                        agent_name="System",
+                        message=f"Question {idx + 1} of {total_qty} successfully verified (Score: {final_q_dict.get('final_score')}/100) and staged for confirmation.",
+                        data={
+                            "question": final_q_dict,
+                            "index": idx + 1,
+                            "total": total_qty,
+                            "batch_id": batch_id,
+                        },
+                        run_id=item_run_id,
+                    )
+                    await event_queue.put(q_gen_evt)
+
+                outcomes_tokens[idx] = state.get("total_tokens", 0)
+                outcomes_prompt_tokens[idx] = state.get("total_prompt_tokens", 0)
+                outcomes_completion_tokens[idx] = state.get("total_completion_tokens", 0)
+                outcomes_costs[idx] = state.get("total_cost_usd", 0.0)
+                outcomes_usage[idx] = state.get("agent_usage_breakdown", [])
+
+        tasks.extend([asyncio.create_task(_worker(i)) for i in range(total_qty)])
+
+        async def _monitor_tasks():
+            try:
+                await asyncio.gather(*tasks, return_exceptions=True)
+            finally:
+                await event_queue.put(None)
+
+        _ = asyncio.create_task(_monitor_tasks())
+
+        while True:
+            evt = await event_queue.get()
+            if evt is None:
+                break
+            yield f"data: {evt.model_dump_json()}\n\n"
+
+        all_staged_questions = [q for q in outcomes_questions if q is not None]
+        cumulative_tokens = sum(outcomes_tokens)
+        cumulative_prompt_tokens = sum(outcomes_prompt_tokens)
+        cumulative_completion_tokens = sum(outcomes_completion_tokens)
+        cumulative_cost = round(sum(outcomes_costs), 7)
+        for usage_list in outcomes_usage:
+            all_agent_usage.extend(usage_list)
 
         complete_msg = (
-            f"Batch generation completed! {len(all_staged_questions)} of {total_qty} questions staged for User Confirmation. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
+            f"Parallel batch generation completed! {len(all_staged_questions)} of {total_qty} questions staged for User Confirmation. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
             if total_qty > 1
             else f"Multi-Agent workflow completed! Candidate question scored {all_staged_questions[0].get('final_score', 95) if all_staged_questions else 95}/100 and is staged for Confirmation. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
         )
@@ -731,6 +796,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         yield f"data: {complete_evt.model_dump_json()}\n\n"
     except asyncio.CancelledError:
         logger.info("Workflow stream cancelled by client disconnect.")
+        for t in tasks:
+            if not t.done():
+                t.cancel()
         raise
     except Exception as e:
         logger.error(f"Workflow stream error: {e}")

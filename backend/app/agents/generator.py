@@ -86,8 +86,16 @@ Image Required: {"Yes - formulate visual pattern requirements" if req.require_im
             correct_answer_id=correct_id_str,
             correct_answer_ids=keys_list,
             explanation=data["explanation"],
-            image_needed=data.get(
-                "image_needed", req.require_image or req.section == UCATSection.ABSTRACT_REASONING
+            image_needed=(
+                False
+                if (
+                    req.section in (UCATSection.VERBAL_REASONING, UCATSection.SITUATIONAL_JUDGEMENT)
+                    and not req.require_image
+                )
+                else data.get(
+                    "image_needed",
+                    req.require_image or req.section == UCATSection.ABSTRACT_REASONING,
+                )
             ),
             image_prompt_or_type=data.get("image_prompt_or_type"),
         )

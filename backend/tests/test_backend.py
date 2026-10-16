@@ -564,3 +564,60 @@ async def test_batch_generation_and_staging_flow(monkeypatch):
     # Clean up
     await delete_question(staged_qs[0]["id"])
     await delete_question(staged_qs[1]["id"])
+
+
+@pytest.mark.asyncio
+async def test_section_image_guard_routing():
+    # 1. Verbal Reasoning: score 95 > 90, image_needed=True in draft, require_image=False
+    # Should route to finalize, bypassing image_generator
+    vr_state = {
+        "request": {
+            "section": "verbal_reasoning",
+            "require_image": False,
+            "visual_type": "None",
+        },
+        "current_review": {"total_score": 95},
+        "current_draft": {"image_needed": True},
+        "iteration_count": 1,
+    }
+    assert route_after_review(vr_state) == "finalize"
+
+    # 2. Situational Judgement: score 94 > 90, require_image=False
+    sjt_state = {
+        "request": {
+            "section": "situational_judgement",
+            "require_image": False,
+            "visual_type": "None",
+        },
+        "current_review": {"total_score": 94},
+        "current_draft": {"image_needed": True},
+        "iteration_count": 1,
+    }
+    assert route_after_review(sjt_state) == "finalize"
+
+    # 3. Verbal Reasoning with explicit require_image=True
+    vr_explicit_state = {
+        "request": {
+            "section": "verbal_reasoning",
+            "require_image": True,
+            "visual_type": "None",
+        },
+        "current_review": {"total_score": 95},
+        "current_draft": {"image_needed": True},
+        "iteration_count": 1,
+    }
+    assert route_after_review(vr_explicit_state) == "image_generator"
+
+    # 4. Abstract Reasoning: score 95 > 90, should route to image_generator
+    ar_state = {
+        "request": {
+            "section": "abstract_reasoning",
+            "require_image": False,
+            "visual_type": "None",
+        },
+        "current_review": {"total_score": 95},
+        "current_draft": {"image_needed": False},
+        "iteration_count": 1,
+    }
+    assert route_after_review(ar_state) == "image_generator"
+
