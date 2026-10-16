@@ -1,0 +1,10 @@
+{
+  "name": "uk-ucat-question-studio-root",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter uk-ucat-question-studio dev",
+    "build": "pnpm --filter uk-ucat-question-studio build",
+    "lint": "pnpm --filter uk-ucat-question-studio lint",
+    "preview": "pnpm --filter uk-ucat-question-studio preview"
+  }
+}
