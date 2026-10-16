@@ -42,39 +42,39 @@ export default function MultiAgentPipelineVisualizer({
   // Swarm-aware active states
   const isGenActive = isSwarm
     ? isGenerating && qList.some(q => !q.isComplete && q.stage === 'drafting')
-    : activeAgent === 'Question Generator';
+    : (activeAgent === 'Question Writer' || activeAgent === 'Question Generator');
 
   const isRevActive = isSwarm
     ? isGenerating && qList.some(q => !q.isComplete && q.stage === 'reviewing')
-    : activeAgent === 'Question Reviewer';
+    : (activeAgent === 'Quality Reviewer' || activeAgent === 'Question Reviewer');
 
   const isRegenActive = isSwarm
     ? isGenerating && qList.some(q => !q.isComplete && q.stage === 'remediating')
-    : activeAgent === 'Question Re-Generator';
+    : (activeAgent === 'Question Improver' || activeAgent === 'Question Re-Generator');
 
   const isImgActive = isSwarm
     ? isGenerating && qList.some(q => !q.isComplete && q.stage === 'image')
-    : activeAgent === 'Image Generator';
+    : (activeAgent === 'Diagram & Chart Maker' || activeAgent === 'Image Generator');
 
   // Completion states: in a swarm, a stage is fully completed only when NO question is at or before that stage
   const hasGenCompleted = isSwarm
     ? qList.length > 0 && qList.every(q => q.stage !== 'drafting' && (q.stage !== 'queued'))
-    : events.some(e => e.agent_name === 'Question Generator' && e.event_type === 'agent_complete');
+    : events.some(e => (e.agent_name === 'Question Writer' || e.agent_name === 'Question Generator') && e.event_type === 'agent_complete');
 
   const hasRevCompleted = isSwarm
     ? qList.length > 0 && qList.every(q => q.isComplete)
-    : events.some(e => e.agent_name === 'Question Reviewer' && e.event_type === 'agent_complete');
+    : events.some(e => (e.agent_name === 'Quality Reviewer' || e.agent_name === 'Question Reviewer') && e.event_type === 'agent_complete');
 
-  const hasRegenFired = iterationCount > 1 || events.some(e => e.agent_name === 'Question Re-Generator');
-  const hasImgCompleted = events.some(e => e.agent_name === 'Image Generator' && e.event_type === 'agent_complete');
+  const hasRegenFired = iterationCount > 1 || events.some(e => e.agent_name === 'Question Improver' || e.agent_name === 'Question Re-Generator');
+  const hasImgCompleted = events.some(e => (e.agent_name === 'Diagram & Chart Maker' || e.agent_name === 'Image Generator') && e.event_type === 'agent_complete');
 
   const agents = [
     {
       id: 'generator',
       stepNum: '01',
-      title: 'Question Generator',
-      subtitle: 'Drafting Specialist',
-      guarantee: isSwarm ? 'Concurrent Draft Synthesis' : 'Authentic Stem & Distractors',
+      title: 'Question Writer',
+      subtitle: 'Drafting Question & Options',
+      guarantee: isSwarm ? 'Parallel Question Drafting' : 'Realistic Scenarios & Traps',
       icon: PenTool,
       accentColor: 'var(--brand-primary)',
       isActive: isGenActive,
@@ -83,9 +83,9 @@ export default function MultiAgentPipelineVisualizer({
     {
       id: 'reviewer',
       stepNum: '02',
-      title: 'Psychometric Auditor',
-      subtitle: 'Quality Reviewer',
-      guarantee: latestReview?.total_score ? `${latestReview.total_score}/100 Quality Score` : 'Strict 90+ Score Gate',
+      title: 'Quality Reviewer',
+      subtitle: 'Exam Rigor Check',
+      guarantee: latestReview?.total_score ? `${latestReview.total_score}/100 Quality Score` : 'Strict 90+ Score Standard',
       icon: ShieldCheck,
       accentColor: 'var(--status-success)',
       isActive: isRevActive,
@@ -94,9 +94,9 @@ export default function MultiAgentPipelineVisualizer({
     {
       id: 'regenerator',
       stepNum: '03',
-      title: 'Remediation Engine',
-      subtitle: 'Self-Correction',
-      guarantee: 'Autonomous Remediation',
+      title: 'Question Improver',
+      subtitle: 'Polish & Refine',
+      guarantee: 'Self-Fixes Ambiguities',
       icon: RotateCcw,
       accentColor: 'var(--status-warning)',
       isActive: isRegenActive,
@@ -105,9 +105,9 @@ export default function MultiAgentPipelineVisualizer({
     {
       id: 'image',
       stepNum: '04',
-      title: 'Stimulus & Diagram',
-      subtitle: 'Visual Generator',
-      guarantee: 'High-Res Charts & Shapes',
+      title: 'Diagram & Chart Maker',
+      subtitle: 'Visuals & Figures',
+      guarantee: 'Clear Charts & Shapes',
       icon: Sparkles,
       accentColor: 'var(--status-purple)',
       isActive: isImgActive,
@@ -142,11 +142,11 @@ export default function MultiAgentPipelineVisualizer({
             </span>
             <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>•</span>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-              4 Specialized Autonomous Agents
+              4 Specialized AI Helpers
             </span>
           </div>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', margin: '2px 0 0' }}>
-            {isGenerating ? 'Pipeline Executing...' : 'Psychometric Synthesis & Verification'}
+            {isGenerating ? 'AI Team Creating Questions...' : 'Automated Quality Checking & Scoring'}
           </h3>
         </div>
 
@@ -184,7 +184,7 @@ export default function MultiAgentPipelineVisualizer({
               }}
             >
               <CheckCircle2 size={12} />
-              <span>Calibrated for 90+ Score Gate</span>
+              <span>Calibrated for 90+ Quality Standard</span>
             </span>
           )}
 
@@ -218,7 +218,7 @@ export default function MultiAgentPipelineVisualizer({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.725rem' }}>
             <span style={{ fontWeight: 700, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span className="agent-pulse-dot" />
-              Live Multi-Agent Swarm Tracker ({totalBatch} Questions Generating Concurrently)
+              Live AI Team Tracker ({totalBatch} Questions Creating at Once)
             </span>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
               {qList.filter(q => q.isComplete).length} of {totalBatch} Completed
@@ -234,13 +234,13 @@ export default function MultiAgentPipelineVisualizer({
           >
             {qList.sort((a, b) => a.index - b.index).map((qState) => {
               const isDone = qState.isComplete;
-              const agentShort = qState.agentName === 'Question Generator'
-                ? 'Drafting'
-                : qState.agentName === 'Question Reviewer'
-                ? 'Auditing'
-                : qState.agentName === 'Question Re-Generator'
-                ? 'Remediating'
-                : qState.agentName === 'Image Generator'
+              const agentShort = (qState.agentName === 'Question Writer' || qState.agentName === 'Question Generator')
+                ? 'Writing'
+                : (qState.agentName === 'Quality Reviewer' || qState.agentName === 'Question Reviewer')
+                ? 'Reviewing'
+                : (qState.agentName === 'Question Improver' || qState.agentName === 'Question Re-Generator')
+                ? 'Improving'
+                : (qState.agentName === 'Diagram & Chart Maker' || qState.agentName === 'Image Generator')
                 ? 'Diagram'
                 : (qState.agentName || 'Queued');
 
@@ -294,7 +294,7 @@ export default function MultiAgentPipelineVisualizer({
                     }}
                     title={qState.message}
                   >
-                    {isDone ? 'Verified & Staged' : (qState.message || 'Processing in swarm...')}
+                    {isDone ? 'Verified & Ready' : (qState.message || 'Processing in AI team...')}
                   </div>
                 </div>
               );

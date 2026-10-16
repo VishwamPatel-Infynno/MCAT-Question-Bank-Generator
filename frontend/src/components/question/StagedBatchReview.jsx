@@ -631,10 +631,10 @@ export default function StagedBatchReview({
               );
             }
 
-            // State B: Question is currently being generated or audited in parallel swarm
+            // State B: Question is currently being generated or reviewed in parallel swarm
             const stage = qState?.stage || 'drafting';
-            const agentName = qState?.agentName || 'Question Generator';
-            const message = qState?.message || `Synthesizing draft for Question ${slotNumber}...`;
+            const agentName = qState?.agentName || 'Question Writer';
+            const message = qState?.message || `Writing draft for Question ${slotNumber}...`;
             const isMulti = qState?.interactionType === 'multi_choice';
             const isPassage = qState?.passageRequired === 'Yes';
             const iteration = qState?.iteration || 1;
@@ -721,14 +721,14 @@ export default function StagedBatchReview({
                     {stage === 'image' && <Sparkles size={14} color="var(--status-purple)" />}
                     <span>
                       {isDraftActive
-                        ? 'Drafting Question Scenario & Distractors'
+                        ? 'Drafting Question & Options'
                         : stage === 'reviewing'
-                        ? `Psychometric Review (Iteration ${iteration})`
+                        ? `Quality Review (Check ${iteration})`
                         : stage === 'remediating'
-                        ? `Self-Remediation & Distractor Refinement (Attempt ${iteration})`
+                        ? `Polishing & Improving (Attempt ${iteration})`
                         : stage === 'image'
-                        ? 'Generating Visual Stimulus Diagram'
-                        : 'AI Swarm Synthesizing...'}
+                        ? 'Drawing Helpful Diagram / Chart'
+                        : 'AI Team Creating Question...'}
                     </span>
                   </div>
                   <div
@@ -751,7 +751,7 @@ export default function StagedBatchReview({
                 {/* 4-Step Micro-Track Stepper */}
                 <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                    <span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Agent Pipeline Progress</span>
+                    <span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI Team Progress</span>
                     <span>Slot {slotNumber} of {effectiveTotal}</span>
                   </div>
 
@@ -766,7 +766,7 @@ export default function StagedBatchReview({
                       border: '1px solid var(--border-light)'
                     }}
                   >
-                    {/* Step 1: Draft */}
+                    {/* Step 1: Write */}
                     <div
                       style={{
                         display: 'flex',
@@ -783,10 +783,10 @@ export default function StagedBatchReview({
                       }}
                     >
                       {isDraftDone ? <Check size={11} /> : isDraftActive ? <Loader2 size={11} className="spin-slow" /> : <PenTool size={11} />}
-                      <span>1. Draft</span>
+                      <span>1. Write</span>
                     </div>
 
-                    {/* Step 2: Audit */}
+                    {/* Step 2: Review */}
                     <div
                       style={{
                         display: 'flex',
@@ -803,10 +803,10 @@ export default function StagedBatchReview({
                       }}
                     >
                       {isAuditDone ? <Check size={11} /> : isAuditActive ? <Loader2 size={11} className="spin-slow" /> : <ShieldCheck size={11} />}
-                      <span>2. Audit</span>
+                      <span>2. Review</span>
                     </div>
 
-                    {/* Step 3: Stimulus */}
+                    {/* Step 3: Diagram */}
                     <div
                       style={{
                         display: 'flex',
@@ -823,7 +823,7 @@ export default function StagedBatchReview({
                       }}
                     >
                       {isStimulusDone ? <Check size={11} /> : isStimulusActive ? <Loader2 size={11} className="spin-slow" /> : <Sparkles size={11} />}
-                      <span>3. Stimulus</span>
+                      <span>3. Diagram</span>
                     </div>
 
                     {/* Step 4: Ready */}
@@ -879,15 +879,15 @@ export default function StagedBatchReview({
 
               if (!q) {
                 // Pending/generating pill with live agent info
-                const agentShort = qState?.agentName === 'Question Generator'
-                  ? 'Drafting'
-                  : qState?.agentName === 'Question Reviewer'
-                  ? 'Auditing'
-                  : qState?.agentName === 'Question Re-Generator'
-                  ? 'Remediating'
-                  : qState?.agentName === 'Image Generator'
+                const agentShort = (qState?.agentName === 'Question Writer' || qState?.agentName === 'Question Generator')
+                  ? 'Writing'
+                  : (qState?.agentName === 'Quality Reviewer' || qState?.agentName === 'Question Reviewer')
+                  ? 'Reviewing'
+                  : (qState?.agentName === 'Question Improver' || qState?.agentName === 'Question Re-Generator')
+                  ? 'Improving'
+                  : (qState?.agentName === 'Diagram & Chart Maker' || qState?.agentName === 'Image Generator')
                   ? 'Diagram'
-                  : (isGenerating ? 'Drafting' : 'Queued');
+                  : (isGenerating ? 'Writing' : 'Queued');
                 return (
                   <div
                     key={`pill-placeholder-${idx}`}

@@ -198,7 +198,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
             </span>
           </div>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-            Psychometrically audited items with distractor trap analysis and telemetry.
+            Verified exam questions with full answer explanations and quality metrics.
           </p>
         </div>
 
@@ -601,9 +601,9 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                       onClick={() => onSelectQuestion(q)}
                       className="btn-secondary"
                       style={{ padding: '6px 12px', fontSize: '0.78rem', whiteSpace: 'nowrap', gap: '6px' }}
-                      title="Inspect in Question Studio"
+                      title="Open in Question Generator"
                     >
-                      <Eye size={13} /> Review in Studio
+                      <Eye size={13} /> Open Question
                     </button>
 
                     <button
@@ -720,7 +720,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--brand-primary)', marginBottom: '4px' }}>
-                          <HelpCircle size={13} /> Rationale &amp; Distractor Analysis
+                          <HelpCircle size={13} /> Explanation &amp; Answer Breakdown
                         </div>
                         {q.explanation}
                       </div>

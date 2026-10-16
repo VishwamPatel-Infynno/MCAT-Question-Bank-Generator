@@ -1,8 +1,8 @@
-# Contributing to UK UCAT Question Studio v2.0
+# Contributing to Infynno UCAT Question Bank Generator v2.0
 
 Engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
 
-Thank you for your interest in contributing to the **UK UCAT Question Studio** multi-agent AI system!
+Thank you for your interest in contributing to the **Infynno UCAT Question Bank Generator** multi-agent AI system!
 
 ---
 

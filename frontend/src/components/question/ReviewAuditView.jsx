@@ -8,10 +8,10 @@ export default function ReviewAuditView({ question, onClose }) {
   const history = question.iterations_history || [];
 
   const pillars = [
-    { label: 'UCAT Authenticity & Tone', score: review?.authenticity_score ?? 24, max: 25, color: 'var(--brand-primary)' },
-    { label: 'Clarity & Logical Soundness', score: review?.clarity_score ?? 24, max: 25, color: 'var(--brand-indigo)' },
-    { label: 'Distractor Trap Quality', score: review?.distractor_score ?? 23, max: 25, color: 'var(--status-warning)' },
-    { label: 'Explanation & Key Rigor', score: review?.explanation_score ?? 24, max: 25, color: 'var(--status-success)' },
+    { label: 'Real UCAT Style & Tone', score: review?.authenticity_score ?? 24, max: 25, color: 'var(--brand-primary)' },
+    { label: 'Clarity & Logic', score: review?.clarity_score ?? 24, max: 25, color: 'var(--brand-indigo)' },
+    { label: 'Wrong Answer Quality', score: review?.distractor_score ?? 23, max: 25, color: 'var(--status-warning)' },
+    { label: 'Explanation & Key Accuracy', score: review?.explanation_score ?? 24, max: 25, color: 'var(--status-success)' },
   ];
 
   return (
@@ -62,10 +62,10 @@ export default function ReviewAuditView({ question, onClose }) {
             </div>
             <div>
               <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                Psychometric Review &amp; Cost Audit
+                Question Quality &amp; Cost Breakdown
               </h2>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Official 100-Point Quality Assurance Evaluation &bull; AI Token Tracking &bull; Agent Reflection Diff
+                Official 100-Point Quality Check &bull; AI Token Tracking &bull; Step-by-Step Improvements
               </p>
             </div>
           </div>
@@ -92,7 +92,7 @@ export default function ReviewAuditView({ question, onClose }) {
           }}
         >
           <div>
-            <div style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--brand-primary)' }}>Overall Psychometric Score</div>
+            <div style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--brand-primary)' }}>Overall Quality Score</div>
             <div style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--brand-primary)', lineHeight: 1.1 }}>
               {question.final_score} <span style={{ fontSize: '1.1rem', fontWeight: 500, color: 'var(--text-muted)' }}>/ 100</span>
             </div>
@@ -114,7 +114,7 @@ export default function ReviewAuditView({ question, onClose }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h4 style={{ fontSize: '0.825rem', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              AI Token Tracking &amp; Cost Audit
+              AI Usage &amp; Cost Breakdown
             </h4>
             <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontWeight: 600 }}>
               Infynno Cognitive Core ($0.10 in &bull; $0.32 out / 1M tokens)
@@ -145,7 +145,7 @@ export default function ReviewAuditView({ question, onClose }) {
         {/* 4 Pillars Breakdown */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <h4 style={{ fontSize: '0.825rem', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Four-Pillar Rubric Breakdown
+            Four-Pillar Quality Breakdown
           </h4>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             {pillars.map((p, i) => (
@@ -211,7 +211,7 @@ export default function ReviewAuditView({ question, onClose }) {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--status-warning)', fontWeight: 800, fontSize: '0.85rem', marginBottom: '8px' }}>
-                <AlertTriangle size={16} /> Remediation Guidelines
+                <AlertTriangle size={16} /> Improvement Tips
               </div>
               <ul style={{ paddingLeft: '18px', fontSize: '0.825rem', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {review.recommendations?.length > 0 ? (
@@ -228,7 +228,7 @@ export default function ReviewAuditView({ question, onClose }) {
         {history.length > 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <h4 style={{ fontSize: '0.825rem', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Multi-Agent Evolution History
+              Improvement Steps History
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {history.map((h, idx) => (
@@ -251,7 +251,7 @@ export default function ReviewAuditView({ question, onClose }) {
                     </span>
                   </div>
                   <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-                    {h.review?.passed ? '✓ Met > 90 Quality Benchmark' : '⚠️ Refined by Re-Generator'}
+                    {h.review?.passed ? '✓ Met > 90 Quality Benchmark' : '⚠️ Polished by Question Improver'}
                   </span>
                 </div>
               ))}

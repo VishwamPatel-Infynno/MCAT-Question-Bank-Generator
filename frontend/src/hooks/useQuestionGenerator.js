@@ -42,7 +42,7 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
     setEvents([]);
     setLatestReview(null);
     setIterationCount(1);
-    setActiveAgent('Question Generator');
+    setActiveAgent('Question Writer');
 
     // Pre-populate per-question swarm state for all target questions
     const multiCount = payload?.interaction_type_split?.multi || 0;
@@ -54,8 +54,8 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
       initialMap[i] = {
         index: i,
         stage: 'drafting',
-        agentName: 'Question Generator',
-        message: `Drafting ${isMulti ? 'Multi-Choice' : 'Single Choice'} question (${isPassage ? 'Reading Passage' : 'Standard Vignette'})...`,
+        agentName: 'Question Writer',
+        message: `Drafting ${isMulti ? 'Multi-Choice' : 'Single Choice'} question (${isPassage ? 'Reading Passage' : 'Short Scenario'})...`,
         iteration: 1,
         score: null,
         interactionType: isMulti ? 'multi_choice' : 'single_choice',
@@ -88,20 +88,20 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
               index: targetIdx,
               stage: 'drafting',
               iteration: 1,
-              agentName: 'Question Generator',
+              agentName: 'Question Writer',
               message: evt.message
             };
 
             let nextStage = current.stage;
             if (evt.data?.stage) {
               nextStage = evt.data.stage;
-            } else if (evt.agent_name === 'Question Generator') {
+            } else if (evt.agent_name === 'Question Writer' || evt.agent_name === 'Question Generator') {
               nextStage = 'drafting';
-            } else if (evt.agent_name === 'Question Reviewer') {
+            } else if (evt.agent_name === 'Quality Reviewer' || evt.agent_name === 'Question Reviewer') {
               nextStage = 'reviewing';
-            } else if (evt.agent_name === 'Question Re-Generator') {
+            } else if (evt.agent_name === 'Question Improver' || evt.agent_name === 'Question Re-Generator') {
               nextStage = 'remediating';
-            } else if (evt.agent_name === 'Image Generator') {
+            } else if (evt.agent_name === 'Diagram & Chart Maker' || evt.agent_name === 'Image Generator') {
               nextStage = 'image';
             }
 
@@ -161,7 +161,7 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
           setActiveQuestion((prev) => prev || newQ);
         }
 
-        if (evt.event_type === 'agent_complete' && evt.agent_name === 'Question Reviewer') {
+        if (evt.event_type === 'agent_complete' && (evt.agent_name === 'Quality Reviewer' || evt.agent_name === 'Question Reviewer')) {
           if (evt.data?.review) {
             setLatestReview(evt.data.review);
           }
@@ -169,7 +169,7 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
             setIterationCount(evt.data.iteration);
           }
         }
-        if (evt.event_type === 'agent_start' && evt.agent_name === 'Question Re-Generator') {
+        if (evt.event_type === 'agent_start' && (evt.agent_name === 'Question Improver' || evt.agent_name === 'Question Re-Generator')) {
           setIterationCount((prev) => prev + 1);
         }
         if (evt.event_type === 'workflow_rejected') {

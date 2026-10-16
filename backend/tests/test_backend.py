@@ -648,7 +648,7 @@ async def test_per_question_stage_metadata_in_events(monkeypatch):
     gen_starts = [
         e
         for e in events
-        if e["event_type"] == "agent_start" and e["agent_name"] == "Question Generator"
+        if e["event_type"] == "agent_start" and e["agent_name"] in ("Question Writer", "Question Generator")
     ]
     assert len(gen_starts) == 2
     for e in gen_starts:
@@ -659,7 +659,7 @@ async def test_per_question_stage_metadata_in_events(monkeypatch):
     rev_starts = [
         e
         for e in events
-        if e["event_type"] == "agent_start" and e["agent_name"] == "Question Reviewer"
+        if e["event_type"] == "agent_start" and e["agent_name"] in ("Quality Reviewer", "Question Reviewer")
     ]
     assert len(rev_starts) >= 2
     for e in rev_starts:

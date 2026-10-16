@@ -540,7 +540,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                     batch_prog_evt = make_event(
                         event_type="batch_progress",
                         agent_name="System",
-                        message=f"[{idx + 1}/{total_qty}] Drafting {item_interaction.replace('_', ' ').title()} question ({'Reading Passage' if is_item_passage else 'Standard Vignette'})...",
+                        message=f"[{idx + 1}/{total_qty}] Writing {item_interaction.replace('_', ' ').title()} question ({'Reading Passage' if is_item_passage else 'Short Scenario'})...",
                         data={
                             "current_index": idx + 1,
                             "total_count": total_qty,
@@ -567,11 +567,11 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                     "stage_outcomes": {},
                 }
 
-                # Step 1: Generator
+                # Step 1: Question Writer
                 gen_evt = make_event(
                     event_type="agent_start",
-                    agent_name="Question Generator",
-                    message=f"Synthesizing UCAT draft {idx + 1}/{total_qty} ({'Multi-Choice' if is_item_multi else 'Single Choice'})...",
+                    agent_name="Question Writer",
+                    message=f"Writing question draft {idx + 1}/{total_qty} ({'Multi-Choice' if is_item_multi else 'Single Choice'})...",
                     data={
                         "index": idx + 1,
                         "total": total_qty,
@@ -589,8 +589,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 gen_usage = state.get("latest_usage", {})
                 gen_done_evt = make_event(
                     event_type="agent_complete",
-                    agent_name="Question Generator",
-                    message=f"Draft v1 generated for Q{idx + 1} ({gen_usage.get('total_tokens', 0)} tokens, ${gen_usage.get('cost_usd', 0.0):.5f}). Passing to Reviewer.",
+                    agent_name="Question Writer",
+                    message=f"Draft written for Question {idx + 1} ({gen_usage.get('total_tokens', 0)} tokens, ${gen_usage.get('cost_usd', 0.0):.5f}). Sending to Quality Reviewer.",
                     data={
                         "draft": state["current_draft"],
                         "latest_usage": gen_usage,
@@ -602,15 +602,15 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 )
                 await event_queue.put(gen_done_evt)
 
-                # Loop Reviewer <-> Re-Generator
+                # Loop Quality Reviewer <-> Question Improver
                 question_passed = True
                 while True:
                     iteration = state.get("iteration_count", 1)
 
                     rev_start_evt = make_event(
                         event_type="agent_start",
-                        agent_name="Question Reviewer",
-                        message=f"Auditing draft {idx + 1}/{total_qty} (Iteration {iteration}) against 100-point rubric...",
+                        agent_name="Quality Reviewer",
+                        message=f"Reviewing draft {idx + 1}/{total_qty} (Round {iteration}) against 90+ quality standards...",
                         data={
                             "index": idx + 1,
                             "total": total_qty,
@@ -630,8 +630,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
                     rev_done_evt = make_event(
                         event_type="agent_complete",
-                        agent_name="Question Reviewer",
-                        message=f"Review completed for Q{idx + 1}. Score: {score}/100.",
+                        agent_name="Quality Reviewer",
+                        message=f"Quality review completed for Question {idx + 1}. Score: {score}/100.",
                         data={
                             "review": review,
                             "iteration": iteration,
@@ -650,8 +650,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                     if next_step == "regenerator":
                         regen_start_evt = make_event(
                             event_type="agent_start",
-                            agent_name="Question Re-Generator",
-                            message=f"Q{idx + 1} Score {score} <= {config.PASSING_SCORE_THRESHOLD}! Initiating Re-Generator Agent...",
+                            agent_name="Question Improver",
+                            message=f"Question {idx + 1} score {score}/100 needs improvement. Question Improver is refining answer options...",
                             data={
                                 "index": idx + 1,
                                 "total": total_qty,
@@ -669,8 +669,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         regen_usage = state.get("latest_usage", {})
                         regen_done_evt = make_event(
                             event_type="agent_complete",
-                            agent_name="Question Re-Generator",
-                            message=f"Re-generation complete for Q{idx + 1} (Draft v{state['iteration_count']} • {regen_usage.get('total_tokens', 0)} tokens, ${regen_usage.get('cost_usd', 0.0):.5f}). Resubmitting to Reviewer...",
+                            agent_name="Question Improver",
+                            message=f"Question {idx + 1} improved (Draft v{state['iteration_count']} • {regen_usage.get('total_tokens', 0)} tokens, ${regen_usage.get('cost_usd', 0.0):.5f}). Re-checking with Quality Reviewer...",
                             data={
                                 "draft": state["current_draft"],
                                 "latest_usage": regen_usage,
@@ -693,7 +693,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         rej_evt = make_event(
                             event_type="workflow_rejected",
                             agent_name="Quality Gate",
-                            message=f"Strict Quality Halt on question {idx + 1}: Score {score}/100 after {iteration} attempts.",
+                            message=f"Quality check not passed for Question {idx + 1} (Score {score}/100 after {iteration} attempts).",
                             data=rej_data,
                             run_id=item_run_id,
                         )
@@ -727,8 +727,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                     if requires_image:
                         img_start_evt = make_event(
                             event_type="agent_start",
-                            agent_name="Image Generator",
-                            message=f"Generating visual stimulus diagram for Q{idx + 1}...",
+                            agent_name="Diagram & Chart Maker",
+                            message=f"Drawing visual stimulus diagram for Question {idx + 1}...",
                             data={
                                 "index": idx + 1,
                                 "total": total_qty,
@@ -743,8 +743,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
                         img_done_evt = make_event(
                             event_type="agent_complete",
-                            agent_name="Image Generator",
-                            message=f"Visual stimulus created and linked for Q{idx + 1}.",
+                            agent_name="Diagram & Chart Maker",
+                            message=f"Visual diagram drawn and attached to Question {idx + 1}.",
                             data={
                                 "has_svg": bool(state.get("image_svg")),
                                 "image_url": state.get("image_url"),
@@ -769,7 +769,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                     q_gen_evt = make_event(
                         event_type="question_generated",
                         agent_name="System",
-                        message=f"Question {idx + 1} of {total_qty} successfully verified (Score: {final_q_dict.get('final_score')}/100) and staged for confirmation.",
+                        message=f"Question {idx + 1} of {total_qty} passed quality check (Score: {final_q_dict.get('final_score')}/100) and is ready for review.",
                         data={
                             "question": final_q_dict,
                             "index": idx + 1,

@@ -82,10 +82,10 @@ export default function QuestionCard({
 
   const review = question.review_rubric;
   const pillars = [
-    { label: 'UCAT Authenticity & Tone', score: review?.authenticity_score ?? 24, max: 25, color: 'var(--brand-primary)' },
-    { label: 'Clarity & Logical Soundness', score: review?.clarity_score ?? 24, max: 25, color: 'var(--brand-indigo)' },
-    { label: 'Distractor Trap Quality', score: review?.distractor_score ?? 23, max: 25, color: 'var(--status-warning)' },
-    { label: 'Explanation & Key Rigor', score: review?.explanation_score ?? 24, max: 25, color: 'var(--status-success)' },
+    { label: 'Real UCAT Style & Tone', score: review?.authenticity_score ?? 24, max: 25, color: 'var(--brand-primary)' },
+    { label: 'Clarity & Logic', score: review?.clarity_score ?? 24, max: 25, color: 'var(--brand-indigo)' },
+    { label: 'Wrong Answer Quality', score: review?.distractor_score ?? 23, max: 25, color: 'var(--status-warning)' },
+    { label: 'Explanation & Key Accuracy', score: review?.explanation_score ?? 24, max: 25, color: 'var(--status-success)' },
   ];
 
   const diffLower = (question.difficulty || '').toLowerCase();
@@ -423,11 +423,11 @@ export default function QuestionCard({
                       className="badge badge-emerald"
                       style={{ fontSize: '0.675rem', padding: '2px 8px', flexShrink: 0 }}
                     >
-                      <CheckCircle size={11} /> {isMulti ? `Key (${opt.id})` : 'Correct Key'}
+                      <CheckCircle size={11} /> {isMulti ? `Correct Choice (${opt.id})` : 'Correct Answer'}
                     </span>
                   ) : (
                     <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)', flexShrink: 0, marginTop: '3px' }}>
-                      Distractor
+                      Wrong Choice
                     </span>
                   )}
                 </div>
@@ -444,11 +444,11 @@ export default function QuestionCard({
               style={{ gap: '6px', fontSize: '0.775rem' }}
             >
               {showExplanation ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-              <span>{showExplanation ? 'Hide Explanation & Distractor Analysis' : 'Show Explanation & Distractor Analysis'}</span>
+              <span>{showExplanation ? 'Hide Explanation & Answer Breakdown' : 'Show Explanation & Answer Breakdown'}</span>
             </button>
 
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Correct Key: <strong style={{ color: 'var(--status-success)' }}>Option {question.correct_answer_id}</strong>
+              Correct Answer: <strong style={{ color: 'var(--status-success)' }}>Option {question.correct_answer_id}</strong>
             </span>
           </div>
 
@@ -467,7 +467,7 @@ export default function QuestionCard({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', color: 'var(--brand-primary)', fontWeight: 600 }}>
                 <HelpCircle size={15} />
-                <span>Distractor Trap Analysis &amp; Rationalization</span>
+                <span>Why Answers are Right or Wrong</span>
               </div>
               {isEditing ? (
                 <textarea
@@ -486,16 +486,16 @@ export default function QuestionCard({
         </div>
       )}
 
-      {/* --- TAB 2: 100-PT PSYCHOMETRIC SCORECARD --- */}
+      {/* --- TAB 2: 100-PT QUALITY SCORECARD --- */}
       {activeTab === 'scorecard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Psychometric Evaluation Scorecard
+                Question Quality Scorecard
               </h4>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                Audited against UK UCAT 100-point rubric standards
+                Checked against 100-point quality standards
               </p>
             </div>
             <span className="badge badge-emerald" style={{ fontSize: '0.8rem', padding: '4px 10px' }}>

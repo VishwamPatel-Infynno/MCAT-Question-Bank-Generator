@@ -101,18 +101,18 @@ export default function StudioBlueprint({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
               <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                Generation Blueprint
+                Question Plan
               </span>
               <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>•</span>
               <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-                Targeting 90+ Score Gate
+                Targeting 90+ Quality Standard
               </span>
             </div>
             <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
               Ready to Create {totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'}
             </h2>
             <p style={{ fontSize: '0.775rem', color: 'var(--text-secondary)', marginTop: '2px', margin: 0 }}>
-              Autonomous agents will collaborate to draft, audit, and calibrate your question set.
+              Our 4 AI helpers work together to write, check, and polish your questions.
             </p>
           </div>
 
@@ -168,7 +168,7 @@ export default function StudioBlueprint({
             </div>
             <div>
               <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Subtest
+                Section
               </span>
               <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                 {currentSectionObj.label}
@@ -258,13 +258,13 @@ export default function StudioBlueprint({
             </div>
             <div>
               <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Trap &amp; Rigor
+                Wrong Answer Traps
               </span>
               <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                 {primaryTrap ? primaryTrap.replace(/_/g, ' ') : 'Balanced Traps'}
               </div>
               <span style={{ fontSize: '0.675rem', color: 'var(--status-success)' }}>
-                Score Gate 90+
+                90+ Quality Standard
               </span>
             </div>
           </div>
@@ -401,7 +401,7 @@ export default function StudioBlueprint({
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-primary)', fontWeight: 600 }}>
             <ShieldCheck size={16} color="var(--status-success)" />
-            <span>Automatic 4-Agent Verification Standard:</span>
+            <span>Automatic 4-Step AI Team Quality Check:</span>
           </div>
 
           <span

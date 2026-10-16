@@ -62,7 +62,7 @@ export default function Footer() {
               <span className="infynno-text-gradient" style={{ fontWeight: 700 }}>
                 Infinite Innovations
               </span>{' '}
-              — UK UCAT Question Studio is a proprietary multi-agent psychometric authoring platform engineered by{' '}
+              — Infynno UCAT Question Bank Generator is an AI-powered question writing platform created by{' '}
               <strong style={{ color: 'var(--text-primary)' }}>Infynno Solutions LLP</strong>.
             </p>
           </div>
@@ -82,7 +82,7 @@ export default function Footer() {
               }}
             >
               <Cpu size={14} style={{ color: 'var(--brand-primary)' }} />
-              <span>Multi-Agent Swarm</span>
+              <span>4-Step AI Team</span>
             </div>
 
             <div
@@ -98,7 +98,7 @@ export default function Footer() {
               }}
             >
               <Shield size={14} style={{ color: 'var(--status-success)' }} />
-              <span>90+ Psychometric Rubric</span>
+              <span>90+ Quality Standard</span>
             </div>
 
             <div
@@ -114,7 +114,7 @@ export default function Footer() {
               }}
             >
               <Sparkles size={14} style={{ color: 'var(--brand-indigo)' }} />
-              <span>Zero Hallucination Traps</span>
+              <span>Realistic Exam Traps</span>
             </div>
           </div>
 

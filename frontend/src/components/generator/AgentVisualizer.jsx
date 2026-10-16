@@ -32,7 +32,7 @@ export default function AgentVisualizer({
     return () => clearInterval(interval);
   }, [isGenerating]);
 
-  const hasReviewed = events.some(e => e.agent_name === 'Question Reviewer' && e.event_type === 'agent_complete');
+  const hasReviewed = events.some(e => (e.agent_name === 'Quality Reviewer' || e.agent_name === 'Question Reviewer') && e.event_type === 'agent_complete');
 
   const isWorkflowComplete = !isGenerating && events.length > 0 && hasReviewed;
 
@@ -71,7 +71,7 @@ export default function AgentVisualizer({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <CheckCircle2 size={16} color="var(--status-success)" />
           <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-            {totalBatch > 1 ? `All Questions Ready (${totalBatch} Questions Generated)` : 'Quality Check Passed'}
+            {totalBatch > 1 ? `All Questions Ready (${totalBatch} Questions Created)` : 'Quality Check Passed'}
           </span>
           <span className="badge badge-emerald" style={{ fontSize: '0.7rem' }}>
             {latestReview?.total_score || 95}/100 Quality
@@ -140,10 +140,10 @@ export default function AgentVisualizer({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem' }}>
             <span style={{ fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span className="agent-pulse-dot" />
-              Parallel Swarm Progress: {completedCount} of {totalBatch} Questions Verified
+              Batch Progress: {completedCount} of {totalBatch} Questions Verified
               {inProgressCount > 0 && (
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-                  ({inProgressCount} generating concurrently)
+                  ({inProgressCount} in progress)
                 </span>
               )}
             </span>

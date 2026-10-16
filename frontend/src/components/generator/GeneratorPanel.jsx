@@ -221,17 +221,17 @@ export default function GeneratorPanel({
             onClick={onToggleCollapse}
             className="btn-secondary"
             style={{ padding: '4px 6px', fontSize: '0.7rem', border: 'none', background: 'transparent' }}
-            title="Collapse dock to maximize review space"
+            title="Collapse panel to maximize review space"
           >
             <PanelLeftClose size={14} />
           </button>
         )}
       </div>
 
-      {/* SECTION 1: SUBTEST & TOPIC FOCUS */}
+      {/* SECTION 1: SECTION & TOPIC */}
       <div className="dock-section">
         <div className="dock-kicker">
-          <span>01 / Subtest &amp; Topic</span>
+          <span>01 / SECTION &amp; TOPIC</span>
           <span className="badge badge-neutral" style={{ fontSize: '0.625rem', padding: '1px 6px' }}>
             {pacing.target || '~28s / Q'}
           </span>
@@ -287,7 +287,7 @@ export default function GeneratorPanel({
         {subtopics.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <label style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Subtopic Focus
+              Topic Focus
             </label>
             <select
               id="select-subtopic"
@@ -314,7 +314,7 @@ export default function GeneratorPanel({
         {/* Difficulty Segmented Chips */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <label style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            Difficulty Rigor
+            Difficulty Level
           </label>
           <div
             style={{
@@ -367,7 +367,7 @@ export default function GeneratorPanel({
       {/* SECTION 2: FORMATS & QUANTITY */}
       <div className="dock-section">
         <div className="dock-kicker">
-          <span>02 / Format &amp; Rigor</span>
+          <span>02 / QUANTITY &amp; FORMATS</span>
           <span className="badge badge-neutral" style={{ fontSize: '0.625rem', padding: '1px 6px' }}>
             {totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'}
           </span>
@@ -461,7 +461,7 @@ export default function GeneratorPanel({
             {/* Answer Mode Breakdown */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Answer Type Split
+                Answer Style Breakdown
               </span>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                 {/* Single Choice Counter */}
@@ -545,7 +545,7 @@ export default function GeneratorPanel({
             {/* Stimulus Length Breakdown */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Passage Length Split
+                Reading Material Breakdown
               </span>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                 {/* Passage Counter */}
@@ -611,7 +611,7 @@ export default function GeneratorPanel({
             {/* Answer Type Switch for 1 question */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Answer Type
+                Answer Style
               </span>
               <div
                 style={{
@@ -663,7 +663,7 @@ export default function GeneratorPanel({
             {/* Passage Length Switch for 1 question */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Passage Length
+                Reading Material
               </span>
               <div
                 style={{
@@ -715,14 +715,14 @@ export default function GeneratorPanel({
       {/* SECTION 3: TRAPS & DIRECTIVES */}
       <div className="dock-section">
         <div className="dock-kicker">
-          <span>03 / Directives &amp; Traps</span>
+          <span>03 / TRICKY TRAPS &amp; EXTRA RULES</span>
           <Target size={12} color="var(--text-muted)" />
         </div>
 
         {/* Question Trick Selector */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <label style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            Trap / Distractor Mechanism
+            Wrong Answer Traps
           </label>
           <select
             id="select-primary-trap"
@@ -759,7 +759,7 @@ export default function GeneratorPanel({
           >
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <SlidersHorizontal size={11} color="var(--brand-primary)" />
-              <span>Diagram &amp; Custom Directives</span>
+              <span>Diagram &amp; Custom Instructions</span>
             </span>
             {showAdvancedDirectives ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
           </button>
@@ -829,7 +829,7 @@ export default function GeneratorPanel({
               {/* Custom Prompt Textarea */}
               <div>
                 <label style={{ display: 'block', fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '3px' }}>
-                  Custom Topic Focus / Prompt
+                  Custom Instructions &amp; Topics
                 </label>
                 <textarea
                   id="input-custom-prompt"

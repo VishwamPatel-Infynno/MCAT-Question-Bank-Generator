@@ -79,7 +79,7 @@ export default function Navbar({
               margin: 0
             }}
           >
-            UK UCAT Question Studio
+            Infynno UCAT Question Bank Generator
           </h1>
           <span
             style={{
@@ -129,7 +129,7 @@ export default function Navbar({
           }}
         >
           <Sparkles size={13} color={activeTab === 'generator' ? 'var(--brand-primary)' : 'currentColor'} />
-          <span>Generator Studio</span>
+          <span>Question Generator</span>
         </button>
 
         <button

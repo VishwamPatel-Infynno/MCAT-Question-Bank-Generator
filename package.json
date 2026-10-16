@@ -1,10 +1,10 @@
 {
-  "name": "uk-ucat-question-studio-root",
+  "name": "infynno-ucat-question-bank-generator-root",
   "private": true,
   "scripts": {
-    "dev": "pnpm --filter uk-ucat-question-studio dev",
-    "build": "pnpm --filter uk-ucat-question-studio build",
-    "lint": "pnpm --filter uk-ucat-question-studio lint",
-    "preview": "pnpm --filter uk-ucat-question-studio preview"
+    "dev": "pnpm --filter infynno-ucat-question-bank-generator dev",
+    "build": "pnpm --filter infynno-ucat-question-bank-generator build",
+    "lint": "pnpm --filter infynno-ucat-question-bank-generator lint",
+    "preview": "pnpm --filter infynno-ucat-question-bank-generator preview"
   }
 }

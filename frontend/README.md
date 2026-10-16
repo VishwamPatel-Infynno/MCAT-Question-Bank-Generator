@@ -1,6 +1,6 @@
-# UK UCAT Question Studio — Frontend
+# Infynno UCAT Question Bank Generator — Frontend
 
-Modern, high-performance web workstation for **UK UCAT Question Studio**, engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
+Modern, high-performance web workstation for **Infynno UCAT Question Bank Generator**, engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
 
 Built with **React 19**, **Vite 8**, **Oxlint**, and a custom dark-glass precision design system.
 
@@ -8,12 +8,12 @@ Built with **React 19**, **Vite 8**, **Oxlint**, and a custom dark-glass precisi
 
 ## 🎨 Architectural Overview
 
-The frontend provides an intuitive, real-time command canvas for UK UCAT question generation, multi-agent observability, and psychometric bank curation:
+The frontend provides an intuitive, real-time command canvas for UK UCAT question generation, AI team tracking, and question bank management:
 
-- **Question Setup Studio**: 3-stage guided workflow for selecting subtests (Verbal Reasoning, Decision Making, Quantitative Reasoning, Abstract Reasoning, Situational Judgement), exam rigor, answer formats, passage length, and distractor traps.
-- **Live 4-Agent Workflow Architecture**: Animated electric conduit hub displaying the autonomous background swarm (**Infynno Cognitive Reasoning Core**, **Infynno Psychometric Scoring Engine**, **Autonomous Remediation Engine**, and **Infynno Visual & Vector Engine**).
+- **Question Setup Panel**: 3-stage guided workflow for selecting sections (Verbal Reasoning, Decision Making, Quantitative Reasoning, Abstract Reasoning, Situational Judgement), difficulty, answer style, reading material, and wrong answer traps.
+- **Live 4-Agent AI Team**: Animated live tracker displaying the AI team (**Question Writer**, **Quality Reviewer**, **Question Improver**, and **Diagram & Chart Maker**).
 - **Staged Batch Review & Approval**: Interactive batch staging deck allowing educators to inspect, edit, discard, or approve multiple generated items before saving to the database.
-- **Psychometric Review Audit Modal**: Comprehensive 100-point 4-pillar quality audit with itemized token tracking and micro-dollar cost calculations.
+- **Question Quality & Cost Breakdown**: Comprehensive 100-point 4-pillar quality check with itemized token tracking and micro-dollar cost calculations.
 - **Enterprise Question Bank**: High-speed searchable, filterable repository with multi-format export (JSON/CSV) and copy-to-clipboard actions.
 
 ---
