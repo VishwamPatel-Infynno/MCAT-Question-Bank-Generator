@@ -13,6 +13,7 @@ import {
 import { useQuestionGenerator } from './hooks/useQuestionGenerator';
 import { useTheme } from './hooks/useTheme';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useGeneratorForm } from './hooks/useGeneratorForm';
 import { UCAT_SECTIONS_FALLBACK } from './constants/ucat';
 import { fetchSections, fetchHealth, approveQuestion, batchApproveQuestions } from './services/api';
 
@@ -56,24 +57,7 @@ export default function App() {
   const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('generator');
   const [sectionsData, setSectionsData] = useState([]);
-  const [selectedSection, setSelectedSection] = useState('verbal_reasoning');
-  const [selectedSubtopic, setSelectedSubtopic] = useState('');
-  const [difficulty, setDifficulty] = useState('medium');
-  const [totalQuestions, setTotalQuestions] = useState(1);
-  const [singleChoiceCount, setSingleChoiceCount] = useState(1);
-  const [multiChoiceCount, setMultiChoiceCount] = useState(0);
-  const [passageCount, setPassageCount] = useState(0);
-  const [passageMode, setPassageMode] = useState('single_passage'); // 'single_passage' | 'independent'
-  const [passageQuestionCount, setPassageQuestionCount] = useState(2);
-  const [passageSingleCount, setPassageSingleCount] = useState(1);
-  const [passageMultiCount, setPassageMultiCount] = useState(1);
-  const [independentSingleCount, setIndependentSingleCount] = useState(2);
-  const [independentMultiCount, setIndependentMultiCount] = useState(1);
-  const [interactionType, setInteractionType] = useState('single_choice');
-  const [passageRequired, setPassageRequired] = useState('No');
-  const [primaryTrap, setPrimaryTrap] = useState('Automatic');
-  const [requireImage, setRequireImage] = useState(false);
-  const [customPrompt, setCustomPrompt] = useState('');
+  const generatorForm = useGeneratorForm();
 
   // Layout & Dock State
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
@@ -154,6 +138,27 @@ export default function App() {
     if (isGenerating) return;
     setIsQuestionSaved(false);
     setSavedQuestionIds(new Set());
+    const {
+      selectedSection,
+      selectedSubtopic,
+      difficulty,
+      totalQuestions,
+      singleChoiceCount,
+      multiChoiceCount,
+      passageCount,
+      passageMode,
+      passageQuestionCount,
+      passageSingleCount,
+      passageMultiCount,
+      independentSingleCount,
+      independentMultiCount,
+      interactionType,
+      passageRequired,
+      primaryTrap,
+      requireImage,
+      customPrompt
+    } = generatorForm.formData;
+
     const isMixedSet = totalQuestions > 1 && passageMode === 'single_passage' && passageQuestionCount < totalQuestions;
     const payload = {
       section: selectedSection,
@@ -187,24 +192,7 @@ export default function App() {
     });
   }, [
     isGenerating,
-    selectedSection,
-    selectedSubtopic,
-    difficulty,
-    totalQuestions,
-    singleChoiceCount,
-    multiChoiceCount,
-    passageCount,
-    passageMode,
-    passageQuestionCount,
-    passageSingleCount,
-    passageMultiCount,
-    independentSingleCount,
-    independentMultiCount,
-    interactionType,
-    passageRequired,
-    primaryTrap,
-    requireImage,
-    customPrompt,
+    generatorForm.formData,
     startGeneration,
     showToast
   ]);
@@ -323,40 +311,44 @@ export default function App() {
   });
 
   const handleApplyPreset = useCallback((cfg) => {
-    if (cfg.section) setSelectedSection(cfg.section);
-    if (cfg.difficulty) setDifficulty(cfg.difficulty);
-    if (cfg.totalQuestions) setTotalQuestions(cfg.totalQuestions);
-    if (cfg.singleChoiceCount !== undefined) setSingleChoiceCount(cfg.singleChoiceCount);
-    if (cfg.multiChoiceCount !== undefined) {
-      setMultiChoiceCount(cfg.multiChoiceCount);
-      setInteractionType(cfg.multiChoiceCount > 0 ? 'multi_choice' : 'single_choice');
-    }
-    if (cfg.passageCount !== undefined) {
-      setPassageCount(cfg.passageCount);
-      setPassageRequired(cfg.passageCount > 0 ? 'Yes' : 'No');
-    }
-    if (cfg.passageMode) setPassageMode(cfg.passageMode);
-    if (cfg.passageQuestionCount !== undefined) setPassageQuestionCount(cfg.passageQuestionCount);
-    if (cfg.passageSingleCount !== undefined) setPassageSingleCount(cfg.passageSingleCount);
-    if (cfg.passageMultiCount !== undefined) setPassageMultiCount(cfg.passageMultiCount);
-    if (cfg.independentSingleCount !== undefined) setIndependentSingleCount(cfg.independentSingleCount);
-    if (cfg.independentMultiCount !== undefined) setIndependentMultiCount(cfg.independentMultiCount);
-    if (cfg.primaryTrap) setPrimaryTrap(cfg.primaryTrap);
+    generatorForm.updateFields({
+      ...(cfg.section && { selectedSection: cfg.section }),
+      ...(cfg.difficulty && { difficulty: cfg.difficulty }),
+      ...(cfg.totalQuestions !== undefined && { totalQuestions: cfg.totalQuestions }),
+      ...(cfg.singleChoiceCount !== undefined && { singleChoiceCount: cfg.singleChoiceCount }),
+      ...(cfg.multiChoiceCount !== undefined && {
+        multiChoiceCount: cfg.multiChoiceCount,
+        interactionType: cfg.multiChoiceCount > 0 ? 'multi_choice' : 'single_choice'
+      }),
+      ...(cfg.passageCount !== undefined && {
+        passageCount: cfg.passageCount,
+        passageRequired: cfg.passageCount > 0 ? 'Yes' : 'No'
+      }),
+      ...(cfg.passageMode && { passageMode: cfg.passageMode }),
+      ...(cfg.passageQuestionCount !== undefined && { passageQuestionCount: cfg.passageQuestionCount }),
+      ...(cfg.passageSingleCount !== undefined && { passageSingleCount: cfg.passageSingleCount }),
+      ...(cfg.passageMultiCount !== undefined && { passageMultiCount: cfg.passageMultiCount }),
+      ...(cfg.independentSingleCount !== undefined && { independentSingleCount: cfg.independentSingleCount }),
+      ...(cfg.independentMultiCount !== undefined && { independentMultiCount: cfg.independentMultiCount }),
+      ...(cfg.primaryTrap && { primaryTrap: cfg.primaryTrap })
+    });
     showToast({
       type: 'info',
       title: 'Preset Applied',
       message: `${cfg.totalQuestions || 5} questions set for ${cfg.section ? cfg.section.replace(/_/g, ' ') : 'UCAT'}.`
     });
-  }, [showToast]);
+  }, [generatorForm, showToast]);
 
   const handleSelectFromBank = (q) => {
     setActiveQuestion(q);
     setIsQuestionSaved(true);
-    if (q.section) setSelectedSection(q.section);
-    if (q.subtopic) setSelectedSubtopic(q.subtopic);
-    if (q.difficulty) setDifficulty(q.difficulty);
-    if (q.primary_trap) setPrimaryTrap(q.primary_trap);
-    if (q.passage_required) setPassageRequired(q.passage_required);
+    generatorForm.updateFields({
+      ...(q.section && { selectedSection: q.section }),
+      ...(q.subtopic && { selectedSubtopic: q.subtopic }),
+      ...(q.difficulty && { difficulty: q.difficulty }),
+      ...(q.primary_trap && { primaryTrap: q.primary_trap }),
+      ...(q.passage_required && { passageRequired: q.passage_required })
+    });
     setActiveTab('generator');
     showToast({
       type: 'info',
@@ -390,43 +382,8 @@ export default function App() {
             {/* Left Parameter Dock */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <GeneratorPanel
+                generatorForm={generatorForm}
                 sectionsData={sectionsData}
-                selectedSection={selectedSection}
-                setSelectedSection={setSelectedSection}
-                selectedSubtopic={selectedSubtopic}
-                setSelectedSubtopic={setSelectedSubtopic}
-                difficulty={difficulty}
-                setDifficulty={setDifficulty}
-                totalQuestions={totalQuestions}
-                setTotalQuestions={setTotalQuestions}
-                singleChoiceCount={singleChoiceCount}
-                setSingleChoiceCount={setSingleChoiceCount}
-                multiChoiceCount={multiChoiceCount}
-                setMultiChoiceCount={setMultiChoiceCount}
-                passageCount={passageCount}
-                setPassageCount={setPassageCount}
-                passageMode={passageMode}
-                setPassageMode={setPassageMode}
-                passageQuestionCount={passageQuestionCount}
-                setPassageQuestionCount={setPassageQuestionCount}
-                passageSingleCount={passageSingleCount}
-                setPassageSingleCount={setPassageSingleCount}
-                passageMultiCount={passageMultiCount}
-                setPassageMultiCount={setPassageMultiCount}
-                independentSingleCount={independentSingleCount}
-                setIndependentSingleCount={setIndependentSingleCount}
-                independentMultiCount={independentMultiCount}
-                setIndependentMultiCount={setIndependentMultiCount}
-                interactionType={interactionType}
-                setInteractionType={setInteractionType}
-                passageRequired={passageRequired}
-                setPassageRequired={setPassageRequired}
-                primaryTrap={primaryTrap}
-                setPrimaryTrap={setPrimaryTrap}
-                requireImage={requireImage}
-                setRequireImage={setRequireImage}
-                customPrompt={customPrompt}
-                setCustomPrompt={setCustomPrompt}
                 onGenerate={handleGenerate}
                 onCancel={handleCancelGeneration}
                 isGenerating={isGenerating}
@@ -454,10 +411,10 @@ export default function App() {
                   rejectionData={rejectedData}
                   onRetry={handleGenerate}
                 />
-              ) : ((stagedQuestions.length > 1) || (stagedQuestions.length > 0 && totalQuestions > 1) || (isGenerating && (batchProgress?.total > 1 || totalQuestions > 1))) ? (
+              ) : ((stagedQuestions.length > 1) || (stagedQuestions.length > 0 && generatorForm.formData.totalQuestions > 1) || (isGenerating && (batchProgress?.total > 1 || generatorForm.formData.totalQuestions > 1))) ? (
                 <StagedBatchReview
                   stagedQuestions={stagedQuestions}
-                  targetTotal={totalQuestions}
+                  targetTotal={generatorForm.formData.totalQuestions}
                   savedQuestionIds={savedQuestionIds}
                   isGenerating={isGenerating}
                   batchProgress={batchProgress}

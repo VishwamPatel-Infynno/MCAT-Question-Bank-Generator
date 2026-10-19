@@ -582,15 +582,6 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
     total_qty = min(max(req.questions_to_generate or 1, 1), 5)
     batch_id = req.batch_id or (str(uuid.uuid4()) if total_qty > 1 else None)
 
-    # Determine format breakdown
-    if req.multi_choice_count is not None:
-        multi_count = min(max(req.multi_choice_count, 0), total_qty)
-    elif req.interaction_type == "multi_choice":
-        multi_count = total_qty
-    else:
-        multi_count = 0
-    single_count = total_qty - multi_count
-
     if req.passage_count is not None:
         passage_count = min(max(req.passage_count, 0), total_qty)
     elif req.passage_required and str(req.passage_required).lower() in ("yes", "true"):

@@ -17,4 +17,9 @@ export { default as QuestionProgressTracker } from './generator/QuestionProgress
 // Question & Review
 export { default as QuestionCard } from './question/QuestionCard';
 export { default as StagedBatchReview } from './question/StagedBatchReview';
+export { default as VisualStimulusViewer } from './question/VisualStimulusViewer';
+export { default as StageJsonInspector } from './question/StageJsonInspector';
+
+// Heavy views (QuestionBank, ReviewAuditView, SettingsModal) are intentionally
+// loaded via React.lazy() in App.jsx to preserve optimal code splitting.
 

@@ -868,11 +868,11 @@ async def test_mixed_passage_and_independent_batch(monkeypatch):
 @pytest.mark.asyncio
 async def test_generate_question_with_self_critique_structure(monkeypatch):
     """Verifies that generate_question_with_self_critique returns a valid draft, review score, and usage."""
-    from app.core.config import config
-    from app.agents.generator import generate_question_with_self_critique
-    from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
-    from app.schemas.token import TokenUsage
     import app.agents.generator as gen_mod
+    from app.agents.generator import generate_question_with_self_critique
+    from app.core.config import config
+    from app.schemas.question import QuestionDraft, ReviewScore
+    from app.schemas.token import TokenUsage
 
     # 1. Fallback mode (no API key configured)
     monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
@@ -935,7 +935,7 @@ async def test_generate_question_with_self_critique_structure(monkeypatch):
 @pytest.mark.asyncio
 async def test_fused_generator_node_passing_and_routing():
     """Verifies that fused_generator_node and route_after_fused_generation route properly."""
-    from app.workflow.graph import fused_generator_node, route_after_fused_generation
+    from app.workflow.graph import route_after_fused_generation
 
     # 1. Failing/unverified self-critique (score <= 90) -> routes to reviewer
     req = GenerationRequest(section=UCATSection.VERBAL_REASONING, difficulty=Difficulty.MEDIUM)
@@ -970,11 +970,12 @@ async def test_fused_generator_node_passing_and_routing():
 async def test_fused_workflow_bypasses_reviewer_when_self_critique_passed(monkeypatch):
     """Verifies that if the fused generator self-scores > 90, the separate Reviewer agent node is bypassed."""
     import json
+
+    import app.workflow.graph as graph_mod
     from app.core.config import config
     from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
     from app.schemas.token import TokenUsage
     from app.workflow.graph import run_workflow_stream
-    import app.workflow.graph as graph_mod
 
     monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
     monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
@@ -1043,8 +1044,8 @@ async def test_fused_workflow_bypasses_reviewer_when_self_critique_passed(monkey
 def test_option_symmetry_and_anti_guessability_engine():
     """Validates calculate_option_symmetry, balance_and_shuffle_options, and remap_explanation_keys."""
     from app.agents.option_balancer import (
-        calculate_option_symmetry,
         balance_and_shuffle_options,
+        calculate_option_symmetry,
         remap_explanation_keys,
     )
     from app.schemas.question import OptionChoice, QuestionDraft

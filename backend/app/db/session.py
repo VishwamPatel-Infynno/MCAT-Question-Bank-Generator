@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from app.core.config import config
 from app.db.base import Base
-from app.models.batch import GenerationBatchModel
-from app.models.passage import PassageModel
+from app.models.batch import GenerationBatchModel  # noqa: F401 - Registered for Base.metadata
+from app.models.passage import PassageModel  # noqa: F401 - Registered for Base.metadata
 from app.models.question import QuestionModel
 
 logger = logging.getLogger(__name__)

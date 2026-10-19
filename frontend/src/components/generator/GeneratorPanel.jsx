@@ -16,49 +16,87 @@ import {
 import { SECTION_ICONS, PACING_INFO } from '../../constants/ucat';
 
 export default function GeneratorPanel({
+  generatorForm,
   sectionsData = [],
-  selectedSection = 'verbal_reasoning',
-  setSelectedSection,
-  selectedSubtopic = '',
-  setSelectedSubtopic,
-  difficulty = 'medium',
-  setDifficulty,
-  totalQuestions = 1,
-  setTotalQuestions,
-  singleChoiceCount = 1,
-  setSingleChoiceCount,
-  multiChoiceCount = 0,
-  setMultiChoiceCount,
-  passageCount = 0,
-  setPassageCount,
-  passageMode = 'single_passage',
-  setPassageMode,
-  passageQuestionCount = 2,
-  setPassageQuestionCount,
-  passageSingleCount = 1,
-  setPassageSingleCount,
-  passageMultiCount = 1,
-  setPassageMultiCount,
-  independentSingleCount = 2,
-  setIndependentSingleCount,
-  independentMultiCount = 1,
-  setIndependentMultiCount,
-  interactionType = 'single_choice',
-  setInteractionType,
-  passageRequired = 'No',
-  setPassageRequired,
-  primaryTrap = 'Automatic',
-  setPrimaryTrap,
-  requireImage,
-  setRequireImage,
-  customPrompt,
-  setCustomPrompt,
+  selectedSection: propSelectedSection = 'verbal_reasoning',
+  setSelectedSection: propSetSelectedSection,
+  selectedSubtopic: propSelectedSubtopic = '',
+  setSelectedSubtopic: propSetSelectedSubtopic,
+  difficulty: propDifficulty = 'medium',
+  setDifficulty: propSetDifficulty,
+  totalQuestions: propTotalQuestions = 1,
+  setTotalQuestions: propSetTotalQuestions,
+  singleChoiceCount: propSingleChoiceCount = 1,
+  setSingleChoiceCount: propSetSingleChoiceCount,
+  multiChoiceCount: propMultiChoiceCount = 0,
+  setMultiChoiceCount: propSetMultiChoiceCount,
+  passageCount: propPassageCount = 0,
+  setPassageCount: propSetPassageCount,
+  passageMode: propPassageMode = 'single_passage',
+  setPassageMode: propSetPassageMode,
+  passageQuestionCount: propPassageQuestionCount = 2,
+  setPassageQuestionCount: propSetPassageQuestionCount,
+  passageSingleCount: propPassageSingleCount = 1,
+  setPassageSingleCount: propSetPassageSingleCount,
+  passageMultiCount: propPassageMultiCount = 1,
+  setPassageMultiCount: propSetPassageMultiCount,
+  independentSingleCount: propIndependentSingleCount = 2,
+  setIndependentSingleCount: propSetIndependentSingleCount,
+  independentMultiCount: propIndependentMultiCount = 1,
+  setIndependentMultiCount: propSetIndependentMultiCount,
+  interactionType: propInteractionType = 'single_choice',
+  setInteractionType: propSetInteractionType,
+  passageRequired: propPassageRequired = 'No',
+  setPassageRequired: propSetPassageRequired,
+  primaryTrap: propPrimaryTrap = 'Automatic',
+  setPrimaryTrap: propSetPrimaryTrap,
+  requireImage: propRequireImage,
+  setRequireImage: propSetRequireImage,
+  customPrompt: propCustomPrompt,
+  setCustomPrompt: propSetCustomPrompt,
   onGenerate,
   onCancel,
   isGenerating,
   isCollapsed,
   onToggleCollapse
 }) {
+  // Resolve values either from generatorForm hook or legacy individual props
+  const selectedSection = generatorForm ? generatorForm.formData.selectedSection : propSelectedSection;
+  const setSelectedSection = generatorForm ? (v) => generatorForm.updateField('selectedSection', v) : propSetSelectedSection;
+  const selectedSubtopic = generatorForm ? generatorForm.formData.selectedSubtopic : propSelectedSubtopic;
+  const setSelectedSubtopic = generatorForm ? (v) => generatorForm.updateField('selectedSubtopic', v) : propSetSelectedSubtopic;
+  const difficulty = generatorForm ? generatorForm.formData.difficulty : propDifficulty;
+  const setDifficulty = generatorForm ? (v) => generatorForm.updateField('difficulty', v) : propSetDifficulty;
+  const totalQuestions = generatorForm ? generatorForm.formData.totalQuestions : propTotalQuestions;
+  const setTotalQuestions = generatorForm ? (v) => generatorForm.updateField('totalQuestions', v) : propSetTotalQuestions;
+  const singleChoiceCount = generatorForm ? generatorForm.formData.singleChoiceCount : propSingleChoiceCount;
+  const setSingleChoiceCount = generatorForm ? (v) => generatorForm.updateField('singleChoiceCount', v) : propSetSingleChoiceCount;
+  const multiChoiceCount = generatorForm ? generatorForm.formData.multiChoiceCount : propMultiChoiceCount;
+  const setMultiChoiceCount = generatorForm ? (v) => generatorForm.updateField('multiChoiceCount', v) : propSetMultiChoiceCount;
+  const passageCount = generatorForm ? generatorForm.formData.passageCount : propPassageCount;
+  const setPassageCount = generatorForm ? (v) => generatorForm.updateField('passageCount', v) : propSetPassageCount;
+  const passageMode = generatorForm ? generatorForm.formData.passageMode : propPassageMode;
+  const setPassageMode = generatorForm ? (v) => generatorForm.updateField('passageMode', v) : propSetPassageMode;
+  const passageQuestionCount = generatorForm ? generatorForm.formData.passageQuestionCount : propPassageQuestionCount;
+  const setPassageQuestionCount = generatorForm ? (v) => generatorForm.updateField('passageQuestionCount', v) : propSetPassageQuestionCount;
+  const passageSingleCount = generatorForm ? generatorForm.formData.passageSingleCount : propPassageSingleCount;
+  const setPassageSingleCount = generatorForm ? (v) => generatorForm.updateField('passageSingleCount', v) : propSetPassageSingleCount;
+  const passageMultiCount = generatorForm ? generatorForm.formData.passageMultiCount : propPassageMultiCount;
+  const setPassageMultiCount = generatorForm ? (v) => generatorForm.updateField('passageMultiCount', v) : propSetPassageMultiCount;
+  const independentSingleCount = generatorForm ? generatorForm.formData.independentSingleCount : propIndependentSingleCount;
+  const setIndependentSingleCount = generatorForm ? (v) => generatorForm.updateField('independentSingleCount', v) : propSetIndependentSingleCount;
+  const independentMultiCount = generatorForm ? generatorForm.formData.independentMultiCount : propIndependentMultiCount;
+  const setIndependentMultiCount = generatorForm ? (v) => generatorForm.updateField('independentMultiCount', v) : propSetIndependentMultiCount;
+  const interactionType = generatorForm ? generatorForm.formData.interactionType : propInteractionType;
+  const setInteractionType = generatorForm ? (v) => generatorForm.updateField('interactionType', v) : propSetInteractionType;
+  const passageRequired = generatorForm ? generatorForm.formData.passageRequired : propPassageRequired;
+  const setPassageRequired = generatorForm ? (v) => generatorForm.updateField('passageRequired', v) : propSetPassageRequired;
+  const primaryTrap = generatorForm ? generatorForm.formData.primaryTrap : propPrimaryTrap;
+  const setPrimaryTrap = generatorForm ? (v) => generatorForm.updateField('primaryTrap', v) : propSetPrimaryTrap;
+  const requireImage = generatorForm ? generatorForm.formData.requireImage : propRequireImage;
+  const setRequireImage = generatorForm ? (v) => generatorForm.updateField('requireImage', v) : propSetRequireImage;
+  const customPrompt = generatorForm ? generatorForm.formData.customPrompt : propCustomPrompt;
+  const setCustomPrompt = generatorForm ? (v) => generatorForm.updateField('customPrompt', v) : propSetCustomPrompt;
   const [showAdvancedDirectives, setShowAdvancedDirectives] = useState(false);
 
   const handleTotalChange = (newTotal) => {
