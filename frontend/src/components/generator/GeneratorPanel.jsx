@@ -11,7 +11,9 @@ import {
   Plus,
   Minus,
   SlidersHorizontal,
-  Compass
+  Compass,
+  Image,
+  Check
 } from 'lucide-react';
 import { SECTION_ICONS, PACING_INFO } from '../../constants/ucat';
 import CustomSelect from '../common/CustomSelect';
@@ -70,10 +72,27 @@ export default function GeneratorPanel({
   const setPassageRequired = (v) => update('passageRequired', v);
   const primaryTrap = form.primaryTrap || 'Automatic';
   const setPrimaryTrap = (v) => update('primaryTrap', v);
-  const requireImage = form.requireImage || false;
-  const setRequireImage = (v) => update('requireImage', v);
+  const imageMode = form.imageMode || 'none';
+  const setImageMode = generatorForm?.setImageMode;
+  const imageQuestionIndices = form.imageQuestionIndices || [];
+  const toggleQuestionImage = generatorForm?.toggleQuestionImage;
+  const requirePassageImage = form.requirePassageImage || false;
+  const togglePassageImage = generatorForm?.togglePassageImage;
   const customPrompt = form.customPrompt || '';
   const setCustomPrompt = (v) => update('customPrompt', v);
+
+  const isPassageSet = totalQuestions > 1 ? (passageMode === 'single_passage') : (passageRequired === 'Yes');
+  const isAbstractReasoning = selectedSection === 'abstract_reasoning';
+
+  // Derived counts for visual summary
+  const activeQuestionImagesCount = isAbstractReasoning
+    ? totalQuestions
+    : (imageMode === 'all'
+      ? totalQuestions
+      : (imageQuestionIndices || []).filter(i => i <= totalQuestions).length);
+  const hasPassageImage = !isAbstractReasoning && isPassageSet && Boolean(requirePassageImage);
+  const totalImagesCount = isAbstractReasoning ? totalQuestions : (activeQuestionImagesCount + (hasPassageImage ? 1 : 0));
+  const estCost = (totalImagesCount * 0.002).toFixed(4);
 
   const [showAdvancedDirectives, setShowAdvancedDirectives] = useState(false);
 
@@ -379,7 +398,7 @@ export default function GeneratorPanel({
                   setSelectedSubtopic(sec.subtopics[0]);
                 }
                 if (newSecId === 'abstract_reasoning') {
-                  setRequireImage(true);
+                  if (setImageMode) setImageMode('all');
                 }
               }}
               options={sectionsData.map(sec => {
@@ -1078,7 +1097,151 @@ export default function GeneratorPanel({
         )}
       </div>
 
-      {/* SECTION 3: TRAPS & DIRECTIVES */}
+      {/* SECTION 3: VISUAL DIAGRAM / CHART */}
+      <div className="dock-section">
+        <div className="section-header-minimal">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span className="section-header-title">Visual Stimulus &amp; Diagrams</span>
+          </div>
+          <span className="badge-minimal" style={{ fontSize: '0.625rem' }}>
+            {isAbstractReasoning
+              ? 'Required for AR'
+              : totalImagesCount > 0
+                ? `${totalImagesCount} ${totalImagesCount === 1 ? 'Diagram' : 'Diagrams'} ($${estCost})`
+                : 'No Diagrams'}
+          </span>
+        </div>
+
+        {/* Mode Selector (None, All, Specific) */}
+        {!isAbstractReasoning ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
+              {[
+                { id: 'none', label: 'None' },
+                { id: 'all', label: 'All Questions' },
+                { id: 'specific', label: 'Specific Qs' }
+              ].map(opt => {
+                const isSel = (imageMode === opt.id) || (opt.id === 'none' && totalImagesCount === 0 && imageMode !== 'specific');
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    id={`btn-img-mode-${opt.id}`}
+                    onClick={() => setImageMode && setImageMode(opt.id)}
+                    className={`pill-track-btn ${isSel ? 'active' : ''}`}
+                    style={{ width: '100%', padding: '5px 4px', fontSize: '0.72rem' }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Interactive Chip Bar (when 'specific' mode) */}
+            {imageMode === 'specific' && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px',
+                  padding: '8px 10px',
+                  background: 'var(--bg-surface-subtle)',
+                  borderRadius: 'var(--radius-xs)',
+                  border: '1px solid var(--border-light)'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.675rem', color: 'var(--text-muted)' }}>
+                  <span style={{ fontWeight: 600 }}>Toggle diagram for each question:</span>
+                  <span style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>
+                    {activeQuestionImagesCount} of {totalQuestions} active
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                  {/* Shared Passage Diagram Chip (if passage set) */}
+                  {isPassageSet && (
+                    <button
+                      type="button"
+                      id="btn-toggle-passage-image"
+                      onClick={() => togglePassageImage && togglePassageImage()}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '4px 8px',
+                        borderRadius: 'var(--radius-xs)',
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        background: requirePassageImage ? 'var(--brand-light)' : 'var(--bg-surface-elevated)',
+                        color: requirePassageImage ? 'var(--brand-primary)' : 'var(--text-muted)',
+                        border: `1px solid ${requirePassageImage ? 'var(--brand-primary)' : 'var(--border-medium)'}`,
+                        cursor: 'pointer',
+                        transition: 'all var(--transition-fast)'
+                      }}
+                      title="Attach visual diagram to the shared reading passage"
+                    >
+                      <Image size={11} />
+                      <span>Passage Stimulus</span>
+                      {requirePassageImage && <Check size={11} strokeWidth={3} />}
+                    </button>
+                  )}
+
+                  {/* Individual Question Chips */}
+                  {Array.from({ length: totalQuestions }, (_, i) => i + 1).map(qNum => {
+                    const isActive = (imageQuestionIndices || []).includes(qNum);
+                    return (
+                      <button
+                        key={qNum}
+                        type="button"
+                        id={`btn-toggle-q-image-${qNum}`}
+                        onClick={() => toggleQuestionImage && toggleQuestionImage(qNum)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '4px 8px',
+                          borderRadius: 'var(--radius-xs)',
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          background: isActive ? 'var(--brand-light)' : 'var(--bg-surface-elevated)',
+                          color: isActive ? 'var(--brand-primary)' : 'var(--text-secondary)',
+                          border: `1px solid ${isActive ? 'var(--brand-primary)' : 'var(--border-medium)'}`,
+                          cursor: 'pointer',
+                          transition: 'all var(--transition-fast)'
+                        }}
+                        title={`Toggle diagram for Question ${qNum}`}
+                      >
+                        <Image size={11} />
+                        <span>Q{qNum}</span>
+                        {isActive && <Check size={11} strokeWidth={3} />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div
+            style={{
+              padding: '8px 10px',
+              borderRadius: 'var(--radius-xs)',
+              background: 'var(--brand-light)',
+              border: '1px solid var(--border-medium)',
+              fontSize: '0.72rem',
+              color: 'var(--brand-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <Image size={13} />
+            <span>Abstract Reasoning always requires visual shape matrices for all items.</span>
+          </div>
+        )}
+      </div>
+
+      {/* SECTION 4: TRAPS & DIRECTIVES */}
       <div className="dock-section">
         <div className="section-header-minimal">
           <span className="section-header-title">Exam Traps &amp; Rules</span>
@@ -1099,7 +1262,7 @@ export default function GeneratorPanel({
           />
         </div>
 
-        {/* Advanced Accordion (Diagram & Custom Directives) */}
+        {/* Advanced Accordion (Custom Directives) */}
         <div>
           <button
             type="button"
@@ -1109,7 +1272,7 @@ export default function GeneratorPanel({
           >
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <SlidersHorizontal size={11} color="var(--brand-primary)" />
-              <span>Diagram &amp; Custom Instructions</span>
+              <span>Custom Instructions &amp; Directives</span>
             </span>
             {showAdvancedDirectives ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
           </button>
@@ -1127,56 +1290,6 @@ export default function GeneratorPanel({
                 gap: '8px'
               }}
             >
-              {/* Visual Diagram Switch */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ fontSize: '0.725rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    Include Diagram / Chart
-                  </div>
-                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                    Add visual chart or illustration
-                  </div>
-                </div>
-
-                <label htmlFor="toggle-require-image" style={{ position: 'relative', display: 'inline-block', width: '28px', height: '16px', cursor: 'pointer' }}>
-                  <input
-                    id="toggle-require-image"
-                    aria-label="Include Diagram or Chart"
-                    type="checkbox"
-                    checked={requireImage || selectedSection === 'abstract_reasoning'}
-                    onChange={(e) => setRequireImage(e.target.checked)}
-                    disabled={selectedSection === 'abstract_reasoning'}
-                    style={{ opacity: 0, width: 0, height: 0 }}
-                  />
-                  <span
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      backgroundColor: (requireImage || selectedSection === 'abstract_reasoning') ? 'var(--brand-primary)' : 'var(--bg-surface-hover)',
-                      borderRadius: '34px',
-                      transition: '0.2s',
-                      border: '1px solid var(--border-medium)'
-                    }}
-                  >
-                    <span
-                      style={{
-                        position: 'absolute',
-                        height: '10px',
-                        width: '10px',
-                        left: (requireImage || selectedSection === 'abstract_reasoning') ? '14px' : '2px',
-                        bottom: '2px',
-                        backgroundColor: '#ffffff',
-                        borderRadius: '50%',
-                        transition: '0.2s'
-                      }}
-                    />
-                  </span>
-                </label>
-              </div>
-
               {/* Custom Prompt Textarea */}
               <div>
                 <label htmlFor="input-custom-prompt" style={{ display: 'block', fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '3px' }}>

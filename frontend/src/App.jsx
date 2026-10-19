@@ -160,10 +160,25 @@ export default function App() {
       passageRequired,
       primaryTrap,
       requireImage,
+      imageMode,
+      imageQuestionIndices,
+      requirePassageImage,
       customPrompt
     } = generatorForm.formData;
 
     const isMixedSet = totalQuestions > 1 && passageMode === 'single_passage' && passageQuestionCount < totalQuestions;
+    const isAbstractReasoning = selectedSection === 'abstract_reasoning';
+
+    let effectiveImageIndices = [];
+    if (isAbstractReasoning) {
+      effectiveImageIndices = Array.from({ length: totalQuestions }, (_, i) => i + 1);
+    } else if (imageMode === 'all') {
+      effectiveImageIndices = Array.from({ length: totalQuestions }, (_, i) => i + 1);
+    } else if (imageMode === 'specific') {
+      effectiveImageIndices = (imageQuestionIndices || []).filter(idx => idx <= totalQuestions);
+    }
+    const hasAnyImage = isAbstractReasoning || effectiveImageIndices.length > 0 || requirePassageImage || requireImage;
+
     const payload = {
       section: selectedSection,
       subtopic: selectedSubtopic,
@@ -181,7 +196,9 @@ export default function App() {
       interaction_type: interactionType,
       passage_required: passageRequired,
       primary_trap: primaryTrap !== 'Automatic' ? primaryTrap : undefined,
-      require_image: requireImage || selectedSection === 'abstract_reasoning',
+      require_image: hasAnyImage,
+      image_question_indices: isAbstractReasoning ? undefined : (imageMode !== 'none' ? effectiveImageIndices : []),
+      require_passage_image: isAbstractReasoning ? true : Boolean(requirePassageImage),
       custom_prompt: customPrompt.trim() || undefined
     };
     startGeneration(payload);

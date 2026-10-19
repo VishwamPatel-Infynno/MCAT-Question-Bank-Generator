@@ -117,7 +117,11 @@ def route_after_fused_generation(state: AgentWorkflowState) -> str:
     req_data = state["request"]
     sec_raw = req_data.get("section", "")
     section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)
-    explicit_image = req_data.get("require_image", False)
+    req_indices = req_data.get("image_question_indices")
+    if req_indices is not None:
+        explicit_image = 1 in req_indices
+    else:
+        explicit_image = req_data.get("require_image", False)
     visual_type = req_data.get("visual_type", "None")
 
     if explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
@@ -312,7 +316,11 @@ def route_after_review(state: AgentWorkflowState) -> str:
     # Passing score (> 90): check if image generation is required
     sec_raw = req_data.get("section", "")
     section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)
-    explicit_image = req_data.get("require_image", False)
+    req_indices = req_data.get("image_question_indices")
+    if req_indices is not None:
+        explicit_image = 1 in req_indices
+    else:
+        explicit_image = req_data.get("require_image", False)
     visual_type = req_data.get("visual_type", "None")
 
     if explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
@@ -726,7 +734,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         shared_passage_image_desc: str | None = None
 
         requires_passage_image = bool(
-            req.require_image
+            req.require_passage_image
+            or (req.require_image and req.image_question_indices is None)
             or req.visual_type in ("SVG_Diagram", "AI_FLUX_Image")
             or (req.section == UCATSection.ABSTRACT_REASONING)
         )
@@ -1065,43 +1074,48 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 if question_passed:
                     is_passage_item = is_single_passage_set and idx < effective_passage_count
 
-                    if is_passage_item:
-                        # In passage type questions, visual stimulus belongs to the passage, not question-wise!
-                        requires_image = False
-                        if shared_passage_image_svg or shared_passage_image_url:
-                            state["image_url"] = shared_passage_image_url
-                            state["image_svg"] = shared_passage_image_svg
-                            state["image_description"] = shared_passage_image_desc
-                            outcomes = state.setdefault("stage_outcomes", {})
-                            outcomes["passage_visual_stimulus"] = {
-                                "image_url": shared_passage_image_url,
-                                "image_svg": shared_passage_image_svg,
-                                "image_description": shared_passage_image_desc,
-                                "note": "Visual stimulus belongs to shared reading passage",
-                            }
-                    else:
-                        # Independent questions: evaluate question-level visual stimulus
-                        req_data = state["request"]
-                        sec_raw = req_data.get("section", "")
-                        section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)
-                        explicit_image = req_data.get("require_image", False)
-                        visual_type = req_data.get("visual_type", "None")
+                    # If this is a passage question and the passage has a visual stimulus diagram, attach reference
+                    if is_passage_item and (shared_passage_image_svg or shared_passage_image_url):
+                        state["image_url"] = shared_passage_image_url
+                        state["image_svg"] = shared_passage_image_svg
+                        state["image_description"] = shared_passage_image_desc
+                        outcomes = state.setdefault("stage_outcomes", {})
+                        outcomes["passage_visual_stimulus"] = {
+                            "image_url": shared_passage_image_url,
+                            "image_svg": shared_passage_image_svg,
+                            "image_description": shared_passage_image_desc,
+                            "note": "Visual stimulus belongs to shared reading passage",
+                        }
 
-                        if explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
-                            requires_image = True
-                        elif section_val in (
-                            UCATSection.VERBAL_REASONING.value,
-                            UCATSection.SITUATIONAL_JUDGEMENT.value,
-                            "VR",
-                            "SJT",
-                        ):
-                            requires_image = False
-                        elif section_val in (UCATSection.ABSTRACT_REASONING.value, "AR"):
-                            requires_image = True
-                        else:
-                            requires_image = bool(
-                                state.get("current_draft", {}).get("image_needed", False)
-                            )
+                    # Determine if THIS specific question item requires a diagram
+                    req_data = state["request"]
+                    sec_raw = req_data.get("section", "")
+                    section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)
+                    explicit_image = req_data.get("require_image", False)
+                    visual_type = req_data.get("visual_type", "None")
+                    req_img_indices = req.image_question_indices
+
+                    if section_val in (UCATSection.ABSTRACT_REASONING.value, "AR"):
+                        requires_image = True
+                    elif req_img_indices is not None:
+                        # Granular question-level selection by 1-based question number
+                        requires_image = (idx + 1) in req_img_indices
+                    elif is_passage_item:
+                        # In legacy passage mode without granular indices, visual stimulus belongs to passage
+                        requires_image = False
+                    elif explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
+                        requires_image = True
+                    elif section_val in (
+                        UCATSection.VERBAL_REASONING.value,
+                        UCATSection.SITUATIONAL_JUDGEMENT.value,
+                        "VR",
+                        "SJT",
+                    ):
+                        requires_image = False
+                    else:
+                        requires_image = bool(
+                            state.get("current_draft", {}).get("image_needed", False)
+                        )
 
                     if requires_image:
                         img_start_evt = make_event(

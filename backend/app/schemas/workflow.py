@@ -12,6 +12,14 @@ class GenerationRequest(BaseModel):
     subtopic: str | None = None
     difficulty: Difficulty = Difficulty.MEDIUM
     require_image: bool = False
+    image_question_indices: list[int] | None = Field(
+        default=None,
+        description="1-based question numbers in batch that require images, e.g. [1, 3]",
+    )
+    require_passage_image: bool = Field(
+        default=False,
+        description="Whether the shared reading passage stimulus requires an image diagram",
+    )
     custom_prompt: str | None = None
     model_name: str | None = None
     api_key: str | None = None
