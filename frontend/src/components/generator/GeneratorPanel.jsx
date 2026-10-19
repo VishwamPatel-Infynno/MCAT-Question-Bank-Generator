@@ -12,8 +12,7 @@ import {
   Minus,
   SlidersHorizontal,
   Compass,
-  Image,
-  Check
+  Image
 } from 'lucide-react';
 import { SECTION_ICONS, PACING_INFO } from '../../constants/ucat';
 import CustomSelect from '../common/CustomSelect';
@@ -78,7 +77,6 @@ export default function GeneratorPanel({
   const setSingleImageCount = generatorForm?.setSingleImageCount;
   const setMultiImageCount = generatorForm?.setMultiImageCount;
   const imageQuestionIndices = form.imageQuestionIndices || [];
-  const toggleQuestionImage = generatorForm?.toggleQuestionImage;
   const requirePassageImage = form.requirePassageImage || false;
   const setRequirePassageImage = generatorForm?.setRequirePassageImage;
   const customPrompt = form.customPrompt || '';
@@ -1239,41 +1237,6 @@ export default function GeneratorPanel({
                             ))}
                           </div>
                         </div>
-
-                        {/* Slot Chips */}
-                        {activeSingleImageCount > 0 && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>Assigned:</span>
-                            {indSingleIndices.map(qNum => {
-                              const isActive = (imageQuestionIndices || []).includes(qNum);
-                              return (
-                                <button
-                                  key={qNum}
-                                  type="button"
-                                  id={`btn-slot-single-img-${qNum}`}
-                                  onClick={() => toggleQuestionImage && toggleQuestionImage(qNum)}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '2px',
-                                    padding: '1px 5px',
-                                    borderRadius: 'var(--radius-xs)',
-                                    fontSize: '0.625rem',
-                                    fontWeight: 600,
-                                    background: isActive ? 'var(--brand-light)' : 'var(--bg-card)',
-                                    color: isActive ? 'var(--brand-primary)' : 'var(--text-muted)',
-                                    border: `1px solid ${isActive ? 'var(--brand-primary)' : 'var(--border-light)'}`,
-                                    cursor: 'pointer'
-                                  }}
-                                  title={`Toggle diagram for Question ${qNum}`}
-                                >
-                                  <span>Q{qNum}</span>
-                                  {isActive && <Check size={8} strokeWidth={3} />}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
                       </>
                     )}
                   </div>
@@ -1413,41 +1376,6 @@ export default function GeneratorPanel({
                             ))}
                           </div>
                         </div>
-
-                        {/* Slot Chips */}
-                        {activeMultiImageCount > 0 && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>Assigned:</span>
-                            {indMultiIndices.map(qNum => {
-                              const isActive = (imageQuestionIndices || []).includes(qNum);
-                              return (
-                                <button
-                                  key={qNum}
-                                  type="button"
-                                  id={`btn-slot-multi-img-${qNum}`}
-                                  onClick={() => toggleQuestionImage && toggleQuestionImage(qNum)}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '2px',
-                                    padding: '1px 5px',
-                                    borderRadius: 'var(--radius-xs)',
-                                    fontSize: '0.625rem',
-                                    fontWeight: 600,
-                                    background: isActive ? 'var(--brand-light)' : 'var(--bg-card)',
-                                    color: isActive ? 'var(--brand-indigo)' : 'var(--text-muted)',
-                                    border: `1px solid ${isActive ? 'var(--brand-indigo)' : 'var(--border-light)'}`,
-                                    cursor: 'pointer'
-                                  }}
-                                  title={`Toggle diagram for Question ${qNum}`}
-                                >
-                                  <span>Q{qNum}</span>
-                                  {isActive && <Check size={8} strokeWidth={3} />}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
                       </>
                     )}
                   </div>
