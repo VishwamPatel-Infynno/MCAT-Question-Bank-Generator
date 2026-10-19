@@ -99,9 +99,6 @@ export default function Navbar({
           >
             Infynno UCAT Question Bank Generator
           </h1>
-          <span className="badge-minimal" style={{ fontSize: '0.625rem', padding: '1px 6px' }}>
-            v2.0
-          </span>
         </a>
       </div>
 

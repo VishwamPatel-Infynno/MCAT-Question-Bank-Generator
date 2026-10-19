@@ -321,7 +321,7 @@ export default function SettingsModal({ onClose }) {
         {/* Footer Actions */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '10px', borderTop: '1px solid var(--border-light)' }}>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-            Infynno UCAT Question Bank Generator v2.0 • An Infynno Solutions Product
+            Infynno UCAT Question Bank Generator • An Infynno Solutions Product
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <button onClick={onClose} className="btn-secondary">
