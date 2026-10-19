@@ -159,7 +159,7 @@ async def test_image_generator_svg(monkeypatch):
     monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
     req_ar = GenerationRequest(section=UCATSection.ABSTRACT_REASONING, difficulty=Difficulty.HARD)
     draft_ar = get_mock_draft(req_ar)
-    img_url, img_svg, img_desc, usage = await generate_image_stimulus(draft_ar, req_ar)
+    _img_url, img_svg, _img_desc, usage = await generate_image_stimulus(draft_ar, req_ar)
 
     assert img_svg is not None
     assert "<svg" in img_svg
@@ -249,7 +249,6 @@ async def test_visual_stimulus_persistence_in_finalize_node():
     assert final_payload["image_svg"] == mock_svg
     assert final_payload["image_url"] is None
     assert final_payload["image_description"] == mock_desc
-
 
 
 @pytest.mark.asyncio
@@ -501,7 +500,6 @@ async def test_admin_approval_and_persistence_endpoints():
     assert await delete_questions_batch([]) == 0
 
 
-
 @pytest.mark.asyncio
 async def test_multichoice_and_passage_support():
     from app.repositories.question_repo import get_question_by_id, save_question
@@ -706,7 +704,8 @@ async def test_per_question_stage_metadata_in_events(monkeypatch):
     gen_starts = [
         e
         for e in events
-        if e["event_type"] == "agent_start" and e["agent_name"] in ("Question Writer", "Question Generator")
+        if e["event_type"] == "agent_start"
+        and e["agent_name"] in ("Question Writer", "Question Generator")
     ]
     assert len(gen_starts) == 2
     for e in gen_starts:
@@ -717,7 +716,8 @@ async def test_per_question_stage_metadata_in_events(monkeypatch):
     rev_starts = [
         e
         for e in events
-        if e["event_type"] == "agent_start" and e["agent_name"] in ("Quality Reviewer", "Question Reviewer")
+        if e["event_type"] == "agent_start"
+        and e["agent_name"] in ("Quality Reviewer", "Question Reviewer")
     ]
     assert len(rev_starts) >= 2
     for e in rev_starts:
@@ -758,8 +758,16 @@ async def test_single_passage_multi_question_set(monkeypatch):
             events.append(json.loads(line[6:]))
 
     # Assert Passage Writer events exist
-    passage_starts = [e for e in events if e["agent_name"] == "Passage Writer" and e["event_type"] == "agent_start"]
-    passage_completes = [e for e in events if e["agent_name"] == "Passage Writer" and e["event_type"] == "agent_complete"]
+    passage_starts = [
+        e
+        for e in events
+        if e["agent_name"] == "Passage Writer" and e["event_type"] == "agent_start"
+    ]
+    passage_completes = [
+        e
+        for e in events
+        if e["agent_name"] == "Passage Writer" and e["event_type"] == "agent_complete"
+    ]
     assert len(passage_starts) == 1
     assert len(passage_completes) == 1
 
@@ -916,14 +924,16 @@ async def test_generate_question_with_self_critique_structure(monkeypatch):
         "recommendations": []
       }
     }"""
-    mock_usage = TokenUsage(prompt_tokens=420, completion_tokens=310, total_tokens=730, cost_usd=0.001)
+    mock_usage = TokenUsage(
+        prompt_tokens=420, completion_tokens=310, total_tokens=730, cost_usd=0.001
+    )
 
     async def mock_call_llm(*args, **kwargs):
         return fused_json, mock_usage
 
     monkeypatch.setattr(gen_mod, "call_llm", mock_call_llm)
 
-    draft2, review2, usage2 = await generate_question_with_self_critique(req)
+    draft2, review2, _usage2 = await generate_question_with_self_critique(req)
     assert draft2.question_stem == "Which option is definitive?"
     assert draft2.correct_answer_id in ("A", "B", "C", "D")
     assert f"Option {draft2.correct_answer_id} is correct" in draft2.explanation
@@ -1005,7 +1015,9 @@ async def test_fused_workflow_bypasses_reviewer_when_self_critique_passed(monkey
         explanation="Step by step proof...",
         image_needed=False,
     )
-    mock_usage = TokenUsage(prompt_tokens=400, completion_tokens=300, total_tokens=700, cost_usd=0.001)
+    mock_usage = TokenUsage(
+        prompt_tokens=400, completion_tokens=300, total_tokens=700, cost_usd=0.001
+    )
 
     async def mock_fused_gen(r):
         return passing_draft, passing_review, mock_usage
@@ -1026,15 +1038,19 @@ async def test_fused_workflow_bypasses_reviewer_when_self_critique_passed(monkey
 
     # Reviewer agent_start should NOT be called (bypassed)
     rev_starts = [
-        e for e in events
-        if e["event_type"] == "agent_start" and e["agent_name"] in ("Quality Reviewer", "Question Reviewer")
+        e
+        for e in events
+        if e["event_type"] == "agent_start"
+        and e["agent_name"] in ("Quality Reviewer", "Question Reviewer")
     ]
     assert len(rev_starts) == 0, "Separate Quality Reviewer LLM call was not bypassed!"
 
     # But Quality Reviewer agent_complete event IS emitted with the self-critique score
     rev_completes = [
-        e for e in events
-        if e["event_type"] == "agent_complete" and e["agent_name"] in ("Quality Reviewer", "Question Reviewer")
+        e
+        for e in events
+        if e["event_type"] == "agent_complete"
+        and e["agent_name"] in ("Quality Reviewer", "Question Reviewer")
     ]
     assert len(rev_completes) == 1
     assert rev_completes[0]["data"]["score"] == 96
@@ -1052,10 +1068,22 @@ def test_option_symmetry_and_anti_guessability_engine():
 
     # 1. Test balanced options (tight word counts)
     balanced_opts = [
-        OptionChoice(id="A", text="Antibiotic therapy was stepped down within 48 hours for culture-negative cases."),
-        OptionChoice(id="B", text="Clinical guidelines recommended procalcitonin testing to guide empirical treatment."),
-        OptionChoice(id="C", text="Clinicians routinely continued broad-spectrum coverage due to diagnostic anxiety."),
-        OptionChoice(id="D", text="Mortality rates showed no statistically significant difference across clinical wards."),
+        OptionChoice(
+            id="A",
+            text="Antibiotic therapy was stepped down within 48 hours for culture-negative cases.",
+        ),
+        OptionChoice(
+            id="B",
+            text="Clinical guidelines recommended procalcitonin testing to guide empirical treatment.",
+        ),
+        OptionChoice(
+            id="C",
+            text="Clinicians routinely continued broad-spectrum coverage due to diagnostic anxiety.",
+        ),
+        OptionChoice(
+            id="D",
+            text="Mortality rates showed no statistically significant difference across clinical wards.",
+        ),
     ]
     sym_balanced = calculate_option_symmetry(balanced_opts, "A")
     assert sym_balanced["is_balanced"] is True
@@ -1065,10 +1093,13 @@ def test_option_symmetry_and_anti_guessability_engine():
 
     # 2. Test length disparity where correct answer is the longest option (test-wiseness flaw)
     biased_opts = [
-        OptionChoice(id="A", text="Brief choice."), # 2 words
-        OptionChoice(id="B", text="Another short choice here."), # 4 words
-        OptionChoice(id="C", text="This is a remarkably comprehensive, nuanced, and detailed correct answer explaining all clinical subtleties thoroughly."), # 15 words
-        OptionChoice(id="D", text="Third short item."), # 3 words
+        OptionChoice(id="A", text="Brief choice."),  # 2 words
+        OptionChoice(id="B", text="Another short choice here."),  # 4 words
+        OptionChoice(
+            id="C",
+            text="This is a remarkably comprehensive, nuanced, and detailed correct answer explaining all clinical subtleties thoroughly.",
+        ),  # 15 words
+        OptionChoice(id="D", text="Third short item."),  # 3 words
     ]
     sym_biased = calculate_option_symmetry(biased_opts, "C")
     assert sym_biased["is_balanced"] is False
@@ -1128,7 +1159,7 @@ def test_option_symmetry_and_anti_guessability_engine():
         correct_answer_ids=["B"],
         explanation="Option B is correct: £12.00 is the final total.",
     )
-    balanced_qr, qr_sym = balance_and_shuffle_options(qr_draft)
+    balanced_qr, _qr_sym = balance_and_shuffle_options(qr_draft)
     # Check ascending numeric order: 12.00, 24.50, 45.50, 89.99
     assert balanced_qr.options[0].text == "£12.00"
     assert balanced_qr.options[0].id == "A"
@@ -1138,8 +1169,3 @@ def test_option_symmetry_and_anti_guessability_engine():
     # Old B (£12.00) is now at index 0 (letter A)
     assert balanced_qr.correct_answer_id == "A"
     assert "Option A is correct: £12.00 is the final total." in balanced_qr.explanation
-
-
-
-
-

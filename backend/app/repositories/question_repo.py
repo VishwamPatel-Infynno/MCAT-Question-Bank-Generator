@@ -262,18 +262,22 @@ async def save_questions_batch(questions: list[Question]) -> BatchSaveResult:
             q.updated_at = now_iso
 
             # Aggregate passages
-            if q.passage_id and q.stimulus_text and q.stimulus_text.strip():
-                if q.passage_id not in passages_to_upsert:
-                    passages_to_upsert[q.passage_id] = PassageModel(
-                        id=q.passage_id,
-                        title=f"{q.subtopic or q.section} Passage",
-                        text=q.stimulus_text.strip(),
-                        word_count=len(q.stimulus_text.split()),
-                        section=q.section,
-                        subtopic=q.subtopic,
-                        created_at=q.created_at or now_iso,
-                        updated_at=now_iso,
-                    )
+            if (
+                q.passage_id
+                and q.stimulus_text
+                and q.stimulus_text.strip()
+                and q.passage_id not in passages_to_upsert
+            ):
+                passages_to_upsert[q.passage_id] = PassageModel(
+                    id=q.passage_id,
+                    title=f"{q.subtopic or q.section} Passage",
+                    text=q.stimulus_text.strip(),
+                    word_count=len(q.stimulus_text.split()),
+                    section=q.section,
+                    subtopic=q.subtopic,
+                    created_at=q.created_at or now_iso,
+                    updated_at=now_iso,
+                )
 
             # Aggregate batches
             if q.batch_id:

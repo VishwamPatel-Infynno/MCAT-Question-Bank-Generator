@@ -103,7 +103,6 @@ async def remove_questions_batch(payload: BatchDeleteRequest):
     return {"success": True, "deleted_count": deleted_count}
 
 
-
 @router.get("/export")
 async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
     """Exports Question Bank in JSON or CSV format including manager matrix fields and UUIDs."""

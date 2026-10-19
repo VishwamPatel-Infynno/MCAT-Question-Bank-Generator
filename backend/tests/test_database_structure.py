@@ -27,7 +27,9 @@ async def test_passage_auto_sync_and_retrieval():
     await init_db()
 
     passage_uuid = f"test-passage-{uuid.uuid4()}"
-    stimulus = "This is a detailed UCAT stimulus text about cognitive biomechanics and memory retrieval."
+    stimulus = (
+        "This is a detailed UCAT stimulus text about cognitive biomechanics and memory retrieval."
+    )
 
     q = Question(
         id=f"test-q-{uuid.uuid4()}",

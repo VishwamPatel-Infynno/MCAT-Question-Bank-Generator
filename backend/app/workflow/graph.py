@@ -73,18 +73,19 @@ async def fused_generator_node(state: AgentWorkflowState) -> dict[str, Any]:
         outcomes["quality_audit"] = self_review.model_dump()
 
     fused_self_passed = (
-        self_review is not None
-        and self_review.total_score > config.PASSING_SCORE_THRESHOLD
+        self_review is not None and self_review.total_score > config.PASSING_SCORE_THRESHOLD
     )
 
     existing_history = list(state.get("iterations_history", []))
     if self_review:
-        existing_history.append({
-            "iteration": 1,
-            "draft": draft.model_dump(),
-            "review": self_review.model_dump(),
-            "usage": usage.model_dump(),
-        })
+        existing_history.append(
+            {
+                "iteration": 1,
+                "draft": draft.model_dump(),
+                "review": self_review.model_dump(),
+                "usage": usage.model_dump(),
+            }
+        )
 
     return {
         "current_draft": draft.model_dump(),
@@ -108,7 +109,9 @@ def route_after_fused_generation(state: AgentWorkflowState) -> str:
     """Routes to finalize (or image_generator) if fused self-score > 90; else to reviewer."""
     fused_passed = state.get("fused_self_passed", False)
     if not fused_passed:
-        logger.info("Fused self-critique <= threshold or unverified. Routing to Reviewer for standard audit.")
+        logger.info(
+            "Fused self-critique <= threshold or unverified. Routing to Reviewer for standard audit."
+        )
         return "reviewer"
 
     req_data = state["request"]
@@ -591,17 +594,17 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
     passage_mode = req.passage_mode or "single_passage"
     # Single passage set activated when passage_mode == "single_passage" and passage required or passage questions requested
-    is_passage_mode_active = (
-        passage_mode == "single_passage"
-        and (
-            str(req.passage_required).lower() in ("yes", "true")
-            or passage_count > 0
-            or req.passage_question_count is not None
-        )
+    is_passage_mode_active = passage_mode == "single_passage" and (
+        str(req.passage_required).lower() in ("yes", "true")
+        or passage_count > 0
+        or req.passage_question_count is not None
     )
 
     if is_passage_mode_active:
-        effective_passage_count = min(req.passage_question_count if req.passage_question_count is not None else total_qty, total_qty)
+        effective_passage_count = min(
+            req.passage_question_count if req.passage_question_count is not None else total_qty,
+            total_qty,
+        )
         is_single_passage_set = effective_passage_count > 0
     else:
         effective_passage_count = 0
@@ -670,52 +673,53 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
     try:
         # If Single Passage Set mode, generate the shared reading passage first if not already provided
-        if is_single_passage_set:
-            if not shared_passage_text:
-                passage_start_evt = make_event(
-                    event_type="agent_start",
-                    agent_name="Passage Writer",
-                    message=f"Writing 250-400 word shared reading passage for {effective_passage_count} linked questions ({req.section.value})...",
-                    data={
-                        "stage": "passage_drafting",
-                        "total_questions": total_qty,
-                        "passage_question_count": effective_passage_count,
-                        "independent_question_count": independent_count,
-                        "batch_id": batch_id,
-                        "passage_id": shared_passage_id,
-                    },
-                )
-                yield f"data: {passage_start_evt.model_dump_json()}\n\n"
+        if is_single_passage_set and not shared_passage_text:
+            passage_start_evt = make_event(
+                event_type="agent_start",
+                agent_name="Passage Writer",
+                message=f"Writing 250-400 word shared reading passage for {effective_passage_count} linked questions ({req.section.value})...",
+                data={
+                    "stage": "passage_drafting",
+                    "total_questions": total_qty,
+                    "passage_question_count": effective_passage_count,
+                    "independent_question_count": independent_count,
+                    "batch_id": batch_id,
+                    "passage_id": shared_passage_id,
+                },
+            )
+            yield f"data: {passage_start_evt.model_dump_json()}\n\n"
 
-                shared_passage_text, passage_usage = await generate_passage_stimulus(req)
-                passage_tokens = passage_usage.total_tokens
-                passage_prompt_tokens = passage_usage.prompt_tokens
-                passage_completion_tokens = passage_usage.completion_tokens
-                passage_cost = passage_usage.cost_usd
+            shared_passage_text, passage_usage = await generate_passage_stimulus(req)
+            passage_tokens = passage_usage.total_tokens
+            passage_prompt_tokens = passage_usage.prompt_tokens
+            passage_completion_tokens = passage_usage.completion_tokens
+            passage_cost = passage_usage.cost_usd
 
-                all_agent_usage.append({
+            all_agent_usage.append(
+                {
                     "agent": "Passage Writer",
                     "iteration": 1,
                     "prompt_tokens": passage_usage.prompt_tokens,
                     "completion_tokens": passage_usage.completion_tokens,
                     "total_tokens": passage_usage.total_tokens,
                     "cost_usd": passage_usage.cost_usd,
-                })
+                }
+            )
 
-                word_count = len(shared_passage_text.split())
-                passage_done_evt = make_event(
-                    event_type="agent_complete",
-                    agent_name="Passage Writer",
-                    message=f"Shared reading passage completed ({word_count} words). Now drafting questions ({effective_passage_count} linked, {independent_count} independent)...",
-                    data={
-                        "stage": "passage_drafting",
-                        "passage_text": shared_passage_text,
-                        "passage_id": shared_passage_id,
-                        "word_count": word_count,
-                        "latest_usage": passage_usage.model_dump(),
-                    },
-                )
-                yield f"data: {passage_done_evt.model_dump_json()}\n\n"
+            word_count = len(shared_passage_text.split())
+            passage_done_evt = make_event(
+                event_type="agent_complete",
+                agent_name="Passage Writer",
+                message=f"Shared reading passage completed ({word_count} words). Now drafting questions ({effective_passage_count} linked, {independent_count} independent)...",
+                data={
+                    "stage": "passage_drafting",
+                    "passage_text": shared_passage_text,
+                    "passage_id": shared_passage_id,
+                    "word_count": word_count,
+                    "latest_usage": passage_usage.model_dump(),
+                },
+            )
+            yield f"data: {passage_done_evt.model_dump_json()}\n\n"
 
         # Initial workflow start
         if is_mixed_set:
@@ -745,7 +749,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 "is_mixed_set": is_mixed_set,
                 "batch_id": batch_id,
                 "passage_id": shared_passage_id,
-                "passage_mode": "mixed_set" if is_mixed_set else ("single_passage" if is_single_passage_set else "independent"),
+                "passage_mode": "mixed_set"
+                if is_mixed_set
+                else ("single_passage" if is_single_passage_set else "independent"),
                 "shared_passage": shared_passage_text if is_single_passage_set else None,
             },
         )
@@ -765,10 +771,10 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         async def _worker(idx: int) -> None:
             async with semaphore:
                 item_run_id = str(uuid.uuid4()) if total_qty > 1 else req.run_id
-                is_passage_item = (idx < effective_passage_count)
+                is_passage_item = idx < effective_passage_count
 
                 if is_passage_item:
-                    is_item_multi = (idx < p_multi)
+                    is_item_multi = idx < p_multi
                     item_interaction = "multi_choice" if is_item_multi else "single_choice"
                     item_passage = "Yes"
                     item_passage_mode = "single_passage"
@@ -776,7 +782,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                     item_stimulus = shared_passage_text
                 else:
                     rel_idx = idx - effective_passage_count
-                    is_item_multi = (rel_idx < ind_multi)
+                    is_item_multi = rel_idx < ind_multi
                     item_interaction = "multi_choice" if is_item_multi else "single_choice"
                     item_passage = "No"
                     item_passage_mode = "independent"
@@ -1010,7 +1016,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                     elif section_val in (UCATSection.ABSTRACT_REASONING.value, "AR"):
                         requires_image = True
                     else:
-                        requires_image = bool(state.get("current_draft", {}).get("image_needed", False))
+                        requires_image = bool(
+                            state.get("current_draft", {}).get("image_needed", False)
+                        )
 
                     if requires_image:
                         img_start_evt = make_event(
@@ -1083,13 +1091,15 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             finally:
                 await event_queue.put(None)
 
-        _ = asyncio.create_task(_monitor_tasks())
+        monitor_task = asyncio.create_task(_monitor_tasks())
 
         while True:
             evt = await event_queue.get()
             if evt is None:
                 break
             yield f"data: {evt.model_dump_json()}\n\n"
+
+        await monitor_task
 
         all_staged_questions = [q for q in outcomes_questions if q is not None]
         cumulative_tokens = sum(outcomes_tokens) + passage_tokens
@@ -1100,21 +1110,13 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             all_agent_usage.extend(usage_list)
 
         if is_mixed_set:
-            complete_msg = (
-                f"Mixed Batch generated! {len(all_staged_questions)} questions ({effective_passage_count} linked to shared passage, {independent_count} independent) staged for Review. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
-            )
+            complete_msg = f"Mixed Batch generated! {len(all_staged_questions)} questions ({effective_passage_count} linked to shared passage, {independent_count} independent) staged for Review. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
         elif is_single_passage_set and total_qty > 1:
-            complete_msg = (
-                f"Passage Set generated! {len(all_staged_questions)} questions linked to shared reading passage staged for Review. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
-            )
+            complete_msg = f"Passage Set generated! {len(all_staged_questions)} questions linked to shared reading passage staged for Review. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
         elif total_qty > 1:
-            complete_msg = (
-                f"Parallel batch generation completed! {len(all_staged_questions)} of {total_qty} questions staged for User Confirmation. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
-            )
+            complete_msg = f"Parallel batch generation completed! {len(all_staged_questions)} of {total_qty} questions staged for User Confirmation. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
         else:
-            complete_msg = (
-                f"Multi-Agent workflow completed! Candidate question scored {all_staged_questions[0].get('final_score', 95) if all_staged_questions else 95}/100 and is staged for Confirmation. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
-            )
+            complete_msg = f"Multi-Agent workflow completed! Candidate question scored {all_staged_questions[0].get('final_score', 95) if all_staged_questions else 95}/100 and is staged for Confirmation. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
 
         complete_evt = make_event(
             event_type="workflow_complete",
@@ -1125,7 +1127,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 "question": all_staged_questions[0] if all_staged_questions else None,
                 "batch_id": batch_id,
                 "passage_id": shared_passage_id if is_single_passage_set else None,
-                "passage_mode": "mixed_set" if is_mixed_set else ("single_passage" if is_single_passage_set else "independent"),
+                "passage_mode": "mixed_set"
+                if is_mixed_set
+                else ("single_passage" if is_single_passage_set else "independent"),
                 "is_mixed_set": is_mixed_set,
                 "passage_question_count": effective_passage_count,
                 "independent_question_count": independent_count,

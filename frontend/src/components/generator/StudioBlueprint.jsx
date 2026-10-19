@@ -9,7 +9,6 @@ import {
 import { SECTION_ICONS, PACING_INFO } from '../../constants/ucat';
 import InfynnoLogo from '../common/InfynnoLogo';
 import MultiAgentPipelineVisualizer from './MultiAgentPipelineVisualizer';
-import QuestionProgressTracker from './QuestionProgressTracker';
 
 export default function StudioBlueprint({
   selectedSection,
@@ -28,14 +27,7 @@ export default function StudioBlueprint({
   primaryTrap,
   customPrompt,
   sectionsData,
-  _onGenerate,
-  onApplyPreset,
-  isGenerating = false,
-  activeAgent = null,
-  iterationCount = 1,
-  events = [],
-  latestReview = null,
-  perQuestionState = {}
+  onApplyPreset
 }) {
   const currentSectionObj = sectionsData?.find(s => s.id === selectedSection) || { label: 'Verbal Reasoning', id: 'verbal_reasoning' };
   const SectionIcon = SECTION_ICONS[selectedSection] || FileText;
@@ -238,22 +230,10 @@ export default function StudioBlueprint({
         </div>
       </div>
 
-      {/* Live Pipeline Tracker when Generating, or 4-Agent Pipeline Showcase when Idle */}
-      {isGenerating ? (
-        <QuestionProgressTracker
-          perQuestionState={perQuestionState}
-          totalQuestions={totalQuestions}
-          isGenerating={isGenerating}
-        />
-      ) : (
-        <MultiAgentPipelineVisualizer
-          isGenerating={false}
-          activeAgent={activeAgent}
-          iterationCount={iterationCount}
-          events={events}
-          latestReview={latestReview}
-        />
-      )}
+      {/* 4-Agent Autonomous Pipeline Showcase */}
+      <MultiAgentPipelineVisualizer
+        isGenerating={false}
+      />
 
       {/* Quick-Start Practice Sets */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

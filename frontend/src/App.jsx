@@ -464,14 +464,7 @@ export default function App() {
                 <StudioBlueprint
                   {...generatorForm.formData}
                   sectionsData={sectionsData}
-                  onGenerate={handleGenerate}
                   onApplyPreset={handleApplyPreset}
-                  isGenerating={isGenerating}
-                  activeAgent={activeAgent}
-                  iterationCount={iterationCount}
-                  events={events}
-                  latestReview={latestReview}
-                  perQuestionState={perQuestionState}
                 />
               )}
             </div>

@@ -32,7 +32,7 @@ def calculate_option_symmetry(
 ) -> dict[str, Any]:
     """
     Computes psychometric symmetry and anti-guessability metrics across question choices.
-    
+
     A high-caliber UCAT question requires options of roughly equal word count
     (disparity ratio <= 1.25), preventing candidates from guessing based on option length.
     """
@@ -68,7 +68,9 @@ def calculate_option_symmetry(
     if isinstance(correct_answer_id, list):
         correct_keys = [str(k).strip().upper() for k in correct_answer_id if str(k).strip()]
     elif isinstance(correct_answer_id, str) and correct_answer_id:
-        correct_keys = [str(k).strip().upper() for k in correct_answer_id.split(",") if str(k).strip()]
+        correct_keys = [
+            str(k).strip().upper() for k in correct_answer_id.split(",") if str(k).strip()
+        ]
 
     # Check if any correct key is the longest choice
     correct_lengths = [word_counts[k] for k in correct_keys if k in word_counts]
@@ -137,7 +139,7 @@ def _extract_numeric_value(text: str) -> float:
 def remap_explanation_keys(explanation: str, old_to_new: dict[str, str]) -> str:
     """
     Safely substitutes option letter references in explanation text.
-    
+
     Uses a 2-step token substitution to prevent collisions
     (e.g., preventing old 'B' -> new 'C' and old 'C' -> new 'B' from clobbering each other).
     """
@@ -200,7 +202,11 @@ def remap_explanation_keys(explanation: str, old_to_new: dict[str, str]) -> str:
     # Matches parentheses e.g. "(B)" or "(Option B)"
     result = re.sub(
         r"\(([A-E])\)",
-        lambda m: f"(__OPTTEMP_{m.group(1).upper()}__)" if m.group(1).upper() in old_to_new else m.group(0),
+        lambda m: (
+            f"(__OPTTEMP_{m.group(1).upper()}__)"
+            if m.group(1).upper() in old_to_new
+            else m.group(0)
+        ),
         result,
     )
 
@@ -217,7 +223,7 @@ def balance_and_shuffle_options(
 ) -> tuple[QuestionDraft, dict[str, Any]]:
     """
     Reorders options and recalculates keys to eliminate position and letter bias.
-    
+
     For numeric options (e.g. Quantitative Reasoning), sorts choices in standard
     ascending numerical order. For textual options, performs deterministic or seeded
     permutation to distribute correct answers uniformly across A, B, C, D (and E).
@@ -239,7 +245,7 @@ def balance_and_shuffle_options(
         rng.shuffle(options_copy)
 
     # Assign sequential labels A, B, C, D, [E]
-    alphabet = ["A", "B", "C", "D", "E"][:len(options_copy)]
+    alphabet = ["A", "B", "C", "D", "E"][: len(options_copy)]
     old_to_new: dict[str, str] = {}
     new_options: list[OptionChoice] = []
 
@@ -251,7 +257,9 @@ def balance_and_shuffle_options(
     # Remap correct answer keys
     old_keys = [str(k).strip().upper() for k in draft.correct_answer_ids if str(k).strip()]
     if not old_keys and draft.correct_answer_id:
-        old_keys = [str(k).strip().upper() for k in draft.correct_answer_id.split(",") if str(k).strip()]
+        old_keys = [
+            str(k).strip().upper() for k in draft.correct_answer_id.split(",") if str(k).strip()
+        ]
 
     new_keys = sorted([old_to_new.get(k, k) for k in old_keys])
     new_correct_id_str = ", ".join(new_keys)

@@ -192,4 +192,3 @@ Respond ONLY with a valid JSON object matching this exact structure:
   }
 }
 (Note: For multi-choice items with multiple keys like A and C, set correct_answer_id to "A, C" and correct_answer_ids to ["A", "C"])."""
-

@@ -166,7 +166,9 @@ async def init_db():
                 text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS passage_id VARCHAR(64);")
             )
             await conn.execute(
-                text("CREATE INDEX IF NOT EXISTS ix_questions_passage_id ON questions (passage_id);")
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_questions_passage_id ON questions (passage_id);"
+                )
             )
             await conn.execute(
                 text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS passage_questions INTEGER;")
@@ -203,7 +205,9 @@ async def init_db():
                 text("CREATE INDEX IF NOT EXISTS ix_passages_created_at ON passages (created_at);")
             )
             await conn.execute(
-                text("CREATE INDEX IF NOT EXISTS ix_batches_created_at ON generation_batches (created_at);")
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_batches_created_at ON generation_batches (created_at);"
+                )
             )
 
             # GIN Full-Text Search index on questions

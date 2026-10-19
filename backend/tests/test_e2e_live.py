@@ -10,6 +10,8 @@ from app.workflow.graph import reject_node, route_after_review
 
 BASE_URL = "http://127.0.0.1:8000/api"
 
+pytestmark = pytest.mark.live_e2e
+
 
 @pytest.mark.asyncio
 async def test_e2e_health_and_db_connectivity():

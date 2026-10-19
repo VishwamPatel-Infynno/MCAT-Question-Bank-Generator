@@ -99,7 +99,9 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
     correct_id_str = ", ".join(keys_list)
 
     # If a shared stimulus passage was provided, enforce it on the draft
-    effective_stimulus = req.shared_stimulus.strip() if req.shared_stimulus else data.get("stimulus_text", "")
+    effective_stimulus = (
+        req.shared_stimulus.strip() if req.shared_stimulus else data.get("stimulus_text", "")
+    )
 
     return QuestionDraft(
         stimulus_text=effective_stimulus,
@@ -164,7 +166,9 @@ STANDARDS FOR UK UCAT PASSAGES:
         cleaned = cleaned.strip('" \n')
         return cleaned, usage
     except Exception as e:
-        logger.warning(f"Passage generation LLM failed or not configured, using authentic fallback passage: {e}")
+        logger.warning(
+            f"Passage generation LLM failed or not configured, using authentic fallback passage: {e}"
+        )
         fallback_passage = (
             "The emergence of multidrug-resistant pathogens represents one of the most critical threats to modern global public health, "
             "with antimicrobial resistance (AMR) directly implicated in an estimated 1.27 million deaths globally in 2019. In response, "
@@ -280,7 +284,9 @@ async def generate_question_with_self_critique(
 
         return draft, self_review, usage
     except Exception as e:
-        logger.warning(f"Fused Generator LLM failed or not configured, using authentic mock draft: {e}")
+        logger.warning(
+            f"Fused Generator LLM failed or not configured, using authentic mock draft: {e}"
+        )
         mock_p_tokens = 450
         mock_c_tokens = 320
         mock_usage = TokenUsage(

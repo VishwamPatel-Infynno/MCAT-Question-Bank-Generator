@@ -44,9 +44,7 @@ class GenerationRequest(BaseModel):
     passage_id: str | None = Field(
         None, description="Shared UUID for questions linked to the same passage"
     )
-    shared_stimulus: str | None = Field(
-        None, description="Pre-generated shared passage text"
-    )
+    shared_stimulus: str | None = Field(None, description="Pre-generated shared passage text")
     passage_questions: int | None = Field(None, description="Number of passage questions e.g. 3, 4")
     image_required: str | bool | None = Field(None, description="Yes or No")
     visual_type: str | None = Field("None", description="e.g. None, SVG_Diagram, AI_FLUX_Image")

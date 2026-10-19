@@ -48,4 +48,3 @@ _CACHED_SECTIONS_PAYLOAD = {
 async def get_sections():
     """Returns official UK UCAT sections and their categorized subtopics (in-memory pre-cached)."""
     return _CACHED_SECTIONS_PAYLOAD
-
