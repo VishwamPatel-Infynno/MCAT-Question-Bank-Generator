@@ -28,7 +28,7 @@ export default function StudioBlueprint({
   primaryTrap,
   customPrompt,
   sectionsData,
-  onGenerate,
+  _onGenerate,
   onApplyPreset,
   isGenerating = false,
   activeAgent = null,
@@ -226,25 +226,15 @@ export default function StudioBlueprint({
             )}
           </div>
 
-          <button
-            type="button"
-            id="btn-blueprint-generate"
-            onClick={onGenerate}
-            className="btn-primary"
-            style={{
-              padding: '9px 18px',
-              fontSize: '0.825rem',
-              fontWeight: 600,
-              gap: '7px',
-              borderRadius: 'var(--radius-xs)'
-            }}
-          >
-            <Sparkles size={14} />
-            <span>Generate Now</span>
-            <span className="kbd-hint" style={{ background: 'rgba(255,255,255,0.2)', color: '#ffffff', border: 'none', padding: '1px 5px' }}>
-              ⌘↵
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+            <div className="badge-minimal" style={{ fontSize: '0.7rem', padding: '4px 10px', gap: '6px' }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--status-success)', display: 'inline-block' }} />
+              <span>Ready to Generate</span>
+            </div>
+            <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>
+              Press <kbd style={{ padding: '1px 5px', borderRadius: '3px', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-medium)', color: 'var(--text-secondary)', fontSize: '0.65rem' }}>⌘↵</kbd> or click dock
             </span>
-          </button>
+          </div>
         </div>
       </div>
 

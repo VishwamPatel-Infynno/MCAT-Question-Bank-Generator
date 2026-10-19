@@ -915,33 +915,12 @@ export default function StagedBatchReview({
           </div>
 
           {/* View Mode Switcher */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: 'var(--bg-surface-subtle)',
-              padding: '3px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border-light)'
-            }}
-          >
+          <div className="pill-track">
             <button
               type="button"
               id="btn-view-grid"
               onClick={() => setViewMode('grid')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '5px 10px',
-                borderRadius: 'var(--radius-xs)',
-                border: 'none',
-                background: viewMode === 'grid' ? 'var(--bg-surface-elevated)' : 'transparent',
-                color: viewMode === 'grid' ? 'var(--text-primary)' : 'var(--text-muted)',
-                fontSize: '0.725rem',
-                fontWeight: viewMode === 'grid' ? 700 : 500,
-                cursor: 'pointer'
-              }}
+              className={`pill-track-btn ${viewMode === 'grid' ? 'active' : ''}`}
             >
               <LayoutGrid size={13} />
               <span>Grid View (All Questions)</span>
@@ -950,19 +929,7 @@ export default function StagedBatchReview({
               type="button"
               id="btn-view-tabs"
               onClick={() => setViewMode('tabs')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '5px 10px',
-                borderRadius: 'var(--radius-xs)',
-                border: 'none',
-                background: viewMode === 'tabs' ? 'var(--bg-surface-elevated)' : 'transparent',
-                color: viewMode === 'tabs' ? 'var(--text-primary)' : 'var(--text-muted)',
-                fontSize: '0.725rem',
-                fontWeight: viewMode === 'tabs' ? 700 : 500,
-                cursor: 'pointer'
-              }}
+              className={`pill-track-btn ${viewMode === 'tabs' ? 'active' : ''}`}
             >
               <Eye size={13} />
               <span>Detailed View</span>

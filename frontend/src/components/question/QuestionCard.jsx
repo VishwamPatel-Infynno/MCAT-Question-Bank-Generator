@@ -249,18 +249,7 @@ export default function QuestionCard({
       </div>
 
       {/* Desk Tab Navigation */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '2px',
-          padding: '2px',
-          background: 'var(--bg-surface-subtle)',
-          borderRadius: 'var(--radius-xs)',
-          width: 'fit-content',
-          border: '1px solid var(--border-light)'
-        }}
-      >
+      <div className="pill-track">
         {[
           { id: 'preview', label: 'Question Preview', icon: FileText },
           { id: 'scorecard', label: 'Quality Check (100 pts)', icon: BarChart3 },
@@ -272,21 +261,7 @@ export default function QuestionCard({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '4px 12px',
-                borderRadius: 'var(--radius-xs)',
-                border: isSel ? '1px solid var(--border-medium)' : '1px solid transparent',
-                background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
-                color: isSel ? 'var(--text-primary)' : 'var(--text-secondary)',
-                fontWeight: isSel ? 600 : 400,
-                fontSize: '0.75rem',
-                cursor: 'pointer',
-                boxShadow: isSel ? 'var(--shadow-sm)' : 'none',
-                transition: 'all var(--transition-fast)'
-              }}
+              className={`pill-track-btn ${isSel ? 'active' : ''}`}
             >
               <Icon size={12} />
               <span>{tab.label}</span>
@@ -331,21 +306,20 @@ export default function QuestionCard({
           {/* Clinical Vignette (Stimulus) */}
           {(question.stimulus_text || isEditing) && (
             <div
+              className="vignette-editorial"
               style={{
-                background: 'var(--bg-surface-elevated)',
-                border: '1px solid var(--border-light)',
-                borderRadius: 'var(--radius-md)',
-                padding: '16px 20px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '8px'
+                gap: '8px',
+                border: '1px solid var(--border-light)',
+                borderLeft: '3px solid var(--brand-primary)'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-sans)' }}>
                   Scenario / Reading Passage
                 </span>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
                   ~{question.stimulus_text ? question.stimulus_text.split(/\s+/).length : 0} words
                 </span>
               </div>
@@ -361,8 +335,8 @@ export default function QuestionCard({
                 <div
                   style={{
                     fontFamily: 'var(--font-serif)',
-                    fontSize: '1rem',
-                    lineHeight: '1.68',
+                    fontSize: '0.975rem',
+                    lineHeight: '1.72',
                     color: 'var(--text-primary)',
                     whiteSpace: 'pre-line'
                   }}
@@ -651,7 +625,7 @@ export default function QuestionCard({
           <button
             type="button"
             id="btn-generate-another"
-            className="btn-primary"
+            className="btn-primary-luminous"
             onClick={onNextQuestion}
             style={{ padding: '8px 16px', fontSize: '0.825rem' }}
             title="Generate Next Question (Press ⌘↵)"

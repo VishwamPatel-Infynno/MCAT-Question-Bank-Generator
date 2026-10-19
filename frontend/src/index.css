@@ -708,4 +708,160 @@ input:focus, select:focus, textarea:focus {
   border-radius: var(--radius-xs);
 }
 
+/* --- Modern Precision Minimalist Utilities --- */
+
+/* Unified Pill Track (Linear / Apple segmented slider style) */
+.pill-track {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  gap: 3px;
+}
+
+.pill-track-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-xs);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.775rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.pill-track-btn:hover:not(.active):not(:disabled) {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+}
+
+.pill-track-btn.active {
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-light);
+}
+
+.pill-track-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Luminous Minimal Primary Action */
+.btn-primary-luminous {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--infynno-gradient);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.825rem;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(51, 90, 207, 0.28), 0 0 1px rgba(255, 255, 255, 0.2) inset;
+  transition: all var(--transition-fast);
+}
+
+.btn-primary-luminous:hover:not(:disabled) {
+  box-shadow: 0 4px 18px rgba(51, 90, 207, 0.42), 0 0 2px rgba(255, 255, 255, 0.3) inset;
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.btn-primary-luminous:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary-luminous:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+}
+
+/* Editorial Reading Vignette (High Psychometric Distinction) */
+.vignette-editorial {
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--text-primary);
+  background: var(--bg-surface-subtle);
+  padding: 16px 20px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--brand-primary);
+  letter-spacing: -0.003em;
+}
+
+/* Quiet Minimal Section Header */
+.section-header-minimal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.section-header-title {
+  font-size: 0.725rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Sleek Minimal Subtest Card */
+.subtest-item-minimal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  width: 100%;
+  text-align: left;
+}
+
+.subtest-item-minimal:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.subtest-item-minimal.active {
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  font-weight: 600;
+  border-color: var(--border-medium);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Modern Minimalist Badge */
+.badge-minimal {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.675rem;
+  font-weight: 500;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+}
+
+
 

@@ -376,9 +376,9 @@ export default function GeneratorPanel({
 
       {/* SECTION 1: SECTION & TOPIC */}
       <div className="dock-section">
-        <div className="dock-kicker">
-          <span>01 / SECTION &amp; TOPIC</span>
-          <span className="badge badge-neutral" style={{ fontSize: '0.625rem', padding: '1px 6px' }}>
+        <div className="section-header-minimal">
+          <span className="section-header-title">Subtest &amp; Topic</span>
+          <span className="badge-minimal">
             {pacing.target || '~28s / Q'}
           </span>
         </div>
@@ -401,24 +401,12 @@ export default function GeneratorPanel({
                     setRequireImage(true);
                   }
                 }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '9px',
-                  padding: '7px 10px',
-                  borderRadius: 'var(--radius-xs)',
-                  background: isSelected ? 'var(--brand-light)' : 'transparent',
-                  border: isSelected ? '1px solid var(--border-brand)' : '1px solid transparent',
-                  color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all var(--transition-fast)'
-                }}
+                className={`subtest-item-minimal ${isSelected ? 'active' : ''}`}
               >
                 <div style={{ color: isSelected ? 'var(--brand-primary)' : 'var(--text-muted)', display: 'flex' }}>
                   <Icon size={14} />
                 </div>
-                <span style={{ fontSize: '0.775rem', fontWeight: isSelected ? 600 : 400, flex: 1 }}>
+                <span style={{ fontSize: '0.775rem', flex: 1 }}>
                   {sec.label}
                 </span>
                 {isSelected && (
@@ -462,17 +450,7 @@ export default function GeneratorPanel({
           <label style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             Difficulty Level
           </label>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '2px',
-              background: 'var(--bg-surface-subtle)',
-              padding: '2px',
-              borderRadius: 'var(--radius-xs)',
-              border: '1px solid var(--border-light)'
-            }}
-          >
+          <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
             {[
               { id: 'easy', label: 'Easy', color: 'var(--status-success)' },
               { id: 'medium', label: 'Medium', color: 'var(--status-warning)' },
@@ -485,23 +463,10 @@ export default function GeneratorPanel({
                   type="button"
                   id={`btn-diff-${opt.id}`}
                   onClick={() => setDifficulty(opt.id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '5px',
-                    padding: '5px 4px',
-                    borderRadius: 'var(--radius-xs)',
-                    border: 'none',
-                    background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
-                    color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
-                    fontSize: '0.725rem',
-                    fontWeight: isSel ? 600 : 400,
-                    cursor: 'pointer',
-                    boxShadow: isSel ? 'var(--shadow-sm)' : 'none'
-                  }}
+                  className={`pill-track-btn ${isSel ? 'active' : ''}`}
+                  style={{ width: '100%', padding: '5px 4px' }}
                 >
-                  <span style={{ width: 4, height: 4, borderRadius: '50%', background: opt.color }} />
+                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: opt.color }} />
                   <span>{opt.label}</span>
                 </button>
               );
@@ -512,9 +477,9 @@ export default function GeneratorPanel({
 
       {/* SECTION 2: FORMATS & QUANTITY */}
       <div className="dock-section">
-        <div className="dock-kicker">
-          <span>02 / QUANTITY &amp; FORMATS</span>
-          <span className="badge badge-neutral" style={{ fontSize: '0.625rem', padding: '1px 6px' }}>
+        <div className="section-header-minimal">
+          <span className="section-header-title">Question Volume</span>
+          <span className="badge-minimal">
             {totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'}
           </span>
         </div>
@@ -615,17 +580,7 @@ export default function GeneratorPanel({
                 </span>
               </div>
 
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: '2px',
-                  background: 'var(--bg-surface-subtle)',
-                  padding: '2px',
-                  borderRadius: 'var(--radius-xs)',
-                  border: '1px solid var(--border-light)'
-                }}
-              >
+              <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
                 {[
                   { id: 'single_passage', label: 'Single Passage Set' },
                   { id: 'independent', label: 'Independent Questions' }
@@ -637,18 +592,8 @@ export default function GeneratorPanel({
                       type="button"
                       id={`btn-passage-mode-${opt.id}`}
                       onClick={() => handlePassageModeChange(opt.id)}
-                      style={{
-                        padding: '5px',
-                        borderRadius: 'var(--radius-xs)',
-                        border: 'none',
-                        background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
-                        color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
-                        fontSize: '0.725rem',
-                        fontWeight: isSel ? 600 : 400,
-                        cursor: 'pointer',
-                        boxShadow: isSel ? 'var(--shadow-sm)' : 'none',
-                        whiteSpace: 'nowrap'
-                      }}
+                      className={`pill-track-btn ${isSel ? 'active' : ''}`}
+                      style={{ width: '100%', padding: '5px' }}
                     >
                       {opt.label}
                     </button>
@@ -1099,17 +1044,7 @@ export default function GeneratorPanel({
               <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Reading Material
               </span>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: '2px',
-                  background: 'var(--bg-surface-subtle)',
-                  padding: '2px',
-                  borderRadius: 'var(--radius-xs)',
-                  border: '1px solid var(--border-light)'
-                }}
-              >
+              <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
                 {[
                   { id: 'No', label: 'Short Scenario' },
                   { id: 'Yes', label: 'Reading Passage' }
@@ -1125,17 +1060,8 @@ export default function GeneratorPanel({
                         if (setPassageCount) setPassageCount(opt.id === 'Yes' ? 1 : 0);
                         if (setPassageMode) setPassageMode(opt.id === 'Yes' ? 'single_passage' : 'independent');
                       }}
-                      style={{
-                        padding: '5px',
-                        borderRadius: 'var(--radius-xs)',
-                        border: 'none',
-                        background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
-                        color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
-                        fontSize: '0.725rem',
-                        fontWeight: isSel ? 600 : 400,
-                        cursor: 'pointer',
-                        boxShadow: isSel ? 'var(--shadow-sm)' : 'none'
-                      }}
+                      className={`pill-track-btn ${isSel ? 'active' : ''}`}
+                      style={{ width: '100%', padding: '5px' }}
                     >
                       {opt.label}
                     </button>
@@ -1149,17 +1075,7 @@ export default function GeneratorPanel({
               <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Answer Style
               </span>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: '2px',
-                  background: 'var(--bg-surface-subtle)',
-                  padding: '2px',
-                  borderRadius: 'var(--radius-xs)',
-                  border: '1px solid var(--border-light)'
-                }}
-              >
+              <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
                 {[
                   { id: 'single_choice', label: 'Single Answer' },
                   { id: 'multi_choice', label: 'Multiple Answers' }
@@ -1177,17 +1093,8 @@ export default function GeneratorPanel({
                           setMultiChoiceCount(opt.id === 'multi_choice' ? 1 : 0);
                         }
                       }}
-                      style={{
-                        padding: '5px',
-                        borderRadius: 'var(--radius-xs)',
-                        border: 'none',
-                        background: isSel ? 'var(--bg-surface-elevated)' : 'transparent',
-                        color: isSel ? 'var(--text-primary)' : 'var(--text-muted)',
-                        fontSize: '0.725rem',
-                        fontWeight: isSel ? 600 : 400,
-                        cursor: 'pointer',
-                        boxShadow: isSel ? 'var(--shadow-sm)' : 'none'
-                      }}
+                      className={`pill-track-btn ${isSel ? 'active' : ''}`}
+                      style={{ width: '100%', padding: '5px' }}
                     >
                       {opt.label}
                     </button>
@@ -1201,8 +1108,8 @@ export default function GeneratorPanel({
 
       {/* SECTION 3: TRAPS & DIRECTIVES */}
       <div className="dock-section">
-        <div className="dock-kicker">
-          <span>03 / TRICKY TRAPS &amp; EXTRA RULES</span>
+        <div className="section-header-minimal">
+          <span className="section-header-title">Exam Traps &amp; Rules</span>
           <Target size={12} color="var(--text-muted)" />
         </div>
 
@@ -1357,13 +1264,13 @@ export default function GeneratorPanel({
             id="btn-generate-main"
             onClick={onGenerate}
             disabled={isGenerating}
-            className="btn-primary"
+            className="btn-primary-luminous"
             style={{
               flex: 1,
-              padding: '9px 16px',
+              padding: '10px 16px',
               fontWeight: 600,
               fontSize: '0.8rem',
-              borderRadius: 'var(--radius-xs)'
+              borderRadius: 'var(--radius-sm)'
             }}
           >
             <Sparkles size={14} />

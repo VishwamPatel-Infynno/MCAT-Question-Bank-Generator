@@ -117,18 +117,21 @@ export default function App() {
       .then((data) => {
         if (data.sections && data.sections.length > 0) {
           setSectionsData(data.sections);
-          setSelectedSection(data.sections[0].id);
-          if (data.sections[0].subtopics?.length > 0) {
-            setSelectedSubtopic(data.sections[0].subtopics[0]);
-          }
+          generatorForm.updateFields({
+            selectedSection: data.sections[0].id,
+            selectedSubtopic: data.sections[0].subtopics?.[0] || ''
+          });
         }
       })
       .catch((err) => {
         console.error('Failed to fetch sections:', err);
         setSectionsData(UCAT_SECTIONS_FALLBACK);
-        setSelectedSection(UCAT_SECTIONS_FALLBACK[0].id);
-        setSelectedSubtopic(UCAT_SECTIONS_FALLBACK[0].subtopics[0]);
+        generatorForm.updateFields({
+          selectedSection: UCAT_SECTIONS_FALLBACK[0].id,
+          selectedSubtopic: UCAT_SECTIONS_FALLBACK[0].subtopics?.[0] || ''
+        });
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [isQuestionSaved, setIsQuestionSaved] = useState(false);
@@ -459,21 +462,7 @@ export default function App() {
                 />
               ) : (
                 <StudioBlueprint
-                  selectedSection={selectedSection}
-                  selectedSubtopic={selectedSubtopic}
-                  difficulty={difficulty}
-                  totalQuestions={totalQuestions}
-                  singleChoiceCount={singleChoiceCount}
-                  multiChoiceCount={multiChoiceCount}
-                  passageCount={passageCount}
-                  passageMode={passageMode}
-                  passageQuestionCount={passageQuestionCount}
-                  passageSingleCount={passageSingleCount}
-                  passageMultiCount={passageMultiCount}
-                  independentSingleCount={independentSingleCount}
-                  independentMultiCount={independentMultiCount}
-                  primaryTrap={primaryTrap}
-                  customPrompt={customPrompt}
+                  {...generatorForm.formData}
                   sectionsData={sectionsData}
                   onGenerate={handleGenerate}
                   onApplyPreset={handleApplyPreset}

@@ -16,13 +16,14 @@ export default function Navbar({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '8px 24px',
+        padding: '10px 24px',
         borderBottom: '1px solid var(--border-light)',
         background: 'var(--bg-surface)',
         position: 'sticky',
         top: 0,
         zIndex: 50,
-        backdropFilter: 'blur(12px)'
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)'
       }}
     >
       {/* Brand & Subtitle */}
@@ -45,7 +46,7 @@ export default function Navbar({
             transition: 'all var(--transition-fast)'
           }}
         >
-          <InfynnoLogo width={28} height={18} />
+          <InfynnoLogo width={26} height={17} />
           <span
             style={{
               fontWeight: 800,
@@ -62,13 +63,13 @@ export default function Navbar({
         <div
           style={{
             width: '1px',
-            height: '20px',
+            height: '18px',
             background: 'var(--border-light)'
           }}
           aria-hidden="true"
         />
 
-        {/* Product Identity (Click to refresh/reload) */}
+        {/* Product Identity */}
         <a
           href="/"
           onClick={(e) => {
@@ -88,8 +89,8 @@ export default function Navbar({
         >
           <h1
             style={{
-              fontSize: '0.9rem',
-              fontWeight: 700,
+              fontSize: '0.875rem',
+              fontWeight: 600,
               letterSpacing: '-0.01em',
               color: 'var(--text-primary)',
               margin: 0,
@@ -98,78 +99,31 @@ export default function Navbar({
           >
             Infynno UCAT Question Bank Generator
           </h1>
-          <span
-            style={{
-              fontSize: '0.625rem',
-              fontWeight: 600,
-              color: 'var(--text-muted)',
-              background: 'var(--bg-surface-subtle)',
-              border: '1px solid var(--border-light)',
-              padding: '1px 6px',
-              borderRadius: 'var(--radius-xs)',
-              transition: 'border-color var(--transition-fast), color var(--transition-fast)'
-            }}
-          >
+          <span className="badge-minimal" style={{ fontSize: '0.625rem', padding: '1px 6px' }}>
             v2.0
           </span>
         </a>
       </div>
 
-      {/* Center Nav Tabs (Quiet Segmented Switcher) */}
-      <nav
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '2px',
-          padding: '2px',
-          background: 'var(--bg-surface-subtle)',
-          borderRadius: 'var(--radius-sm)',
-          border: '1px solid var(--border-light)'
-        }}
-      >
+      {/* Center Nav Tabs (Quiet Minimalist Pill Track) */}
+      <nav className="pill-track">
         <button
           id="nav-tab-generator"
+          type="button"
           onClick={() => setActiveTab('generator')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '5px 14px',
-            borderRadius: 'var(--radius-xs)',
-            background: activeTab === 'generator' ? 'var(--bg-surface-elevated)' : 'transparent',
-            border: activeTab === 'generator' ? '1px solid var(--border-medium)' : '1px solid transparent',
-            color: activeTab === 'generator' ? 'var(--text-primary)' : 'var(--text-secondary)',
-            fontWeight: activeTab === 'generator' ? 600 : 500,
-            fontSize: '0.8rem',
-            cursor: 'pointer',
-            boxShadow: activeTab === 'generator' ? 'var(--shadow-sm)' : 'none',
-            transition: 'all var(--transition-fast)'
-          }}
+          className={`pill-track-btn ${activeTab === 'generator' ? 'active' : ''}`}
         >
-          <Sparkles size={13} color={activeTab === 'generator' ? 'var(--brand-primary)' : 'currentColor'} />
+          <Sparkles size={12} color={activeTab === 'generator' ? 'var(--brand-primary)' : 'currentColor'} />
           <span>Question Generator</span>
         </button>
 
         <button
           id="nav-tab-bank"
+          type="button"
           onClick={() => setActiveTab('bank')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '5px 14px',
-            borderRadius: 'var(--radius-xs)',
-            background: activeTab === 'bank' ? 'var(--bg-surface-elevated)' : 'transparent',
-            border: activeTab === 'bank' ? '1px solid var(--border-medium)' : '1px solid transparent',
-            color: activeTab === 'bank' ? 'var(--text-primary)' : 'var(--text-secondary)',
-            fontWeight: activeTab === 'bank' ? 600 : 500,
-            fontSize: '0.8rem',
-            cursor: 'pointer',
-            boxShadow: activeTab === 'bank' ? 'var(--shadow-sm)' : 'none',
-            transition: 'all var(--transition-fast)'
-          }}
+          className={`pill-track-btn ${activeTab === 'bank' ? 'active' : ''}`}
         >
-          <Database size={13} color={activeTab === 'bank' ? 'var(--brand-primary)' : 'currentColor'} />
+          <Database size={12} color={activeTab === 'bank' ? 'var(--brand-primary)' : 'currentColor'} />
           <span>Question Bank</span>
         </button>
       </nav>

@@ -306,15 +306,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
           </div>
 
           {/* Difficulty Filter Chips */}
-          <div
-            style={{
-              display: 'inline-flex',
-              background: 'var(--bg-surface-elevated)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '2px'
-            }}
-          >
+          <div className="pill-track">
             {DIFFICULTY_FILTER_OPTIONS.map(d => {
               const isActive = diffFilter === d.id;
               return (
@@ -322,18 +314,8 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                   key={d.id}
                   type="button"
                   onClick={() => setDiffFilter(d.id)}
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: 'var(--radius-xs)',
-                    border: 'none',
-                    background: isActive ? 'var(--bg-surface)' : 'transparent',
-                    color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
-                    fontSize: '0.74rem',
-                    fontWeight: isActive ? 600 : 500,
-                    cursor: 'pointer',
-                    boxShadow: isActive ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-                    transition: 'all var(--transition-fast)'
-                  }}
+                  className={`pill-track-btn ${isActive ? 'active' : ''}`}
+                  style={{ padding: '4px 10px', fontSize: '0.74rem' }}
                 >
                   {d.label}
                 </button>
@@ -652,17 +634,15 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                     {/* Full Stimulus */}
                     {q.stimulus_text && (
                       <div
+                        className="vignette-editorial"
                         style={{
-                          background: 'var(--bg-canvas)',
-                          padding: '12px 16px',
-                          borderRadius: 'var(--radius-sm)',
-                          borderLeft: '3px solid var(--brand-primary)',
-                          fontSize: '0.84rem',
-                          lineHeight: '1.6',
-                          color: 'var(--text-primary)'
+                          padding: '14px 18px',
+                          fontSize: '0.9rem',
+                          border: '1px solid var(--border-light)',
+                          borderLeft: '3px solid var(--brand-primary)'
                         }}
                       >
-                        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.04em' }}>
+                        <div style={{ fontSize: '0.675rem', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.04em', fontFamily: 'var(--font-sans)' }}>
                           Stimulus Vignette
                         </div>
                         {q.stimulus_text}
