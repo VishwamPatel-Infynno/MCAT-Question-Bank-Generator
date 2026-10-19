@@ -12,12 +12,12 @@ export { default as AgentVisualizer } from './generator/AgentVisualizer';
 export { default as MultiAgentPipelineVisualizer } from './generator/MultiAgentPipelineVisualizer';
 export { default as RejectionCard } from './generator/RejectionCard';
 export { default as StudioBlueprint } from './generator/StudioBlueprint';
-export { default as QuestionProgressTracker } from './generator/QuestionProgressTracker';
 
 // Question & Review
 export { default as QuestionCard } from './question/QuestionCard';
 export { default as QuestionDraftingSkeleton } from './question/QuestionDraftingSkeleton';
 export { default as StagedBatchReview } from './question/StagedBatchReview';
+export { default as SharedPassageCard } from './question/SharedPassageCard';
 export { default as VisualStimulusViewer } from './question/VisualStimulusViewer';
 export { default as StageJsonInspector } from './question/StageJsonInspector';
 

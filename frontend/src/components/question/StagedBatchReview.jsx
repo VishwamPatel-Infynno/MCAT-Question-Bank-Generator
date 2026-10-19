@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import QuestionCard from './QuestionCard';
 import VisualStimulusViewer from './VisualStimulusViewer';
+import SharedPassageCard from './SharedPassageCard';
 
 export default function StagedBatchReview({
   stagedQuestions = [],
@@ -57,8 +58,6 @@ export default function StagedBatchReview({
   const [viewMode, setViewMode] = useState('grid');
   // Loading state during batch saving
   const [isSaving, setIsSaving] = useState(false);
-  // Collapse toggle for featured passage card
-  const [isPassageCollapsed, setIsPassageCollapsed] = useState(false);
   // Expanded explanation card IDs
   const [expandedExplanationIds, setExpandedExplanationIds] = useState(() => new Set());
 
@@ -136,14 +135,6 @@ export default function StagedBatchReview({
     if (effectivePassageCount && slotNumber <= effectivePassageCount && isPassageSet) return true;
     return false;
   };
-
-  // Passage statistics
-  const sharedPassageStats = useMemo(() => {
-    if (!sharedStimulusText) return { words: 0, paragraphs: 0 };
-    const words = sharedStimulusText.trim().split(/\s+/).length;
-    const paragraphs = sharedStimulusText.split(/\n\s*\n/).filter(p => p.trim().length > 0).length;
-    return { words, paragraphs: Math.max(1, paragraphs) };
-  }, [sharedStimulusText]);
 
   // Derived set of selected question IDs (avoids useEffect cascading renders)
   const selectedIds = useMemo(() => {
@@ -384,6 +375,7 @@ export default function StagedBatchReview({
               ) : (
                 <input
                   type="checkbox"
+                  aria-label={`Select Question ${q.index || slotNumber}`}
                   checked={isChecked}
                   onChange={() => handleToggleSelect(q.id)}
                   style={{
@@ -956,6 +948,7 @@ export default function StagedBatchReview({
             ) : (
               <input
                 type="checkbox"
+                aria-label="Select all ready questions"
                 checked={unsavedCount > 0 && unsavedSelectedCount === unsavedCount}
                 onChange={handleToggleSelectAll}
                 disabled={totalCompleted === 0}
@@ -1117,104 +1110,15 @@ export default function StagedBatchReview({
 
       {/* FEATURED SHARED READING PASSAGE (UCAT Single Passage Multi-Question Stimulus) */}
       {isPassageSet && sharedStimulusText && effectivePassageCount > 0 && (
-        <div
-          className="glass-panel"
-          style={{
-            padding: '16px 20px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-light)',
-            borderLeft: '4px solid var(--brand-primary)',
-            background: 'var(--bg-surface-elevated)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            boxShadow: 'var(--shadow-sm)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: 'var(--radius-xs)',
-                  background: 'var(--brand-light)',
-                  color: 'var(--brand-primary)'
-                }}
-              >
-                <BookOpen size={18} />
-              </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <h3 style={{ fontSize: '0.925rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                    {isMixedBatch ? `Shared Reading Passage (Questions 1 to ${effectivePassageCount})` : 'Single Shared Reading Passage'}
-                  </h3>
-                  <span className="badge badge-cyan" style={{ fontSize: '0.675rem', fontWeight: 600 }}>
-                    {sharedPassageStats.words} Words
-                  </span>
-                  <span className="badge badge-indigo" style={{ fontSize: '0.675rem', fontWeight: 600 }}>
-                    {effectivePassageCount} Linked Questions
-                  </span>
-                  {sharedPassageImage && (
-                    <span className="badge badge-purple" style={{ fontSize: '0.675rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                      <ImageIcon size={10} /> Passage Diagram
-                    </span>
-                  )}
-                </div>
-                <p style={{ fontSize: '0.725rem', color: 'var(--text-muted)', margin: 0, marginTop: '2px' }}>
-                  {isMixedBatch
-                    ? `Questions 1 to ${effectivePassageCount} evaluate comprehension directly from this stimulus. Questions ${effectivePassageCount + 1} to ${effectiveTotal} are independent direct questions (no passage).`
-                    : `All ${effectiveTotal} questions in this set evaluate comprehension, logic, or inference directly from this stimulus.`}
-                </p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsPassageCollapsed(prev => !prev)}
-              className="btn-secondary"
-              style={{ padding: '5px 12px', fontSize: '0.725rem', gap: '6px' }}
-              title={isPassageCollapsed ? 'Expand Passage' : 'Collapse Passage'}
-            >
-              {isPassageCollapsed ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
-              <span>{isPassageCollapsed ? 'Show Full Passage' : 'Collapse Passage'}</span>
-            </button>
-          </div>
-
-          {!isPassageCollapsed && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div
-                style={{
-                  padding: '14px 18px',
-                  background: 'var(--bg-surface-subtle)',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border-light)',
-                  maxHeight: '260px',
-                  overflowY: 'auto',
-                  fontFamily: 'var(--font-serif)',
-                  fontSize: '0.925rem',
-                  lineHeight: '1.7',
-                  color: 'var(--text-primary)',
-                  whiteSpace: 'pre-line'
-                }}
-              >
-                {sharedStimulusText}
-              </div>
-
-              {sharedPassageImage && (
-                <div style={{ borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border-light)' }}>
-                  <VisualStimulusViewer
-                    question={sharedPassageImage}
-                    compact={false}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        <SharedPassageCard
+          passageText={sharedStimulusText}
+          questionCount={effectivePassageCount}
+          totalCount={effectiveTotal}
+          isMixedBatch={isMixedBatch}
+          diagramQuestion={sharedPassageImage}
+          collapsible={true}
+          defaultCollapsed={false}
+        />
       )}
 
       {/* VIEW MODE 1: GRID VIEW (DEFAULT - ALL REQUESTED QUESTIONS DISPLAYED SIDE BY SIDE) */}
@@ -1355,6 +1259,7 @@ export default function StagedBatchReview({
                   {/* Selection Checkbox */}
                   <input
                     type="checkbox"
+                    aria-label={`Select Question ${q.index || i + 1}`}
                     checked={isChecked}
                     onChange={(e) => {
                       e.stopPropagation();

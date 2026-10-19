@@ -387,11 +387,12 @@ export default function GeneratorPanel({
         {/* Subtopic Focus Dropdown */}
         {subtopics.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <label htmlFor="select-subtopic" style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Topic Focus
             </label>
             <select
               id="select-subtopic"
+              aria-label="Topic Focus"
               value={selectedSubtopic}
               onChange={(e) => setSelectedSubtopic(e.target.value)}
               style={{
@@ -1082,11 +1083,12 @@ export default function GeneratorPanel({
 
         {/* Question Trick Selector */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <label htmlFor="select-primary-trap" style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             Wrong Answer Traps
           </label>
           <select
             id="select-primary-trap"
+            aria-label="Wrong Answer Traps"
             value={primaryTrap}
             onChange={(e) => setPrimaryTrap && setPrimaryTrap(e.target.value)}
             style={{
@@ -1149,9 +1151,10 @@ export default function GeneratorPanel({
                   </div>
                 </div>
 
-                <label style={{ position: 'relative', display: 'inline-block', width: '28px', height: '16px', cursor: 'pointer' }}>
+                <label htmlFor="toggle-require-image" style={{ position: 'relative', display: 'inline-block', width: '28px', height: '16px', cursor: 'pointer' }}>
                   <input
                     id="toggle-require-image"
+                    aria-label="Include Diagram or Chart"
                     type="checkbox"
                     checked={requireImage || selectedSection === 'abstract_reasoning'}
                     onChange={(e) => setRequireImage(e.target.checked)}
@@ -1189,11 +1192,12 @@ export default function GeneratorPanel({
 
               {/* Custom Prompt Textarea */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '3px' }}>
+                <label htmlFor="input-custom-prompt" style={{ display: 'block', fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '3px' }}>
                   Custom Instructions &amp; Topics
                 </label>
                 <textarea
                   id="input-custom-prompt"
+                  aria-label="Custom Instructions and Topics"
                   value={customPrompt}
                   onChange={(e) => setCustomPrompt(e.target.value)}
                   placeholder="e.g. Focus on cardiology dosages or medical ethics..."

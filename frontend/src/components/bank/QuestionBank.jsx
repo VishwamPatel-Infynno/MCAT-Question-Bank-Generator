@@ -23,6 +23,7 @@ import {
 import { getExportUrl, batchDeleteQuestions } from '../../services/api';
 import { useQuestionBank } from '../../hooks/useQuestionBank';
 import VisualStimulusViewer from '../question/VisualStimulusViewer';
+import SharedPassageCard from '../question/SharedPassageCard';
 
 const SORT_OPTIONS = [
   { id: 'newest', label: 'Newest First' },
@@ -288,6 +289,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
             <input
               ref={searchInputRef}
               id="input-bank-search"
+              aria-label="Search questions by stem, stimulus, topic, or trap"
               type="text"
               placeholder="Search by stem, stimulus, topic, or trap (Press / to focus)..."
               value={searchQuery}
@@ -330,6 +332,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
             </span>
             <select
               id="select-bank-sort"
+              aria-label="Sort Questions"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               style={{
@@ -637,28 +640,14 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                   >
                     {/* Full Stimulus with embedded diagram if present */}
                     {q.stimulus_text && (
-                      <div
-                        className="vignette-editorial"
-                        style={{
-                          padding: '14px 18px',
-                          fontSize: '0.9rem',
-                          border: '1px solid var(--border-light)',
-                          borderLeft: '3px solid var(--brand-primary)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '12px'
-                        }}
-                      >
-                        <div style={{ fontSize: '0.675rem', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-sans)' }}>
-                          {q.passage_id ? 'Shared Passage Stimulus' : 'Stimulus Vignette'}
-                        </div>
-                        <div style={{ whiteSpace: 'pre-line' }}>{q.stimulus_text}</div>
-                        {(q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.passage_visual_stimulus?.image_svg) && (
-                          <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '10px' }}>
-                            <VisualStimulusViewer question={q} />
-                          </div>
-                        )}
-                      </div>
+                      <SharedPassageCard
+                        title={q.passage_id ? 'Shared Reading Passage' : 'Stimulus Vignette'}
+                        passageText={q.stimulus_text}
+                        questionCount={1}
+                        diagramQuestion={q}
+                        collapsible={false}
+                        style={{ padding: '14px 18px', borderLeft: '3px solid var(--brand-primary)' }}
+                      />
                     )}
 
                     {/* Visual Stimulus for standalone direct questions (without stimulus_text) */}
@@ -758,6 +747,8 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
               <span>Show</span>
               <select
+                id="select-page-size"
+                aria-label="Questions per page"
                 value={pageSize}
                 onChange={(e) => {
                   setPageSize(Number(e.target.value));
