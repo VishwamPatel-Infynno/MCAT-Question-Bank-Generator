@@ -678,7 +678,7 @@ export default function GeneratorPanel({
                       </>
                     ) : (
                       <>
-                        <strong style={{ color: 'var(--status-purple)' }}>Mixed Set:</strong> {passageQuestionCount} questions linked to 1 shared passage (250–400w); remaining {totalQuestions - passageQuestionCount} questions are independent standalone scenarios.
+                        <strong style={{ color: 'var(--status-purple)' }}>Mixed Set:</strong> {passageQuestionCount} questions linked to 1 shared passage (250–400w); remaining {totalQuestions - passageQuestionCount} questions are direct standalone questions (no passage).
                       </>
                     )}
                   </div>
@@ -942,7 +942,7 @@ export default function GeneratorPanel({
             {passageMode === 'independent' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Independent Scenarios Breakdown
+                  Question Format Breakdown
                 </span>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                   {/* Passage Counter */}
@@ -983,7 +983,7 @@ export default function GeneratorPanel({
                     </div>
                   </div>
 
-                  {/* Short Scenario (Derived) */}
+                  {/* Direct Question (No Passage) (Derived) */}
                   <div
                     style={{
                       display: 'flex',
@@ -995,7 +995,7 @@ export default function GeneratorPanel({
                       border: '1px solid var(--border-light)'
                     }}
                   >
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Short Scenario</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Direct (No Passage)</span>
                     <span style={{ fontSize: '0.725rem', fontWeight: 700, paddingRight: '4px', color: 'var(--text-muted)' }}>
                       {totalQuestions - passageCount}
                     </span>
@@ -1013,7 +1013,7 @@ export default function GeneratorPanel({
               </span>
               <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
                 {[
-                  { id: 'No', label: 'Short Scenario' },
+                  { id: 'No', label: 'Direct Question' },
                   { id: 'Yes', label: 'Reading Passage' }
                 ].map(opt => {
                   const isSel = passageRequired === opt.id;

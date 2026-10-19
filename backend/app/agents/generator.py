@@ -52,7 +52,8 @@ Do NOT write a new passage. Formulate your question stem, options, correct key(s
         user_prompt += "\nPassage Required: Yes - Provide a rigorous, substantive 250-400 word academic or clinical passage with dense data and structured paragraphs."
     elif req.passage_required and str(req.passage_required).lower() in ("no", "false"):
         user_prompt += (
-            "\nPassage Required: No - Keep stimulus brief (1-3 sentences or direct vignette)."
+            "\nPassage Required: No - Direct question ONLY. Do NOT write any reading passage, scenario, or vignette in stimulus_text. "
+            'Leave stimulus_text strictly as an empty string (""). Pose the question directly in question_stem.'
         )
 
     if req.visual_type and req.visual_type != "None":
@@ -98,10 +99,19 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
 
     correct_id_str = ", ".join(keys_list)
 
-    # If a shared stimulus passage was provided, enforce it on the draft
-    effective_stimulus = (
-        req.shared_stimulus.strip() if req.shared_stimulus else data.get("stimulus_text", "")
+    # Enforce reading passage vs direct independent question
+    is_passage_active = bool(req.shared_stimulus and req.shared_stimulus.strip()) or (
+        req.passage_required is not None and str(req.passage_required).lower() in ("yes", "true")
     )
+
+    if not is_passage_active:
+        effective_stimulus = ""
+    else:
+        effective_stimulus = (
+            req.shared_stimulus.strip()
+            if req.shared_stimulus
+            else data.get("stimulus_text", "").strip()
+        )
 
     return QuestionDraft(
         stimulus_text=effective_stimulus,
@@ -231,6 +241,8 @@ async def generate_question(req: GenerationRequest) -> tuple[QuestionDraft, Toke
         mock_draft = get_mock_draft(req)
         if req.shared_stimulus:
             mock_draft.stimulus_text = req.shared_stimulus.strip()
+        elif req.passage_required and str(req.passage_required).lower() in ("no", "false"):
+            mock_draft.stimulus_text = ""
         return mock_draft, mock_usage
 
 
@@ -298,5 +310,7 @@ async def generate_question_with_self_critique(
         mock_draft = get_mock_draft(req)
         if req.shared_stimulus:
             mock_draft.stimulus_text = req.shared_stimulus.strip()
+        elif req.passage_required and str(req.passage_required).lower() in ("no", "false"):
+            mock_draft.stimulus_text = ""
         mock_review = evaluate_heuristically(mock_draft, req, 1)
         return mock_draft, mock_review, mock_usage

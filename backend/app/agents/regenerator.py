@@ -19,6 +19,10 @@ async def regenerate_question(
     section_name = UCAT_SECTION_LABELS.get(req.section, req.section.value)
     options_formatted = "\n".join([f"{opt.id}: {opt.text}" for opt in draft.options])
 
+    is_passage_active = bool(req.shared_stimulus and req.shared_stimulus.strip()) or (
+        req.passage_required is not None and str(req.passage_required).lower() in ("yes", "true")
+    )
+
     weaknesses_text = (
         "\n".join([f"- {w}" for w in review.weaknesses]) or "General refinement needed"
     )
@@ -27,16 +31,23 @@ async def regenerate_question(
         or "Elevate distractor quality and explanation depth"
     )
 
+    passage_instruction = (
+        "Passage Required: Yes (250-400 words)"
+        if is_passage_active
+        else 'Passage Required: No - Direct question ONLY. Do NOT generate any reading passage, vignette, or scenario. Leave stimulus_text strictly as an empty string (""). Pose the question directly in question_stem.'
+    )
+
     user_prompt = f"""The following candidate UCAT question received a score of {review.total_score}/100 and needs to be re-generated to score > 90.
 
 Section: {section_name}
 Subtopic: {req.subtopic or "General"}
 Target Difficulty: {req.difficulty.value}
+{passage_instruction}
 Iteration: {iteration}
 
 --- ORIGINAL CANDIDATE DRAFT ---
 Stimulus:
-{draft.stimulus_text}
+{draft.stimulus_text if is_passage_active else ""}
 
 Stem:
 {draft.question_stem}
@@ -87,8 +98,18 @@ Please re-generate and refine this question to resolve all weaknesses and produc
 
         correct_id_str = ", ".join(keys_list)
 
+        effective_stimulus = (
+            (
+                req.shared_stimulus.strip()
+                if req.shared_stimulus
+                else data.get("stimulus_text", draft.stimulus_text).strip()
+            )
+            if is_passage_active
+            else ""
+        )
+
         re_draft = QuestionDraft(
-            stimulus_text=data.get("stimulus_text", draft.stimulus_text),
+            stimulus_text=effective_stimulus,
             question_stem=data["question_stem"],
             options=options,
             correct_answer_id=correct_id_str,
@@ -110,4 +131,7 @@ Please re-generate and refine this question to resolve all weaknesses and produc
             total_tokens=mock_p_tokens + mock_c_tokens,
             cost_usd=calculate_token_cost(mock_p_tokens, mock_c_tokens),
         )
-        return improve_draft_heuristically(draft, review, iteration), mock_usage
+        fallback_draft = improve_draft_heuristically(draft, review, iteration)
+        if not is_passage_active:
+            fallback_draft.stimulus_text = ""
+        return fallback_draft, mock_usage

@@ -551,7 +551,11 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                           <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
                             • Passage
                           </span>
-                        ) : null}
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
+                            • Direct
+                          </span>
+                        )}
 
                         {q.primary_trap && q.primary_trap !== 'Automatic' && (
                           <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
@@ -572,7 +576,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                       </div>
 
                       {/* Snippet */}
-                      {q.stimulus_text && (
+                      {q.stimulus_text && q.stimulus_text.trim() && (
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '780px' }}>
                           {q.stimulus_text}
                         </div>

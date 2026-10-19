@@ -1169,3 +1169,107 @@ def test_option_symmetry_and_anti_guessability_engine():
     # Old B (£12.00) is now at index 0 (letter A)
     assert balanced_qr.correct_answer_id == "A"
     assert "Option A is correct: £12.00 is the final total." in balanced_qr.explanation
+
+
+@pytest.mark.asyncio
+async def test_independent_question_direct_no_stimulus(monkeypatch):
+    """Verifies that independent questions (passage_required='No') enforce empty stimulus_text and direct question stems."""
+    from app.agents.generator import _build_generator_user_prompt, _parse_question_draft_data
+    from app.agents.mock_fixtures import get_mock_draft
+    from app.core.config import config
+    from app.schemas.workflow import GenerationRequest
+    from app.workflow.graph import run_workflow_stream
+
+    # 1. Verify user prompt instructions
+    req_no_passage = GenerationRequest(
+        section=UCATSection.QUANTITATIVE_REASONING,
+        difficulty=Difficulty.MEDIUM,
+        passage_required="No",
+    )
+    prompt_str = _build_generator_user_prompt(req_no_passage)
+    assert "Passage Required: No - Direct question ONLY" in prompt_str
+    assert "Leave stimulus_text strictly as an empty string" in prompt_str
+
+    # 2. Verify _parse_question_draft_data enforces empty stimulus when passage_required='No'
+    raw_data = {
+        "stimulus_text": "Unexpected lingering vignette text that LLM might return.",
+        "question_stem": "A 72 kg patient requires 15 mg/kg per day. What is the single dose?",
+        "options": [
+            {"id": "A", "text": "12.4 mL"},
+            {"id": "B", "text": "14.4 mL"},
+            {"id": "C", "text": "16.2 mL"},
+            {"id": "D", "text": "43.2 mL"},
+        ],
+        "correct_answer_id": "B",
+        "explanation": "Calculated dose is 14.4 mL.",
+    }
+    draft = _parse_question_draft_data(raw_data, req_no_passage)
+    assert draft.stimulus_text == "", (
+        "Independent questions must strictly force stimulus_text to empty string"
+    )
+    assert "72 kg patient" in draft.question_stem
+
+    # When passage_required is 'Yes', stimulus_text is preserved
+    req_yes_passage = GenerationRequest(
+        section=UCATSection.VERBAL_REASONING,
+        difficulty=Difficulty.MEDIUM,
+        passage_required="Yes",
+    )
+    draft_yes = _parse_question_draft_data(raw_data, req_yes_passage)
+    assert draft_yes.stimulus_text == "Unexpected lingering vignette text that LLM might return."
+
+    # 3. Verify get_mock_draft outputs empty stimulus for all subtests when passage_required='No'
+    for sec in UCATSection:
+        r = GenerationRequest(section=sec, difficulty=Difficulty.MEDIUM, passage_required="No")
+        md = get_mock_draft(r)
+        assert md.stimulus_text == "", (
+            f"Mock draft for {sec} with passage_required='No' must have empty stimulus_text"
+        )
+        assert len(md.question_stem) > 10, f"Mock draft for {sec} must have a direct question stem"
+
+    # Multi-choice direct question mock
+    r_mc = GenerationRequest(
+        section=UCATSection.VERBAL_REASONING,
+        difficulty=Difficulty.HARD,
+        interaction_type="multi_choice",
+        passage_required="No",
+    )
+    md_mc = get_mock_draft(r_mc)
+    assert md_mc.stimulus_text == ""
+    assert "Which TWO" in md_mc.question_stem
+
+    # 4. End-to-end workflow SSE stream: Verify mixed batch (1 passage + 1 independent)
+    import json
+
+    monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
+    monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
+    batch_req = GenerationRequest(
+        section=UCATSection.DECISION_MAKING,
+        difficulty=Difficulty.MEDIUM,
+        questions_to_generate=2,
+        passage_mode="single_passage",
+        passage_question_count=1,
+    )
+    events = []
+    async for chunk in run_workflow_stream(batch_req):
+        line = chunk.strip()
+        if line.startswith("data: "):
+            events.append(json.loads(line[6:]))
+
+    # Check worker progress message for independent question item (index 2)
+    batch_progress_events = [e for e in events if e.get("event_type") == "batch_progress"]
+    assert len(batch_progress_events) == 2
+    assert "linked" in batch_progress_events[0]["message"]
+    assert "direct question" in batch_progress_events[1]["message"]
+    assert "standalone scenario" not in batch_progress_events[1]["message"]
+
+    # Verify final staged questions
+    complete_evt = next(e for e in events if e.get("event_type") == "workflow_complete")
+    staged = complete_evt["data"]["questions"]
+    assert len(staged) == 2
+    # Item 1 is passage linked
+    assert staged[0]["passage_required"] == "Yes"
+    assert len(staged[0]["stimulus_text"]) > 50
+    # Item 2 is direct independent
+    assert staged[1]["passage_required"] == "No"
+    assert staged[1]["stimulus_text"] == ""

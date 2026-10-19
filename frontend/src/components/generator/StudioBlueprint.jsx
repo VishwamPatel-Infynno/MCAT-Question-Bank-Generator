@@ -44,7 +44,7 @@ export default function StudioBlueprint({
       badgeClass: 'badge-purple',
       icon: Sparkles,
       iconColor: 'var(--status-purple)',
-      description: '1 shared academic passage (250–400w) with 2 linked questions + 3 standalone independent questions with separate scenarios.',
+      description: '1 shared academic passage (250–400w) with 2 linked questions + 3 direct standalone independent questions (no passage).',
       config: {
         section: 'verbal_reasoning',
         difficulty: 'medium',
@@ -180,10 +180,10 @@ export default function StudioBlueprint({
               <span style={{ color: 'var(--border-medium)' }}>•</span>
               <span>
                 {isMixedSet
-                  ? `${passageQuestionCount} on 1 Shared Passage + ${totalQuestions - passageQuestionCount} Standalone`
+                  ? `${passageQuestionCount} on 1 Shared Passage + ${totalQuestions - passageQuestionCount} Standalone Direct`
                   : isPassageSet
                     ? '1 Shared Academic Passage (250–400w)'
-                    : (passageCount > 0 ? `${passageCount} Passage${passageCount !== 1 ? 's' : ''}` : 'Short Scenarios')}
+                    : (passageCount > 0 ? `${passageCount} Passage${passageCount !== 1 ? 's' : ''}` : 'Direct Questions (No Passage)')}
               </span>
               <span style={{ color: 'var(--border-medium)' }}>•</span>
               <span style={{ color: 'var(--text-muted)' }}>

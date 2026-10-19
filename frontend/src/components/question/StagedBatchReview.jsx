@@ -395,13 +395,17 @@ export default function StagedBatchReview({
                 </span>
               ) : isMixedBatch ? (
                 <span className="badge badge-emerald" style={{ fontSize: '0.675rem' }}>
-                  Independent
+                  Independent Direct
                 </span>
               ) : isPassage ? (
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                   • Passage ({wordCount}w)
                 </span>
-              ) : null}
+              ) : (
+                <span className="badge badge-neutral" style={{ fontSize: '0.675rem' }}>
+                  Direct Question
+                </span>
+              )}
               {(q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url) && (
                 <span className="badge badge-purple" style={{ fontSize: '0.675rem', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                   <ImageIcon size={10} /> Diagram
@@ -440,7 +444,7 @@ export default function StagedBatchReview({
               <span>References shared reading passage above</span>
             </div>
           ) : (
-            q.stimulus_text && (
+            q.stimulus_text && q.stimulus_text.trim() && (
               <div
                 style={{
                   padding: '8px 10px',
@@ -1226,7 +1230,7 @@ export default function StagedBatchReview({
                 </div>
                 <p style={{ fontSize: '0.725rem', color: 'var(--text-muted)', margin: 0, marginTop: '2px' }}>
                   {isMixedBatch
-                    ? `Questions 1 to ${effectivePassageCount} evaluate comprehension directly from this stimulus. Questions ${effectivePassageCount + 1} to ${effectiveTotal} are independent standalone scenarios.`
+                    ? `Questions 1 to ${effectivePassageCount} evaluate comprehension directly from this stimulus. Questions ${effectivePassageCount + 1} to ${effectiveTotal} are independent direct questions (no passage).`
                     : `All ${effectiveTotal} questions in this set evaluate comprehension, logic, or inference directly from this stimulus.`}
                 </p>
               </div>

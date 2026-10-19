@@ -806,7 +806,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                     if is_passage_item:
                         worker_msg = f"[{idx + 1}/{total_qty}] Writing linked {item_interaction.replace('_', ' ').title()} question from shared passage..."
                     else:
-                        worker_msg = f"[{idx + 1}/{total_qty}] Writing independent {item_interaction.replace('_', ' ').title()} question (standalone scenario)..."
+                        worker_msg = f"[{idx + 1}/{total_qty}] Writing independent {item_interaction.replace('_', ' ').title()} question (direct question)..."
 
                     batch_prog_evt = make_event(
                         event_type="batch_progress",

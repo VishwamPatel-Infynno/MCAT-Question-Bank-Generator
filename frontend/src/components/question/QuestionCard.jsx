@@ -42,6 +42,7 @@ export default function QuestionCard({
   const [editedOptions, setEditedOptions] = useState(question?.options || []);
   const [editedExplanation, setEditedExplanation] = useState(question?.explanation || '');
   const [editedImageDescription, setEditedImageDescription] = useState(question?.image_description || '');
+  const [showStimulusField, setShowStimulusField] = useState(Boolean(question?.stimulus_text && question.stimulus_text.trim().length > 0));
 
   const optionSymmetry = useMemo(() => {
     if (!question) return null;
@@ -105,6 +106,7 @@ export default function QuestionCard({
     setEditedOptions(question.options || []);
     setEditedExplanation(question.explanation || '');
     setEditedImageDescription(question.image_description || '');
+    setShowStimulusField(Boolean(question.stimulus_text && question.stimulus_text.trim().length > 0));
     setIsEditing(false);
   };
 
@@ -187,7 +189,11 @@ export default function QuestionCard({
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
               • Reading Passage ({wordCount} words)
             </span>
-          ) : null}
+          ) : (
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              • Direct Question
+            </span>
+          )}
 
           {question.primary_trap && question.primary_trap !== 'Automatic' && (
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
@@ -304,7 +310,7 @@ export default function QuestionCard({
           )}
 
           {/* Clinical Vignette (Stimulus) */}
-          {(question.stimulus_text || isEditing) && (
+          {((question.stimulus_text && question.stimulus_text.trim()) || (isEditing && (showStimulusField || (editedStimulus && editedStimulus.trim())))) ? (
             <div
               className="vignette-editorial"
               style={{
@@ -320,7 +326,7 @@ export default function QuestionCard({
                   Scenario / Reading Passage
                 </span>
                 <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
-                  ~{question.stimulus_text ? question.stimulus_text.split(/\s+/).length : 0} words
+                  ~{isEditing ? (editedStimulus ? editedStimulus.split(/\s+/).filter(Boolean).length : 0) : (question.stimulus_text ? question.stimulus_text.split(/\s+/).filter(Boolean).length : 0)} words
                 </span>
               </div>
 
@@ -329,6 +335,7 @@ export default function QuestionCard({
                   value={editedStimulus}
                   onChange={(e) => setEditedStimulus(e.target.value)}
                   rows={6}
+                  placeholder="Enter optional reading passage or context..."
                   style={{ width: '100%', fontSize: '0.95rem', fontFamily: 'var(--font-serif)', lineHeight: 1.65 }}
                 />
               ) : (
@@ -345,7 +352,18 @@ export default function QuestionCard({
                 </div>
               )}
             </div>
-          )}
+          ) : isEditing ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setShowStimulusField(true)}
+                className="btn-secondary"
+                style={{ fontSize: '0.75rem', padding: '4px 10px', color: 'var(--text-secondary)' }}
+              >
+                + Add Passage / Stimulus
+              </button>
+            </div>
+          ) : null}
 
           {/* Visual Stimulus Diagram / Image */}
           <VisualStimulusViewer

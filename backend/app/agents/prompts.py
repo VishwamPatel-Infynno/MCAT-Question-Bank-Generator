@@ -11,7 +11,7 @@ CORE STANDARDS FOR UK UCAT QUESTIONS:
 3. Realistic Distractor Traps: Every incorrect option must be a plausible cognitive trap reflecting a common reasoning fallacy (e.g. Keyword Trap, Partial Match, Extreme Language, Correlation vs Causation, Scope Shift, Half-Truth, or subtle unwarranted assumption). If a primary trap is requested, weave it directly into the key distractors.
 4. Passage Calibration:
    - When Passage Required is "Yes": Generate a rich, publication-caliber 250-400 word academic or clinical passage with rigorous data density and clear paragraphing.
-   - When Passage Required is "No": Keep stimulus concise (1-3 sentences or direct vignette).
+   - When Passage Required is "No" (Direct Independent Questions): Strictly do NOT generate any reading passage, scenario, or vignette. Leave "stimulus_text" strictly empty (""). The question stem MUST directly state the entire question, premises, calculations, or problem prompt directly within "question_stem".
 5. Crystal Clear Explanation: Provide a comprehensive, step-by-step pedagogical breakdown proving why each correct key is incontrovertible AND why each distractor fails, naming the specific fallacy where applicable.
 6. Absolute Precision: Use British English conventions (e.g., categorise, paediatric, licence).
 7. Anti-Guessability & Option Symmetry (CRITICAL):
@@ -30,7 +30,7 @@ SUBTEST INSTRUCTIONS:
 OUTPUT FORMAT:
 Respond ONLY with a valid JSON object matching this exact structure:
 {
-  "stimulus_text": "Clinical context, reading passage, or data context...",
+  "stimulus_text": "Academic reading passage when Passage Required is 'Yes', or strictly empty string \"\" when Passage Required is 'No'",
   "question_stem": "The direct question prompt...",
   "options": [
     {"id": "A", "text": "Option A text"},
@@ -54,12 +54,12 @@ THE 100-POINT UCAT EVALUATION RUBRIC:
    - Does it sound indistinguishable from official UCAT consortium test items?
    - Is British English spelling and syntax flawlessly maintained?
    - Is the difficulty calibrated to genuine university clinical admissions?
-   - If a passage was required, is it of genuine academic depth (250-400 words)?
+   - If a passage was required, is it of genuine academic depth (250-400 words)? If Passage Required is "No", is "stimulus_text" strictly empty ("") and is the problem posed directly in the stem without extraneous scenario fluff?
 
 2. Clarity & Logical Soundness (0-25 points):
    - Is the question stem completely unambiguous with zero unintended interpretations?
    - For multi-choice items, is the instruction explicit (e.g. "Which TWO...", "Select all that apply")?
-   - Does the stimulus contain sufficient, logically consistent premises to reach a definitive conclusion?
+   - Do the premises (either in the passage if Passage Required is "Yes", or directly within the question stem if Passage Required is "No") provide sufficient, logically consistent information to reach a definitive conclusion?
    - Is it free from confusing double negatives or syntax traps?
 
 3. Distractor Trap Quality & Anti-Guessability (0-25 points):
@@ -71,7 +71,7 @@ THE 100-POINT UCAT EVALUATION RUBRIC:
    - Are there zero throwaway or ridiculous options?
 
 4. Explanation & Key Rigor (0-25 points):
-   - Are all correct answer keys indisputably verified from the stimulus?
+   - Are all correct answer keys indisputably verified from the passage or direct question stem?
    - Does the explanation provide a robust step-by-step proof?
    - Does the explanation explicitly refute every distractor by name?
 
@@ -100,7 +100,7 @@ RULES FOR REGENERATION:
 2. Ensure all distractors are sophisticated, plausible cognitive traps (representing realistic calculation errors, nuanced logical misreadings, or target fallacies).
 3. Ensure the stimulus text and question stem are crystal clear, completely unambiguous, and written in British English.
 4. For multi-choice questions, preserve the multi-key format and explicit instruction in the stem.
-5. If a long passage was requested, maintain rich passage depth (250-400 words).
+5. If a long passage was requested, maintain rich passage depth (250-400 words). If Passage Required was "No", keep "stimulus_text" strictly empty ("") and preserve direct question stem format.
 6. Expand and enrich the explanation: provide a bulletproof step-by-step rationale for why every correct answer is definitive and why each distractor fails.
 7. Maintain valid options count (4 choices A-D, or 5 choices A-E for multi-choice).
 8. Strict Option Symmetry & Anti-Guessability:
@@ -112,7 +112,7 @@ RULES FOR REGENERATION:
 OUTPUT FORMAT:
 Respond ONLY with a valid JSON object matching this exact structure:
 {
-  "stimulus_text": "Updated/refined stimulus text...",
+  "stimulus_text": "Updated passage text if Passage Required is 'Yes', or empty string \"\" if Passage Required is 'No'",
   "question_stem": "Refined question stem...",
   "options": [
     {"id": "A", "text": "Refined option A"},
@@ -149,7 +149,7 @@ CORE STANDARDS FOR UK UCAT QUESTIONS:
 3. Realistic Distractor Traps: Every incorrect option must be a plausible cognitive trap reflecting a common reasoning fallacy (e.g. Keyword Trap, Partial Match, Extreme Language, Correlation vs Causation, Scope Shift, Half-Truth).
 4. Passage Calibration:
    - When Passage Required is "Yes": Generate a rich, publication-caliber 250-400 word academic or clinical passage with rigorous data density and clear paragraphing.
-   - When Passage Required is "No": Keep stimulus concise (1-3 sentences or direct vignette).
+   - When Passage Required is "No" (Direct Independent Questions): Strictly do NOT generate any reading passage, scenario, or vignette. Leave "stimulus_text" strictly empty (""). The question stem MUST directly state the entire question, premises, calculations, or problem prompt directly within "question_stem".
 5. Crystal Clear Explanation: Provide a comprehensive, step-by-step pedagogical breakdown proving why each correct key is incontrovertible AND why each distractor fails, naming the specific fallacy where applicable.
 6. Absolute Precision: Use British English conventions (e.g., categorise, paediatric, licence).
 7. Anti-Guessability & Option Symmetry (CRITICAL):
@@ -168,7 +168,7 @@ Be strict and honest in scoring.
 OUTPUT FORMAT:
 Respond ONLY with a valid JSON object matching this exact structure:
 {
-  "stimulus_text": "Clinical context, reading passage, or data context...",
+  "stimulus_text": "Academic reading passage when Passage Required is 'Yes', or strictly empty string \"\" when Passage Required is 'No'",
   "question_stem": "The direct question prompt...",
   "options": [
     {"id": "A", "text": "Option A text"},

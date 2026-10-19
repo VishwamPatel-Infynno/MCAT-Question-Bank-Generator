@@ -7,7 +7,52 @@ from app.schemas.workflow import GenerationRequest
 
 def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
     """Provides high-caliber, authentic fallback UCAT questions across all 5 subtests."""
+    is_direct_independent = (
+        req.passage_required is not None
+        and str(req.passage_required).lower() in ("no", "false")
+        and not (req.shared_stimulus and req.shared_stimulus.strip())
+    )
+
     if req.interaction_type == "multi_choice":
+        if is_direct_independent:
+            return QuestionDraft(
+                stimulus_text="",
+                question_stem="Which TWO of the following microbiological criteria represent standard diagnostic thresholds for bacteremia in adult emergency care?",
+                options=[
+                    OptionChoice(
+                        id="A",
+                        text="Confirmed bacterial isolate identified on diagnostic blood culture.",
+                    ),
+                    OptionChoice(
+                        id="B",
+                        text="Serum procalcitonin concentration exceeding 0.25 ng/mL.",
+                    ),
+                    OptionChoice(
+                        id="C",
+                        text="Serum C-reactive protein remaining below 5 mg/L in early presentation.",
+                    ),
+                    OptionChoice(
+                        id="D",
+                        text="Total white cell count remaining strictly within standard baseline limits.",
+                    ),
+                    OptionChoice(
+                        id="E",
+                        text="Absence of clinical fever or documented hypothermia at presentation.",
+                    ),
+                ],
+                correct_answer_id="A, B",
+                correct_answer_ids=["A", "B"],
+                explanation=(
+                    "Pedagogical Analysis of Options:\n"
+                    "- Key A is CORRECT: Confirmed positive blood culture is the definitive microbiological gold standard for bacteremia.\n"
+                    "- Key B is CORRECT: Procalcitonin > 0.25 ng/mL reliably differentiates systemic bacterial infection from non-bacterial etiology.\n"
+                    "- Distractor C is INCORRECT: CRP is markedly elevated, not suppressed, during active bacteremia.\n"
+                    "- Distractor D is INCORRECT: Leukocytosis or leukopenia is characteristic of systemic bacteremia.\n"
+                    "- Distractor E is INCORRECT: Fever or hypothermia is typical in systemic inflammatory response."
+                ),
+                image_needed=False,
+            )
+
         return QuestionDraft(
             stimulus_text=(
                 "Clinical audit of antimicrobial stewardship in emergency care evaluated 650 febrile adult admissions across three NHS teaching trusts. "
@@ -56,6 +101,39 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
     sec = req.section
 
     if sec == UCATSection.VERBAL_REASONING:
+        if is_direct_independent:
+            return QuestionDraft(
+                stimulus_text="",
+                question_stem="Which of the following propositions represents a scientifically valid deduction regarding adult neurogenesis?",
+                options=[
+                    OptionChoice(
+                        id="A",
+                        text="Adult hippocampal neurogenesis is the sole mechanism driving motor recovery after stroke.",
+                    ),
+                    OptionChoice(
+                        id="B",
+                        text="Synaptic plasticity and cortical reorganisation can occur in adults through targeted training.",
+                    ),
+                    OptionChoice(
+                        id="C",
+                        text="Chronological age above 78 years entirely eliminates any capacity for neural remapping.",
+                    ),
+                    OptionChoice(
+                        id="D",
+                        text="Standard occupational therapy achieves full functional recovery in all stroke survivors.",
+                    ),
+                ],
+                correct_answer_id="B",
+                explanation=(
+                    "Pedagogical Evaluation:\n"
+                    "- Option B is CORRECT: It accurately describes adult neuroplasticity without extreme quantifiers.\n"
+                    "- Option A is INCORRECT (Extreme word trap): Adult neurogenesis is not the 'sole' mechanism.\n"
+                    "- Option C is INCORRECT (Extreme quantifier trap): Age attenuates but does not 'entirely eliminate' plasticity.\n"
+                    "- Option D is INCORRECT (Overstatement trap): Recovery is not achieved in 'all' patients."
+                ),
+                image_needed=False,
+            )
+
         return QuestionDraft(
             stimulus_text=(
                 "Neuroplasticity refers to the brain's ability to reorganise itself by forming new neural connections throughout life. "
@@ -101,6 +179,39 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
         )
 
     elif sec == UCATSection.DECISION_MAKING:
+        if is_direct_independent:
+            return QuestionDraft(
+                stimulus_text="",
+                question_stem="All consultant neurologists are certified in neuroimaging interpretation. No one certified in neuroimaging interpretation lacks training in clinical psychometrics. Which conclusion must follow logically?",
+                options=[
+                    OptionChoice(
+                        id="A",
+                        text="Some clinical fellows are certified in advanced neuroimaging interpretation.",
+                    ),
+                    OptionChoice(
+                        id="B",
+                        text="All medical practitioners trained in clinical psychometrics are consultant neurologists.",
+                    ),
+                    OptionChoice(
+                        id="C",
+                        text="All consultant neurologists are trained in clinical psychometrics.",
+                    ),
+                    OptionChoice(
+                        id="D",
+                        text="No consultant neurologist has received training in clinical psychometrics.",
+                    ),
+                ],
+                correct_answer_id="C",
+                explanation=(
+                    "Deductive Proof:\n"
+                    "Premise 1: Neurologists ⊆ Certified in Neuroimaging.\n"
+                    "Premise 2: Certified in Neuroimaging ⊆ Trained in Psychometrics.\n"
+                    "By transitive property: Neurologists ⊆ Trained in Psychometrics.\n"
+                    "Therefore, All consultant neurologists are trained in clinical psychometrics (Option C is definitively valid)."
+                ),
+                image_needed=False,
+            )
+
         return QuestionDraft(
             stimulus_text=(
                 "In a large teaching hospital:\n"
@@ -146,6 +257,27 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
         )
 
     elif sec == UCATSection.QUANTITATIVE_REASONING:
+        if is_direct_independent:
+            return QuestionDraft(
+                stimulus_text="",
+                question_stem="A 72 kg patient requires a medication dosage of 15 mg/kg per day, divided into 3 equal infusions administered every 8 hours. If the antibiotic is supplied in vials of 500 mg dissolved in 20 mL of sterile solution (concentration 25 mg/mL), what volume of solution (in mL) should be drawn for a single infusion?",
+                options=[
+                    OptionChoice(id="A", text="12.4 mL"),
+                    OptionChoice(id="B", text="14.4 mL"),
+                    OptionChoice(id="C", text="16.2 mL"),
+                    OptionChoice(id="D", text="43.2 mL"),
+                ],
+                correct_answer_id="B",
+                explanation=(
+                    "Step 1: Calculate total daily dose: 72 kg * 15 mg/kg = 1,080 mg per day.\n"
+                    "Step 2: Calculate dose per single infusion: 1,080 mg / 3 = 360 mg.\n"
+                    "Step 3: Calculate volume required from concentration (25 mg/mL): 360 mg / 25 mg/mL = 14.4 mL.\n"
+                    "Option B is correct. (43.2 mL is the daily total volume if undivided)."
+                ),
+                image_needed=req.require_image,
+                image_prompt_or_type="Dosage calculation summary chart showing patient weight, dose per kg, and concentration vial.",
+            )
+
         return QuestionDraft(
             stimulus_text=(
                 "A hospital pharmacy prepares an intravenous antibiotic infusion. "
@@ -174,6 +306,25 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
         )
 
     elif sec == UCATSection.ABSTRACT_REASONING:
+        if is_direct_independent:
+            return QuestionDraft(
+                stimulus_text="",
+                question_stem="Set A requires each box to contain an even number of shaded circles and an odd number of unshaded triangles with a prime total. Set B requires an odd number of shaded circles and an even number of triangles. A test shape contains 2 shaded circles and 3 unshaded triangles. Which set does it belong to?",
+                options=[
+                    OptionChoice(id="A", text="Set A"),
+                    OptionChoice(id="B", text="Set B"),
+                    OptionChoice(id="C", text="Neither Set A nor Set B"),
+                    OptionChoice(id="D", text="Both Set A and Set B"),
+                ],
+                correct_answer_id="A",
+                explanation=(
+                    "Analyzing Test Shape: 2 shaded circles (even), 3 unshaded triangles (odd), total shapes = 5 (prime).\n"
+                    "All criteria for Set A are strictly satisfied. Therefore, Option A is correct."
+                ),
+                image_needed=True,
+                image_prompt_or_type="Abstract geometric test pattern containing 2 black circles and 3 white equilateral triangles.",
+            )
+
         return QuestionDraft(
             stimulus_text=(
                 "Consider two sets of geometric figures, Set A and Set B:\n"
@@ -202,6 +353,26 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
         )
 
     else:  # SITUATIONAL_JUDGEMENT
+        if is_direct_independent:
+            return QuestionDraft(
+                stimulus_text="",
+                question_stem="During an evening handover, an FY1 doctor observes a registrar with slurred speech and the smell of alcohol on his breath preparing to perform an emergency pleural aspiration. How appropriate is it to immediately pull the registrar aside privately, advise him not to touch the patient, and escalate directly to the consultant on-call if he refuses?",
+                options=[
+                    OptionChoice(id="A", text="A very appropriate thing to do"),
+                    OptionChoice(id="B", text="Appropriate, but not ideal"),
+                    OptionChoice(id="C", text="Inappropriate, but not awful"),
+                    OptionChoice(id="D", text="A very inappropriate thing to do"),
+                ],
+                correct_answer_id="A",
+                explanation=(
+                    "GMC Good Medical Practice Guidance Evaluation:\n"
+                    "1. Patient Safety is the overriding priority; performing an invasive procedure while impaired creates serious risk.\n"
+                    "2. Direct, private challenge allows resolution without public conflict, while mandatory consultant escalation protects the patient.\n"
+                    "Therefore, this action is 'A very appropriate thing to do' (Option A)."
+                ),
+                image_needed=False,
+            )
+
         return QuestionDraft(
             stimulus_text=(
                 "You are a newly qualified Foundation Year 1 (FY1) doctor on a busy respiratory ward. "
@@ -241,7 +412,11 @@ def evaluate_heuristically(
             explanation_score=22,
             total_score=88,
             strengths=[
-                "Authentic clinical vignette structure conforming to UK UCAT standards",
+                (
+                    "Authentic clinical vignette structure conforming to UK UCAT standards"
+                    if draft.stimulus_text
+                    else "Direct question stem with self-contained premises conforming to UK UCAT independent standards"
+                ),
                 "Question stem is clear and unambiguous",
             ],
             weaknesses=[
