@@ -1,6 +1,8 @@
 # Infynno UCAT Question Bank Generator v2.0
 > **An Infynno Solutions LLP Product • [Infinite Innovations](https://infynno.com/)**
 
+[![CI Pipeline](https://github.com/VishwamPatel-Infynno/UK-UCAT-Question-Bank-Generator/actions/workflows/ci.yml/badge.svg)](https://github.com/VishwamPatel-Infynno/UK-UCAT-Question-Bank-Generator/actions/workflows/ci.yml)
+
 An enterprise autonomous AI application for generating, quality-reviewing, and creating high-quality exam questions for the official **UK UCAT** (University Clinical Aptitude Test).
 
 Engineered by **[Infynno Solutions LLP](https://infynno.com/)**, powered by a **4-Step AI Team**, **FastAPI**, **React 19**, and **PostgreSQL 16**, featuring a modern single-canvas studio, live team tracker, batch staging, and strict 90+ score quality standard.
