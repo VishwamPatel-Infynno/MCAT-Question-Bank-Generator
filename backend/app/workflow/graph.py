@@ -849,16 +849,16 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 is_passage_item = idx < effective_passage_count
 
                 if is_passage_item:
-                    is_item_multi = idx < p_multi
-                    item_interaction = "multi_choice" if is_item_multi else "single_choice"
+                    is_item_single = idx < p_single
+                    item_interaction = "single_choice" if is_item_single else "multi_choice"
                     item_passage = "Yes"
                     item_passage_mode = "single_passage"
                     item_passage_id = shared_passage_id
                     item_stimulus = shared_passage_text
                 else:
                     rel_idx = idx - effective_passage_count
-                    is_item_multi = rel_idx < ind_multi
-                    item_interaction = "multi_choice" if is_item_multi else "single_choice"
+                    is_item_single = rel_idx < ind_single
+                    item_interaction = "single_choice" if is_item_single else "multi_choice"
                     item_passage = "No"
                     item_passage_mode = "independent"
                     item_passage_id = None
@@ -920,7 +920,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 gen_evt = make_event(
                     event_type="agent_start",
                     agent_name="Question Writer",
-                    message=f"Writing question draft {idx + 1}/{total_qty} ({'Multi-Choice' if is_item_multi else 'Single Choice'})...",
+                    message=f"Writing question draft {idx + 1}/{total_qty} ({'Single Choice' if is_item_single else 'Multi-Choice'})...",
                     data={
                         "index": idx + 1,
                         "total": total_qty,

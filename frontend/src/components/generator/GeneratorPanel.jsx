@@ -75,6 +75,8 @@ export default function GeneratorPanel({
   const imageMode = form.imageMode || 'none';
   const setImageMode = generatorForm?.setImageMode;
   const setImageCount = generatorForm?.setImageCount;
+  const setSingleImageCount = generatorForm?.setSingleImageCount;
+  const setMultiImageCount = generatorForm?.setMultiImageCount;
   const imageQuestionIndices = form.imageQuestionIndices || [];
   const toggleQuestionImage = generatorForm?.toggleQuestionImage;
   const requirePassageImage = form.requirePassageImage || false;
@@ -96,12 +98,29 @@ export default function GeneratorPanel({
   // Independent questions occupy (numPassageQs + 1)..totalQuestions.
   const independentIndices = Array.from({ length: totalQuestions }, (_, i) => i + 1).slice(numPassageQs);
 
+  // Style breakdown for independent questions
+  const indSingleTotal = totalQuestions > 1
+    ? (passageMode === 'single_passage' ? Math.max(0, independentSingleCount) : singleChoiceCount)
+    : (interactionType === 'single_choice' ? 1 : 0);
+  const indMultiTotal = totalQuestions > 1
+    ? (passageMode === 'single_passage' ? Math.max(0, independentMultiCount) : multiChoiceCount)
+    : (interactionType === 'multi_choice' ? 1 : 0);
+
+  // Partition independent question numbers: Single Choice first, then Multi Choice
+  const indSingleIndices = independentIndices.slice(0, indSingleTotal);
+  const indMultiIndices = independentIndices.slice(indSingleTotal, indSingleTotal + indMultiTotal);
+
+  const activeSingleImageIndices = (imageQuestionIndices || []).filter(i => indSingleIndices.includes(i));
+  const activeMultiImageIndices = (imageQuestionIndices || []).filter(i => indMultiIndices.includes(i));
+  const activeSingleImageCount = activeSingleImageIndices.length;
+  const activeMultiImageCount = activeMultiImageIndices.length;
+
   // Derived counts for visual summary: only independent questions can have question-level diagrams!
   const activeQuestionImagesCount = isAbstractReasoning
     ? totalQuestions
     : (imageMode === 'all'
       ? independentIndices.length
-      : (imageQuestionIndices || []).filter(i => independentIndices.includes(i)).length);
+      : activeSingleImageCount + activeMultiImageCount);
   const hasPassageImage = !isAbstractReasoning && isPassageSet && Boolean(requirePassageImage);
   const totalImagesCount = isAbstractReasoning ? totalQuestions : (activeQuestionImagesCount + (hasPassageImage ? 1 : 0));
 
@@ -1072,54 +1091,12 @@ export default function GeneratorPanel({
               </div>
             )}
 
-            {/* 1 Independent Question Diagram Toggle */}
-            {!isAbstractReasoning && numIndependentQs === 1 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed var(--border-light)' }}>
+            {/* Independent Questions with Diagrams - Split by Answer Style */}
+            {!isAbstractReasoning && numIndependentQs > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed var(--border-light)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    {passageMode === 'single_passage' ? `Independent Q${independentIndices[0]} Diagram` : 'Question Diagram'}
-                  </span>
-                  <span className="badge-minimal" style={{ fontSize: '0.6rem' }}>
-                    {(imageQuestionIndices || []).includes(independentIndices[0]) ? 'With Diagram ($0.0020)' : 'Text Only'}
-                  </span>
-                </div>
-                <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-                  {[
-                    { id: 'no', label: 'No Diagram' },
-                    { id: 'yes', label: 'With Diagram' }
-                  ].map(opt => {
-                    const hasImage = (imageQuestionIndices || []).includes(independentIndices[0]);
-                    const isSel = opt.id === 'yes' ? hasImage : !hasImage;
-                    return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        id={`btn-ind-single-diag-${opt.id}`}
-                        onClick={() => {
-                          if (opt.id === 'yes') {
-                            if (setImageCount) setImageCount(1, independentIndices);
-                          } else {
-                            if (setImageCount) setImageCount(0, independentIndices);
-                          }
-                        }}
-                        className={`pill-track-btn ${isSel ? 'active' : ''}`}
-                        style={{ width: '100%', padding: '5px' }}
-                      >
-                        {opt.id === 'yes' && <Image size={11} />}
-                        <span>{opt.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Multiple Independent Questions Diagram Stepper */}
-            {!isAbstractReasoning && numIndependentQs > 1 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed var(--border-light)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    {passageMode === 'single_passage' ? `Independent Qs with Diagrams` : `Questions with Diagrams`}
+                    {passageMode === 'single_passage' ? 'Independent Qs with Diagrams' : 'Questions with Diagrams'}
                   </span>
                   <span className="badge-minimal" style={{ fontSize: '0.625rem' }}>
                     {activeQuestionImagesCount > 0
@@ -1128,120 +1105,351 @@ export default function GeneratorPanel({
                   </span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {/* 1. Single Choice Diagrams Control */}
+                {indSingleTotal > 0 && (
                   <div
                     style={{
                       display: 'flex',
-                      alignItems: 'center',
+                      flexDirection: 'column',
+                      gap: '4px',
+                      padding: '6px 8px',
                       background: 'var(--bg-surface-subtle)',
-                      border: '1px solid var(--border-light)',
                       borderRadius: 'var(--radius-xs)',
-                      padding: '2px',
-                      flex: 1
+                      border: '1px solid var(--border-light)'
                     }}
                   >
-                    <button
-                      type="button"
-                      id="btn-img-count-minus"
-                      onClick={() => setImageCount && setImageCount(activeQuestionImagesCount - 1, independentIndices)}
-                      disabled={activeQuestionImagesCount <= 0}
-                      style={{
-                        width: '26px',
-                        height: '24px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: 'none',
-                        background: 'transparent',
-                        color: activeQuestionImagesCount <= 0 ? 'var(--text-disabled)' : 'var(--text-primary)',
-                        cursor: activeQuestionImagesCount <= 0 ? 'not-allowed' : 'pointer'
-                      }}
-                      title="Decrease questions with diagrams"
-                    >
-                      <Minus size={11} />
-                    </button>
-                    <div style={{ flex: 1, textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, color: activeQuestionImagesCount > 0 ? 'var(--brand-primary)' : 'var(--text-primary)' }}>
-                      {activeQuestionImagesCount} of {numIndependentQs}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                        Single Choice Diagrams
+                      </span>
+                      <span className="badge-minimal" style={{ fontSize: '0.585rem' }}>
+                        {activeSingleImageCount > 0
+                          ? `${activeSingleImageCount} of ${indSingleTotal} ($${(activeSingleImageCount * 0.002).toFixed(4)})`
+                          : 'No Diagrams'}
+                      </span>
                     </div>
-                    <button
-                      type="button"
-                      id="btn-img-count-plus"
-                      onClick={() => setImageCount && setImageCount(activeQuestionImagesCount + 1, independentIndices)}
-                      disabled={activeQuestionImagesCount >= numIndependentQs}
-                      style={{
-                        width: '26px',
-                        height: '24px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: 'none',
-                        background: 'transparent',
-                        color: activeQuestionImagesCount >= numIndependentQs ? 'var(--text-disabled)' : 'var(--text-primary)',
-                        cursor: activeQuestionImagesCount >= numIndependentQs ? 'not-allowed' : 'pointer'
-                      }}
-                      title="Increase questions with diagrams"
-                    >
-                      <Plus size={11} />
-                    </button>
-                  </div>
 
-                  {/* Quick Chips for Diagram Count */}
-                  <div style={{ display: 'flex', gap: '3px' }}>
-                    {Array.from({ length: numIndependentQs + 1 }, (_, i) => i).map(cnt => (
-                      <button
-                        key={cnt}
-                        type="button"
-                        id={`btn-chip-img-qty-${cnt}`}
-                        onClick={() => setImageCount && setImageCount(cnt, independentIndices)}
-                        style={{
-                          padding: '4px 7px',
-                          borderRadius: 'var(--radius-xs)',
-                          fontSize: '0.675rem',
-                          fontWeight: activeQuestionImagesCount === cnt ? 600 : 400,
-                          background: activeQuestionImagesCount === cnt ? 'var(--brand-primary)' : 'var(--bg-surface-subtle)',
-                          color: activeQuestionImagesCount === cnt ? '#ffffff' : 'var(--text-muted)',
-                          border: activeQuestionImagesCount === cnt ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        {cnt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                    {indSingleTotal === 1 ? (
+                      <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                        {[
+                          { id: 'no', label: 'No Diagram' },
+                          { id: 'yes', label: 'With Diagram' }
+                        ].map(opt => {
+                          const hasImage = activeSingleImageCount > 0;
+                          const isSel = opt.id === 'yes' ? hasImage : !hasImage;
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              id={`btn-single-choice-diag-${opt.id}`}
+                              onClick={() => {
+                                if (setSingleImageCount) {
+                                  setSingleImageCount(opt.id === 'yes' ? 1 : 0, indSingleIndices, indMultiIndices);
+                                }
+                              }}
+                              className={`pill-track-btn ${isSel ? 'active' : ''}`}
+                              style={{ width: '100%', padding: '4px' }}
+                            >
+                              {opt.id === 'yes' && <Image size={11} />}
+                              <span>{opt.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              background: 'var(--bg-card)',
+                              border: '1px solid var(--border-light)',
+                              borderRadius: 'var(--radius-xs)',
+                              padding: '2px',
+                              flex: 1
+                            }}
+                          >
+                            <button
+                              type="button"
+                              id="btn-single-img-minus"
+                              onClick={() => setSingleImageCount && setSingleImageCount(activeSingleImageCount - 1, indSingleIndices, indMultiIndices)}
+                              disabled={activeSingleImageCount <= 0}
+                              style={{
+                                width: '22px',
+                                height: '22px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: 'none',
+                                background: 'transparent',
+                                color: activeSingleImageCount <= 0 ? 'var(--text-disabled)' : 'var(--text-primary)',
+                                cursor: activeSingleImageCount <= 0 ? 'not-allowed' : 'pointer'
+                              }}
+                              title="Decrease single choice questions with diagrams"
+                            >
+                              <Minus size={10} />
+                            </button>
+                            <div style={{ flex: 1, textAlign: 'center', fontSize: '0.725rem', fontWeight: 700, color: activeSingleImageCount > 0 ? 'var(--brand-primary)' : 'var(--text-primary)' }}>
+                              {activeSingleImageCount} of {indSingleTotal}
+                            </div>
+                            <button
+                              type="button"
+                              id="btn-single-img-plus"
+                              onClick={() => setSingleImageCount && setSingleImageCount(activeSingleImageCount + 1, indSingleIndices, indMultiIndices)}
+                              disabled={activeSingleImageCount >= indSingleTotal}
+                              style={{
+                                width: '22px',
+                                height: '22px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: 'none',
+                                background: 'transparent',
+                                color: activeSingleImageCount >= indSingleTotal ? 'var(--text-disabled)' : 'var(--text-primary)',
+                                cursor: activeSingleImageCount >= indSingleTotal ? 'not-allowed' : 'pointer'
+                              }}
+                              title="Increase single choice questions with diagrams"
+                            >
+                              <Plus size={10} />
+                            </button>
+                          </div>
 
-                {/* Optional Fine-Grained Slot Toggles */}
-                {activeQuestionImagesCount > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '0.625rem', color: 'var(--text-muted)' }}>Assigned to:</span>
-                    {independentIndices.map(qNum => {
-                      const isActive = (imageQuestionIndices || []).includes(qNum);
-                      return (
-                        <button
-                          key={qNum}
-                          type="button"
-                          id={`btn-slot-img-${qNum}`}
-                          onClick={() => toggleQuestionImage && toggleQuestionImage(qNum)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '3px',
-                            padding: '2px 6px',
-                            borderRadius: 'var(--radius-xs)',
-                            fontSize: '0.65rem',
-                            fontWeight: 600,
-                            background: isActive ? 'var(--brand-light)' : 'var(--bg-surface-subtle)',
-                            color: isActive ? 'var(--brand-primary)' : 'var(--text-muted)',
-                            border: `1px solid ${isActive ? 'var(--brand-primary)' : 'var(--border-light)'}`,
-                            cursor: 'pointer'
-                          }}
-                          title={`Toggle diagram for Question ${qNum}`}
-                        >
-                          <span>Q{qNum}</span>
-                          {isActive && <Check size={9} strokeWidth={3} />}
-                        </button>
-                      );
-                    })}
+                          {/* Quick Chips */}
+                          <div style={{ display: 'flex', gap: '2px' }}>
+                            {Array.from({ length: indSingleTotal + 1 }, (_, i) => i).map(cnt => (
+                              <button
+                                key={cnt}
+                                type="button"
+                                id={`btn-chip-single-img-${cnt}`}
+                                onClick={() => setSingleImageCount && setSingleImageCount(cnt, indSingleIndices, indMultiIndices)}
+                                style={{
+                                  padding: '3px 6px',
+                                  borderRadius: 'var(--radius-xs)',
+                                  fontSize: '0.65rem',
+                                  fontWeight: activeSingleImageCount === cnt ? 600 : 400,
+                                  background: activeSingleImageCount === cnt ? 'var(--brand-primary)' : 'var(--bg-card)',
+                                  color: activeSingleImageCount === cnt ? '#ffffff' : 'var(--text-muted)',
+                                  border: activeSingleImageCount === cnt ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                {cnt}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Slot Chips */}
+                        {activeSingleImageCount > 0 && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>Assigned:</span>
+                            {indSingleIndices.map(qNum => {
+                              const isActive = (imageQuestionIndices || []).includes(qNum);
+                              return (
+                                <button
+                                  key={qNum}
+                                  type="button"
+                                  id={`btn-slot-single-img-${qNum}`}
+                                  onClick={() => toggleQuestionImage && toggleQuestionImage(qNum)}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '2px',
+                                    padding: '1px 5px',
+                                    borderRadius: 'var(--radius-xs)',
+                                    fontSize: '0.625rem',
+                                    fontWeight: 600,
+                                    background: isActive ? 'var(--brand-light)' : 'var(--bg-card)',
+                                    color: isActive ? 'var(--brand-primary)' : 'var(--text-muted)',
+                                    border: `1px solid ${isActive ? 'var(--brand-primary)' : 'var(--border-light)'}`,
+                                    cursor: 'pointer'
+                                  }}
+                                  title={`Toggle diagram for Question ${qNum}`}
+                                >
+                                  <span>Q{qNum}</span>
+                                  {isActive && <Check size={8} strokeWidth={3} />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* 2. Multiple Choice Diagrams Control */}
+                {indMultiTotal > 0 && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                      padding: '6px 8px',
+                      background: 'var(--bg-surface-subtle)',
+                      borderRadius: 'var(--radius-xs)',
+                      border: '1px solid var(--border-light)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                        Multiple Choice Diagrams
+                      </span>
+                      <span className="badge-minimal" style={{ fontSize: '0.585rem' }}>
+                        {activeMultiImageCount > 0
+                          ? `${activeMultiImageCount} of ${indMultiTotal} ($${(activeMultiImageCount * 0.002).toFixed(4)})`
+                          : 'No Diagrams'}
+                      </span>
+                    </div>
+
+                    {indMultiTotal === 1 ? (
+                      <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                        {[
+                          { id: 'no', label: 'No Diagram' },
+                          { id: 'yes', label: 'With Diagram' }
+                        ].map(opt => {
+                          const hasImage = activeMultiImageCount > 0;
+                          const isSel = opt.id === 'yes' ? hasImage : !hasImage;
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              id={`btn-multi-choice-diag-${opt.id}`}
+                              onClick={() => {
+                                if (setMultiImageCount) {
+                                  setMultiImageCount(opt.id === 'yes' ? 1 : 0, indSingleIndices, indMultiIndices);
+                                }
+                              }}
+                              className={`pill-track-btn ${isSel ? 'active' : ''}`}
+                              style={{ width: '100%', padding: '4px' }}
+                            >
+                              {opt.id === 'yes' && <Image size={11} />}
+                              <span>{opt.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              background: 'var(--bg-card)',
+                              border: '1px solid var(--border-light)',
+                              borderRadius: 'var(--radius-xs)',
+                              padding: '2px',
+                              flex: 1
+                            }}
+                          >
+                            <button
+                              type="button"
+                              id="btn-multi-img-minus"
+                              onClick={() => setMultiImageCount && setMultiImageCount(activeMultiImageCount - 1, indSingleIndices, indMultiIndices)}
+                              disabled={activeMultiImageCount <= 0}
+                              style={{
+                                width: '22px',
+                                height: '22px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: 'none',
+                                background: 'transparent',
+                                color: activeMultiImageCount <= 0 ? 'var(--text-disabled)' : 'var(--text-primary)',
+                                cursor: activeMultiImageCount <= 0 ? 'not-allowed' : 'pointer'
+                              }}
+                              title="Decrease multiple choice questions with diagrams"
+                            >
+                              <Minus size={10} />
+                            </button>
+                            <div style={{ flex: 1, textAlign: 'center', fontSize: '0.725rem', fontWeight: 700, color: activeMultiImageCount > 0 ? 'var(--brand-indigo)' : 'var(--text-primary)' }}>
+                              {activeMultiImageCount} of {indMultiTotal}
+                            </div>
+                            <button
+                              type="button"
+                              id="btn-multi-img-plus"
+                              onClick={() => setMultiImageCount && setMultiImageCount(activeMultiImageCount + 1, indSingleIndices, indMultiIndices)}
+                              disabled={activeMultiImageCount >= indMultiTotal}
+                              style={{
+                                width: '22px',
+                                height: '22px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: 'none',
+                                background: 'transparent',
+                                color: activeMultiImageCount >= indMultiTotal ? 'var(--text-disabled)' : 'var(--text-primary)',
+                                cursor: activeMultiImageCount >= indMultiTotal ? 'not-allowed' : 'pointer'
+                              }}
+                              title="Increase multiple choice questions with diagrams"
+                            >
+                              <Plus size={10} />
+                            </button>
+                          </div>
+
+                          {/* Quick Chips */}
+                          <div style={{ display: 'flex', gap: '2px' }}>
+                            {Array.from({ length: indMultiTotal + 1 }, (_, i) => i).map(cnt => (
+                              <button
+                                key={cnt}
+                                type="button"
+                                id={`btn-chip-multi-img-${cnt}`}
+                                onClick={() => setMultiImageCount && setMultiImageCount(cnt, indSingleIndices, indMultiIndices)}
+                                style={{
+                                  padding: '3px 6px',
+                                  borderRadius: 'var(--radius-xs)',
+                                  fontSize: '0.65rem',
+                                  fontWeight: activeMultiImageCount === cnt ? 600 : 400,
+                                  background: activeMultiImageCount === cnt ? 'var(--brand-indigo)' : 'var(--bg-card)',
+                                  color: activeMultiImageCount === cnt ? '#ffffff' : 'var(--text-muted)',
+                                  border: activeMultiImageCount === cnt ? '1px solid var(--brand-indigo)' : '1px solid var(--border-light)',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                {cnt}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Slot Chips */}
+                        {activeMultiImageCount > 0 && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>Assigned:</span>
+                            {indMultiIndices.map(qNum => {
+                              const isActive = (imageQuestionIndices || []).includes(qNum);
+                              return (
+                                <button
+                                  key={qNum}
+                                  type="button"
+                                  id={`btn-slot-multi-img-${qNum}`}
+                                  onClick={() => toggleQuestionImage && toggleQuestionImage(qNum)}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '2px',
+                                    padding: '1px 5px',
+                                    borderRadius: 'var(--radius-xs)',
+                                    fontSize: '0.625rem',
+                                    fontWeight: 600,
+                                    background: isActive ? 'var(--brand-light)' : 'var(--bg-card)',
+                                    color: isActive ? 'var(--brand-indigo)' : 'var(--text-muted)',
+                                    border: `1px solid ${isActive ? 'var(--brand-indigo)' : 'var(--border-light)'}`,
+                                    cursor: 'pointer'
+                                  }}
+                                  title={`Toggle diagram for Question ${qNum}`}
+                                >
+                                  <span>Q{qNum}</span>
+                                  {isActive && <Check size={8} strokeWidth={3} />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 )}
               </div>

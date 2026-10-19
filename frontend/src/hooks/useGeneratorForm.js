@@ -139,6 +139,46 @@ export function useGeneratorForm(initialValues = {}) {
     });
   }, []);
 
+  const setSingleImageCount = useCallback((count, singleIndices = [], multiIndices = []) => {
+    setFormData(prev => {
+      const current = prev.imageQuestionIndices || [];
+      const clamped = Math.max(0, Math.min(singleIndices.length, count));
+      const newSingleIndices = singleIndices.slice(0, clamped);
+      const activeMultiIndices = current.filter(i => multiIndices.includes(i));
+      const combined = [...newSingleIndices, ...activeMultiIndices].sort((a, b) => a - b);
+      const totalCandidateCount = singleIndices.length + multiIndices.length;
+      let mode = 'specific';
+      if (combined.length === 0) mode = 'none';
+      else if (combined.length === totalCandidateCount && totalCandidateCount > 0) mode = 'all';
+      return {
+        ...prev,
+        imageMode: mode,
+        imageQuestionIndices: combined,
+        requireImage: combined.length > 0 || prev.requirePassageImage
+      };
+    });
+  }, []);
+
+  const setMultiImageCount = useCallback((count, singleIndices = [], multiIndices = []) => {
+    setFormData(prev => {
+      const current = prev.imageQuestionIndices || [];
+      const clamped = Math.max(0, Math.min(multiIndices.length, count));
+      const newMultiIndices = multiIndices.slice(0, clamped);
+      const activeSingleIndices = current.filter(i => singleIndices.includes(i));
+      const combined = [...activeSingleIndices, ...newMultiIndices].sort((a, b) => a - b);
+      const totalCandidateCount = singleIndices.length + multiIndices.length;
+      let mode = 'specific';
+      if (combined.length === 0) mode = 'none';
+      else if (combined.length === totalCandidateCount && totalCandidateCount > 0) mode = 'all';
+      return {
+        ...prev,
+        imageMode: mode,
+        imageQuestionIndices: combined,
+        requireImage: combined.length > 0 || prev.requirePassageImage
+      };
+    });
+  }, []);
+
   const resetForm = useCallback((overrides = {}) => {
     setFormData({
       ...DEFAULT_GENERATOR_FORM,
@@ -155,6 +195,8 @@ export function useGeneratorForm(initialValues = {}) {
     togglePassageImage,
     setImageMode,
     setImageCount,
+    setSingleImageCount,
+    setMultiImageCount,
     setRequirePassageImage,
     resetForm
   };
