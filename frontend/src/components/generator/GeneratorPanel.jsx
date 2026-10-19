@@ -85,12 +85,23 @@ export default function GeneratorPanel({
   const isPassageSet = totalQuestions > 1 ? (passageMode === 'single_passage') : (passageRequired === 'Yes');
   const isAbstractReasoning = selectedSection === 'abstract_reasoning';
 
-  // Derived counts for visual summary
+  // Number of passage questions vs independent questions
+  const numPassageQs = totalQuestions > 1
+    ? (passageMode === 'single_passage' ? Math.min(passageQuestionCount, totalQuestions) : 0)
+    : (passageRequired === 'Yes' ? 1 : 0);
+  const numIndependentQs = Math.max(0, totalQuestions - numPassageQs);
+
+  // 1-based question numbers that are independent (questions other than passage)
+  // In single passage sets, questions 1..numPassageQs reference the passage.
+  // Independent questions occupy (numPassageQs + 1)..totalQuestions.
+  const independentIndices = Array.from({ length: totalQuestions }, (_, i) => i + 1).slice(numPassageQs);
+
+  // Derived counts for visual summary: only independent questions can have question-level diagrams!
   const activeQuestionImagesCount = isAbstractReasoning
     ? totalQuestions
     : (imageMode === 'all'
-      ? totalQuestions
-      : (imageQuestionIndices || []).filter(i => i <= totalQuestions).length);
+      ? independentIndices.length
+      : (imageQuestionIndices || []).filter(i => independentIndices.includes(i)).length);
   const hasPassageImage = !isAbstractReasoning && isPassageSet && Boolean(requirePassageImage);
   const totalImagesCount = isAbstractReasoning ? totalQuestions : (activeQuestionImagesCount + (hasPassageImage ? 1 : 0));
 
@@ -1061,16 +1072,58 @@ export default function GeneratorPanel({
               </div>
             )}
 
-            {/* Question Diagram Selection (Matching Style Stepper) */}
-            {!isAbstractReasoning && (
+            {/* 1 Independent Question Diagram Toggle */}
+            {!isAbstractReasoning && numIndependentQs === 1 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed var(--border-light)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    Questions with Diagrams
+                    {passageMode === 'single_passage' ? `Independent Q${independentIndices[0]} Diagram` : 'Question Diagram'}
+                  </span>
+                  <span className="badge-minimal" style={{ fontSize: '0.6rem' }}>
+                    {(imageQuestionIndices || []).includes(independentIndices[0]) ? 'With Diagram ($0.0020)' : 'Text Only'}
+                  </span>
+                </div>
+                <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                  {[
+                    { id: 'no', label: 'No Diagram' },
+                    { id: 'yes', label: 'With Diagram' }
+                  ].map(opt => {
+                    const hasImage = (imageQuestionIndices || []).includes(independentIndices[0]);
+                    const isSel = opt.id === 'yes' ? hasImage : !hasImage;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        id={`btn-ind-single-diag-${opt.id}`}
+                        onClick={() => {
+                          if (opt.id === 'yes') {
+                            if (setImageCount) setImageCount(1, independentIndices);
+                          } else {
+                            if (setImageCount) setImageCount(0, independentIndices);
+                          }
+                        }}
+                        className={`pill-track-btn ${isSel ? 'active' : ''}`}
+                        style={{ width: '100%', padding: '5px' }}
+                      >
+                        {opt.id === 'yes' && <Image size={11} />}
+                        <span>{opt.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Multiple Independent Questions Diagram Stepper */}
+            {!isAbstractReasoning && numIndependentQs > 1 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed var(--border-light)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    {passageMode === 'single_passage' ? `Independent Qs with Diagrams` : `Questions with Diagrams`}
                   </span>
                   <span className="badge-minimal" style={{ fontSize: '0.625rem' }}>
                     {activeQuestionImagesCount > 0
-                      ? `${activeQuestionImagesCount} of ${totalQuestions} Qs ($${(activeQuestionImagesCount * 0.002).toFixed(4)})`
+                      ? `${activeQuestionImagesCount} of ${numIndependentQs} Qs ($${(activeQuestionImagesCount * 0.002).toFixed(4)})`
                       : 'No Diagrams'}
                   </span>
                 </div>
@@ -1090,7 +1143,7 @@ export default function GeneratorPanel({
                     <button
                       type="button"
                       id="btn-img-count-minus"
-                      onClick={() => setImageCount && setImageCount(activeQuestionImagesCount - 1)}
+                      onClick={() => setImageCount && setImageCount(activeQuestionImagesCount - 1, independentIndices)}
                       disabled={activeQuestionImagesCount <= 0}
                       style={{
                         width: '26px',
@@ -1108,13 +1161,13 @@ export default function GeneratorPanel({
                       <Minus size={11} />
                     </button>
                     <div style={{ flex: 1, textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, color: activeQuestionImagesCount > 0 ? 'var(--brand-primary)' : 'var(--text-primary)' }}>
-                      {activeQuestionImagesCount} of {totalQuestions}
+                      {activeQuestionImagesCount} of {numIndependentQs}
                     </div>
                     <button
                       type="button"
                       id="btn-img-count-plus"
-                      onClick={() => setImageCount && setImageCount(activeQuestionImagesCount + 1)}
-                      disabled={activeQuestionImagesCount >= totalQuestions}
+                      onClick={() => setImageCount && setImageCount(activeQuestionImagesCount + 1, independentIndices)}
+                      disabled={activeQuestionImagesCount >= numIndependentQs}
                       style={{
                         width: '26px',
                         height: '24px',
@@ -1123,8 +1176,8 @@ export default function GeneratorPanel({
                         justifyContent: 'center',
                         border: 'none',
                         background: 'transparent',
-                        color: activeQuestionImagesCount >= totalQuestions ? 'var(--text-disabled)' : 'var(--text-primary)',
-                        cursor: activeQuestionImagesCount >= totalQuestions ? 'not-allowed' : 'pointer'
+                        color: activeQuestionImagesCount >= numIndependentQs ? 'var(--text-disabled)' : 'var(--text-primary)',
+                        cursor: activeQuestionImagesCount >= numIndependentQs ? 'not-allowed' : 'pointer'
                       }}
                       title="Increase questions with diagrams"
                     >
@@ -1134,12 +1187,12 @@ export default function GeneratorPanel({
 
                   {/* Quick Chips for Diagram Count */}
                   <div style={{ display: 'flex', gap: '3px' }}>
-                    {Array.from({ length: totalQuestions + 1 }, (_, i) => i).map(cnt => (
+                    {Array.from({ length: numIndependentQs + 1 }, (_, i) => i).map(cnt => (
                       <button
                         key={cnt}
                         type="button"
                         id={`btn-chip-img-qty-${cnt}`}
-                        onClick={() => setImageCount && setImageCount(cnt)}
+                        onClick={() => setImageCount && setImageCount(cnt, independentIndices)}
                         style={{
                           padding: '4px 7px',
                           borderRadius: 'var(--radius-xs)',
@@ -1161,7 +1214,7 @@ export default function GeneratorPanel({
                 {activeQuestionImagesCount > 0 && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: '0.625rem', color: 'var(--text-muted)' }}>Assigned to:</span>
-                    {Array.from({ length: totalQuestions }, (_, i) => i + 1).map(qNum => {
+                    {independentIndices.map(qNum => {
                       const isActive = (imageQuestionIndices || []).includes(qNum);
                       return (
                         <button
@@ -1295,8 +1348,8 @@ export default function GeneratorPanel({
               </div>
             </div>
 
-            {/* Question Diagram Toggle for 1 question */}
-            {!isAbstractReasoning ? (
+            {/* Question Diagram Toggle for 1 question (Only for Direct Questions / Independent) */}
+            {!isAbstractReasoning && passageRequired === 'No' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -1320,9 +1373,9 @@ export default function GeneratorPanel({
                         id={`btn-single-diag-${opt.id}`}
                         onClick={() => {
                           if (opt.id === 'yes') {
-                            if (setImageCount) setImageCount(1);
+                            if (setImageCount) setImageCount(1, [1]);
                           } else {
-                            if (setImageCount) setImageCount(0);
+                            if (setImageCount) setImageCount(0, [1]);
                           }
                         }}
                         className={`pill-track-btn ${isSel ? 'active' : ''}`}
@@ -1335,7 +1388,9 @@ export default function GeneratorPanel({
                   })}
                 </div>
               </div>
-            ) : (
+            )}
+
+            {isAbstractReasoning && (
               <div
                 style={{
                   padding: '6px 8px',

@@ -1097,12 +1097,12 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
                     if section_val in (UCATSection.ABSTRACT_REASONING.value, "AR"):
                         requires_image = True
-                    elif req_img_indices is not None:
-                        # Granular question-level selection by 1-based question number
-                        requires_image = (idx + 1) in req_img_indices
                     elif is_passage_item:
-                        # In legacy passage mode without granular indices, visual stimulus belongs to passage
+                        # Passage question items share the passage diagram; they NEVER have internal images
                         requires_image = False
+                    elif req_img_indices is not None:
+                        # Granular question-level selection for independent/standalone items
+                        requires_image = (idx + 1) in req_img_indices
                     elif explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
                         requires_image = True
                     elif section_val in (

@@ -110,11 +110,12 @@ export function useGeneratorForm(initialValues = {}) {
     });
   }, []);
 
-  const setImageCount = useCallback((count) => {
+  const setImageCount = useCallback((count, candidateIndices = null) => {
     setFormData(prev => {
       const total = prev.totalQuestions || 1;
-      const clamped = Math.max(0, Math.min(total, count));
-      const indices = Array.from({ length: clamped }, (_, i) => i + 1);
+      const targetList = candidateIndices || Array.from({ length: total }, (_, i) => i + 1);
+      const clamped = Math.max(0, Math.min(targetList.length, count));
+      const indices = targetList.slice(0, clamped);
       let mode = 'specific';
       if (clamped === 0) mode = 'none';
       else if (clamped === total) mode = 'all';
