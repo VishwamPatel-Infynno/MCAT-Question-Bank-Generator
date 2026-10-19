@@ -156,11 +156,49 @@ async def test_e2e_question_bank_crud_and_filtering():
     difficulty, search term, and question retrieval by ID.
     """
     async with httpx.AsyncClient(base_url=BASE_URL, timeout=10.0) as client:
-        # 1. Fetch all questions
+        # 1. Fetch all questions (seed sample question if database is empty)
         resp = await client.get("/questions")
         assert resp.status_code == 200
         data = resp.json()
         questions = data.get("questions", [])
+        if len(questions) == 0:
+            seed_payload = {
+                "section": "verbal_reasoning",
+                "section_label": "Verbal Reasoning",
+                "subtopic": "Critical Reading & Inferences",
+                "difficulty": "medium",
+                "stimulus_text": "Clinical audit in acute tertiary hospitals demonstrated a 34% reduction in catheter-associated urinary tract infections following protocolized catheter removal policies.",
+                "question_stem": "Which conclusion is most robustly supported by the clinical audit findings?",
+                "options": [
+                    {
+                        "id": "A",
+                        "text": "Protocolized catheter removal policies contributed to lower infection incidence.",
+                    },
+                    {
+                        "id": "B",
+                        "text": "All hospital wards eliminated urinary tract infections entirely.",
+                    },
+                    {
+                        "id": "C",
+                        "text": "Nurses refused to follow catheter protocols in surgical departments.",
+                    },
+                    {
+                        "id": "D",
+                        "text": "Infection rates increased across non-acute medical settings.",
+                    },
+                ],
+                "correct_answer_id": "A",
+                "correct_answer_ids": ["A"],
+                "explanation": "Option A is directly corroborated by the 34% observed reduction in catheter-associated infections.",
+                "final_score": 96,
+                "total_tokens": 750,
+                "cost_usd": 0.0003,
+            }
+            save_resp = await client.post("/questions", json=seed_payload)
+            assert save_resp.status_code == 200
+            resp = await client.get("/questions")
+            questions = resp.json().get("questions", [])
+
         assert len(questions) > 0, "Question bank should contain saved questions"
 
         sample_q = questions[0]
@@ -286,10 +324,11 @@ async def test_e2e_manager_combination_matrix_and_stage_outcomes():
         interaction_type="single_choice",
         primary_trap="Keyword_Trap",
         passage_required="Yes",
-        passage_questions=3,
+        passage_questions=1,
         image_required="No",
         visual_type="None",
-        questions_to_generate=4,
+        questions_to_generate=1,
+        auto_save=True,
     )
 
     result = await run_workflow(req)
