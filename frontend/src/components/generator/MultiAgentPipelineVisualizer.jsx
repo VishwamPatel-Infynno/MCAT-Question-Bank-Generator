@@ -5,8 +5,7 @@ import {
   RotateCcw,
   PenTool,
   CheckCircle2,
-  Terminal,
-  Check
+  Terminal
 } from 'lucide-react';
 
 export default function MultiAgentPipelineVisualizer({
@@ -16,7 +15,9 @@ export default function MultiAgentPipelineVisualizer({
   isGenerating = false,
   latestReview = null,
   totalBatch = 1,
-  perQuestionState = {}
+  perQuestionState = {},
+  liveStatusMessage = null,
+  batchProgress = null
 }) {
   const [elapsedTime, setElapsedTime] = useState('0.0');
   const [showLogs, setShowLogs] = useState(false);
@@ -38,6 +39,8 @@ export default function MultiAgentPipelineVisualizer({
   // For multi-question swarms, inspect perQuestionState to see which agents are actively processing
   const qList = Object.values(perQuestionState);
   const isSwarm = totalBatch > 1 && qList.length > 0;
+  const completedCount = qList.filter(q => q.isComplete).length;
+  const progressPercent = Math.min(100, Math.round((completedCount / Math.max(1, totalBatch)) * 100));
 
   // Swarm-aware active states
   const isGenActive = isSwarm
@@ -67,6 +70,21 @@ export default function MultiAgentPipelineVisualizer({
 
   const hasRegenFired = iterationCount > 1 || events.some(e => e.agent_name === 'Question Improver' || e.agent_name === 'Question Re-Generator');
   const hasImgCompleted = events.some(e => (e.agent_name === 'Diagram & Chart Maker' || e.agent_name === 'Image Generator') && e.event_type === 'agent_complete');
+
+  // Determine the most descriptive live activity message
+  const activeMessage = liveStatusMessage
+    || batchProgress?.message
+    || (isGenerating
+      ? (isGenActive
+          ? (totalBatch > 1 ? `Question Writer: Drafting batch questions in parallel...` : `Question Writer: Drafting question and options...`)
+          : isRevActive
+          ? `Quality Reviewer: Validating psychometric criteria and trap rigor...`
+          : isRegenActive
+          ? `Question Improver: Refining and resolving ambiguities...`
+          : isImgActive
+          ? `Diagram Maker: Rendering crisp SVG visual stimulus...`
+          : `AI Team creating questions...`)
+      : null);
 
   const agents = [
     {
@@ -146,8 +164,26 @@ export default function MultiAgentPipelineVisualizer({
             </span>
           </div>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', margin: '2px 0 0' }}>
-            {isGenerating ? 'AI Team Creating Questions...' : 'Automated Quality Checking & Scoring'}
+            {isGenerating ? (totalBatch > 1 ? `AI Team Creating ${totalBatch} Questions...` : 'AI Team Creating Question...') : 'Automated Quality Checking & Scoring'}
           </h3>
+          {isGenerating && activeMessage && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                marginTop: '4px',
+                fontSize: '0.75rem',
+                color: 'var(--brand-primary)',
+                fontWeight: 600
+              }}
+            >
+              <span className="agent-pulse-dot" style={{ width: 6, height: 6 }} />
+              <span style={{ maxWidth: '520px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {activeMessage}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Status / Stopwatch Indicator */}
@@ -157,7 +193,7 @@ export default function MultiAgentPipelineVisualizer({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
+                gap: '8px',
                 padding: '4px 10px',
                 borderRadius: 'var(--radius-xs)',
                 background: 'var(--brand-light)',
@@ -170,7 +206,11 @@ export default function MultiAgentPipelineVisualizer({
               <span className="agent-pulse-dot" />
               <span>{elapsedTime}s</span>
               <span>•</span>
-              <span>Pass {iterationCount}</span>
+              {totalBatch > 1 ? (
+                <span>{completedCount}/{totalBatch} Ready ({progressPercent}%)</span>
+              ) : (
+                <span>Pass {iterationCount}</span>
+              )}
             </div>
           ) : (
             <span
@@ -201,107 +241,6 @@ export default function MultiAgentPipelineVisualizer({
           )}
         </div>
       </div>
-
-      {/* Multi-Question Swarm Status Rail (Parallel Batch Execution) */}
-      {isSwarm && (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            padding: '10px 14px',
-            background: 'var(--bg-surface-subtle)',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--border-light)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.725rem' }}>
-            <span style={{ fontWeight: 700, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span className="agent-pulse-dot" />
-              Live AI Team Tracker ({totalBatch} Questions Creating at Once)
-            </span>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              {qList.filter(q => q.isComplete).length} of {totalBatch} Completed
-            </span>
-          </div>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: `repeat(auto-fit, minmax(140px, 1fr))`,
-              gap: '8px'
-            }}
-          >
-            {qList.sort((a, b) => a.index - b.index).map((qState) => {
-              const isDone = qState.isComplete;
-              const agentShort = (qState.agentName === 'Question Writer' || qState.agentName === 'Question Generator')
-                ? 'Writing'
-                : (qState.agentName === 'Quality Reviewer' || qState.agentName === 'Question Reviewer')
-                ? 'Reviewing'
-                : (qState.agentName === 'Question Improver' || qState.agentName === 'Question Re-Generator')
-                ? 'Improving'
-                : (qState.agentName === 'Diagram & Chart Maker' || qState.agentName === 'Image Generator')
-                ? 'Diagram'
-                : (qState.agentName || 'Queued');
-
-              return (
-                <div
-                  key={qState.index}
-                  style={{
-                    padding: '8px 10px',
-                    borderRadius: 'var(--radius-xs)',
-                    background: isDone ? 'var(--bg-surface-elevated)' : 'var(--bg-surface-elevated)',
-                    border: isDone ? '1px solid var(--border-brand)' : '1px solid var(--border-medium)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                    boxShadow: 'var(--shadow-xs)',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 800, fontSize: '0.75rem', color: 'var(--text-primary)' }}>
-                      Question {qState.index}
-                    </span>
-                    {isDone ? (
-                      <span className="badge badge-emerald" style={{ fontSize: '0.625rem', padding: '1px 6px', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                        <Check size={9} /> {qState.score || 95}/100
-                      </span>
-                    ) : (
-                      <span
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          color: qState.stage === 'remediating' ? 'var(--status-warning)' : 'var(--brand-primary)',
-                          fontWeight: 700,
-                          fontSize: '0.675rem'
-                        }}
-                      >
-                        <span className="agent-pulse-dot" style={{ width: '6px', height: '6px' }} />
-                        {agentShort}
-                      </span>
-                    )}
-                  </div>
-
-                  <div
-                    style={{
-                      fontSize: '0.65rem',
-                      color: 'var(--text-muted)',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}
-                    title={qState.message}
-                  >
-                    {isDone ? 'Verified & Ready' : (qState.message || 'Processing in AI team...')}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* 4-Agent Stepper Grid */}
       <div className="pipeline-stepper">

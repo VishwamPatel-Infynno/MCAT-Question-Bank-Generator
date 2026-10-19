@@ -16,6 +16,7 @@ export { default as QuestionProgressTracker } from './generator/QuestionProgress
 
 // Question & Review
 export { default as QuestionCard } from './question/QuestionCard';
+export { default as QuestionDraftingSkeleton } from './question/QuestionDraftingSkeleton';
 export { default as StagedBatchReview } from './question/StagedBatchReview';
 export { default as VisualStimulusViewer } from './question/VisualStimulusViewer';
 export { default as StageJsonInspector } from './question/StageJsonInspector';

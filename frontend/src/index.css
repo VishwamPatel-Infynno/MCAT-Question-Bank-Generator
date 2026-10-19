@@ -863,5 +863,27 @@ input:focus, select:focus, textarea:focus {
   color: var(--text-secondary);
 }
 
+/* Shimmer Skeleton Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-surface-subtle) 25%,
+    var(--bg-surface-elevated) 50%,
+    var(--bg-surface-subtle) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite ease-in-out;
+  border-radius: var(--radius-xs);
+}
+
 
 

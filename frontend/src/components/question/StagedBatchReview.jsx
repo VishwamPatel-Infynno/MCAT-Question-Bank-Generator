@@ -14,10 +14,8 @@ import {
   ShieldCheck,
   Loader2,
   Clock,
-  PenTool,
   BookOpen,
   FolderCheck,
-  RotateCcw,
   Image as ImageIcon
 } from 'lucide-react';
 import QuestionCard from './QuestionCard';
@@ -660,21 +658,8 @@ export default function StagedBatchReview({
     }
 
     // State B: Question is currently being generated or reviewed in parallel swarm
-    const stage = qState?.stage || 'drafting';
-    const agentName = qState?.agentName || 'Question Writer';
-    const message = qState?.message || `Writing draft for Question ${slotNumber}...`;
     const isMulti = qState?.interactionType === 'multi_choice';
     const isPassage = qState?.passageRequired === 'Yes';
-    const iteration = qState?.iteration || 1;
-
-    const isDraftDone = stage === 'reviewing' || stage === 'remediating' || stage === 'image' || stage === 'completed';
-    const isDraftActive = stage === 'drafting';
-
-    const isAuditDone = stage === 'image' || stage === 'completed';
-    const isAuditActive = stage === 'reviewing' || stage === 'remediating';
-
-    const isStimulusDone = stage === 'completed';
-    const isStimulusActive = stage === 'image';
 
     return (
       <div
@@ -684,9 +669,9 @@ export default function StagedBatchReview({
           padding: '20px 18px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '14px',
+          gap: '16px',
           borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--border-brand)',
+          border: '1px solid var(--border-medium)',
           background: 'var(--bg-surface-elevated)',
           minHeight: '280px',
           boxShadow: 'var(--shadow-sm)',
@@ -721,166 +706,88 @@ export default function StagedBatchReview({
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '5px',
+              gap: '6px',
               padding: '3px 8px',
               borderRadius: 'var(--radius-xs)',
-              background: stage === 'remediating'
-                ? 'rgba(245, 158, 11, 0.12)'
-                : stage === 'reviewing'
-                ? 'rgba(16, 185, 129, 0.12)'
-                : 'var(--brand-light)',
-              border: stage === 'remediating'
-                ? '1px solid var(--status-warning)'
-                : stage === 'reviewing'
-                ? '1px solid var(--status-success)'
-                : '1px solid var(--border-brand)',
+              background: 'var(--brand-light)',
+              border: '1px solid var(--border-brand)',
               fontSize: '0.675rem',
-              fontWeight: 700,
-              color: stage === 'remediating'
-                ? 'var(--status-warning)'
-                : stage === 'reviewing'
-                ? 'var(--status-success)'
-                : 'var(--brand-primary)'
+              fontWeight: 600,
+              color: 'var(--brand-primary)'
             }}
           >
             <span className="agent-pulse-dot" style={{ width: '6px', height: '6px' }} />
-            <span>{agentName}</span>
+            <span>Drafting in progress...</span>
           </div>
         </div>
 
-        {/* Stage Headline & Activity Description */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-            {isDraftActive && <PenTool size={14} color="var(--brand-primary)" />}
-            {stage === 'reviewing' && <ShieldCheck size={14} color="var(--status-success)" />}
-            {stage === 'remediating' && <RotateCcw size={14} color="var(--status-warning)" />}
-            {stage === 'image' && <Sparkles size={14} color="var(--status-purple)" />}
-            <span>
-              {isDraftActive
-                ? 'Drafting Question & Options'
-                : stage === 'reviewing'
-                ? `Quality Review (Check ${iteration})`
-                : stage === 'remediating'
-                ? `Polishing & Improving (Attempt ${iteration})`
-                : stage === 'image'
-                ? 'Drawing Helpful Diagram / Chart'
-                : 'AI Team Creating Question...'}
-            </span>
-          </div>
-          <div
-            style={{
-              marginTop: '6px',
-              padding: '8px 10px',
-              background: 'var(--bg-surface-subtle)',
-              borderRadius: 'var(--radius-xs)',
-              border: '1px solid var(--border-light)',
-              fontSize: '0.725rem',
-              color: 'var(--text-secondary)',
-              lineHeight: 1.4,
-              minHeight: '44px'
-            }}
-          >
-            {message}
-          </div>
+        {/* Question Stem Shimmer Lines */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="skeleton-shimmer" style={{ height: '14px', width: '90%' }} />
+          <div className="skeleton-shimmer" style={{ height: '14px', width: '98%' }} />
+          <div className="skeleton-shimmer" style={{ height: '14px', width: '60%' }} />
         </div>
 
-        {/* 4-Step Micro-Track Stepper */}
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-            <span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI Team Progress</span>
-            <span>Slot {slotNumber} of {effectiveTotal}</span>
-          </div>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: '6px',
-              background: 'var(--bg-surface-subtle)',
-              padding: '6px',
-              borderRadius: 'var(--radius-xs)',
-              border: '1px solid var(--border-light)'
-            }}
-          >
-            {/* Step 1: Write */}
+        {/* Options Shimmer Rows */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {['A', 'B', 'C', 'D'].map((letter, idx) => (
             <div
+              key={letter}
               style={{
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
-                gap: '2px',
-                padding: '4px',
+                gap: '10px',
+                padding: '8px 10px',
                 borderRadius: 'var(--radius-xs)',
-                background: isDraftActive ? 'var(--brand-light)' : isDraftDone ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
-                border: isDraftActive ? '1px solid var(--border-brand)' : '1px solid transparent',
-                color: isDraftDone ? 'var(--status-success)' : isDraftActive ? 'var(--brand-primary)' : 'var(--text-muted)',
-                fontSize: '0.65rem',
-                fontWeight: isDraftActive || isDraftDone ? 700 : 500
+                background: 'var(--bg-surface-subtle)',
+                border: '1px solid var(--border-light)'
               }}
             >
-              {isDraftDone ? <Check size={11} /> : isDraftActive ? <Loader2 size={11} className="spin-slow" /> : <PenTool size={11} />}
-              <span>1. Write</span>
+              <div
+                style={{
+                  width: '22px',
+                  height: '22px',
+                  borderRadius: '50%',
+                  background: 'var(--bg-surface-elevated)',
+                  border: '1px solid var(--border-medium)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  color: 'var(--text-muted)',
+                  flexShrink: 0
+                }}
+              >
+                {letter}
+              </div>
+              <div
+                className="skeleton-shimmer"
+                style={{
+                  height: '12px',
+                  width: `${70 - idx * 8}%`,
+                  minWidth: '40%'
+                }}
+              />
             </div>
+          ))}
+        </div>
 
-            {/* Step 2: Review */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '2px',
-                padding: '4px',
-                borderRadius: 'var(--radius-xs)',
-                background: isAuditActive ? 'rgba(16, 185, 129, 0.1)' : isAuditDone ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
-                border: isAuditActive ? '1px solid var(--status-success)' : '1px solid transparent',
-                color: isAuditDone ? 'var(--status-success)' : isAuditActive ? 'var(--status-success)' : 'var(--text-muted)',
-                fontSize: '0.65rem',
-                fontWeight: isAuditActive || isAuditDone ? 700 : 500
-              }}
-            >
-              {isAuditDone ? <Check size={11} /> : isAuditActive ? <Loader2 size={11} className="spin-slow" /> : <ShieldCheck size={11} />}
-              <span>2. Review</span>
-            </div>
-
-            {/* Step 3: Diagram */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '2px',
-                padding: '4px',
-                borderRadius: 'var(--radius-xs)',
-                background: isStimulusActive ? 'rgba(168, 85, 247, 0.1)' : isStimulusDone ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
-                border: isStimulusActive ? '1px solid var(--status-purple)' : '1px solid transparent',
-                color: isStimulusDone ? 'var(--status-success)' : isStimulusActive ? 'var(--status-purple)' : 'var(--text-muted)',
-                fontSize: '0.65rem',
-                fontWeight: isStimulusActive || isStimulusDone ? 700 : 500
-              }}
-            >
-              {isStimulusDone ? <Check size={11} /> : isStimulusActive ? <Loader2 size={11} className="spin-slow" /> : <Sparkles size={11} />}
-              <span>3. Diagram</span>
-            </div>
-
-            {/* Step 4: Ready */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '2px',
-                padding: '4px',
-                borderRadius: 'var(--radius-xs)',
-                background: 'transparent',
-                color: 'var(--text-muted)',
-                fontSize: '0.65rem',
-                fontWeight: 500
-              }}
-            >
-              <CheckCircle2 size={11} />
-              <span>4. Ready</span>
-            </div>
-          </div>
+        {/* Card Footer Reassurance */}
+        <div
+          style={{
+            marginTop: 'auto',
+            paddingTop: '8px',
+            borderTop: '1px solid var(--border-subtle)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '0.675rem',
+            color: 'var(--text-muted)'
+          }}
+        >
+          <span>Slot {slotNumber} of {effectiveTotal} • Calibrating options</span>
+          <span style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>Autonomous Pipeline Active</span>
         </div>
       </div>
     );
@@ -1361,16 +1268,7 @@ export default function StagedBatchReview({
               const isPassage = q && (q.passage_required === 'Yes' || (q.stimulus_text && q.stimulus_text.trim().split(/\s+/).length >= 180));
 
               if (!q) {
-                // Pending/generating pill with live agent info
-                const agentShort = (qState?.agentName === 'Question Writer' || qState?.agentName === 'Question Generator')
-                  ? 'Writing'
-                  : (qState?.agentName === 'Quality Reviewer' || qState?.agentName === 'Question Reviewer')
-                  ? 'Reviewing'
-                  : (qState?.agentName === 'Question Improver' || qState?.agentName === 'Question Re-Generator')
-                  ? 'Improving'
-                  : (qState?.agentName === 'Diagram & Chart Maker' || qState?.agentName === 'Image Generator')
-                  ? 'Diagram'
-                  : (isGenerating ? 'Writing' : 'Queued');
+                // Pending/generating pill
                 return (
                   <div
                     key={`pill-placeholder-${idx}`}
@@ -1381,7 +1279,7 @@ export default function StagedBatchReview({
                       padding: '8px 12px',
                       borderRadius: 'var(--radius-md)',
                       background: isGenerating ? 'var(--brand-light)' : 'var(--bg-surface-subtle)',
-                      border: isGenerating ? '1px dashed var(--brand-primary)' : '1px dashed var(--border-light)',
+                      border: isGenerating ? '1px dashed var(--border-brand)' : '1px dashed var(--border-light)',
                       color: isGenerating ? 'var(--brand-primary)' : 'var(--text-muted)',
                       fontSize: '0.75rem',
                       opacity: isGenerating ? 1 : 0.6,
@@ -1389,7 +1287,7 @@ export default function StagedBatchReview({
                     }}
                   >
                     {isGenerating ? <Loader2 size={12} className="spin-slow" /> : <Clock size={12} />}
-                    <span>Q{slotNumber} • {agentShort}...</span>
+                    <span>Q{slotNumber} • {isGenerating ? 'Creating...' : 'Queued'}</span>
                   </div>
                 );
               }

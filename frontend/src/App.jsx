@@ -4,6 +4,7 @@ import {
   GeneratorPanel,
   AgentVisualizer,
   QuestionCard,
+  QuestionDraftingSkeleton,
   StagedBatchReview,
   RejectionCard,
   ToastContainer,
@@ -459,6 +460,14 @@ export default function App() {
                       message: 'Question text updated.'
                     });
                   }}
+                />
+              ) : isGenerating ? (
+                <QuestionDraftingSkeleton
+                  sectionLabel={sectionsData?.find(s => s.id === generatorForm.formData.section)?.label || 'UCAT Question'}
+                  difficulty={generatorForm.formData.difficulty || 'Medium'}
+                  interactionType={generatorForm.formData.interactionType || 'single_choice'}
+                  isPassage={generatorForm.formData.passageRequired === 'Yes'}
+                  slotNumber={1}
                 />
               ) : (
                 <StudioBlueprint

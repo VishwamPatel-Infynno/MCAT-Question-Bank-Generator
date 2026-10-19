@@ -5,7 +5,6 @@ import {
   Timer 
 } from 'lucide-react';
 import MultiAgentPipelineVisualizer from './MultiAgentPipelineVisualizer';
-import QuestionProgressTracker from './QuestionProgressTracker';
 
 export default function AgentVisualizer({
   activeAgent,
@@ -39,15 +38,16 @@ export default function AgentVisualizer({
 
   // Swarm & Batch calculation
   const totalBatch = batchProgress?.total || Object.keys(perQuestionState).length || 1;
-  const completedCount = Object.values(perQuestionState).filter(q => q.isComplete).length;
-  const inProgressCount = Math.max(0, totalBatch - completedCount);
-  const progressPercent = Math.min(100, Math.round((completedCount / Math.max(1, totalBatch)) * 100));
 
   // Usage telemetry
   const latestUsageEvent = [...events].reverse().find(e => e.data?.cumulative_usage);
   const cumulativeUsage = latestUsageEvent?.data?.cumulative_usage;
   const totalTokens = cumulativeUsage?.total_tokens || 0;
   const totalCost = cumulativeUsage?.total_cost_usd || 0;
+
+  // Extract latest active event message for single-source status
+  const latestProgressEvent = [...events].reverse().find(e => e.message && e.event_type !== 'agent_complete');
+  const liveStatusMessage = latestProgressEvent?.message || batchProgress?.message || null;
 
   // When Idle (No events, not generating)
   if (!isGenerating && events.length === 0) {
@@ -132,63 +132,21 @@ export default function AgentVisualizer({
     );
   }
 
-  // When Generating: Unified Pipeline Stepper with Live Per-Question Progress Tracker
+  // When Generating: ONE single unified pipeline visualizer with live real-time status
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      {/* Batch Progress Bar when generating multiple questions */}
-      {totalBatch > 1 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', padding: '10px 14px', background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)', boxShadow: 'var(--shadow-sm)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem' }}>
-            <span style={{ fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span className="agent-pulse-dot" />
-              Batch Progress: {completedCount} of {totalBatch} Questions Verified
-              {inProgressCount > 0 && (
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-                  ({inProgressCount} in progress)
-                </span>
-              )}
-            </span>
-            <span style={{ color: 'var(--brand-primary)', fontWeight: 800 }}>
-              {progressPercent}%
-            </span>
-          </div>
-          <div style={{ width: '100%', height: '5px', background: 'var(--bg-surface-subtle)', borderRadius: '3px', overflow: 'hidden' }}>
-            <div
-              style={{
-                width: `${Math.min(100, Math.max(completedCount > 0 ? progressPercent : 12, progressPercent))}%`,
-                height: '100%',
-                background: 'var(--infynno-gradient)',
-                transition: 'width 0.4s ease'
-              }}
-            />
-          </div>
-          {batchProgress?.message && (
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {batchProgress.message}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Live Per-Question Progress Tracker: Immediate zero-wait feedback */}
-      <QuestionProgressTracker
-        perQuestionState={perQuestionState}
-        totalQuestions={totalBatch}
-        isGenerating={isGenerating}
-      />
-
-      {/* Unified Multi-Agent Pipeline & Swarm Stepper */}
-      <MultiAgentPipelineVisualizer
-        isGenerating={isGenerating}
-        activeAgent={activeAgent}
-        iterationCount={iterationCount}
-        events={events}
-        latestReview={latestReview}
-        totalBatch={totalBatch}
-        perQuestionState={perQuestionState}
-      />
-    </div>
+    <MultiAgentPipelineVisualizer
+      isGenerating={isGenerating}
+      activeAgent={activeAgent}
+      iterationCount={iterationCount}
+      events={events}
+      latestReview={latestReview}
+      totalBatch={totalBatch}
+      perQuestionState={perQuestionState}
+      liveStatusMessage={liveStatusMessage}
+      batchProgress={batchProgress}
+    />
   );
 }
+
 
 

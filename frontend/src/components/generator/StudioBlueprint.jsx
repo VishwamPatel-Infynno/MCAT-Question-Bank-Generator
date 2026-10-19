@@ -4,11 +4,13 @@ import {
   Zap,
   BookOpen,
   ArrowRight,
-  FileText
+  FileText,
+  PenTool,
+  ShieldCheck,
+  RotateCcw
 } from 'lucide-react';
 import { SECTION_ICONS, PACING_INFO } from '../../constants/ucat';
 import InfynnoLogo from '../common/InfynnoLogo';
-import MultiAgentPipelineVisualizer from './MultiAgentPipelineVisualizer';
 
 export default function StudioBlueprint({
   selectedSection,
@@ -231,9 +233,79 @@ export default function StudioBlueprint({
       </div>
 
       {/* 4-Agent Autonomous Pipeline Showcase */}
-      <MultiAgentPipelineVisualizer
-        isGenerating={false}
-      />
+      <div
+        className="glass-panel"
+        style={{
+          padding: '16px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--border-medium)',
+          background: 'var(--bg-surface-elevated)'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '0.675rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+              Pipeline Architecture
+            </span>
+            <span style={{ color: 'var(--border-medium)' }}>•</span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+              Autonomous 4-Stage Creation &amp; Validation
+            </span>
+          </div>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+            Fused Multi-Agent System
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '10px'
+          }}
+        >
+          {[
+            { stepNum: '01', title: 'Question Writer', subtitle: 'Authentic clinical vignettes & traps', icon: PenTool, accentColor: 'var(--brand-primary)' },
+            { stepNum: '02', title: 'Quality Reviewer', subtitle: 'Exacting psychometric verification', icon: ShieldCheck, accentColor: 'var(--status-success)' },
+            { stepNum: '03', title: 'Question Improver', subtitle: 'Refines phrasing & distractors', icon: RotateCcw, accentColor: 'var(--status-warning)' },
+            { stepNum: '04', title: 'Diagram Maker', subtitle: 'High-res charts & visual stimuli', icon: Sparkles, accentColor: 'var(--status-purple)' }
+          ].map(step => {
+            const Icon = step.icon;
+            return (
+              <div
+                key={step.stepNum}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: 'var(--bg-surface-subtle)',
+                  border: '1px solid var(--border-light)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Icon size={12} color={step.accentColor} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      {step.title}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                    {step.stepNum}
+                  </span>
+                </div>
+                <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>
+                  {step.subtitle}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Quick-Start Practice Sets */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -336,9 +408,6 @@ export default function StudioBlueprint({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ color: 'var(--status-success)' }}>✓</span> 90+ Score Threshold
-          </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <span style={{ color: 'var(--status-success)' }}>✓</span> Realistic Fallacies &amp; Traps
           </span>
