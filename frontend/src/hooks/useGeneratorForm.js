@@ -110,6 +110,34 @@ export function useGeneratorForm(initialValues = {}) {
     });
   }, []);
 
+  const setImageCount = useCallback((count) => {
+    setFormData(prev => {
+      const total = prev.totalQuestions || 1;
+      const clamped = Math.max(0, Math.min(total, count));
+      const indices = Array.from({ length: clamped }, (_, i) => i + 1);
+      let mode = 'specific';
+      if (clamped === 0) mode = 'none';
+      else if (clamped === total) mode = 'all';
+      return {
+        ...prev,
+        imageMode: mode,
+        imageQuestionIndices: indices,
+        requireImage: clamped > 0 || prev.requirePassageImage
+      };
+    });
+  }, []);
+
+  const setRequirePassageImage = useCallback((required) => {
+    setFormData(prev => {
+      const currentIndices = prev.imageQuestionIndices || [];
+      return {
+        ...prev,
+        requirePassageImage: Boolean(required),
+        requireImage: currentIndices.length > 0 || Boolean(required)
+      };
+    });
+  }, []);
+
   const resetForm = useCallback((overrides = {}) => {
     setFormData({
       ...DEFAULT_GENERATOR_FORM,
@@ -125,6 +153,8 @@ export function useGeneratorForm(initialValues = {}) {
     toggleQuestionImage,
     togglePassageImage,
     setImageMode,
+    setImageCount,
+    setRequirePassageImage,
     resetForm
   };
 }

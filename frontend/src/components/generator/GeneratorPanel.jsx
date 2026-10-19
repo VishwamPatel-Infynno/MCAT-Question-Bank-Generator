@@ -74,10 +74,11 @@ export default function GeneratorPanel({
   const setPrimaryTrap = (v) => update('primaryTrap', v);
   const imageMode = form.imageMode || 'none';
   const setImageMode = generatorForm?.setImageMode;
+  const setImageCount = generatorForm?.setImageCount;
   const imageQuestionIndices = form.imageQuestionIndices || [];
   const toggleQuestionImage = generatorForm?.toggleQuestionImage;
   const requirePassageImage = form.requirePassageImage || false;
-  const togglePassageImage = generatorForm?.togglePassageImage;
+  const setRequirePassageImage = generatorForm?.setRequirePassageImage;
   const customPrompt = form.customPrompt || '';
   const setCustomPrompt = (v) => update('customPrompt', v);
 
@@ -92,7 +93,6 @@ export default function GeneratorPanel({
       : (imageQuestionIndices || []).filter(i => i <= totalQuestions).length);
   const hasPassageImage = !isAbstractReasoning && isPassageSet && Boolean(requirePassageImage);
   const totalImagesCount = isAbstractReasoning ? totalQuestions : (activeQuestionImagesCount + (hasPassageImage ? 1 : 0));
-  const estCost = (totalImagesCount * 0.002).toFixed(4);
 
   const [showAdvancedDirectives, setShowAdvancedDirectives] = useState(false);
 
@@ -706,6 +706,39 @@ export default function GeneratorPanel({
                       </>
                     )}
                   </div>
+
+                  {/* Passage Stimulus Diagram Toggle */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginTop: '2px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        Passage Diagram
+                      </span>
+                      <span className="badge-minimal" style={{ fontSize: '0.6rem' }}>
+                        {requirePassageImage ? 'Attached to Passage ($0.0020)' : 'No Diagram'}
+                      </span>
+                    </div>
+                    <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                      <button
+                        type="button"
+                        id="btn-passage-diag-no"
+                        onClick={() => setRequirePassageImage && setRequirePassageImage(false)}
+                        className={`pill-track-btn ${!requirePassageImage ? 'active' : ''}`}
+                        style={{ width: '100%', padding: '4px' }}
+                      >
+                        No Diagram
+                      </button>
+                      <button
+                        type="button"
+                        id="btn-passage-diag-yes"
+                        onClick={() => setRequirePassageImage && setRequirePassageImage(true)}
+                        className={`pill-track-btn ${requirePassageImage ? 'active' : ''}`}
+                        style={{ width: '100%', padding: '4px' }}
+                      >
+                        <Image size={11} />
+                        <span>With Diagram</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -1027,6 +1060,139 @@ export default function GeneratorPanel({
                 </div>
               </div>
             )}
+
+            {/* Question Diagram Selection (Matching Style Stepper) */}
+            {!isAbstractReasoning && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed var(--border-light)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Questions with Diagrams
+                  </span>
+                  <span className="badge-minimal" style={{ fontSize: '0.625rem' }}>
+                    {activeQuestionImagesCount > 0
+                      ? `${activeQuestionImagesCount} of ${totalQuestions} Qs ($${(activeQuestionImagesCount * 0.002).toFixed(4)})`
+                      : 'No Diagrams'}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      background: 'var(--bg-surface-subtle)',
+                      border: '1px solid var(--border-light)',
+                      borderRadius: 'var(--radius-xs)',
+                      padding: '2px',
+                      flex: 1
+                    }}
+                  >
+                    <button
+                      type="button"
+                      id="btn-img-count-minus"
+                      onClick={() => setImageCount && setImageCount(activeQuestionImagesCount - 1)}
+                      disabled={activeQuestionImagesCount <= 0}
+                      style={{
+                        width: '26px',
+                        height: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: 'none',
+                        background: 'transparent',
+                        color: activeQuestionImagesCount <= 0 ? 'var(--text-disabled)' : 'var(--text-primary)',
+                        cursor: activeQuestionImagesCount <= 0 ? 'not-allowed' : 'pointer'
+                      }}
+                      title="Decrease questions with diagrams"
+                    >
+                      <Minus size={11} />
+                    </button>
+                    <div style={{ flex: 1, textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, color: activeQuestionImagesCount > 0 ? 'var(--brand-primary)' : 'var(--text-primary)' }}>
+                      {activeQuestionImagesCount} of {totalQuestions}
+                    </div>
+                    <button
+                      type="button"
+                      id="btn-img-count-plus"
+                      onClick={() => setImageCount && setImageCount(activeQuestionImagesCount + 1)}
+                      disabled={activeQuestionImagesCount >= totalQuestions}
+                      style={{
+                        width: '26px',
+                        height: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: 'none',
+                        background: 'transparent',
+                        color: activeQuestionImagesCount >= totalQuestions ? 'var(--text-disabled)' : 'var(--text-primary)',
+                        cursor: activeQuestionImagesCount >= totalQuestions ? 'not-allowed' : 'pointer'
+                      }}
+                      title="Increase questions with diagrams"
+                    >
+                      <Plus size={11} />
+                    </button>
+                  </div>
+
+                  {/* Quick Chips for Diagram Count */}
+                  <div style={{ display: 'flex', gap: '3px' }}>
+                    {Array.from({ length: totalQuestions + 1 }, (_, i) => i).map(cnt => (
+                      <button
+                        key={cnt}
+                        type="button"
+                        id={`btn-chip-img-qty-${cnt}`}
+                        onClick={() => setImageCount && setImageCount(cnt)}
+                        style={{
+                          padding: '4px 7px',
+                          borderRadius: 'var(--radius-xs)',
+                          fontSize: '0.675rem',
+                          fontWeight: activeQuestionImagesCount === cnt ? 600 : 400,
+                          background: activeQuestionImagesCount === cnt ? 'var(--brand-primary)' : 'var(--bg-surface-subtle)',
+                          color: activeQuestionImagesCount === cnt ? '#ffffff' : 'var(--text-muted)',
+                          border: activeQuestionImagesCount === cnt ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {cnt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Optional Fine-Grained Slot Toggles */}
+                {activeQuestionImagesCount > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '0.625rem', color: 'var(--text-muted)' }}>Assigned to:</span>
+                    {Array.from({ length: totalQuestions }, (_, i) => i + 1).map(qNum => {
+                      const isActive = (imageQuestionIndices || []).includes(qNum);
+                      return (
+                        <button
+                          key={qNum}
+                          type="button"
+                          id={`btn-slot-img-${qNum}`}
+                          onClick={() => toggleQuestionImage && toggleQuestionImage(qNum)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                            padding: '2px 6px',
+                            borderRadius: 'var(--radius-xs)',
+                            fontSize: '0.65rem',
+                            fontWeight: 600,
+                            background: isActive ? 'var(--brand-light)' : 'var(--bg-surface-subtle)',
+                            color: isActive ? 'var(--brand-primary)' : 'var(--text-muted)',
+                            border: `1px solid ${isActive ? 'var(--brand-primary)' : 'var(--border-light)'}`,
+                            cursor: 'pointer'
+                          }}
+                          title={`Toggle diagram for Question ${qNum}`}
+                        >
+                          <span>Q{qNum}</span>
+                          {isActive && <Check size={9} strokeWidth={3} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1061,6 +1227,41 @@ export default function GeneratorPanel({
               </div>
             </div>
 
+            {/* Passage Diagram Toggle for 1 question (if reading passage active) */}
+            {passageRequired === 'Yes' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Passage Diagram
+                  </span>
+                  <span className="badge-minimal" style={{ fontSize: '0.6rem' }}>
+                    {requirePassageImage ? 'Attached to Passage ($0.0020)' : 'No Diagram'}
+                  </span>
+                </div>
+                <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                  <button
+                    type="button"
+                    id="btn-single-p-diag-no"
+                    onClick={() => setRequirePassageImage && setRequirePassageImage(false)}
+                    className={`pill-track-btn ${!requirePassageImage ? 'active' : ''}`}
+                    style={{ width: '100%', padding: '5px' }}
+                  >
+                    No Diagram
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-single-p-diag-yes"
+                    onClick={() => setRequirePassageImage && setRequirePassageImage(true)}
+                    className={`pill-track-btn ${requirePassageImage ? 'active' : ''}`}
+                    style={{ width: '100%', padding: '5px' }}
+                  >
+                    <Image size={11} />
+                    <span>With Diagram</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Answer Type Switch for 1 question */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -1093,155 +1294,70 @@ export default function GeneratorPanel({
                 })}
               </div>
             </div>
-          </div>
-        )}
-      </div>
 
-      {/* SECTION 3: VISUAL DIAGRAM / CHART */}
-      <div className="dock-section">
-        <div className="section-header-minimal">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span className="section-header-title">Visual Stimulus &amp; Diagrams</span>
-          </div>
-          <span className="badge-minimal" style={{ fontSize: '0.625rem' }}>
-            {isAbstractReasoning
-              ? 'Required for AR'
-              : totalImagesCount > 0
-                ? `${totalImagesCount} ${totalImagesCount === 1 ? 'Diagram' : 'Diagrams'} ($${estCost})`
-                : 'No Diagrams'}
-          </span>
-        </div>
-
-        {/* Mode Selector (None, All, Specific) */}
-        {!isAbstractReasoning ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
-              {[
-                { id: 'none', label: 'None' },
-                { id: 'all', label: 'All Questions' },
-                { id: 'specific', label: 'Specific Qs' }
-              ].map(opt => {
-                const isSel = (imageMode === opt.id) || (opt.id === 'none' && totalImagesCount === 0 && imageMode !== 'specific');
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    id={`btn-img-mode-${opt.id}`}
-                    onClick={() => setImageMode && setImageMode(opt.id)}
-                    className={`pill-track-btn ${isSel ? 'active' : ''}`}
-                    style={{ width: '100%', padding: '5px 4px', fontSize: '0.72rem' }}
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Interactive Chip Bar (when 'specific' mode) */}
-            {imageMode === 'specific' && (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '6px',
-                  padding: '8px 10px',
-                  background: 'var(--bg-surface-subtle)',
-                  borderRadius: 'var(--radius-xs)',
-                  border: '1px solid var(--border-light)'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.675rem', color: 'var(--text-muted)' }}>
-                  <span style={{ fontWeight: 600 }}>Toggle diagram for each question:</span>
-                  <span style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>
-                    {activeQuestionImagesCount} of {totalQuestions} active
+            {/* Question Diagram Toggle for 1 question */}
+            {!isAbstractReasoning ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Question Diagram
+                  </span>
+                  <span className="badge-minimal" style={{ fontSize: '0.6rem' }}>
+                    {(imageQuestionIndices || []).includes(1) || imageMode === 'all' ? 'With Diagram ($0.0020)' : 'Text Only'}
                   </span>
                 </div>
-
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                  {/* Shared Passage Diagram Chip (if passage set) */}
-                  {isPassageSet && (
-                    <button
-                      type="button"
-                      id="btn-toggle-passage-image"
-                      onClick={() => togglePassageImage && togglePassageImage()}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        padding: '4px 8px',
-                        borderRadius: 'var(--radius-xs)',
-                        fontSize: '0.7rem',
-                        fontWeight: 600,
-                        background: requirePassageImage ? 'var(--brand-light)' : 'var(--bg-surface-elevated)',
-                        color: requirePassageImage ? 'var(--brand-primary)' : 'var(--text-muted)',
-                        border: `1px solid ${requirePassageImage ? 'var(--brand-primary)' : 'var(--border-medium)'}`,
-                        cursor: 'pointer',
-                        transition: 'all var(--transition-fast)'
-                      }}
-                      title="Attach visual diagram to the shared reading passage"
-                    >
-                      <Image size={11} />
-                      <span>Passage Stimulus</span>
-                      {requirePassageImage && <Check size={11} strokeWidth={3} />}
-                    </button>
-                  )}
-
-                  {/* Individual Question Chips */}
-                  {Array.from({ length: totalQuestions }, (_, i) => i + 1).map(qNum => {
-                    const isActive = (imageQuestionIndices || []).includes(qNum);
+                <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                  {[
+                    { id: 'no', label: 'No Diagram' },
+                    { id: 'yes', label: 'With Diagram' }
+                  ].map(opt => {
+                    const hasImage = (imageQuestionIndices || []).includes(1) || imageMode === 'all';
+                    const isSel = opt.id === 'yes' ? hasImage : !hasImage;
                     return (
                       <button
-                        key={qNum}
+                        key={opt.id}
                         type="button"
-                        id={`btn-toggle-q-image-${qNum}`}
-                        onClick={() => toggleQuestionImage && toggleQuestionImage(qNum)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          padding: '4px 8px',
-                          borderRadius: 'var(--radius-xs)',
-                          fontSize: '0.72rem',
-                          fontWeight: 600,
-                          background: isActive ? 'var(--brand-light)' : 'var(--bg-surface-elevated)',
-                          color: isActive ? 'var(--brand-primary)' : 'var(--text-secondary)',
-                          border: `1px solid ${isActive ? 'var(--brand-primary)' : 'var(--border-medium)'}`,
-                          cursor: 'pointer',
-                          transition: 'all var(--transition-fast)'
+                        id={`btn-single-diag-${opt.id}`}
+                        onClick={() => {
+                          if (opt.id === 'yes') {
+                            if (setImageCount) setImageCount(1);
+                          } else {
+                            if (setImageCount) setImageCount(0);
+                          }
                         }}
-                        title={`Toggle diagram for Question ${qNum}`}
+                        className={`pill-track-btn ${isSel ? 'active' : ''}`}
+                        style={{ width: '100%', padding: '5px' }}
                       >
-                        <Image size={11} />
-                        <span>Q{qNum}</span>
-                        {isActive && <Check size={11} strokeWidth={3} />}
+                        {opt.id === 'yes' && <Image size={11} />}
+                        <span>{opt.label}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
+            ) : (
+              <div
+                style={{
+                  padding: '6px 8px',
+                  borderRadius: 'var(--radius-xs)',
+                  background: 'var(--brand-light)',
+                  border: '1px solid var(--border-medium)',
+                  fontSize: '0.675rem',
+                  color: 'var(--brand-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px'
+                }}
+              >
+                <Image size={12} />
+                <span>Abstract Reasoning always requires visual shape pattern diagrams.</span>
+              </div>
             )}
-          </div>
-        ) : (
-          <div
-            style={{
-              padding: '8px 10px',
-              borderRadius: 'var(--radius-xs)',
-              background: 'var(--brand-light)',
-              border: '1px solid var(--border-medium)',
-              fontSize: '0.72rem',
-              color: 'var(--brand-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <Image size={13} />
-            <span>Abstract Reasoning always requires visual shape matrices for all items.</span>
           </div>
         )}
       </div>
 
-      {/* SECTION 4: TRAPS & DIRECTIVES */}
+      {/* SECTION 3: TRAPS & DIRECTIVES */}
       <div className="dock-section">
         <div className="section-header-minimal">
           <span className="section-header-title">Exam Traps &amp; Rules</span>
@@ -1325,8 +1441,8 @@ export default function GeneratorPanel({
           <span style={{ color: 'var(--text-muted)' }}>Target:</span>
           <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
             {totalQuestions > 1 && passageMode === 'single_passage'
-              ? `${totalQuestions} Questions Set (1 Shared Passage)`
-              : `${totalQuestions} ${totalQuestions === 1 ? 'Question' : 'Questions'} • ${currentSectionObj.label}`}
+              ? `${totalQuestions} Questions Set (1 Shared Passage)${totalImagesCount > 0 ? ` • ${totalImagesCount} ${totalImagesCount === 1 ? 'diagram' : 'diagrams'}` : ''}`
+              : `${totalQuestions} ${totalQuestions === 1 ? 'Question' : 'Questions'} • ${currentSectionObj.label}${totalImagesCount > 0 ? ` • ${totalImagesCount} ${totalImagesCount === 1 ? 'diagram' : 'diagrams'}` : ''}`}
           </span>
         </div>
 
