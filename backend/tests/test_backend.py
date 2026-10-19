@@ -826,5 +826,179 @@ async def test_mixed_passage_and_independent_batch(monkeypatch):
     assert ind_multis == 1
 
 
+@pytest.mark.asyncio
+async def test_generate_question_with_self_critique_structure(monkeypatch):
+    """Verifies that generate_question_with_self_critique returns a valid draft, review score, and usage."""
+    from app.core.config import config
+    from app.agents.generator import generate_question_with_self_critique
+    from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
+    from app.schemas.token import TokenUsage
+    import app.agents.generator as gen_mod
+
+    # 1. Fallback mode (no API key configured)
+    monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
+    monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
+
+    req = GenerationRequest(
+        section=UCATSection.DECISION_MAKING,
+        difficulty=Difficulty.MEDIUM,
+    )
+    draft, review, usage = await generate_question_with_self_critique(req)
+
+    assert isinstance(draft, QuestionDraft)
+    assert len(draft.options) in (4, 5)
+    assert draft.correct_answer_id is not None
+    assert isinstance(review, ReviewScore)
+    assert usage.prompt_tokens > 0
+    assert usage.completion_tokens > 0
+
+    # 2. Mock successful LLM response with valid self_critique json
+    fused_json = """{
+      "stimulus_text": "Clinical context here...",
+      "question_stem": "Which option is definitive?",
+      "options": [
+        {"id": "A", "text": "First choice"},
+        {"id": "B", "text": "Second choice"},
+        {"id": "C", "text": "Third choice"},
+        {"id": "D", "text": "Fourth choice"}
+      ],
+      "correct_answer_id": "C",
+      "correct_answer_ids": ["C"],
+      "explanation": "Option C is correct because of rule 1.",
+      "image_needed": false,
+      "image_prompt_or_type": null,
+      "self_critique": {
+        "authenticity_score": 25,
+        "clarity_score": 24,
+        "distractor_score": 24,
+        "explanation_score": 25,
+        "strengths": ["Authentic clinical vignette"],
+        "weaknesses": [],
+        "recommendations": []
+      }
+    }"""
+    mock_usage = TokenUsage(prompt_tokens=420, completion_tokens=310, total_tokens=730, cost_usd=0.001)
+
+    async def mock_call_llm(*args, **kwargs):
+        return fused_json, mock_usage
+
+    monkeypatch.setattr(gen_mod, "call_llm", mock_call_llm)
+
+    draft2, review2, usage2 = await generate_question_with_self_critique(req)
+    assert draft2.question_stem == "Which option is definitive?"
+    assert draft2.correct_answer_id == "C"
+    assert review2 is not None
+    assert review2.total_score == 98
+    assert review2.passed is True
+
+
+@pytest.mark.asyncio
+async def test_fused_generator_node_passing_and_routing():
+    """Verifies that fused_generator_node and route_after_fused_generation route properly."""
+    from app.workflow.graph import fused_generator_node, route_after_fused_generation
+
+    # 1. Failing/unverified self-critique (score <= 90) -> routes to reviewer
+    req = GenerationRequest(section=UCATSection.VERBAL_REASONING, difficulty=Difficulty.MEDIUM)
+    failing_state = {
+        "request": req.model_dump(),
+        "fused_self_passed": False,
+        "current_review": {"total_score": 88},
+    }
+    assert route_after_fused_generation(failing_state) == "reviewer"
+
+    # 2. Passing self-critique (score > 90) for Verbal Reasoning (textual, no image) -> routes to finalize
+    passing_vr_state = {
+        "request": req.model_dump(),
+        "fused_self_passed": True,
+        "current_review": {"total_score": 96},
+        "current_draft": {"image_needed": False},
+    }
+    assert route_after_fused_generation(passing_vr_state) == "finalize"
+
+    # 3. Passing self-critique for Abstract Reasoning -> routes to image_generator
+    req_ar = GenerationRequest(section=UCATSection.ABSTRACT_REASONING, difficulty=Difficulty.HARD)
+    passing_ar_state = {
+        "request": req_ar.model_dump(),
+        "fused_self_passed": True,
+        "current_review": {"total_score": 94},
+        "current_draft": {"image_needed": True},
+    }
+    assert route_after_fused_generation(passing_ar_state) == "image_generator"
+
+
+@pytest.mark.asyncio
+async def test_fused_workflow_bypasses_reviewer_when_self_critique_passed(monkeypatch):
+    """Verifies that if the fused generator self-scores > 90, the separate Reviewer agent node is bypassed."""
+    import json
+    from app.core.config import config
+    from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
+    from app.schemas.token import TokenUsage
+    from app.workflow.graph import run_workflow_stream
+    import app.workflow.graph as graph_mod
+
+    monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
+    monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
+
+    passing_review = ReviewScore(
+        authenticity_score=24,
+        clarity_score=24,
+        distractor_score=24,
+        explanation_score=24,
+        total_score=96,
+        strengths=["Top tier question"],
+        weaknesses=[],
+        recommendations=[],
+        passed=True,
+    )
+    passing_draft = QuestionDraft(
+        stimulus_text="A clinical trial testing drug X...",
+        question_stem="Which option is correct?",
+        options=[
+            OptionChoice(id="A", text="Option A"),
+            OptionChoice(id="B", text="Option B"),
+            OptionChoice(id="C", text="Option C"),
+            OptionChoice(id="D", text="Option D"),
+        ],
+        correct_answer_id="B",
+        correct_answer_ids=["B"],
+        explanation="Step by step proof...",
+        image_needed=False,
+    )
+    mock_usage = TokenUsage(prompt_tokens=400, completion_tokens=300, total_tokens=700, cost_usd=0.001)
+
+    async def mock_fused_gen(r):
+        return passing_draft, passing_review, mock_usage
+
+    monkeypatch.setattr(graph_mod, "generate_question_with_self_critique", mock_fused_gen)
+
+    req = GenerationRequest(
+        section=UCATSection.VERBAL_REASONING,
+        difficulty=Difficulty.MEDIUM,
+        questions_to_generate=1,
+    )
+
+    events = []
+    async for chunk in run_workflow_stream(req):
+        line = chunk.strip()
+        if line.startswith("data: "):
+            events.append(json.loads(line[6:]))
+
+    # Reviewer agent_start should NOT be called (bypassed)
+    rev_starts = [
+        e for e in events
+        if e["event_type"] == "agent_start" and e["agent_name"] in ("Quality Reviewer", "Question Reviewer")
+    ]
+    assert len(rev_starts) == 0, "Separate Quality Reviewer LLM call was not bypassed!"
+
+    # But Quality Reviewer agent_complete event IS emitted with the self-critique score
+    rev_completes = [
+        e for e in events
+        if e["event_type"] == "agent_complete" and e["agent_name"] in ("Quality Reviewer", "Question Reviewer")
+    ]
+    assert len(rev_completes) == 1
+    assert rev_completes[0]["data"]["score"] == 96
+    assert "Self-Critique: 96/100" in rev_completes[0]["message"]
+
+
 
 

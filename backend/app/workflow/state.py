@@ -25,3 +25,4 @@ class AgentWorkflowState(TypedDict, total=False):
     stage_outcomes: dict[str, Any]
     run_id: str
     batch_id: str | None
+    fused_self_passed: bool

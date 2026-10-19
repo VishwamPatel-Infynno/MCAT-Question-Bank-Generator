@@ -67,6 +67,7 @@ Please re-generate and refine this question to resolve all weaknesses and produc
             model=req.model_name,
             api_key=req.api_key,
             temperature=0.6,
+            max_tokens=2000,
         )
         cleaned = clean_json_text(raw_output)
         data = json.loads(cleaned)

@@ -12,6 +12,7 @@ export { default as AgentVisualizer } from './generator/AgentVisualizer';
 export { default as MultiAgentPipelineVisualizer } from './generator/MultiAgentPipelineVisualizer';
 export { default as RejectionCard } from './generator/RejectionCard';
 export { default as StudioBlueprint } from './generator/StudioBlueprint';
+export { default as QuestionProgressTracker } from './generator/QuestionProgressTracker';
 
 // Question & Review
 export { default as QuestionCard } from './question/QuestionCard';

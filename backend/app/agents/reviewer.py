@@ -55,6 +55,7 @@ Evaluate this question thoroughly and return your 100-point rubric breakdown as 
             model=req.model_name,
             api_key=req.api_key,
             temperature=0.3,
+            max_tokens=1200,
         )
         cleaned = clean_json_text(raw_output)
         data = json.loads(cleaned)

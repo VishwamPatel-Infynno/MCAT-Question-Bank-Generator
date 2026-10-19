@@ -52,7 +52,7 @@ async def call_llm(
     model: str | None = None,
     api_key: str | None = None,
     temperature: float = 0.7,
-    max_tokens: int = 2500,
+    max_tokens: int = 2000,
 ) -> tuple[str, TokenUsage]:
     """Universal LLM caller via LiteLLM returning content and TokenUsage metrics."""
     chosen_model = model or config.DEFAULT_TEXT_MODEL

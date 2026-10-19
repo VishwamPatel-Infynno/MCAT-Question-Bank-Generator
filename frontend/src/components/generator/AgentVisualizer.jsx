@@ -5,6 +5,7 @@ import {
   Timer 
 } from 'lucide-react';
 import MultiAgentPipelineVisualizer from './MultiAgentPipelineVisualizer';
+import QuestionProgressTracker from './QuestionProgressTracker';
 
 export default function AgentVisualizer({
   activeAgent,
@@ -131,7 +132,7 @@ export default function AgentVisualizer({
     );
   }
 
-  // When Generating: Unified Pipeline Stepper with Multi-Agent Swarm Tracker
+  // When Generating: Unified Pipeline Stepper with Live Per-Question Progress Tracker
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       {/* Batch Progress Bar when generating multiple questions */}
@@ -169,6 +170,13 @@ export default function AgentVisualizer({
         </div>
       )}
 
+      {/* Live Per-Question Progress Tracker: Immediate zero-wait feedback */}
+      <QuestionProgressTracker
+        perQuestionState={perQuestionState}
+        totalQuestions={totalBatch}
+        isGenerating={isGenerating}
+      />
+
       {/* Unified Multi-Agent Pipeline & Swarm Stepper */}
       <MultiAgentPipelineVisualizer
         isGenerating={isGenerating}
@@ -182,4 +190,5 @@ export default function AgentVisualizer({
     </div>
   );
 }
+
 

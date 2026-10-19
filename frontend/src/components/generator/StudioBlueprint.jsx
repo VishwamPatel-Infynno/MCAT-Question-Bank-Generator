@@ -9,6 +9,7 @@ import {
 import { SECTION_ICONS, PACING_INFO } from '../../constants/ucat';
 import InfynnoLogo from '../common/InfynnoLogo';
 import MultiAgentPipelineVisualizer from './MultiAgentPipelineVisualizer';
+import QuestionProgressTracker from './QuestionProgressTracker';
 
 export default function StudioBlueprint({
   selectedSection,
@@ -33,7 +34,8 @@ export default function StudioBlueprint({
   activeAgent = null,
   iterationCount = 1,
   events = [],
-  latestReview = null
+  latestReview = null,
+  perQuestionState = {}
 }) {
   const currentSectionObj = sectionsData?.find(s => s.id === selectedSection) || { label: 'Verbal Reasoning', id: 'verbal_reasoning' };
   const SectionIcon = SECTION_ICONS[selectedSection] || FileText;
@@ -246,8 +248,14 @@ export default function StudioBlueprint({
         </div>
       </div>
 
-      {/* 4-Agent Pipeline Showcase */}
-      {!isGenerating && (
+      {/* Live Pipeline Tracker when Generating, or 4-Agent Pipeline Showcase when Idle */}
+      {isGenerating ? (
+        <QuestionProgressTracker
+          perQuestionState={perQuestionState}
+          totalQuestions={totalQuestions}
+          isGenerating={isGenerating}
+        />
+      ) : (
         <MultiAgentPipelineVisualizer
           isGenerating={false}
           activeAgent={activeAgent}

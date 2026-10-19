@@ -7,7 +7,11 @@ from typing import Any
 
 from langgraph.graph import END, StateGraph
 
-from app.agents.generator import generate_passage_stimulus, generate_question
+from app.agents.generator import (
+    generate_passage_stimulus,
+    generate_question,
+    generate_question_with_self_critique,
+)
 from app.agents.image_generator import generate_image_stimulus
 from app.agents.regenerator import regenerate_question
 from app.agents.reviewer import review_question
@@ -26,6 +30,108 @@ from app.schemas import (
 from app.workflow.state import AgentWorkflowState
 
 logger = logging.getLogger(__name__)
+
+
+async def fused_generator_node(state: AgentWorkflowState) -> dict[str, Any]:
+    """
+    Fused Draft-and-Critique node:
+    Generates the question AND self-scores it in a single LLM round-trip.
+    If self_score > 90, sets fused_self_passed=True to bypass redundant review calls.
+    If self_score <= 90 or critique is missing, sets fused_self_passed=False to route
+    to the standard Reviewer node for a full independent audit and remediation loop.
+    """
+    req = GenerationRequest(**state["request"])
+    logger.info("Executing Fused Question Generator & Self-Critique Agent...")
+    draft, self_review, usage = await generate_question_with_self_critique(req)
+
+    agent_entry = {
+        "agent": "Question Generator",
+        "iteration": 1,
+        "prompt_tokens": usage.prompt_tokens,
+        "completion_tokens": usage.completion_tokens,
+        "total_tokens": usage.total_tokens,
+        "cost_usd": usage.cost_usd,
+    }
+
+    breakdown = list(state.get("agent_usage_breakdown", []))
+    breakdown.append(agent_entry)
+
+    p_tokens = state.get("total_prompt_tokens", 0) + usage.prompt_tokens
+    c_tokens = state.get("total_completion_tokens", 0) + usage.completion_tokens
+    t_tokens = state.get("total_tokens", 0) + usage.total_tokens
+    t_cost = round(state.get("total_cost_usd", 0.0) + usage.cost_usd, 7)
+
+    outcomes = dict(state.get("stage_outcomes", {}))
+    outcomes["drafting"] = draft.model_dump()
+    if self_review:
+        outcomes["self_critique"] = self_review.model_dump()
+        outcomes["quality_audit"] = self_review.model_dump()
+
+    fused_self_passed = (
+        self_review is not None
+        and self_review.total_score > config.PASSING_SCORE_THRESHOLD
+    )
+
+    existing_history = list(state.get("iterations_history", []))
+    if self_review:
+        existing_history.append({
+            "iteration": 1,
+            "draft": draft.model_dump(),
+            "review": self_review.model_dump(),
+            "usage": usage.model_dump(),
+        })
+
+    return {
+        "current_draft": draft.model_dump(),
+        "current_review": self_review.model_dump() if self_review else None,
+        "active_agent": "Question Generator",
+        "status": "fused_passed" if fused_self_passed else "fused_drafted",
+        "iteration_count": 1,
+        "iterations_history": existing_history,
+        "total_tokens": t_tokens,
+        "total_prompt_tokens": p_tokens,
+        "total_completion_tokens": c_tokens,
+        "total_cost_usd": t_cost,
+        "agent_usage_breakdown": breakdown,
+        "latest_usage": usage.model_dump(),
+        "stage_outcomes": outcomes,
+        "fused_self_passed": fused_self_passed,
+    }
+
+
+def route_after_fused_generation(state: AgentWorkflowState) -> str:
+    """Routes to finalize (or image_generator) if fused self-score > 90; else to reviewer."""
+    fused_passed = state.get("fused_self_passed", False)
+    if not fused_passed:
+        logger.info("Fused self-critique <= threshold or unverified. Routing to Reviewer for standard audit.")
+        return "reviewer"
+
+    req_data = state["request"]
+    sec_raw = req_data.get("section", "")
+    section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)
+    explicit_image = req_data.get("require_image", False)
+    visual_type = req_data.get("visual_type", "None")
+
+    if explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
+        requires_image = True
+    elif section_val in (
+        UCATSection.VERBAL_REASONING.value,
+        UCATSection.SITUATIONAL_JUDGEMENT.value,
+        "VR",
+        "SJT",
+    ):
+        requires_image = False
+    elif section_val in (UCATSection.ABSTRACT_REASONING.value, "AR"):
+        requires_image = True
+    else:
+        requires_image = bool(state.get("current_draft", {}).get("image_needed", False))
+
+    if requires_image:
+        logger.info("Fused draft passed (> 90). Routing to Image Generator.")
+        return "image_generator"
+
+    logger.info("Fused draft passed (> 90). Routing directly to Finalize.")
+    return "finalize"
 
 
 async def generator_node(state: AgentWorkflowState) -> dict[str, Any]:
@@ -403,9 +509,10 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
 
 
 def create_ucat_graph() -> StateGraph:
-    """Builds and compiles the multi-agent LangGraph workflow."""
+    """Builds and compiles the multi-agent LangGraph workflow with Fused Generator."""
     workflow = StateGraph(AgentWorkflowState)
 
+    workflow.add_node("fused_generator", fused_generator_node)
     workflow.add_node("generator", generator_node)
     workflow.add_node("reviewer", reviewer_node)
     workflow.add_node("regenerator", regenerator_node)
@@ -414,7 +521,16 @@ def create_ucat_graph() -> StateGraph:
     workflow.add_node("reject", reject_node)
 
     # Edges
-    workflow.set_entry_point("generator")
+    workflow.set_entry_point("fused_generator")
+    workflow.add_conditional_edges(
+        "fused_generator",
+        route_after_fused_generation,
+        {
+            "reviewer": "reviewer",
+            "image_generator": "image_generator",
+            "finalize": "finalize",
+        },
+    )
     workflow.add_edge("generator", "reviewer")
 
     workflow.add_conditional_edges(
@@ -728,14 +844,14 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 )
                 await event_queue.put(gen_evt)
 
-                gen_res = await generator_node(state)
+                gen_res = await fused_generator_node(state)
                 state.update(gen_res)
 
                 gen_usage = state.get("latest_usage", {})
                 gen_done_evt = make_event(
                     event_type="agent_complete",
                     agent_name="Question Writer",
-                    message=f"Draft written for Question {idx + 1} ({gen_usage.get('total_tokens', 0)} tokens, ${gen_usage.get('cost_usd', 0.0):.5f}). Sending to Quality Reviewer.",
+                    message=f"Draft written for Question {idx + 1} ({gen_usage.get('total_tokens', 0)} tokens, ${gen_usage.get('cost_usd', 0.0):.5f}).",
                     data={
                         "draft": state["current_draft"],
                         "latest_usage": gen_usage,
@@ -747,40 +863,19 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 )
                 await event_queue.put(gen_done_evt)
 
-                # Loop Quality Reviewer <-> Question Improver
+                # Quality Review / Remediation Loop
                 question_passed = True
-                while True:
-                    iteration = state.get("iteration_count", 1)
-
-                    rev_start_evt = make_event(
-                        event_type="agent_start",
-                        agent_name="Quality Reviewer",
-                        message=f"Reviewing draft {idx + 1}/{total_qty} (Round {iteration}) against 90+ quality standards...",
-                        data={
-                            "index": idx + 1,
-                            "total": total_qty,
-                            "stage": "reviewing",
-                            "iteration": iteration,
-                        },
-                        run_id=item_run_id,
-                    )
-                    await event_queue.put(rev_start_evt)
-
-                    rev_res = await reviewer_node(state)
-                    state.update(rev_res)
-
-                    review = state["current_review"]
-                    score = review["total_score"]
-                    rev_usage = state.get("latest_usage", {})
-
+                if state.get("fused_self_passed"):
+                    self_review = state.get("current_review") or {}
+                    score = self_review.get("total_score", 95)
                     rev_done_evt = make_event(
                         event_type="agent_complete",
                         agent_name="Quality Reviewer",
-                        message=f"Quality review completed for Question {idx + 1}. Score: {score}/100.",
+                        message=f"Quality review passed (Self-Critique: {score}/100) for Question {idx + 1}.",
                         data={
-                            "review": review,
-                            "iteration": iteration,
-                            "latest_usage": rev_usage,
+                            "review": self_review,
+                            "iteration": 1,
+                            "latest_usage": gen_usage,
                             "index": idx + 1,
                             "total": total_qty,
                             "stage": "reviewing",
@@ -789,63 +884,104 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         run_id=item_run_id,
                     )
                     await event_queue.put(rev_done_evt)
+                else:
+                    while True:
+                        iteration = state.get("iteration_count", 1)
 
-                    # Route
-                    next_step = route_after_review(state)
-                    if next_step == "regenerator":
-                        regen_start_evt = make_event(
+                        rev_start_evt = make_event(
                             event_type="agent_start",
-                            agent_name="Question Improver",
-                            message=f"Question {idx + 1} score {score}/100 needs improvement. Question Improver is refining answer options...",
+                            agent_name="Quality Reviewer",
+                            message=f"Reviewing draft {idx + 1}/{total_qty} (Round {iteration}) against 90+ quality standards...",
                             data={
                                 "index": idx + 1,
                                 "total": total_qty,
-                                "stage": "remediating",
+                                "stage": "reviewing",
                                 "iteration": iteration,
+                            },
+                            run_id=item_run_id,
+                        )
+                        await event_queue.put(rev_start_evt)
+
+                        rev_res = await reviewer_node(state)
+                        state.update(rev_res)
+
+                        review = state["current_review"]
+                        score = review["total_score"]
+                        rev_usage = state.get("latest_usage", {})
+
+                        rev_done_evt = make_event(
+                            event_type="agent_complete",
+                            agent_name="Quality Reviewer",
+                            message=f"Quality review completed for Question {idx + 1}. Score: {score}/100.",
+                            data={
+                                "review": review,
+                                "iteration": iteration,
+                                "latest_usage": rev_usage,
+                                "index": idx + 1,
+                                "total": total_qty,
+                                "stage": "reviewing",
                                 "score": score,
                             },
                             run_id=item_run_id,
                         )
-                        await event_queue.put(regen_start_evt)
+                        await event_queue.put(rev_done_evt)
 
-                        regen_res = await regenerator_node(state)
-                        state.update(regen_res)
+                        # Route
+                        next_step = route_after_review(state)
+                        if next_step == "regenerator":
+                            regen_start_evt = make_event(
+                                event_type="agent_start",
+                                agent_name="Question Improver",
+                                message=f"Question {idx + 1} score {score}/100 needs improvement. Question Improver is refining answer options...",
+                                data={
+                                    "index": idx + 1,
+                                    "total": total_qty,
+                                    "stage": "remediating",
+                                    "iteration": iteration,
+                                    "score": score,
+                                },
+                                run_id=item_run_id,
+                            )
+                            await event_queue.put(regen_start_evt)
 
-                        regen_usage = state.get("latest_usage", {})
-                        regen_done_evt = make_event(
-                            event_type="agent_complete",
-                            agent_name="Question Improver",
-                            message=f"Question {idx + 1} improved (Draft v{state['iteration_count']} • {regen_usage.get('total_tokens', 0)} tokens, ${regen_usage.get('cost_usd', 0.0):.5f}). Re-checking with Quality Reviewer...",
-                            data={
-                                "draft": state["current_draft"],
-                                "latest_usage": regen_usage,
-                                "index": idx + 1,
-                                "total": total_qty,
-                                "stage": "remediating",
-                            },
-                            run_id=item_run_id,
-                        )
-                        await event_queue.put(regen_done_evt)
-                        continue
-                    elif next_step == "reject":
-                        rej_res = await reject_node(state)
-                        state.update(rej_res)
-                        question_passed = False
-                        rej_data = state.get("rejection_data") or {}
-                        if isinstance(rej_data, dict):
-                            rej_data["index"] = idx + 1
-                            rej_data["stage"] = "rejected"
-                        rej_evt = make_event(
-                            event_type="workflow_rejected",
-                            agent_name="Quality Gate",
-                            message=f"Quality check not passed for Question {idx + 1} (Score {score}/100 after {iteration} attempts).",
-                            data=rej_data,
-                            run_id=item_run_id,
-                        )
-                        await event_queue.put(rej_evt)
-                        break
-                    else:
-                        break
+                            regen_res = await regenerator_node(state)
+                            state.update(regen_res)
+
+                            regen_usage = state.get("latest_usage", {})
+                            regen_done_evt = make_event(
+                                event_type="agent_complete",
+                                agent_name="Question Improver",
+                                message=f"Question {idx + 1} improved (Draft v{state['iteration_count']} • {regen_usage.get('total_tokens', 0)} tokens, ${regen_usage.get('cost_usd', 0.0):.5f}). Re-checking with Quality Reviewer...",
+                                data={
+                                    "draft": state["current_draft"],
+                                    "latest_usage": regen_usage,
+                                    "index": idx + 1,
+                                    "total": total_qty,
+                                    "stage": "remediating",
+                                },
+                                run_id=item_run_id,
+                            )
+                            await event_queue.put(regen_done_evt)
+                            continue
+                        elif next_step == "reject":
+                            rej_res = await reject_node(state)
+                            state.update(rej_res)
+                            question_passed = False
+                            rej_data = state.get("rejection_data") or {}
+                            if isinstance(rej_data, dict):
+                                rej_data["index"] = idx + 1
+                                rej_data["stage"] = "rejected"
+                            rej_evt = make_event(
+                                event_type="workflow_rejected",
+                                agent_name="Quality Gate",
+                                message=f"Quality check not passed for Question {idx + 1} (Score {score}/100 after {iteration} attempts).",
+                                data=rej_data,
+                                run_id=item_run_id,
+                            )
+                            await event_queue.put(rej_evt)
+                            break
+                        else:
+                            break
 
                 if question_passed:
                     # Image Generation if required (guarded by Section Image Guard)
