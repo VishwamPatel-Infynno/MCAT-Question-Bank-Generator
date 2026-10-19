@@ -4,6 +4,7 @@ export { default as Footer } from './layout/Footer';
 
 // Common Brand & Primitives
 export { default as InfynnoLogo } from './common/InfynnoLogo';
+export { default as CustomSelect } from './common/CustomSelect';
 export { ToastContainer } from './common/Toast';
 
 // Generator Studio

@@ -3,6 +3,7 @@ import { X, Settings, Sliders, Image, ExternalLink } from 'lucide-react';
 import { fetchSettings, updateSettings } from '../../services/api';
 import { MODEL_OPTIONS, DEFAULT_TEXT_MODEL, IMAGE_RESOLUTION_PRESETS } from '../../constants/config';
 import InfynnoLogo from '../common/InfynnoLogo';
+import CustomSelect from '../common/CustomSelect';
 
 export default function SettingsModal({ onClose }) {
   const [model, setModel] = useState(DEFAULT_TEXT_MODEL);
@@ -114,16 +115,18 @@ export default function SettingsModal({ onClose }) {
             <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
               AI Model for Question Writing
             </label>
-            <select
+            <CustomSelect
               id="settings-select-model"
+              label="AI Model for Question Writing"
               value={model}
-              onChange={(e) => setModel(e.target.value)}
-              style={{ width: '100%' }}
-            >
-              {MODEL_OPTIONS.map(opt => (
-                <option key={opt.id} value={opt.id}>{opt.label}</option>
-              ))}
-            </select>
+              onChange={(newModel) => setModel(newModel)}
+              options={MODEL_OPTIONS.map(opt => ({
+                value: opt.id,
+                label: opt.label,
+                description: '$0.10 input / $0.32 output per 1M tokens'
+              }))}
+              searchable={false}
+            />
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
               $0.10 input / $0.32 output per 1M tokens.
             </div>

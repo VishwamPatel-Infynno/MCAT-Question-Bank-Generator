@@ -14,6 +14,17 @@ import {
   Compass
 } from 'lucide-react';
 import { SECTION_ICONS, PACING_INFO } from '../../constants/ucat';
+import CustomSelect from '../common/CustomSelect';
+
+const TRAP_OPTIONS = [
+  { value: 'Automatic', label: 'Automatic Trap Balancing', description: 'AI evaluates and injects realistic traps for this subtest' },
+  { value: 'Keyword_Trap', label: 'Matching Words Trap', description: 'Similar words from passage with opposite or skewed meaning' },
+  { value: 'Partial_Match', label: 'Incomplete Information', description: 'Missing a computation step or omitting key constraints' },
+  { value: 'Extreme_Language', label: 'Extreme Words Trap', description: 'Absolute terms (always, never, only) not justified by facts' },
+  { value: 'Correlation_vs_Causation', label: 'Correlation vs Causation', description: 'Falsely assuming causal relationship from a correlated finding' },
+  { value: 'Scope_Shift', label: 'Out-of-Scope Conclusion', description: 'Extrapolating plausible assumptions beyond given evidence' },
+  { value: 'Half_Truth', label: 'True Fact but Irrelevant', description: 'Factually true statement that does not answer the question' }
+];
 
 export default function GeneratorPanel({
   generatorForm,
@@ -350,68 +361,61 @@ export default function GeneratorPanel({
           </span>
         </div>
 
-        {/* Subtest Selection Grid */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-          {sectionsData.map(sec => {
-            const Icon = SECTION_ICONS[sec.id] || FileText;
-            const isSelected = selectedSection === sec.id;
-            return (
-              <button
-                key={sec.id}
-                id={`section-btn-${sec.id}`}
-                onClick={() => {
-                  setSelectedSection(sec.id);
-                  if (sec.subtopics && sec.subtopics.length > 0) {
-                    setSelectedSubtopic(sec.subtopics[0]);
-                  }
-                  if (sec.id === 'abstract_reasoning') {
-                    setRequireImage(true);
-                  }
-                }}
-                className={`subtest-item-minimal ${isSelected ? 'active' : ''}`}
-              >
-                <div style={{ color: isSelected ? 'var(--brand-primary)' : 'var(--text-muted)', display: 'flex' }}>
-                  <Icon size={14} />
-                </div>
-                <span style={{ fontSize: '0.775rem', flex: 1 }}>
-                  {sec.label}
-                </span>
-                {isSelected && (
-                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--brand-primary)' }} />
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Subtopic Focus Dropdown */}
-        {subtopics.length > 0 && (
+        {/* Subtest & Topic Paired Dropdowns */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {/* Subtest Dropdown */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label htmlFor="select-subtopic" style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Topic Focus
+            <label htmlFor="select-subtest" style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Subtest
             </label>
-            <select
-              id="select-subtopic"
-              aria-label="Topic Focus"
-              value={selectedSubtopic}
-              onChange={(e) => setSelectedSubtopic(e.target.value)}
-              style={{
-                width: '100%',
-                fontSize: '0.75rem',
-                padding: '6px 8px',
-                borderRadius: 'var(--radius-xs)',
-                background: 'var(--bg-surface-subtle)',
-                border: '1px solid var(--border-light)',
-                color: 'var(--text-primary)',
-                cursor: 'pointer'
+            <CustomSelect
+              id="select-subtest"
+              label="Select UCAT Subtest"
+              value={selectedSection}
+              onChange={(newSecId) => {
+                setSelectedSection(newSecId);
+                const sec = sectionsData.find(s => s.id === newSecId);
+                if (sec?.subtopics && sec.subtopics.length > 0) {
+                  setSelectedSubtopic(sec.subtopics[0]);
+                }
+                if (newSecId === 'abstract_reasoning') {
+                  setRequireImage(true);
+                }
               }}
-            >
-              {subtopics.map(sub => (
-                <option key={sub} value={sub}>{sub}</option>
-              ))}
-            </select>
+              options={sectionsData.map(sec => {
+                const Icon = SECTION_ICONS[sec.id] || FileText;
+                const secPacing = PACING_INFO[sec.id] || {};
+                return {
+                  value: sec.id,
+                  label: sec.label,
+                  icon: <Icon size={14} />,
+                  badge: secPacing.target,
+                  description: `${sec.subtopics?.length || 0} Topics available`
+                };
+              })}
+            />
           </div>
-        )}
+
+          {/* Subtopic Focus Dropdown */}
+          {subtopics.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label htmlFor="select-subtopic" style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Topic Focus
+              </label>
+              <CustomSelect
+                id="select-subtopic"
+                label="Topic Focus"
+                value={selectedSubtopic}
+                onChange={(newTopic) => setSelectedSubtopic(newTopic)}
+                options={subtopics.map(sub => ({
+                  value: sub,
+                  label: sub
+                }))}
+                searchable={subtopics.length > 5}
+              />
+            </div>
+          )}
+        </div>
 
         {/* Difficulty Segmented Chips */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -1086,30 +1090,13 @@ export default function GeneratorPanel({
           <label htmlFor="select-primary-trap" style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             Wrong Answer Traps
           </label>
-          <select
+          <CustomSelect
             id="select-primary-trap"
-            aria-label="Wrong Answer Traps"
+            label="Wrong Answer Traps"
             value={primaryTrap}
-            onChange={(e) => setPrimaryTrap && setPrimaryTrap(e.target.value)}
-            style={{
-              width: '100%',
-              fontSize: '0.75rem',
-              padding: '6px 8px',
-              borderRadius: 'var(--radius-xs)',
-              background: 'var(--bg-surface-subtle)',
-              border: '1px solid var(--border-light)',
-              color: 'var(--text-primary)',
-              cursor: 'pointer'
-            }}
-          >
-            <option value="Automatic">Automatic (AI selects best realistic traps)</option>
-            <option value="Keyword_Trap">Matching Words Trap (similar words with opposite meaning)</option>
-            <option value="Partial_Match">Incomplete Information (missing computation or step)</option>
-            <option value="Extreme_Language">Extreme Words (always, never, only, definitely)</option>
-            <option value="Correlation_vs_Causation">Assuming Cause from Link (correlation vs causation)</option>
-            <option value="Scope_Shift">Out-of-Scope Conclusion (drawing conclusions beyond facts)</option>
-            <option value="Half_Truth">True Fact but Irrelevant (distractor doesn't answer question)</option>
-          </select>
+            onChange={(newTrap) => setPrimaryTrap && setPrimaryTrap(newTrap)}
+            options={TRAP_OPTIONS}
+          />
         </div>
 
         {/* Advanced Accordion (Diagram & Custom Directives) */}

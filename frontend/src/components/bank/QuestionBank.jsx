@@ -24,6 +24,7 @@ import { getExportUrl, batchDeleteQuestions } from '../../services/api';
 import { useQuestionBank } from '../../hooks/useQuestionBank';
 import VisualStimulusViewer from '../question/VisualStimulusViewer';
 import SharedPassageCard from '../question/SharedPassageCard';
+import CustomSelect from '../common/CustomSelect';
 
 const SORT_OPTIONS = [
   { id: 'newest', label: 'Newest First' },
@@ -326,32 +327,24 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
           </div>
 
           {/* Sort Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto' }}>
-            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto', minWidth: '180px' }}>
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
               <ArrowUpDown size={12} /> Sort:
             </span>
-            <select
+            <CustomSelect
               id="select-bank-sort"
-              aria-label="Sort Questions"
+              label="Sort Questions"
+              size="sm"
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              style={{
-                background: 'var(--bg-surface-elevated)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-sm)',
-                padding: '4px 8px',
-                fontSize: '0.74rem',
-                color: 'var(--text-primary)',
-                outline: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.id} value={opt.id}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              onChange={(newSort) => setSortBy(newSort)}
+              options={SORT_OPTIONS.map((opt) => ({
+                value: opt.id,
+                label: opt.label
+              }))}
+              searchable={false}
+              align="right"
+              style={{ width: '140px' }}
+            />
           </div>
         </div>
 
@@ -746,31 +739,25 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
             {/* Page Size Selector */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
               <span>Show</span>
-              <select
+              <CustomSelect
                 id="select-page-size"
-                aria-label="Questions per page"
+                label="Questions per page"
+                size="sm"
                 value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
+                onChange={(newSize) => {
+                  setPageSize(Number(newSize));
                   setCurrentPage(1);
                 }}
-                style={{
-                  background: 'var(--bg-surface-elevated)',
-                  color: 'var(--text-primary)',
-                  border: '1px solid var(--border-medium)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '4px 8px',
-                  fontSize: '0.78rem',
-                  cursor: 'pointer',
-                  outline: 'none'
-                }}
-              >
-                <option value={10}>10</option>
-                <option value={15}>15</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={-1}>All</option>
-              </select>
+                options={[
+                  { value: 10, label: '10' },
+                  { value: 15, label: '15' },
+                  { value: 25, label: '25' },
+                  { value: 50, label: '50' },
+                  { value: -1, label: 'All' }
+                ]}
+                searchable={false}
+                style={{ width: '75px' }}
+              />
               <span>per page</span>
             </div>
 
