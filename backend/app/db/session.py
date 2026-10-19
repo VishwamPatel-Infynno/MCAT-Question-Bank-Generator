@@ -197,7 +197,19 @@ async def init_db():
                 text("CREATE INDEX IF NOT EXISTS ix_questions_batch_id ON questions (batch_id);")
             )
 
-            # Safe indexes for passages and batches
+            # Safe indexes and image columns for passages and batches
+            await conn.execute(
+                text("ALTER TABLE passages ADD COLUMN IF NOT EXISTS image_url TEXT;")
+            )
+            await conn.execute(
+                text("ALTER TABLE passages ALTER COLUMN image_url TYPE TEXT;")
+            )
+            await conn.execute(
+                text("ALTER TABLE passages ADD COLUMN IF NOT EXISTS image_svg TEXT;")
+            )
+            await conn.execute(
+                text("ALTER TABLE passages ADD COLUMN IF NOT EXISTS image_description TEXT;")
+            )
             await conn.execute(
                 text("CREATE INDEX IF NOT EXISTS ix_passages_section ON passages (section);")
             )

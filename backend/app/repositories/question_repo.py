@@ -120,6 +120,9 @@ def _passage_model_to_schema(m: PassageModel) -> Passage:
         word_count=m.word_count,
         section=m.section,
         subtopic=m.subtopic,
+        image_url=m.image_url,
+        image_svg=m.image_svg,
+        image_description=m.image_description,
         created_at=m.created_at,
         updated_at=m.updated_at,
     )
@@ -135,6 +138,9 @@ def _passage_schema_to_model(p: Passage) -> PassageModel:
         word_count=word_count,
         section=p.section,
         subtopic=p.subtopic,
+        image_url=p.image_url,
+        image_svg=p.image_svg,
+        image_description=p.image_description,
         created_at=p.created_at,
         updated_at=p.updated_at or datetime.now(UTC).isoformat(),
     )
@@ -193,6 +199,9 @@ async def save_question(q: Question) -> Question:
                     word_count=len(q.stimulus_text.split()),
                     section=q.section,
                     subtopic=q.subtopic,
+                    image_url=q.image_url,
+                    image_svg=q.image_svg,
+                    image_description=q.image_description,
                     created_at=q.created_at or now_iso,
                     updated_at=now_iso,
                 )
@@ -200,6 +209,12 @@ async def save_question(q: Question) -> Question:
             else:
                 existing_passage.text = q.stimulus_text.strip()
                 existing_passage.word_count = len(q.stimulus_text.split())
+                if q.image_svg and not existing_passage.image_svg:
+                    existing_passage.image_svg = q.image_svg
+                if q.image_url and not existing_passage.image_url:
+                    existing_passage.image_url = q.image_url
+                if q.image_description and not existing_passage.image_description:
+                    existing_passage.image_description = q.image_description
                 existing_passage.updated_at = now_iso
 
         # 2. Auto-sync GenerationBatch record if batch_id exists
@@ -275,6 +290,9 @@ async def save_questions_batch(questions: list[Question]) -> BatchSaveResult:
                     word_count=len(q.stimulus_text.split()),
                     section=q.section,
                     subtopic=q.subtopic,
+                    image_url=q.image_url,
+                    image_svg=q.image_svg,
+                    image_description=q.image_description,
                     created_at=q.created_at or now_iso,
                     updated_at=now_iso,
                 )
@@ -305,6 +323,12 @@ async def save_questions_batch(questions: list[Question]) -> BatchSaveResult:
             else:
                 existing_p.text = p_mod.text
                 existing_p.word_count = p_mod.word_count
+                if p_mod.image_svg and not existing_p.image_svg:
+                    existing_p.image_svg = p_mod.image_svg
+                if p_mod.image_url and not existing_p.image_url:
+                    existing_p.image_url = p_mod.image_url
+                if p_mod.image_description and not existing_p.image_description:
+                    existing_p.image_description = p_mod.image_description
                 existing_p.updated_at = now_iso
 
         # Upsert batches

@@ -69,6 +69,20 @@ export default function QuestionCard({
     };
   }, [question, isEditing, editedOptions]);
 
+  const hasStimulus = Boolean(
+    (question?.stimulus_text && question.stimulus_text.trim()) ||
+    (isEditing && (showStimulusField || (editedStimulus && editedStimulus.trim())))
+  );
+
+  const hasImage = Boolean(
+    question?.image_svg ||
+    question?.image_url ||
+    question?.stage_outcomes?.visual_stimulus?.image_svg ||
+    question?.stage_outcomes?.visual_stimulus?.image_url ||
+    question?.stage_outcomes?.passage_visual_stimulus?.image_svg ||
+    question?.stage_outcomes?.passage_visual_stimulus?.image_url
+  );
+
   if (!question) return null;
 
   const handleApproveClick = async () => {
@@ -201,9 +215,9 @@ export default function QuestionCard({
             </span>
           )}
 
-          {(question.image_svg || question.image_url || question.stage_outcomes?.visual_stimulus?.image_svg || question.stage_outcomes?.visual_stimulus?.image_url) && (
+          {hasImage && (
             <span className="badge badge-purple" style={{ fontSize: '0.675rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              <ImageIcon size={11} /> Visual Diagram
+              <ImageIcon size={11} /> {hasStimulus ? 'Passage Diagram' : 'Visual Diagram'}
             </span>
           )}
 
@@ -351,6 +365,17 @@ export default function QuestionCard({
                   {question.stimulus_text}
                 </div>
               )}
+
+              {hasImage && (
+                <div style={{ marginTop: '10px', borderTop: '1px solid var(--border-light)', paddingTop: '10px' }}>
+                  <VisualStimulusViewer
+                    question={question}
+                    isEditing={isEditing}
+                    editedDescription={editedImageDescription}
+                    onDescriptionChange={setEditedImageDescription}
+                  />
+                </div>
+              )}
             </div>
           ) : isEditing ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -365,13 +390,15 @@ export default function QuestionCard({
             </div>
           ) : null}
 
-          {/* Visual Stimulus Diagram / Image */}
-          <VisualStimulusViewer
-            question={question}
-            isEditing={isEditing}
-            editedDescription={editedImageDescription}
-            onDescriptionChange={setEditedImageDescription}
-          />
+          {/* Visual Stimulus Diagram / Image for standalone questions (without passage) */}
+          {!hasStimulus && hasImage && (
+            <VisualStimulusViewer
+              question={question}
+              isEditing={isEditing}
+              editedDescription={editedImageDescription}
+              onDescriptionChange={setEditedImageDescription}
+            />
+          )}
 
           {/* Question Stem */}
           <div style={{ padding: '2px 4px' }}>

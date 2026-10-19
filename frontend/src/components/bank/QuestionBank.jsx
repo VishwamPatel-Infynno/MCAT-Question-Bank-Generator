@@ -531,9 +531,9 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                           <Award size={10} /> {q.final_score}/100
                         </span>
 
-                        {(q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url) && (
+                        {(q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url || q.stage_outcomes?.passage_visual_stimulus?.image_svg) && (
                           <span className="badge badge-purple" style={{ fontSize: '0.65rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <ImageIcon size={10} /> Diagram
+                            <ImageIcon size={10} /> {q.stimulus_text ? 'Passage Diagram' : 'Diagram'}
                           </span>
                         )}
 
@@ -635,7 +635,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                       gap: '12px'
                     }}
                   >
-                    {/* Full Stimulus */}
+                    {/* Full Stimulus with embedded diagram if present */}
                     {q.stimulus_text && (
                       <div
                         className="vignette-editorial"
@@ -643,18 +643,26 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                           padding: '14px 18px',
                           fontSize: '0.9rem',
                           border: '1px solid var(--border-light)',
-                          borderLeft: '3px solid var(--brand-primary)'
+                          borderLeft: '3px solid var(--brand-primary)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '12px'
                         }}
                       >
-                        <div style={{ fontSize: '0.675rem', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.04em', fontFamily: 'var(--font-sans)' }}>
-                          Stimulus Vignette
+                        <div style={{ fontSize: '0.675rem', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-sans)' }}>
+                          {q.passage_id ? 'Shared Passage Stimulus' : 'Stimulus Vignette'}
                         </div>
-                        {q.stimulus_text}
+                        <div style={{ whiteSpace: 'pre-line' }}>{q.stimulus_text}</div>
+                        {(q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.passage_visual_stimulus?.image_svg) && (
+                          <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '10px' }}>
+                            <VisualStimulusViewer question={q} />
+                          </div>
+                        )}
                       </div>
                     )}
 
-                    {/* Visual Stimulus (Vector SVG or AI Diagram) */}
-                    <VisualStimulusViewer question={q} />
+                    {/* Visual Stimulus for standalone direct questions (without stimulus_text) */}
+                    {!q.stimulus_text && <VisualStimulusViewer question={q} />}
 
                     {/* Options Grid */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>

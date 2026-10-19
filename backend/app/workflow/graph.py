@@ -721,6 +721,69 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             )
             yield f"data: {passage_done_evt.model_dump_json()}\n\n"
 
+        shared_passage_image_url: str | None = None
+        shared_passage_image_svg: str | None = None
+        shared_passage_image_desc: str | None = None
+
+        requires_passage_image = bool(
+            req.require_image
+            or req.visual_type in ("SVG_Diagram", "AI_FLUX_Image")
+            or (req.section == UCATSection.ABSTRACT_REASONING)
+        )
+
+        # Generate shared visual stimulus diagram for the passage if required
+        if is_single_passage_set and requires_passage_image and shared_passage_text:
+            p_img_start_evt = make_event(
+                event_type="agent_start",
+                agent_name="Diagram & Chart Maker",
+                message="Drawing shared visual stimulus diagram for reading passage...",
+                data={
+                    "stage": "passage_image",
+                    "passage_id": shared_passage_id,
+                    "batch_id": batch_id,
+                },
+            )
+            yield f"data: {p_img_start_evt.model_dump_json()}\n\n"
+
+            p_draft = QuestionDraft(
+                stimulus_text=shared_passage_text,
+                question_stem=f"Visual stimulus diagram for {req.section.value} passage",
+                options=[
+                    OptionChoice(id="A", text="Option A"),
+                    OptionChoice(id="B", text="Option B"),
+                    OptionChoice(id="C", text="Option C"),
+                    OptionChoice(id="D", text="Option D"),
+                ],
+                correct_answer_id="A",
+                explanation="Shared passage visual stimulus reference",
+                image_needed=True,
+                image_prompt_or_type=req.custom_prompt or f"Scientific clinical diagram for: {shared_passage_text[:120]}",
+            )
+            (
+                shared_passage_image_url,
+                shared_passage_image_svg,
+                shared_passage_image_desc,
+                p_img_usage,
+            ) = await generate_image_stimulus(p_draft, req)
+
+            if p_img_usage and p_img_usage.get("cost_usd"):
+                passage_cost += p_img_usage["cost_usd"]
+
+            p_img_done_evt = make_event(
+                event_type="agent_complete",
+                agent_name="Diagram & Chart Maker",
+                message="Shared visual stimulus diagram ready for reading passage.",
+                data={
+                    "stage": "passage_image",
+                    "passage_id": shared_passage_id,
+                    "image_url": shared_passage_image_url,
+                    "image_svg": shared_passage_image_svg,
+                    "image_description": shared_passage_image_desc,
+                    "batch_id": batch_id,
+                },
+            )
+            yield f"data: {p_img_done_evt.model_dump_json()}\n\n"
+
         # Initial workflow start
         if is_mixed_set:
             start_msg = f"Starting UK UCAT Mixed Batch ({total_qty} questions: {effective_passage_count} linked to shared passage [{p_single} Single, {p_multi} Multi], {independent_count} independent [{ind_single} Single, {ind_multi} Multi])..."
@@ -753,6 +816,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 if is_mixed_set
                 else ("single_passage" if is_single_passage_set else "independent"),
                 "shared_passage": shared_passage_text if is_single_passage_set else None,
+                "shared_passage_image_svg": shared_passage_image_svg if is_single_passage_set else None,
+                "shared_passage_image_url": shared_passage_image_url if is_single_passage_set else None,
+                "shared_passage_image_description": shared_passage_image_desc if is_single_passage_set else None,
             },
         )
         yield f"data: {start_evt.model_dump_json()}\n\n"
@@ -997,28 +1063,45 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             break
 
                 if question_passed:
-                    # Image Generation if required (guarded by Section Image Guard)
-                    req_data = state["request"]
-                    sec_raw = req_data.get("section", "")
-                    section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)
-                    explicit_image = req_data.get("require_image", False)
-                    visual_type = req_data.get("visual_type", "None")
+                    is_passage_item = is_single_passage_set and idx < effective_passage_count
 
-                    if explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
-                        requires_image = True
-                    elif section_val in (
-                        UCATSection.VERBAL_REASONING.value,
-                        UCATSection.SITUATIONAL_JUDGEMENT.value,
-                        "VR",
-                        "SJT",
-                    ):
+                    if is_passage_item:
+                        # In passage type questions, visual stimulus belongs to the passage, not question-wise!
                         requires_image = False
-                    elif section_val in (UCATSection.ABSTRACT_REASONING.value, "AR"):
-                        requires_image = True
+                        if shared_passage_image_svg or shared_passage_image_url:
+                            state["image_url"] = shared_passage_image_url
+                            state["image_svg"] = shared_passage_image_svg
+                            state["image_description"] = shared_passage_image_desc
+                            outcomes = state.setdefault("stage_outcomes", {})
+                            outcomes["passage_visual_stimulus"] = {
+                                "image_url": shared_passage_image_url,
+                                "image_svg": shared_passage_image_svg,
+                                "image_description": shared_passage_image_desc,
+                                "note": "Visual stimulus belongs to shared reading passage",
+                            }
                     else:
-                        requires_image = bool(
-                            state.get("current_draft", {}).get("image_needed", False)
-                        )
+                        # Independent questions: evaluate question-level visual stimulus
+                        req_data = state["request"]
+                        sec_raw = req_data.get("section", "")
+                        section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)
+                        explicit_image = req_data.get("require_image", False)
+                        visual_type = req_data.get("visual_type", "None")
+
+                        if explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
+                            requires_image = True
+                        elif section_val in (
+                            UCATSection.VERBAL_REASONING.value,
+                            UCATSection.SITUATIONAL_JUDGEMENT.value,
+                            "VR",
+                            "SJT",
+                        ):
+                            requires_image = False
+                        elif section_val in (UCATSection.ABSTRACT_REASONING.value, "AR"):
+                            requires_image = True
+                        else:
+                            requires_image = bool(
+                                state.get("current_draft", {}).get("image_needed", False)
+                            )
 
                     if requires_image:
                         img_start_evt = make_event(
@@ -1134,6 +1217,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 "passage_question_count": effective_passage_count,
                 "independent_question_count": independent_count,
                 "shared_passage": shared_passage_text if is_single_passage_set else None,
+                "shared_passage_image_svg": shared_passage_image_svg if is_single_passage_set else None,
+                "shared_passage_image_url": shared_passage_image_url if is_single_passage_set else None,
+                "shared_passage_image_description": shared_passage_image_desc if is_single_passage_set else None,
                 "cumulative_usage": {
                     "total_tokens": cumulative_tokens,
                     "total_prompt_tokens": cumulative_prompt_tokens,

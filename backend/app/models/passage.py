@@ -13,5 +13,8 @@ class PassageModel(Base):
     word_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
     section: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     subtopic: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    image_svg: Mapped[str | None] = mapped_column(Text, nullable=True)
+    image_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     updated_at: Mapped[str | None] = mapped_column(String(64), nullable=True)

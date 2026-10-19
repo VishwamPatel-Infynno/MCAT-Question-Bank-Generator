@@ -103,6 +103,30 @@ export default function StagedBatchReview({
     return linkedQ?.stimulus_text || stagedQuestions[0]?.stimulus_text || null;
   }, [isPassageSet, batchProgress, stagedQuestions]);
 
+  // Extract shared reading passage image (SVG or URL)
+  const sharedPassageImage = useMemo(() => {
+    if (!isPassageSet) return null;
+    if (batchProgress?.shared_passage_image_svg || batchProgress?.shared_passage_image_url) {
+      return {
+        image_svg: batchProgress.shared_passage_image_svg,
+        image_url: batchProgress.shared_passage_image_url,
+        image_description: batchProgress.shared_passage_image_description
+      };
+    }
+    const linkedQ = stagedQuestions.find(q =>
+      (q.passage_id || q.passage_mode === 'single_passage') &&
+      (q.image_svg || q.image_url || q.stage_outcomes?.passage_visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_svg)
+    );
+    if (linkedQ) {
+      return {
+        image_svg: linkedQ.stage_outcomes?.passage_visual_stimulus?.image_svg || linkedQ.image_svg || linkedQ.stage_outcomes?.visual_stimulus?.image_svg,
+        image_url: linkedQ.stage_outcomes?.passage_visual_stimulus?.image_url || linkedQ.image_url || linkedQ.stage_outcomes?.visual_stimulus?.image_url,
+        image_description: linkedQ.stage_outcomes?.passage_visual_stimulus?.image_description || linkedQ.image_description || linkedQ.stage_outcomes?.visual_stimulus?.image_description
+      };
+    }
+    return null;
+  }, [isPassageSet, batchProgress, stagedQuestions]);
+
   const isQuestionPassageLinked = (q, slotNumber) => {
     if (q) {
       if (q.passage_id) return true;
@@ -404,7 +428,7 @@ export default function StagedBatchReview({
                   Direct Question
                 </span>
               )}
-              {(q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url) && (
+              {!isLinked && (q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url) && (
                 <span className="badge badge-purple" style={{ fontSize: '0.675rem', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                   <ImageIcon size={10} /> Diagram
                 </span>
@@ -463,8 +487,8 @@ export default function StagedBatchReview({
             )
           )}
 
-          {/* Visual Stimulus Diagram Thumbnail */}
-          {(q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url) && (
+          {/* Visual Stimulus Diagram Thumbnail (only for independent direct questions; passage questions display diagram inside shared passage) */}
+          {!isLinked && (q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url) && (
             <VisualStimulusViewer question={q} compact={true} />
           )}
 
@@ -1134,6 +1158,11 @@ export default function StagedBatchReview({
                   <span className="badge badge-indigo" style={{ fontSize: '0.675rem', fontWeight: 600 }}>
                     {effectivePassageCount} Linked Questions
                   </span>
+                  {sharedPassageImage && (
+                    <span className="badge badge-purple" style={{ fontSize: '0.675rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                      <ImageIcon size={10} /> Passage Diagram
+                    </span>
+                  )}
                 </div>
                 <p style={{ fontSize: '0.725rem', color: 'var(--text-muted)', margin: 0, marginTop: '2px' }}>
                   {isMixedBatch
@@ -1156,22 +1185,33 @@ export default function StagedBatchReview({
           </div>
 
           {!isPassageCollapsed && (
-            <div
-              style={{
-                padding: '14px 18px',
-                background: 'var(--bg-surface-subtle)',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border-light)',
-                maxHeight: '260px',
-                overflowY: 'auto',
-                fontFamily: 'var(--font-serif)',
-                fontSize: '0.925rem',
-                lineHeight: '1.7',
-                color: 'var(--text-primary)',
-                whiteSpace: 'pre-line'
-              }}
-            >
-              {sharedStimulusText}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div
+                style={{
+                  padding: '14px 18px',
+                  background: 'var(--bg-surface-subtle)',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--border-light)',
+                  maxHeight: '260px',
+                  overflowY: 'auto',
+                  fontFamily: 'var(--font-serif)',
+                  fontSize: '0.925rem',
+                  lineHeight: '1.7',
+                  color: 'var(--text-primary)',
+                  whiteSpace: 'pre-line'
+                }}
+              >
+                {sharedStimulusText}
+              </div>
+
+              {sharedPassageImage && (
+                <div style={{ borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border-light)' }}>
+                  <VisualStimulusViewer
+                    question={sharedPassageImage}
+                    compact={false}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

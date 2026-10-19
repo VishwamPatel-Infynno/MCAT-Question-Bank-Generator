@@ -156,6 +156,9 @@ class Passage(BaseModel):
     word_count: int | None = None
     section: str | None = None
     subtopic: str | None = None
+    image_url: str | None = None
+    image_svg: str | None = None
+    image_description: str | None = None
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     updated_at: str | None = None
 

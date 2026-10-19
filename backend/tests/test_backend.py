@@ -1273,3 +1273,46 @@ async def test_independent_question_direct_no_stimulus(monkeypatch):
     # Item 2 is direct independent
     assert staged[1]["passage_required"] == "No"
     assert staged[1]["stimulus_text"] == ""
+
+
+@pytest.mark.asyncio
+async def test_passage_set_with_passage_level_visual_stimulus(monkeypatch):
+    """Verifies that in passage-type sets, visual stimulus is generated once for the passage and not duplicated question-wise."""
+    monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
+    monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
+
+    req = GenerationRequest(
+        section=UCATSection.DECISION_MAKING,
+        difficulty=Difficulty.MEDIUM,
+        questions_to_generate=2,
+        passage_mode="single_passage",
+        passage_required="Yes",
+        require_image=True,
+    )
+
+    events = []
+    async for chunk in run_workflow_stream(req):
+        line = chunk.strip()
+        if line.startswith("data: "):
+            events.append(json.loads(line[6:]))
+
+    # 1. Diagram & Chart Maker runs once for the passage
+    passage_img_completes = [
+        e for e in events
+        if e.get("agent_name") == "Diagram & Chart Maker"
+        and e.get("event_type") == "agent_complete"
+        and e.get("data", {}).get("stage") == "passage_image"
+    ]
+    assert len(passage_img_completes) == 1
+    assert passage_img_completes[0]["data"]["image_svg"] or passage_img_completes[0]["data"]["image_url"]
+
+    # 2. workflow_complete has shared passage image
+    complete_evt = next(e for e in events if e.get("event_type") == "workflow_complete")
+    assert complete_evt["data"]["shared_passage_image_svg"] or complete_evt["data"]["shared_passage_image_url"]
+
+    # 3. Questions have passage_visual_stimulus in outcomes and do NOT run question-wise image generation
+    questions = complete_evt["data"]["questions"]
+    assert len(questions) == 2
+    for q in questions:
+        assert q["stage_outcomes"]["passage_visual_stimulus"]["note"] == "Visual stimulus belongs to shared reading passage"
+
