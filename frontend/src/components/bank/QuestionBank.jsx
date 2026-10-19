@@ -17,10 +17,12 @@ import {
   Sparkles,
   HelpCircle,
   FileDown,
-  ArrowUpDown
+  ArrowUpDown,
+  Image as ImageIcon
 } from 'lucide-react';
 import { getExportUrl, batchDeleteQuestions } from '../../services/api';
 import { useQuestionBank } from '../../hooks/useQuestionBank';
+import VisualStimulusViewer from '../question/VisualStimulusViewer';
 
 const SORT_OPTIONS = [
   { id: 'newest', label: 'Newest First' },
@@ -547,6 +549,12 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                           <Award size={10} /> {q.final_score}/100
                         </span>
 
+                        {(q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url) && (
+                          <span className="badge badge-purple" style={{ fontSize: '0.65rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <ImageIcon size={10} /> Diagram
+                          </span>
+                        )}
+
                         {((q.correct_answer_ids && q.correct_answer_ids.length > 1) || q.interaction_type === 'multi_choice') && (
                           <span style={{ color: 'var(--brand-indigo)', fontWeight: 500, fontSize: '0.7rem' }}>
                             • Multi-Choice
@@ -660,6 +668,9 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                         {q.stimulus_text}
                       </div>
                     )}
+
+                    {/* Visual Stimulus (Vector SVG or AI Diagram) */}
+                    <VisualStimulusViewer question={q} />
 
                     {/* Options Grid */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>

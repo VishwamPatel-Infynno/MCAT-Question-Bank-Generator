@@ -15,9 +15,11 @@ import {
   BarChart3,
   Code2,
   ShieldCheck,
-  Scale
+  Scale,
+  Image as ImageIcon
 } from 'lucide-react';
 import StageJsonInspector from './StageJsonInspector';
+import VisualStimulusViewer from './VisualStimulusViewer';
 
 export default function QuestionCard({ 
   question, 
@@ -39,6 +41,7 @@ export default function QuestionCard({
   const [editedStimulus, setEditedStimulus] = useState(question?.stimulus_text || '');
   const [editedOptions, setEditedOptions] = useState(question?.options || []);
   const [editedExplanation, setEditedExplanation] = useState(question?.explanation || '');
+  const [editedImageDescription, setEditedImageDescription] = useState(question?.image_description || '');
 
   const optionSymmetry = useMemo(() => {
     if (!question) return null;
@@ -89,7 +92,8 @@ export default function QuestionCard({
       question_stem: editedStem,
       stimulus_text: editedStimulus,
       options: editedOptions,
-      explanation: editedExplanation
+      explanation: editedExplanation,
+      image_description: editedImageDescription
     };
     if (onUpdateQuestion) onUpdateQuestion(updated);
     setIsEditing(false);
@@ -100,6 +104,7 @@ export default function QuestionCard({
     setEditedStimulus(question.stimulus_text || '');
     setEditedOptions(question.options || []);
     setEditedExplanation(question.explanation || '');
+    setEditedImageDescription(question.image_description || '');
     setIsEditing(false);
   };
 
@@ -187,6 +192,12 @@ export default function QuestionCard({
           {question.primary_trap && question.primary_trap !== 'Automatic' && (
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
               • Trap: {question.primary_trap.replace(/_/g, ' ')}
+            </span>
+          )}
+
+          {(question.image_svg || question.image_url || question.stage_outcomes?.visual_stimulus?.image_svg || question.stage_outcomes?.visual_stimulus?.image_url) && (
+            <span className="badge badge-purple" style={{ fontSize: '0.675rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <ImageIcon size={11} /> Visual Diagram
             </span>
           )}
 
@@ -361,6 +372,14 @@ export default function QuestionCard({
               )}
             </div>
           )}
+
+          {/* Visual Stimulus Diagram / Image */}
+          <VisualStimulusViewer
+            question={question}
+            isEditing={isEditing}
+            editedDescription={editedImageDescription}
+            onDescriptionChange={setEditedImageDescription}
+          />
 
           {/* Question Stem */}
           <div style={{ padding: '2px 4px' }}>

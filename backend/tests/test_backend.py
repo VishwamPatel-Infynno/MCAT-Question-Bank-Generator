@@ -214,6 +214,45 @@ async def test_image_node_workflow_accumulation():
 
 
 @pytest.mark.asyncio
+async def test_visual_stimulus_persistence_in_finalize_node():
+    """Verifies that finalize_node preserves image_svg, image_url, and image_description in final_question and stage_outcomes."""
+    req = GenerationRequest(
+        section=UCATSection.QUANTITATIVE_REASONING,
+        difficulty=Difficulty.MEDIUM,
+        visual_type="svg_diagram",
+    )
+    draft = get_mock_draft(req)
+    mock_svg = '<svg viewBox="0 0 400 300"><circle cx="200" cy="150" r="80" fill="#0284c7"/></svg>'
+    mock_desc = "Scatter diagram showing correlation between patient dosage and response."
+
+    state = {
+        "request": req.model_dump(),
+        "current_draft": draft.model_dump(),
+        "current_review": None,
+        "iteration_count": 1,
+        "iterations_history": [],
+        "total_tokens": 850,
+        "total_cost_usd": 0.0003,
+        "image_svg": mock_svg,
+        "image_url": None,
+        "image_description": mock_desc,
+        "stage_outcomes": {},
+    }
+
+    res = await finalize_node(state)
+    final_q = res["final_question"]
+    assert final_q["image_svg"] == mock_svg
+    assert final_q["image_url"] is None
+    assert final_q["image_description"] == mock_desc
+
+    final_payload = res["stage_outcomes"]["final_payload"]
+    assert final_payload["image_svg"] == mock_svg
+    assert final_payload["image_url"] is None
+    assert final_payload["image_description"] == mock_desc
+
+
+
+@pytest.mark.asyncio
 async def test_database_crud():
     await init_db()
     opts = [

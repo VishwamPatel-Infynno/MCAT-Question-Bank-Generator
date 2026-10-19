@@ -15,11 +15,13 @@ import {
   Loader2,
   Clock,
   PenTool,
-  RotateCcw,
   BookOpen,
-  FolderCheck
+  FolderCheck,
+  RotateCcw,
+  Image as ImageIcon
 } from 'lucide-react';
 import QuestionCard from './QuestionCard';
+import VisualStimulusViewer from './VisualStimulusViewer';
 
 export default function StagedBatchReview({
   stagedQuestions = [],
@@ -400,6 +402,11 @@ export default function StagedBatchReview({
                   • Passage ({wordCount}w)
                 </span>
               ) : null}
+              {(q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url) && (
+                <span className="badge badge-purple" style={{ fontSize: '0.675rem', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                  <ImageIcon size={10} /> Diagram
+                </span>
+              )}
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -452,6 +459,11 @@ export default function StagedBatchReview({
                 {q.stimulus_text}
               </div>
             )
+          )}
+
+          {/* Visual Stimulus Diagram Thumbnail */}
+          {(q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url) && (
+            <VisualStimulusViewer question={q} compact={true} />
           )}
 
           {/* Question Stem */}
