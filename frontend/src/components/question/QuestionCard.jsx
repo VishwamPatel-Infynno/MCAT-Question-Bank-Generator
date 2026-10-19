@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   CheckCircle, 
   Award, 
@@ -14,7 +14,8 @@ import {
   FileText,
   BarChart3,
   Code2,
-  ShieldCheck
+  ShieldCheck,
+  Scale
 } from 'lucide-react';
 import StageJsonInspector from './StageJsonInspector';
 
@@ -38,6 +39,31 @@ export default function QuestionCard({
   const [editedStimulus, setEditedStimulus] = useState(question?.stimulus_text || '');
   const [editedOptions, setEditedOptions] = useState(question?.options || []);
   const [editedExplanation, setEditedExplanation] = useState(question?.explanation || '');
+
+  const optionSymmetry = useMemo(() => {
+    if (!question) return null;
+    if (question.option_symmetry && Object.keys(question.option_symmetry).length > 0) {
+      return question.option_symmetry;
+    }
+    if (question.stage_outcomes?.option_symmetry) {
+      return question.stage_outcomes.option_symmetry;
+    }
+    const currentOptions = isEditing ? editedOptions : (question.options || []);
+    if (!currentOptions || currentOptions.length === 0) return null;
+    const counts = currentOptions.map(o => (o.text || '').trim().split(/\s+/).filter(Boolean).length);
+    const minW = Math.min(...counts);
+    const maxW = Math.max(...counts);
+    const ratio = minW > 0 ? Number((maxW / minW).toFixed(2)) : 1.0;
+    const isBalanced = ratio <= 1.25;
+    return {
+      disparity_ratio: ratio,
+      min_word_count: minW,
+      max_word_count: maxW,
+      is_balanced: isBalanced,
+      status: isBalanced ? 'Balanced' : (ratio <= 1.4 ? 'Moderate Disparity' : 'High Disparity'),
+      word_counts: Object.fromEntries(currentOptions.map((o, i) => [o.id || String.fromCharCode(65 + i), counts[i]])),
+    };
+  }, [question, isEditing, editedOptions]);
 
   if (!question) return null;
 
@@ -359,11 +385,32 @@ export default function QuestionCard({
             )}
           </div>
 
+          {/* Options Header & Anti-Guessability Symmetry Badge */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2px' }}>
+            <span style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Options ({question.options?.length || 4} Choices)
+            </span>
+            {optionSymmetry && (
+              <span
+                className={`badge ${optionSymmetry.is_balanced ? 'badge-emerald' : 'badge-amber'}`}
+                style={{ fontSize: '0.675rem', display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '2px 8px' }}
+                title={`Option Symmetry: ${optionSymmetry.disparity_ratio}x length disparity. Range: ${optionSymmetry.min_word_count} to ${optionSymmetry.max_word_count} words. Prevents guessability cues.`}
+              >
+                <Scale size={11} />
+                <span>
+                  Anti-Guessability: {optionSymmetry.status} ({optionSymmetry.min_word_count}–{optionSymmetry.max_word_count} words)
+                </span>
+              </span>
+            )}
+          </div>
+
           {/* Options List */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {(question.options || []).map((opt, idx) => {
               const optId = (opt.id || '').trim().toUpperCase();
               const isCorrectKey = correctKeysList.includes(optId);
+              const currentText = isEditing ? (editedOptions[idx]?.text || '') : (opt.text || '');
+              const optWordCount = currentText.trim().split(/\s+/).filter(Boolean).length;
               let cardClass = 'choice-option-card';
               if (isCorrectKey) cardClass += ' is-correct';
 
@@ -403,6 +450,22 @@ export default function QuestionCard({
                       </div>
                     )}
                   </div>
+
+                  {/* Option Word Count Indicator */}
+                  <span
+                    style={{
+                      fontSize: '0.675rem',
+                      color: 'var(--text-muted)',
+                      fontFamily: 'var(--font-mono)',
+                      background: 'var(--bg-surface-subtle)',
+                      padding: '2px 6px',
+                      borderRadius: 'var(--radius-xs)',
+                      flexShrink: 0
+                    }}
+                    title={`Word count for Option ${opt.id}: ${optWordCount} words`}
+                  >
+                    {optWordCount}w
+                  </span>
 
                   {/* Answer Key Badge */}
                   {isCorrectKey && (

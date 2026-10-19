@@ -14,6 +14,11 @@ CORE STANDARDS FOR UK UCAT QUESTIONS:
    - When Passage Required is "No": Keep stimulus concise (1-3 sentences or direct vignette).
 5. Crystal Clear Explanation: Provide a comprehensive, step-by-step pedagogical breakdown proving why each correct key is incontrovertible AND why each distractor fails, naming the specific fallacy where applicable.
 6. Absolute Precision: Use British English conventions (e.g., categorise, paediatric, licence).
+7. Anti-Guessability & Option Symmetry (CRITICAL):
+   - Length & Word Count Symmetry: All options (the correct answer and all distractors) MUST have approximately equal length and word count (within ±15% or within 2–4 words of each other). NEVER make the correct option noticeably longer, more detailed, or more qualified than the distractors ("longest option = right answer" is an unacceptable flaw).
+   - Grammatical & Syntactical Parallelism: Every option must begin with the same part of speech (e.g. all imperative verbs, all gerunds, all noun phrases, all full sentences) and follow identical grammatical cadence.
+   - Uniform Hedging & Qualifiers: Do NOT use hedging language ("may", "tends to", "in certain conditions", "often") exclusively in the correct answer while using absolute words ("always", "never", "only", "completely") in distractors. All choices must maintain an equivalent level of epistemic qualification.
+   - Sophisticated Distractor Traps: Every distractor must look entirely plausible to an unprepared candidate, sound academically rigorous, and mirror common cognitive errors (e.g. partial matches, inverted causality, calculation intermediate slips). No obviously absurd, simplistic, or throwaway choices that can be eliminated through superficial test-wiseness.
 
 SUBTEST INSTRUCTIONS:
 - Verbal Reasoning: Critical academic/clinical passage. Test direct fact extraction, negative inferences, or author argumentation.
@@ -57,8 +62,10 @@ THE 100-POINT UCAT EVALUATION RUBRIC:
    - Does the stimulus contain sufficient, logically consistent premises to reach a definitive conclusion?
    - Is it free from confusing double negatives or syntax traps?
 
-3. Distractor Trap Quality (0-25 points):
-   - Are distractors sophisticated, plausible cognitive traps?
+3. Distractor Trap Quality & Anti-Guessability (0-25 points):
+   - Option Symmetry & Length Parity: Are all options strictly balanced in length and word count (within ±15% / 2-4 words)? DEDUCT 5 to 8 points if the correct answer stands out as noticeably longer, more detailed, or specifically hedged while distractors are absolute or throwaways.
+   - Grammatical Parallelism: Do all options share parallel grammatical syntax and structure without giveaway prefixes?
+   - Plausible Cognitive Traps: Are distractors sophisticated, plausible cognitive traps rather than superficial filler?
    - Do they exploit target cognitive heuristics (e.g. calculation errors, inverted conditionals, extreme language, correlation vs causation)?
    - If a primary trap was specified, was it executed convincingly without making the question trivial or broken?
    - Are there zero throwaway or ridiculous options?
@@ -96,6 +103,11 @@ RULES FOR REGENERATION:
 5. If a long passage was requested, maintain rich passage depth (250-400 words).
 6. Expand and enrich the explanation: provide a bulletproof step-by-step rationale for why every correct answer is definitive and why each distractor fails.
 7. Maintain valid options count (4 choices A-D, or 5 choices A-E for multi-choice).
+8. Strict Option Symmetry & Anti-Guessability:
+   - Equalize the length and word count of all options to within ±15% (or within 2-4 words of each other).
+   - Ensure the correct key is NEVER noticeably longer, more detailed, or more qualified than the distractors.
+   - Maintain parallel grammatical syntax across all options (matching part of speech and structural format).
+   - Eliminate giveaway hedging/absolute quantifier discrepancies.
 
 OUTPUT FORMAT:
 Respond ONLY with a valid JSON object matching this exact structure:
@@ -140,12 +152,16 @@ CORE STANDARDS FOR UK UCAT QUESTIONS:
    - When Passage Required is "No": Keep stimulus concise (1-3 sentences or direct vignette).
 5. Crystal Clear Explanation: Provide a comprehensive, step-by-step pedagogical breakdown proving why each correct key is incontrovertible AND why each distractor fails, naming the specific fallacy where applicable.
 6. Absolute Precision: Use British English conventions (e.g., categorise, paediatric, licence).
+7. Anti-Guessability & Option Symmetry (CRITICAL):
+   - Length & Word Count Symmetry: All options (correct key and distractors) MUST have approximately equal length and word count (within ±15% or within 2–4 words of each other). NEVER make the correct option noticeably longer or more detailed than the distractors.
+   - Grammatical & Syntactical Parallelism: Every option must begin with the same part of speech and follow parallel syntactic cadence.
+   - Uniform Qualifiers: Avoid giving away the correct answer through cautious/hedging language while distractors use absolute terms ("always/never").
 
 THE 100-POINT UCAT SELF-CRITIQUE RUBRIC:
 After drafting the item, evaluate your own work objectively:
 - Authenticity & Tone (0-25): Official UCAT tone, British English, genuine difficulty.
 - Clarity & Logical Soundness (0-25): Unambiguous stem, sound premises, no double negatives.
-- Distractor Quality (0-25): Plausible traps, no throwaway choices, target traps executed.
+- Distractor Quality & Symmetry (0-25): Plausible traps, no throwaway choices, option lengths balanced within ±15%, no length-based guessability cues (penalize 5-8 points if length disparity > 20%).
 - Explanation Rigor (0-25): Irrefutable proof for key, explicit refutation of every distractor.
 Be strict and honest in scoring.
 

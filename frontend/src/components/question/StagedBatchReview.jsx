@@ -1474,6 +1474,20 @@ export default function StagedBatchReview({
                         Passage
                       </span>
                     ) : null}
+
+                    {/* Symmetry Balance Indicator */}
+                    {Boolean(q.option_symmetry || q.stage_outcomes?.option_symmetry) && (
+                      <span
+                        style={{
+                          width: '5px',
+                          height: '5px',
+                          borderRadius: '50%',
+                          background: (q.option_symmetry?.is_balanced ?? q.stage_outcomes?.option_symmetry?.is_balanced ?? true) ? 'var(--status-success)' : 'var(--status-warning)',
+                          display: 'inline-block'
+                        }}
+                        title={`Anti-Guessability Symmetry: ${(q.option_symmetry || q.stage_outcomes?.option_symmetry)?.status || 'Balanced'}`}
+                      />
+                    )}
                   </div>
 
                   {/* Saved Status Indicator */}

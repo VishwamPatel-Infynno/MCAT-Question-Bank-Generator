@@ -143,6 +143,10 @@ class Question(BaseModel):
     stage_outcomes: dict[str, Any] | None = Field(
         default_factory=dict, description="Raw outcome JSON of all agent workflow stages"
     )
+    option_symmetry: dict[str, Any] | None = Field(
+        default_factory=dict,
+        description="Option length disparity, symmetry score, and anti-guessability balance metrics",
+    )
 
 
 class Passage(BaseModel):

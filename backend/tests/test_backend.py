@@ -886,7 +886,8 @@ async def test_generate_question_with_self_critique_structure(monkeypatch):
 
     draft2, review2, usage2 = await generate_question_with_self_critique(req)
     assert draft2.question_stem == "Which option is definitive?"
-    assert draft2.correct_answer_id == "C"
+    assert draft2.correct_answer_id in ("A", "B", "C", "D")
+    assert f"Option {draft2.correct_answer_id} is correct" in draft2.explanation
     assert review2 is not None
     assert review2.total_score == 98
     assert review2.passed is True
@@ -998,6 +999,106 @@ async def test_fused_workflow_bypasses_reviewer_when_self_critique_passed(monkey
     assert len(rev_completes) == 1
     assert rev_completes[0]["data"]["score"] == 96
     assert "Self-Critique: 96/100" in rev_completes[0]["message"]
+
+
+def test_option_symmetry_and_anti_guessability_engine():
+    """Validates calculate_option_symmetry, balance_and_shuffle_options, and remap_explanation_keys."""
+    from app.agents.option_balancer import (
+        calculate_option_symmetry,
+        balance_and_shuffle_options,
+        remap_explanation_keys,
+    )
+    from app.schemas.question import OptionChoice, QuestionDraft
+
+    # 1. Test balanced options (tight word counts)
+    balanced_opts = [
+        OptionChoice(id="A", text="Antibiotic therapy was stepped down within 48 hours for culture-negative cases."),
+        OptionChoice(id="B", text="Clinical guidelines recommended procalcitonin testing to guide empirical treatment."),
+        OptionChoice(id="C", text="Clinicians routinely continued broad-spectrum coverage due to diagnostic anxiety."),
+        OptionChoice(id="D", text="Mortality rates showed no statistically significant difference across clinical wards."),
+    ]
+    sym_balanced = calculate_option_symmetry(balanced_opts, "A")
+    assert sym_balanced["is_balanced"] is True
+    assert sym_balanced["status"] == "Balanced"
+    assert sym_balanced["disparity_ratio"] <= 1.25
+    assert sym_balanced["symmetry_score"] >= 90
+
+    # 2. Test length disparity where correct answer is the longest option (test-wiseness flaw)
+    biased_opts = [
+        OptionChoice(id="A", text="Brief choice."), # 2 words
+        OptionChoice(id="B", text="Another short choice here."), # 4 words
+        OptionChoice(id="C", text="This is a remarkably comprehensive, nuanced, and detailed correct answer explaining all clinical subtleties thoroughly."), # 15 words
+        OptionChoice(id="D", text="Third short item."), # 3 words
+    ]
+    sym_biased = calculate_option_symmetry(biased_opts, "C")
+    assert sym_biased["is_balanced"] is False
+    assert sym_biased["is_correct_longest"] is True
+    assert sym_biased["disparity_ratio"] > 3.0
+    assert sym_biased["status"] == "High Disparity"
+    assert sym_biased["symmetry_score"] <= 60
+
+    # 3. Test explanation remapping with cyclic/swapped keys
+    # Mapping: A -> C, B -> A, C -> B, D -> D
+    mapping = {"A": "C", "B": "A", "C": "B", "D": "D"}
+    expl_input = (
+        "Analysis of choices:\n"
+        "- Option A is INCORRECT (Extreme Trap).\n"
+        "- Option B is CORRECT because of theorem 1.\n"
+        "- Key C is INCORRECT (Partial Match).\n"
+        "- Distractor D is false.\n"
+        "Therefore, Choice B is the right conclusion."
+    )
+    remapped_expl = remap_explanation_keys(expl_input, mapping)
+    assert "- Option C is INCORRECT" in remapped_expl
+    assert "- Option A is CORRECT" in remapped_expl
+    assert "- Key B is INCORRECT" in remapped_expl
+    assert "Therefore, Choice A is the right conclusion." in remapped_expl
+
+    # 4. Test balance_and_shuffle_options on draft
+    draft = QuestionDraft(
+        stimulus_text="Clinical vignette...",
+        question_stem="Which option is valid?",
+        options=balanced_opts,
+        correct_answer_id="B",
+        correct_answer_ids=["B"],
+        explanation="Option B is correct because the guidelines support it.",
+    )
+    shuffled_draft, sym = balance_and_shuffle_options(draft, seed=42)
+    assert len(shuffled_draft.options) == 4
+    # Ensure options have IDs A, B, C, D in order
+    assert [o.id for o in shuffled_draft.options] == ["A", "B", "C", "D"]
+    # Check that correct_answer_id is one of A, B, C, D
+    assert shuffled_draft.correct_answer_id in ("A", "B", "C", "D")
+    # Verify explanation stays in sync with the new key letter
+    assert f"Option {shuffled_draft.correct_answer_id} is correct" in shuffled_draft.explanation
+    assert sym["is_balanced"] is True
+
+    # 5. Test numeric options QR ordering (sorted numerically ascending)
+    qr_opts = [
+        OptionChoice(id="A", text="£45.50"),
+        OptionChoice(id="B", text="£12.00"),
+        OptionChoice(id="C", text="£89.99"),
+        OptionChoice(id="D", text="£24.50"),
+    ]
+    qr_draft = QuestionDraft(
+        stimulus_text="Cost calculation scenario...",
+        question_stem="What is the total prescription cost?",
+        options=qr_opts,
+        correct_answer_id="B",
+        correct_answer_ids=["B"],
+        explanation="Option B is correct: £12.00 is the final total.",
+    )
+    balanced_qr, qr_sym = balance_and_shuffle_options(qr_draft)
+    # Check ascending numeric order: 12.00, 24.50, 45.50, 89.99
+    assert balanced_qr.options[0].text == "£12.00"
+    assert balanced_qr.options[0].id == "A"
+    assert balanced_qr.options[1].text == "£24.50"
+    assert balanced_qr.options[2].text == "£45.50"
+    assert balanced_qr.options[3].text == "£89.99"
+    # Old B (£12.00) is now at index 0 (letter A)
+    assert balanced_qr.correct_answer_id == "A"
+    assert "Option A is correct: £12.00 is the final total." in balanced_qr.explanation
+
 
 
 

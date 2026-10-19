@@ -3,6 +3,7 @@ import logging
 
 from app.agents.base import calculate_token_cost, call_llm, clean_json_text
 from app.agents.mock_fixtures import evaluate_heuristically, get_mock_draft
+from app.agents.option_balancer import balance_and_shuffle_options
 from app.agents.prompts import FUSED_GENERATOR_SYSTEM_PROMPT, GENERATOR_SYSTEM_PROMPT
 from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
 from app.schemas.token import TokenUsage
@@ -58,6 +59,14 @@ Do NOT write a new passage. Formulate your question stem, options, correct key(s
         user_prompt += f"\nVisual Stimulus Type: {req.visual_type}"
     if req.custom_prompt:
         user_prompt += f"\nCustom Focus Context: {req.custom_prompt}"
+
+    user_prompt += (
+        "\nANTI-GUESSABILITY & OPTION SYMMETRY MANDATE:\n"
+        "- All options MUST have roughly equal length and word count (strictly within ±15% or 2-4 words of each other).\n"
+        "- The correct option MUST NOT be the longest choice or the most qualified/hedged statement.\n"
+        "- Use parallel grammatical syntax across all choices (identical part of speech and structural format).\n"
+        "- Ensure distractors represent authentic, highly plausible cognitive reasoning traps."
+    )
 
     if fused:
         user_prompt += (
@@ -203,6 +212,7 @@ async def generate_question(req: GenerationRequest) -> tuple[QuestionDraft, Toke
         cleaned = clean_json_text(raw_output)
         data = json.loads(cleaned)
         draft = _parse_question_draft_data(data, req)
+        draft, _ = balance_and_shuffle_options(draft)
         return draft, usage
     except Exception as e:
         logger.warning(f"Generator LLM failed or not configured, using authentic mock draft: {e}")
@@ -243,6 +253,7 @@ async def generate_question_with_self_critique(
         data = json.loads(cleaned)
 
         draft = _parse_question_draft_data(data, req)
+        draft, _ = balance_and_shuffle_options(draft)
 
         self_review = None
         critique = data.get("self_critique")

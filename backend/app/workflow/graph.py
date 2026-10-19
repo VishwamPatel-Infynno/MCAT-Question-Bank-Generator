@@ -13,6 +13,10 @@ from app.agents.generator import (
     generate_question_with_self_critique,
 )
 from app.agents.image_generator import generate_image_stimulus
+from app.agents.option_balancer import (
+    balance_and_shuffle_options,
+    calculate_option_symmetry,
+)
 from app.agents.regenerator import regenerate_question
 from app.agents.reviewer import review_question
 from app.core.config import config
@@ -63,6 +67,7 @@ async def fused_generator_node(state: AgentWorkflowState) -> dict[str, Any]:
 
     outcomes = dict(state.get("stage_outcomes", {}))
     outcomes["drafting"] = draft.model_dump()
+    outcomes["option_symmetry"] = calculate_option_symmetry(draft.options, draft.correct_answer_ids)
     if self_review:
         outcomes["self_critique"] = self_review.model_dump()
         outcomes["quality_audit"] = self_review.model_dump()
@@ -158,6 +163,7 @@ async def generator_node(state: AgentWorkflowState) -> dict[str, Any]:
 
     outcomes = dict(state.get("stage_outcomes", {}))
     outcomes["drafting"] = draft.model_dump()
+    outcomes["option_symmetry"] = calculate_option_symmetry(draft.options, draft.correct_answer_ids)
 
     return {
         "current_draft": draft.model_dump(),
@@ -236,6 +242,8 @@ async def regenerator_node(state: AgentWorkflowState) -> dict[str, Any]:
         f"Executing Question Re-Generator Agent (Score {review.total_score} <= 90 -> Iteration {next_iteration})..."
     )
     new_draft, usage = await regenerate_question(draft, review, req, next_iteration)
+    new_draft, _ = balance_and_shuffle_options(new_draft)
+    reg_symmetry = calculate_option_symmetry(new_draft.options, new_draft.correct_answer_ids)
 
     agent_entry = {
         "agent": "Question Re-Generator",
@@ -254,6 +262,7 @@ async def regenerator_node(state: AgentWorkflowState) -> dict[str, Any]:
     t_cost = round(state.get("total_cost_usd", 0.0) + usage.cost_usd, 7)
 
     outcomes = dict(state.get("stage_outcomes", {}))
+    outcomes["option_symmetry"] = reg_symmetry
     outcomes["polish_refine"] = {
         "iteration": next_iteration,
         "improved_draft": new_draft.model_dump(),
@@ -415,8 +424,10 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
 
     options = [OptionChoice(**o) if isinstance(o, dict) else o for o in draft.options]
     section_label = UCAT_SECTION_LABELS.get(req.section, req.section.value)
+    symmetry = calculate_option_symmetry(options, draft.correct_answer_ids)
 
     outcomes = dict(state.get("stage_outcomes", {}))
+    outcomes["option_symmetry"] = symmetry
     if "polish_refine" not in outcomes:
         outcomes["polish_refine"] = {
             "status": "bypassed",
@@ -448,6 +459,7 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
         "correct_answer_ids": draft.correct_answer_ids,
         "total_tokens": state.get("total_tokens", 0),
         "cost_usd": state.get("total_cost_usd", 0.0),
+        "option_symmetry": symmetry,
     }
 
     final_q = Question(
@@ -486,6 +498,7 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
         passage_questions=req.passage_questions,
         visual_type=req.visual_type or "None",
         stage_outcomes=outcomes,
+        option_symmetry=symmetry,
     )
     outcomes["final_payload"]["id"] = final_q.id
 
