@@ -393,7 +393,7 @@ curl -X GET http://localhost:8000/api/health
 ### 3.9 Configuration & Runtime Settings
 `GET /api/config` | `POST /api/config`
 
-Enables reading and dynamically updating API keys and model choices without restarting the backend process.
+Enables reading and dynamically updating runtime engine settings and model choices without restarting the backend process (credentials are securely managed in server `.env`).
 
 #### Read Configuration (`GET /api/config`)
 ```bash
@@ -407,7 +407,6 @@ curl -X POST http://localhost:8000/api/config \
   -d '{
     "default_text_model": "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo",
     "default_image_model": "black-forest-labs/FLUX-2-klein-4b",
-    "deepinfra_api_key": "your_api_key_here",
     "image_width": 1024,
     "image_height": 1024,
     "image_iters": 0,

@@ -7,7 +7,6 @@ import CustomSelect from '../common/CustomSelect';
 
 export default function SettingsModal({ onClose }) {
   const [model, setModel] = useState(DEFAULT_TEXT_MODEL);
-  const [deepinfraKey, setDeepinfraKey] = useState('');
   const [maxRegenerations, setMaxRegenerations] = useState(3);
 
   // FLUX-1-schnell Image Settings
@@ -35,7 +34,6 @@ export default function SettingsModal({ onClose }) {
       image_height: imageHeight,
       image_iters: imageIters
     };
-    if (deepinfraKey.trim()) payload.deepinfra_api_key = deepinfraKey.trim();
 
     await updateSettings(payload);
     setSavedSuccess(true);
@@ -78,10 +76,10 @@ export default function SettingsModal({ onClose }) {
             </div>
             <div>
               <h3 className="modal-title">
-                Engine &amp; API Settings
+                Studio Engine &amp; Generation Settings
               </h3>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                Configure AI models, API keys, and image generation settings.
+                Configure AI models, neural diagram resolution, and quality calibration.
               </p>
             </div>
           </div>
@@ -120,30 +118,6 @@ export default function SettingsModal({ onClose }) {
             </div>
           </div>
 
-          {/* Gateway API Key Input */}
-          <div
-            style={{
-              background: 'var(--bg-surface-subtle)',
-              padding: '14px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-light)'
-            }}
-          >
-            <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
-              Infynno AI Gateway Key
-            </label>
-            <input
-              id="settings-input-deepinfra-key"
-              type="password"
-              placeholder="Enter key or leave blank to use server environment (.env)"
-              value={deepinfraKey}
-              onChange={(e) => setDeepinfraKey(e.target.value)}
-              style={{ width: '100%' }}
-            />
-            <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', marginTop: '6px' }}>
-              Leave blank to use the pre-configured server environment key.
-            </div>
-          </div>
 
           {/* Diagram & Stimulus Generator Section */}
           <div

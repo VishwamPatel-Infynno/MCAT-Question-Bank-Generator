@@ -34,13 +34,11 @@ async def get_settings():
 
 @router.post("/config")
 async def update_settings(payload: dict):
-    """Dynamically updates runtime settings and API credentials."""
+    """Dynamically updates runtime engine parameters and model choices."""
     if "default_text_model" in payload and payload["default_text_model"]:
         config.DEFAULT_TEXT_MODEL = payload["default_text_model"]
     if "default_image_model" in payload and payload["default_image_model"]:
         config.DEFAULT_IMAGE_MODEL = payload["default_image_model"]
-    if "deepinfra_api_key" in payload and payload["deepinfra_api_key"]:
-        config.DEEPINFRA_API_KEY = payload["deepinfra_api_key"]
     if "gemini_api_key" in payload and payload["gemini_api_key"]:
         config.GEMINI_API_KEY = payload["gemini_api_key"]
     if "openai_api_key" in payload and payload["openai_api_key"]:

@@ -95,9 +95,7 @@ export default function App() {
     latestReview,
     startGeneration,
     cancelGeneration
-  } = useQuestionGenerator({
-    onNeedsApiKey: () => setShowSettings(true)
-  });
+  } = useQuestionGenerator();
 
   const handleCancelGeneration = useCallback(() => {
     cancelGeneration();

@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { generateQuestionStream } from '../services/api';
 
-export function useQuestionGenerator({ onNeedsApiKey } = {}) {
+export function useQuestionGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeAgent, setActiveAgent] = useState('Idle');
   const [iterationCount, setIterationCount] = useState(1);
@@ -182,9 +182,6 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
           setIsGenerating(false);
           setActiveAgent('Configuration Required');
           abortControllerRef.current = null;
-          if (evt.message && (evt.message.includes('API Key is required') || evt.message.includes('DeepInfra API Key') || evt.message.includes('Gateway Key')) && onNeedsApiKey) {
-            onNeedsApiKey();
-          }
         }
       },
       (err) => {
@@ -212,7 +209,7 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
       },
       controller.signal
     );
-  }, [onNeedsApiKey]);
+  }, []);
 
   const reset = useCallback(() => {
     if (abortControllerRef.current) {

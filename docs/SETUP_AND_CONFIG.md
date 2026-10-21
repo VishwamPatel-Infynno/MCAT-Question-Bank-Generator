@@ -111,9 +111,7 @@ Open **[http://localhost:5173](http://localhost:5173)** in your browser.
 To enable live AI inference using Meta Llama 3.3 70B Instruct Turbo:
 
 1. Sign up and obtain an API key from [deepinfra.com/dash/api_keys](https://deepinfra.com/dash/api_keys).
-2. You can set the key in either of two ways:
-   - **Method A (Persistent `.env`)**: Set `DEEPINFRA_API_KEY=your_key_here` in `.env` and restart the backend.
-   - **Method B (In-App UI)**: Open the web application, click **Settings** (gear icon in the top header), enter your API key, and click **Save Settings**. This updates the runtime configuration instantly without requiring a server restart.
+2. Set `DEEPINFRA_API_KEY=your_key_here` in your server `.env` file and restart the backend. API credentials are encrypted/isolated exclusively on the backend server for zero client-side credential exposure.
 
 ### Graceful Mock Fallback Mode
 If no API key is provided, the backend automatically engages the **Authentic Mock Heuristic Engine**. This allows complete offline testing, local frontend development, and automated test execution without incurring token costs or requiring an internet connection.
