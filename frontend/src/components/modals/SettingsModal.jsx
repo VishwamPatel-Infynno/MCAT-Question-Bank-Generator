@@ -161,11 +161,11 @@ export default function SettingsModal({ onClose }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Image size={16} color="var(--brand-primary)" />
                 <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Visual Stimulus &amp; Diagram Settings (Infynno Neural Studio)
+                  Visual Stimulus &amp; Diagram Settings (FLUX-2 Klein Neural Studio)
                 </span>
               </div>
               <span className="badge badge-cyan" style={{ fontSize: '0.7rem' }}>
-                High-Precision AI Generation
+                $0.014 / img Flat
               </span>
             </div>
 
@@ -240,7 +240,7 @@ export default function SettingsModal({ onClose }) {
                 lineHeight: 1.4
               }}
             >
-              <strong>Resolution &amp; Quality:</strong> Optimized {imageWidth} × {imageHeight} High-Resolution Synthesis (Level {imageIters})
+              <strong>Resolution &amp; Quality:</strong> Optimized {imageWidth} × {imageHeight} High-Resolution Synthesis ($0.014 flat rate, ~1.88s latency)
             </div>
           </div>
 

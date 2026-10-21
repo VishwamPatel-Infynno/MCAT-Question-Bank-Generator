@@ -1,5 +1,6 @@
 import React from 'react';
 import NumberStepper from '../common/NumberStepper';
+import { DEFAULT_IMAGE_MODEL, IMAGE_PRICING } from '../../constants/config';
 
 export default function IndependentDiagramControls({
   isAbstractReasoning = false,
@@ -15,6 +16,8 @@ export default function IndependentDiagramControls({
   setSingleImageCount,
   setMultiImageCount
 }) {
+  const imageUnitRate = IMAGE_PRICING[DEFAULT_IMAGE_MODEL]?.baseRate ?? 0.014;
+
   if (isAbstractReasoning || numIndependentQs <= 0) {
     return null;
   }
@@ -28,7 +31,7 @@ export default function IndependentDiagramControls({
         </span>
         <span className="badge-minimal" style={{ fontSize: '0.625rem' }}>
           {activeQuestionImagesCount > 0
-            ? `${activeQuestionImagesCount} of ${numIndependentQs} Qs ($${(activeQuestionImagesCount * 0.002).toFixed(4)})`
+            ? `${activeQuestionImagesCount} of ${numIndependentQs} Qs ($${(activeQuestionImagesCount * imageUnitRate).toFixed(3)} flat)`
             : 'No Diagrams'}
         </span>
       </div>
@@ -52,7 +55,7 @@ export default function IndependentDiagramControls({
             </span>
             <span className="badge-minimal" style={{ fontSize: '0.585rem' }}>
               {activeSingleImageCount > 0
-                ? `${activeSingleImageCount} of ${indSingleTotal} ($${(activeSingleImageCount * 0.002).toFixed(4)})`
+                ? `${activeSingleImageCount} of ${indSingleTotal} ($${(activeSingleImageCount * imageUnitRate).toFixed(3)} flat)`
                 : 'No Diagrams'}
             </span>
           </div>
@@ -91,7 +94,7 @@ export default function IndependentDiagramControls({
             </span>
             <span className="badge-minimal" style={{ fontSize: '0.585rem' }}>
               {activeMultiImageCount > 0
-                ? `${activeMultiImageCount} of ${indMultiTotal} ($${(activeMultiImageCount * 0.002).toFixed(4)})`
+                ? `${activeMultiImageCount} of ${indMultiTotal} ($${(activeMultiImageCount * imageUnitRate).toFixed(3)} flat)`
                 : 'No Diagrams'}
             </span>
           </div>

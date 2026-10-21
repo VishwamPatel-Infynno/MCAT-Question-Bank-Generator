@@ -54,8 +54,15 @@ export default function WizardStep3Difficulty({
                 key={tier.id}
                 className={`wizard-tier-card ${isSelected ? 'selected' : ''}`}
                 onClick={() => setDifficulty(tier.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setDifficulty(tier.id);
+                  }
+                }}
                 role="button"
                 tabIndex={0}
+                aria-pressed={isSelected}
               >
                 <div className="wizard-tier-title">{tier.title}</div>
                 <div className="wizard-tier-desc">{tier.desc}</div>

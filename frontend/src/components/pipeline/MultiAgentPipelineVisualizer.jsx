@@ -82,8 +82,8 @@ export default function MultiAgentPipelineVisualizer({
           : isRegenActive
           ? `Question Improver: Refining and resolving ambiguities...`
           : isImgActive
-          ? `Diagram Maker: Rendering crisp SVG visual stimulus...`
-          : `AI Team creating questions...`)
+          ? 'Diagram Maker: Synthesizing crisp neural visual stimulus (FLUX-2 Klein)...'
+          : 'AI Team creating questions...')
       : null);
 
   const agents = [

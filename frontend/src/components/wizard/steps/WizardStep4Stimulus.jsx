@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image as ImageIcon, Shapes } from 'lucide-react';
 import IndependentDiagramControls from '../IndependentDiagramControls';
+import { DEFAULT_IMAGE_MODEL, IMAGE_PRICING } from '../../../constants/config';
 
 export default function WizardStep4Stimulus({
   totalQuestions,
@@ -31,6 +32,9 @@ export default function WizardStep4Stimulus({
   customPrompt,
   setCustomPrompt
 }) {
+  const imageUnitRate = IMAGE_PRICING[DEFAULT_IMAGE_MODEL]?.baseRate ?? 0.014;
+  const imagePriceLabel = `$${imageUnitRate.toFixed(3)} / img`;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
       <div className="wizard-heading-group">
@@ -87,7 +91,7 @@ export default function WizardStep4Stimulus({
                   Passage Diagram
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                  Attach an AI-generated diagram illustration to the reading passage ($0.0020).
+                  Attach an AI-generated diagram illustration to the reading passage ({imagePriceLabel} flat).
                 </div>
               </div>
               <div className="pill-track" style={{ width: '220px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
@@ -122,7 +126,7 @@ export default function WizardStep4Stimulus({
                   Question Diagram
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                  Attach an AI visual pattern or diagram to the question stem ($0.0020).
+                  Attach an AI visual pattern or diagram to the question stem ({imagePriceLabel} flat).
                 </div>
               </div>
               <div className="pill-track" style={{ width: '220px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
@@ -168,7 +172,7 @@ export default function WizardStep4Stimulus({
                   Shared Passage Diagram
                 </div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                  Generate a dedicated AI diagram for the shared reading passage ($0.0020).
+                  Generate a dedicated AI diagram for the shared reading passage ({imagePriceLabel} flat).
                 </div>
               </div>
               <div className="pill-track" style={{ width: '220px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>

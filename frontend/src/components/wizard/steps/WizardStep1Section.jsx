@@ -31,8 +31,15 @@ export default function WizardStep1Section({
               key={sec.id}
               className={`wizard-section-card ${isSelected ? 'selected' : ''}`}
               onClick={() => onSelectSection(sec.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectSection(sec.id);
+                }
+              }}
               role="button"
               tabIndex={0}
+              aria-pressed={isSelected}
             >
               <div className="wizard-section-top">
                 <div

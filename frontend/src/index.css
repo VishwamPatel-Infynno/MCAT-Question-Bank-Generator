@@ -13,6 +13,7 @@
   --bg-surface-elevated: #121826;
   --bg-surface-subtle: #0a0e18;
   --bg-surface-hover: #151c2c;
+  --bg-card: #0d121d;
 
   /* Hairline Crisp Dividers & Borders */
   --border-light: rgba(255, 255, 255, 0.06);
@@ -20,6 +21,7 @@
   --border-subtle: rgba(255, 255, 255, 0.04);
   --border-hairline: rgba(255, 255, 255, 0.04);
   --border-brand: rgba(56, 189, 248, 0.25);
+  --border-strong: rgba(255, 255, 255, 0.16);
 
   /* High-Legibility Typography */
   --text-primary: #f8fafc;
@@ -32,6 +34,7 @@
   --brand-primary: #38bdf8;
   --brand-hover: #7dd3fc;
   --brand-light: rgba(56, 189, 248, 0.08);
+  --brand-glow: 0 0 0 2px rgba(56, 189, 248, 0.25);
   --brand-indigo: #818cf8;
 
   /* Infynno Solutions LLP Brand Identity */
@@ -43,6 +46,8 @@
 
   /* Status Colors */
   --status-success: #10b981;
+  --status-success-text: #10b981;
+  --success: #10b981;
   --status-success-bg: rgba(16, 185, 129, 0.06);
   --status-success-border: rgba(16, 185, 129, 0.22);
 
@@ -59,6 +64,7 @@
   --status-purple-border: rgba(139, 92, 246, 0.22);
 
   /* Restrained Elevation */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
   --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 24px -2px rgba(0, 0, 0, 0.35);
@@ -81,12 +87,14 @@
   --bg-surface-elevated: #ffffff;
   --bg-surface-subtle: #f8fafc;
   --bg-surface-hover: #f1f5f9;
+  --bg-card: #ffffff;
 
   --border-light: #e8ecf2;
   --border-medium: #cbd5e1;
   --border-subtle: #f1f5f9;
   --border-hairline: #f1f4f9;
   --border-brand: #93c5fd;
+  --border-strong: #94a3b8;
 
   --text-primary: #0f172a;
   --text-secondary: #475569;
@@ -97,6 +105,7 @@
   --brand-primary: #0284c7;
   --brand-hover: #0369a1;
   --brand-light: #f0f9ff;
+  --brand-glow: 0 0 0 2px rgba(2, 132, 199, 0.25);
   --brand-indigo: #4f46e5;
 
   /* Infynno Solutions LLP Brand Identity */
@@ -107,6 +116,8 @@
   --infynno-glow: 0 0 20px rgba(51, 90, 207, 0.25);
 
   --status-success: #059669;
+  --status-success-text: #059669;
+  --success: #059669;
   --status-success-bg: #ecfdf5;
   --status-success-border: #a7f3d0;
 
@@ -122,6 +133,7 @@
   --status-purple-bg: #f5f3ff;
   --status-purple-border: #ddd6fe;
 
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 10px 24px -2px rgba(0, 0, 0, 0.07);
