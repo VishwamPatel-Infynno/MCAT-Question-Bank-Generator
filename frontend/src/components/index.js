@@ -26,6 +26,10 @@ export { default as SharedPassageCard } from './question/SharedPassageCard';
 export { default as VisualStimulusViewer } from './question/VisualStimulusViewer';
 export { default as StageJsonInspector } from './question/StageJsonInspector';
 
+// Wizard & Guided Onboarding
+export { default as HeroLanding } from './wizard/HeroLanding';
+export { default as GuidedWizard } from './wizard/GuidedWizard';
+
 // Heavy views (QuestionBank, ReviewAuditView, SettingsModal) are intentionally
 // loaded via React.lazy() in App.jsx to preserve optimal code splitting.
 

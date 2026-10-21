@@ -8,7 +8,8 @@ export default function Navbar({
   onOpenSettings,
   backendStatus,
   theme,
-  onToggleTheme
+  onToggleTheme,
+  onGoHome
 }) {
   return (
     <header
@@ -74,7 +75,11 @@ export default function Navbar({
           href="/"
           onClick={(e) => {
             e.preventDefault();
-            window.location.href = '/';
+            if (onGoHome) {
+              onGoHome();
+            } else {
+              window.location.href = '/';
+            }
           }}
           className="brand-refresh-link"
           title="Refresh application and return to home"
