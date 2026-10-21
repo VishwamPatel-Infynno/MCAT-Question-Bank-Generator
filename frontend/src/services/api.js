@@ -1,4 +1,4 @@
-// API Service for communicating with FastAPI backend
+// API Service for communicating with backend API
 const API_BASE = '/api';
 
 export async function fetchHealth() {

@@ -79,7 +79,7 @@ export default function RejectionCard({ rejectionData, onRetry }) {
           lineHeight: 1.6
         }}
       >
-        <strong>Strict Policy Enforcement:</strong> The workflow was completely halted to ensure question bank integrity. Image generation was bypassed, and this question was <strong>NOT saved</strong> to the PostgreSQL repository.
+        <strong>Strict Policy Enforcement:</strong> The workflow was completely halted to ensure question bank integrity. Image generation was bypassed, and this question was <strong>NOT saved</strong> to the question bank repository.
       </div>
 
       {/* Reviewer Critique & Weaknesses */}

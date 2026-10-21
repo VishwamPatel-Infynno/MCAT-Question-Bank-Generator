@@ -325,7 +325,7 @@ async def reject_node(state: AgentWorkflowState) -> dict[str, Any]:
     iteration = state.get("iteration_count", 1)
 
     logger.warning(
-        f"Strict Quality Gate: Question rejected. Score: {final_score}/100 <= {config.PASSING_SCORE_THRESHOLD} after {iteration} attempts. NOT saving to PostgreSQL."
+        f"Strict Quality Gate: Question rejected. Score: {final_score}/100 <= {config.PASSING_SCORE_THRESHOLD} after {iteration} attempts. NOT saving to Question Bank repository."
     )
 
     rejection_payload = {
@@ -479,11 +479,11 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
     )
     outcomes["final_payload"]["id"] = final_q.id
 
-    # Persist in PostgreSQL ONLY if auto_save is explicitly requested (e.g. testing)
+    # Persist in Question Bank ONLY if auto_save is explicitly requested (e.g. testing)
     if getattr(req, "auto_save", False):
         await save_question(final_q)
         logger.info(
-            f"Question auto-saved to PostgreSQL Question Bank: {final_q.id} (Score: {final_q.final_score}, Cost: ${final_q.cost_usd:.5f})"
+            f"Question auto-saved to Question Bank repository: {final_q.id} (Score: {final_q.final_score}, Cost: ${final_q.cost_usd:.5f})"
         )
     else:
         logger.info(

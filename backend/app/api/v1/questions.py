@@ -32,7 +32,7 @@ async def list_questions(
     batch_id: str | None = Query(None),
     passage_id: str | None = Query(None),
 ):
-    """Lists saved questions from the PostgreSQL Question Bank along with aggregated metrics."""
+    """Lists saved questions from the Question Bank repository along with aggregated metrics."""
     questions = await get_questions(
         section=section,
         difficulty=difficulty,
@@ -65,7 +65,7 @@ async def get_single_question(question_id: str):
 @router.post("/questions")
 async def approve_and_save_question(question: Question):
     """
-    Admin approval endpoint: persists an approved candidate question into the Question Bank in PostgreSQL.
+    Admin approval endpoint: persists an approved candidate question into the Question Bank repository.
     """
     saved = await save_question(question)
     logger.info(
@@ -77,7 +77,7 @@ async def approve_and_save_question(question: Question):
 @router.post("/questions/batch")
 async def batch_approve_and_save_questions(questions: list[Question]):
     """
-    Bulk Admin approval endpoint: persists an array of approved candidate questions into PostgreSQL in a single atomic transaction.
+    Bulk Admin approval endpoint: persists an array of approved candidate questions into the Question Bank repository in a single atomic transaction.
     """
     saved_list = await save_questions_batch(questions)
     logger.info(f"Atomic batch approved {len(saved_list)} questions into Question Bank.")

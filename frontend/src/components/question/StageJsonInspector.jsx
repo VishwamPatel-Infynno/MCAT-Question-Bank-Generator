@@ -75,7 +75,7 @@ export default function StageJsonInspector({ question }) {
       id: 'final_payload',
       label: 'Final Payload',
       icon: Sparkles,
-      agent: 'System / Database Record',
+      agent: 'System / Verified Record',
       data: stageOutcomes.final_payload || {
         id: question.id,
         run_id: question.run_id,

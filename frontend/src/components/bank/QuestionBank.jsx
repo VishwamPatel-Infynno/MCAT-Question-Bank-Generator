@@ -196,7 +196,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
               Question Bank
             </h2>
             <span className="badge badge-emerald" style={{ fontSize: '0.68rem' }}>
-              PostgreSQL
+              Verified Library
             </span>
           </div>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>

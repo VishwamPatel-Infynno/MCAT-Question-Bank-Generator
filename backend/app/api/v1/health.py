@@ -17,9 +17,9 @@ async def health_check():
     db_status = await check_db_health()
     return {
         "status": "healthy",
-        "database": "postgresql",
+        "database": "connected" if db_status.get("connected") else "disconnected",
         "database_connected": db_status.get("connected", False),
-        "database_version": db_status.get("version"),
+        "database_status": db_status.get("status", "ready" if db_status.get("connected") else "unavailable"),
         "default_text_model": config.DEFAULT_TEXT_MODEL,
         "default_image_model": config.DEFAULT_IMAGE_MODEL,
         "has_deepinfra_key": bool(config.DEEPINFRA_API_KEY),

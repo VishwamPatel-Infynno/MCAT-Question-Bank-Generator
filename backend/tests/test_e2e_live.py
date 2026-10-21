@@ -26,9 +26,9 @@ async def test_e2e_health_and_db_connectivity():
 
         # Verify database
         assert data["status"] == "healthy"
-        assert data["database"] == "postgresql"
+        assert data["database"] == "connected"
         assert data["database_connected"] is True
-        assert "PostgreSQL 16" in data["database_version"]
+        assert data["database_status"] == "ready"
 
         # Verify inference models and pricing
         assert data["default_text_model"] == "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo"

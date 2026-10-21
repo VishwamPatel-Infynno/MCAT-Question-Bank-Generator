@@ -85,7 +85,7 @@ class GenerationRequest(BaseModel):
     )
     auto_save: bool = Field(
         False,
-        description="Whether to automatically persist candidate in PostgreSQL (default: False for admin review)",
+        description="Whether to automatically persist candidate in the Question Bank (default: False for admin review)",
     )
 
     @property

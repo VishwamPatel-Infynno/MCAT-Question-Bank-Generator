@@ -362,12 +362,10 @@ async def init_db():
 
 
 async def check_db_health() -> dict[str, Any]:
-    """Tests connectivity to PostgreSQL."""
+    """Tests connectivity to the database."""
     try:
         async with engine.connect() as conn:
-            res = await conn.execute(text("SELECT version();"))
-            row = res.fetchone()
-            version_str = row[0] if row else "PostgreSQL"
-            return {"connected": True, "version": version_str, "driver": "asyncpg"}
+            await conn.execute(text("SELECT 1;"))
+            return {"connected": True, "status": "ready"}
     except Exception as e:
-        return {"connected": False, "error": str(e), "driver": "asyncpg"}
+        return {"connected": False, "error": str(e), "status": "unavailable"}
