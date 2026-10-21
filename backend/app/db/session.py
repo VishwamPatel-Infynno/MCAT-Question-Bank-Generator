@@ -201,9 +201,7 @@ async def init_db():
             await conn.execute(
                 text("ALTER TABLE passages ADD COLUMN IF NOT EXISTS image_url TEXT;")
             )
-            await conn.execute(
-                text("ALTER TABLE passages ALTER COLUMN image_url TYPE TEXT;")
-            )
+            await conn.execute(text("ALTER TABLE passages ALTER COLUMN image_url TYPE TEXT;"))
             await conn.execute(
                 text("ALTER TABLE passages ADD COLUMN IF NOT EXISTS image_svg TEXT;")
             )

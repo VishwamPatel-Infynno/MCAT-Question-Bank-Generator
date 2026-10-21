@@ -328,4 +328,3 @@ async def generate_image_stimulus(
         },
     }
     return (None, None, prompt_for_image, failure_usage)
-

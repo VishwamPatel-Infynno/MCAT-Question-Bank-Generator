@@ -945,7 +945,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 correct_answer_id="A",
                 explanation="Shared passage visual stimulus reference",
                 image_needed=True,
-                image_prompt_or_type=req.custom_prompt or f"Scientific clinical diagram for: {shared_passage_text[:120]}",
+                image_prompt_or_type=req.custom_prompt
+                or f"Scientific clinical diagram for: {shared_passage_text[:120]}",
             )
             (
                 shared_passage_image_url,
@@ -1004,9 +1005,15 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 if is_mixed_set
                 else ("single_passage" if is_single_passage_set else "independent"),
                 "shared_passage": shared_passage_text if is_single_passage_set else None,
-                "shared_passage_image_svg": shared_passage_image_svg if is_single_passage_set else None,
-                "shared_passage_image_url": shared_passage_image_url if is_single_passage_set else None,
-                "shared_passage_image_description": shared_passage_image_desc if is_single_passage_set else None,
+                "shared_passage_image_svg": shared_passage_image_svg
+                if is_single_passage_set
+                else None,
+                "shared_passage_image_url": shared_passage_image_url
+                if is_single_passage_set
+                else None,
+                "shared_passage_image_description": shared_passage_image_desc
+                if is_single_passage_set
+                else None,
             },
         )
         yield f"data: {start_evt.model_dump_json()}\n\n"
@@ -1127,7 +1134,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                     is_passage_item_check = is_single_passage_set and idx < effective_passage_count
 
                     # If this is a passage question and the passage has a visual stimulus diagram, attach reference
-                    if is_passage_item_check and (shared_passage_image_svg or shared_passage_image_url):
+                    if is_passage_item_check and (
+                        shared_passage_image_svg or shared_passage_image_url
+                    ):
                         state["image_url"] = shared_passage_image_url
                         state["image_svg"] = shared_passage_image_svg
                         state["image_description"] = shared_passage_image_desc
@@ -1260,9 +1269,15 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 "passage_question_count": effective_passage_count,
                 "independent_question_count": independent_count,
                 "shared_passage": shared_passage_text if is_single_passage_set else None,
-                "shared_passage_image_svg": shared_passage_image_svg if is_single_passage_set else None,
-                "shared_passage_image_url": shared_passage_image_url if is_single_passage_set else None,
-                "shared_passage_image_description": shared_passage_image_desc if is_single_passage_set else None,
+                "shared_passage_image_svg": shared_passage_image_svg
+                if is_single_passage_set
+                else None,
+                "shared_passage_image_url": shared_passage_image_url
+                if is_single_passage_set
+                else None,
+                "shared_passage_image_description": shared_passage_image_desc
+                if is_single_passage_set
+                else None,
                 "cumulative_usage": {
                     "total_tokens": cumulative_tokens,
                     "total_prompt_tokens": cumulative_prompt_tokens,
