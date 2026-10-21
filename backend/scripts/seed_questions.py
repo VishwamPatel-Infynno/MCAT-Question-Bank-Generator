@@ -1,11 +1,13 @@
 import asyncio
+
 from app.db.session import init_db
 from app.repositories.question_repo import save_question
-from app.schemas import Question, OptionChoice
+from app.schemas import OptionChoice, Question
+
 
 async def seed():
     await init_db()
-    
+
     q1 = Question(
         section="verbal_reasoning",
         section_label="Verbal Reasoning",
@@ -20,10 +22,22 @@ async def seed():
         ),
         question_stem="Which of the following statements is directly supported by the passage?",
         options=[
-            OptionChoice(id="A", text="Terrestrial runoff is no longer considered a contributor to marine microplastics."),
-            OptionChoice(id="B", text="Precipitation is responsible for removing airborne synthetic fibers from atmospheric transport."),
-            OptionChoice(id="C", text="Alpine glaciers contain a greater concentration of microplastics than deep marine trenches."),
-            OptionChoice(id="D", text="Wind patterns carry natural fibers significantly further than synthetic fibers.")
+            OptionChoice(
+                id="A",
+                text="Terrestrial runoff is no longer considered a contributor to marine microplastics.",
+            ),
+            OptionChoice(
+                id="B",
+                text="Precipitation is responsible for removing airborne synthetic fibers from atmospheric transport.",
+            ),
+            OptionChoice(
+                id="C",
+                text="Alpine glaciers contain a greater concentration of microplastics than deep marine trenches.",
+            ),
+            OptionChoice(
+                id="D",
+                text="Wind patterns carry natural fibers significantly further than synthetic fibers.",
+            ),
         ],
         correct_answer_id="B",
         explanation="The passage explicitly states that 'precipitation washes them [synthetic microfiber particulates] into surface waterways' after wind patterns carry them. Option B directly reflects this text.",
@@ -45,10 +59,22 @@ async def seed():
         ),
         question_stem="Which conclusion definitely follows from the premises provided?",
         options=[
-            OptionChoice(id="A", text="No participant with elevated biomarker Alpha developed acute myocardial inflammation."),
-            OptionChoice(id="B", text="All participants who were prescribed beta-blockers had elevated biomarker Alpha."),
-            OptionChoice(id="C", text="Some participants with acute myocardial inflammation had increased serum ferritin levels."),
-            OptionChoice(id="D", text="Every participant prescribed beta-blockers exhibited increased serum ferritin levels.")
+            OptionChoice(
+                id="A",
+                text="No participant with elevated biomarker Alpha developed acute myocardial inflammation.",
+            ),
+            OptionChoice(
+                id="B",
+                text="All participants who were prescribed beta-blockers had elevated biomarker Alpha.",
+            ),
+            OptionChoice(
+                id="C",
+                text="Some participants with acute myocardial inflammation had increased serum ferritin levels.",
+            ),
+            OptionChoice(
+                id="D",
+                text="Every participant prescribed beta-blockers exhibited increased serum ferritin levels.",
+            ),
         ],
         correct_answer_id="A",
         explanation="All Alpha -> Ferritin. No Ferritin -> Acute Myocardial Inflammation. By chain of deductive logic: All Alpha -> No Acute Myocardial Inflammation. Thus, no participant with elevated biomarker Alpha developed acute myocardial inflammation.",
@@ -72,7 +98,7 @@ async def seed():
             OptionChoice(id="A", text="12.0 mL"),
             OptionChoice(id="B", text="15.0 mL"),
             OptionChoice(id="C", text="24.0 mL"),
-            OptionChoice(id="D", text="30.0 mL")
+            OptionChoice(id="D", text="30.0 mL"),
         ],
         correct_answer_id="B",
         explanation="Total daily dose = 24 kg * 50 mg/kg = 1,200 mg/day. Each of the two equal infusions = 1,200 mg / 2 = 600 mg per infusion. Concentration = 40 mg/mL. Volume per infusion = 600 mg / (40 mg/mL) = 15.0 mL.",
@@ -84,6 +110,7 @@ async def seed():
     for q in [q1, q2, q3]:
         saved = await save_question(q)
         print(f"Seeded: {saved.id} - {saved.section_label}")
+
 
 if __name__ == "__main__":
     asyncio.run(seed())

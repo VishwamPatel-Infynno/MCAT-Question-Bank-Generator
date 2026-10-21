@@ -2,12 +2,12 @@ import logging
 
 from fastapi import APIRouter, HTTPException, Query
 
-from app.repositories.question_repo import (
+from app.repositories.passage_repo import (
     get_passage_by_id,
     get_passages,
-    get_questions,
     save_passage,
 )
+from app.repositories.question_repo import get_questions
 from app.schemas import Passage
 
 logger = logging.getLogger(__name__)

@@ -8,7 +8,21 @@ from app.db.session import async_session_factory
 from app.models.batch import GenerationBatchModel
 from app.models.passage import PassageModel
 from app.models.question import QuestionModel
-from app.schemas import GenerationBatch, OptionChoice, Passage, Question, ReviewScore
+from app.repositories.batch_repo import (
+    _batch_model_to_schema,
+    _batch_schema_to_model,
+    get_batch_by_id,
+    get_batches,
+    save_batch,
+)
+from app.repositories.passage_repo import (
+    _passage_model_to_schema,
+    _passage_schema_to_model,
+    get_passage_by_id,
+    get_passages,
+    save_passage,
+)
+from app.schemas import OptionChoice, Question, ReviewScore
 
 logger = logging.getLogger(__name__)
 
@@ -108,77 +122,6 @@ def _schema_to_model(q: Question) -> QuestionModel:
         passage_mode=q.passage_mode,
         visual_type=q.visual_type,
         stage_outcomes=q.stage_outcomes,
-    )
-
-
-def _passage_model_to_schema(m: PassageModel) -> Passage:
-    """Converts a SQLAlchemy PassageModel to a Pydantic Passage schema."""
-    return Passage(
-        id=m.id,
-        title=m.title,
-        text=m.text,
-        word_count=m.word_count,
-        section=m.section,
-        subtopic=m.subtopic,
-        image_url=m.image_url,
-        image_svg=m.image_svg,
-        image_description=m.image_description,
-        created_at=m.created_at,
-        updated_at=m.updated_at,
-    )
-
-
-def _passage_schema_to_model(p: Passage) -> PassageModel:
-    """Converts a Pydantic Passage schema to a SQLAlchemy PassageModel."""
-    word_count = p.word_count or (len(p.text.split()) if p.text else 0)
-    return PassageModel(
-        id=p.id,
-        title=p.title,
-        text=p.text,
-        word_count=word_count,
-        section=p.section,
-        subtopic=p.subtopic,
-        image_url=p.image_url,
-        image_svg=p.image_svg,
-        image_description=p.image_description,
-        created_at=p.created_at,
-        updated_at=p.updated_at or datetime.now(UTC).isoformat(),
-    )
-
-
-def _batch_model_to_schema(m: GenerationBatchModel) -> GenerationBatch:
-    """Converts a SQLAlchemy GenerationBatchModel to a Pydantic GenerationBatch schema."""
-    return GenerationBatch(
-        id=m.id,
-        section=m.section,
-        subtopic=m.subtopic,
-        difficulty=m.difficulty,
-        passage_mode=m.passage_mode,
-        target_count=m.target_count or 0,
-        actual_count=m.actual_count or 0,
-        total_tokens=m.total_tokens or 0,
-        cost_usd=float(m.cost_usd) if m.cost_usd is not None else 0.0,
-        status=m.status or "completed",
-        created_at=m.created_at,
-        updated_at=m.updated_at,
-    )
-
-
-def _batch_schema_to_model(b: GenerationBatch) -> GenerationBatchModel:
-    """Converts a Pydantic GenerationBatch schema to a SQLAlchemy GenerationBatchModel."""
-    return GenerationBatchModel(
-        id=b.id,
-        section=b.section,
-        subtopic=b.subtopic,
-        difficulty=b.difficulty,
-        passage_mode=b.passage_mode,
-        target_count=b.target_count,
-        actual_count=b.actual_count,
-        total_tokens=b.total_tokens,
-        cost_usd=b.cost_usd,
-        status=b.status,
-        created_at=b.created_at,
-        updated_at=b.updated_at or datetime.now(UTC).isoformat(),
     )
 
 
@@ -474,99 +417,28 @@ async def delete_questions_batch(question_ids: list[str]) -> int:
         stmt = delete(QuestionModel).where(QuestionModel.id.in_(question_ids))
         result = await session.execute(stmt)
         await session.commit()
-        return result.rowcount or 0
+    return result.rowcount or 0
 
 
-# ============================================================================
-# Dedicated Passage Repository Operations
-# ============================================================================
-
-
-async def get_passages(
-    section: str | None = None,
-    subtopic: str | None = None,
-    search: str | None = None,
-) -> list[Passage]:
-    """Retrieves shared reading passages with optional filtering and search."""
-    async with async_session_factory() as session:
-        stmt = select(PassageModel)
-        if section:
-            stmt = stmt.where(PassageModel.section == section)
-        if subtopic:
-            stmt = stmt.where(PassageModel.subtopic == subtopic)
-        if search:
-            wildcard = f"%{search.strip()}%"
-            stmt = stmt.where(
-                or_(
-                    PassageModel.text.ilike(wildcard),
-                    PassageModel.title.ilike(wildcard),
-                    PassageModel.subtopic.ilike(wildcard),
-                    PassageModel.id.ilike(wildcard),
-                )
-            )
-
-        stmt = stmt.order_by(PassageModel.created_at.desc())
-        result = await session.execute(stmt)
-        models = result.scalars().all()
-        return [_passage_model_to_schema(m) for m in models]
-
-
-async def get_passage_by_id(passage_id: str) -> Passage | None:
-    """Retrieves a single passage by primary key ID."""
-    async with async_session_factory() as session:
-        model = await session.get(PassageModel, passage_id)
-        if not model:
-            return None
-        return _passage_model_to_schema(model)
-
-
-async def save_passage(passage: Passage) -> Passage:
-    """Creates or updates a passage record."""
-    passage.updated_at = datetime.now(UTC).isoformat()
-    async with async_session_factory() as session:
-        model = _passage_schema_to_model(passage)
-        await session.merge(model)
-        await session.commit()
-        return passage
-
-
-# ============================================================================
-# Dedicated Generation Batch Repository Operations
-# ============================================================================
-
-
-async def get_batches(
-    section: str | None = None,
-    status: str | None = None,
-) -> list[GenerationBatch]:
-    """Retrieves generation batch logs with optional section and status filtering."""
-    async with async_session_factory() as session:
-        stmt = select(GenerationBatchModel)
-        if section:
-            stmt = stmt.where(GenerationBatchModel.section == section)
-        if status:
-            stmt = stmt.where(GenerationBatchModel.status == status)
-
-        stmt = stmt.order_by(GenerationBatchModel.created_at.desc())
-        result = await session.execute(stmt)
-        models = result.scalars().all()
-        return [_batch_model_to_schema(m) for m in models]
-
-
-async def get_batch_by_id(batch_id: str) -> GenerationBatch | None:
-    """Retrieves a single generation batch by primary key ID."""
-    async with async_session_factory() as session:
-        model = await session.get(GenerationBatchModel, batch_id)
-        if not model:
-            return None
-        return _batch_model_to_schema(model)
-
-
-async def save_batch(batch: GenerationBatch) -> GenerationBatch:
-    """Creates or updates a generation batch record."""
-    batch.updated_at = datetime.now(UTC).isoformat()
-    async with async_session_factory() as session:
-        model = _batch_schema_to_model(batch)
-        await session.merge(model)
-        await session.commit()
-        return batch
+__all__ = [
+    "BatchSaveResult",
+    "_batch_model_to_schema",
+    "_batch_schema_to_model",
+    "_model_to_schema",
+    "_passage_model_to_schema",
+    "_passage_schema_to_model",
+    "_schema_to_model",
+    "delete_question",
+    "delete_questions_batch",
+    "get_batch_by_id",
+    "get_batches",
+    "get_passage_by_id",
+    "get_passages",
+    "get_question_by_id",
+    "get_questions",
+    "get_repository_metrics",
+    "save_batch",
+    "save_passage",
+    "save_question",
+    "save_questions_batch",
+]

@@ -1,0 +1,68 @@
+import logging
+
+from app.core.config import config
+from app.schemas import GenerationRequest, UCATSection
+from app.workflow.state import AgentWorkflowState
+
+logger = logging.getLogger(__name__)
+
+
+def route_after_fused_generation(state: AgentWorkflowState) -> str:
+    """Routes to finalize (or image_generator) if fused self-score > 90; else to reviewer."""
+    fused_passed = state.get("fused_self_passed", False)
+    if not fused_passed:
+        logger.info(
+            "Fused self-critique <= threshold or unverified. Routing to Reviewer for standard audit."
+        )
+        return "reviewer"
+
+    req_raw = state["request"]
+    req = req_raw if isinstance(req_raw, GenerationRequest) else GenerationRequest(**req_raw)
+    requires_image = req.requires_visual_stimulus or (
+        req.section not in (UCATSection.VERBAL_REASONING, UCATSection.SITUATIONAL_JUDGEMENT)
+        and bool(state.get("current_draft", {}).get("image_needed", False))
+    )
+
+    if requires_image:
+        logger.info("Fused draft passed (> 90). Routing to Image Generator.")
+        return "image_generator"
+
+    logger.info("Fused draft passed (> 90). Routing directly to Finalize.")
+    return "finalize"
+
+
+def route_after_review(state: AgentWorkflowState) -> str:
+    review = state.get("current_review")
+    iteration = state.get("iteration_count", 1)
+
+    score = review.get("total_score", 100) if review else 100
+    threshold = config.PASSING_SCORE_THRESHOLD
+    max_attempts = config.MAX_REGENERATION_ATTEMPTS
+
+    # Strict Quality Gate check
+    if score <= threshold:
+        if iteration < max_attempts:
+            logger.info(
+                f"Score {score} <= {threshold} and iteration {iteration} < {max_attempts}. Routing to Re-Generator."
+            )
+            return "regenerator"
+        else:
+            logger.warning(
+                f"Score {score} <= {threshold} after max attempts ({max_attempts}). Strict Quality Gate: Halting workflow."
+            )
+            return "reject"
+
+    # Passing score (> 90): check if image generation is required
+    req_raw = state["request"]
+    req = req_raw if isinstance(req_raw, GenerationRequest) else GenerationRequest(**req_raw)
+    requires_image = req.requires_visual_stimulus or (
+        req.section not in (UCATSection.VERBAL_REASONING, UCATSection.SITUATIONAL_JUDGEMENT)
+        and bool(state.get("current_draft", {}).get("image_needed", False))
+    )
+
+    if requires_image:
+        logger.info(f"Score {score} > {threshold}. Routing to Image Generator.")
+        return "image_generator"
+
+    logger.info(f"Score {score} > {threshold}. Routing to Finalize.")
+    return "finalize"
