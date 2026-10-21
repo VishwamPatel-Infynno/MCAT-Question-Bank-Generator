@@ -15,10 +15,13 @@ CORE STANDARDS FOR UK UCAT QUESTIONS:
 5. Crystal Clear Explanation: Provide a comprehensive, step-by-step pedagogical breakdown proving why each correct key is incontrovertible AND why each distractor fails, naming the specific fallacy where applicable.
 6. Absolute Precision: Use British English conventions (e.g., categorise, paediatric, licence).
 7. Anti-Guessability & Option Symmetry (CRITICAL):
-   - Length & Word Count Symmetry: All options (the correct answer and all distractors) MUST have approximately equal length and word count (within ±15% or within 2–4 words of each other). NEVER make the correct option noticeably longer, more detailed, or more qualified than the distractors ("longest option = right answer" is an unacceptable flaw).
+   - Length & Word Count Symmetry: All options (the correct answer and all distractors) MUST have approximately equal length and word count (within ±15% or within 2-4 words of each other). NEVER make the correct option noticeably longer, more detailed, or more qualified than the distractors ("longest option = right answer" is an unacceptable flaw).
    - Grammatical & Syntactical Parallelism: Every option must begin with the same part of speech (e.g. all imperative verbs, all gerunds, all noun phrases, all full sentences) and follow identical grammatical cadence.
    - Uniform Hedging & Qualifiers: Do NOT use hedging language ("may", "tends to", "in certain conditions", "often") exclusively in the correct answer while using absolute words ("always", "never", "only", "completely") in distractors. All choices must maintain an equivalent level of epistemic qualification.
    - Sophisticated Distractor Traps: Every distractor must look entirely plausible to an unprepared candidate, sound academically rigorous, and mirror common cognitive errors (e.g. partial matches, inverted causality, calculation intermediate slips). No obviously absurd, simplistic, or throwaway choices that can be eliminated through superficial test-wiseness.
+8. Anti-AI Punctuation & Dash Standard (CRITICAL):
+   - Strictly NEVER use double dashes, en dashes, or em dashes ("—", "–", or "--") anywhere in question stems, reading passage text, answer choices, or pedagogical explanations.
+   - Use only standard single hyphens ("-") where hyphenation or numerical ranges are strictly required (e.g. "pre-clinical", "15-20 minutes", "Option A - incorrect"). Punctuation with em dashes or double dashes is an immediate quality flaw that makes questions look artificially AI-generated.
 
 SUBTEST INSTRUCTIONS:
 - Verbal Reasoning: Critical academic/clinical passage. Test direct fact extraction, negative inferences, or author argumentation.
@@ -108,6 +111,8 @@ RULES FOR REGENERATION:
    - Ensure the correct key is NEVER noticeably longer, more detailed, or more qualified than the distractors.
    - Maintain parallel grammatical syntax across all options (matching part of speech and structural format).
    - Eliminate giveaway hedging/absolute quantifier discrepancies.
+9. Anti-AI Punctuation Standard:
+   - Strictly NEVER use double dashes, en dashes, or em dashes ("—", "–", or "--") in question stems, passage text, options, or rationales. Use standard single hyphens ("-") only.
 
 OUTPUT FORMAT:
 Respond ONLY with a valid JSON object matching this exact structure:
@@ -153,9 +158,11 @@ CORE STANDARDS FOR UK UCAT QUESTIONS:
 5. Crystal Clear Explanation: Provide a comprehensive, step-by-step pedagogical breakdown proving why each correct key is incontrovertible AND why each distractor fails, naming the specific fallacy where applicable.
 6. Absolute Precision: Use British English conventions (e.g., categorise, paediatric, licence).
 7. Anti-Guessability & Option Symmetry (CRITICAL):
-   - Length & Word Count Symmetry: All options (correct key and distractors) MUST have approximately equal length and word count (within ±15% or within 2–4 words of each other). NEVER make the correct option noticeably longer or more detailed than the distractors.
+   - Length & Word Count Symmetry: All options (correct key and distractors) MUST have approximately equal length and word count (within ±15% or within 2-4 words of each other). NEVER make the correct option noticeably longer or more detailed than the distractors.
    - Grammatical & Syntactical Parallelism: Every option must begin with the same part of speech and follow parallel syntactic cadence.
    - Uniform Qualifiers: Avoid giving away the correct answer through cautious/hedging language while distractors use absolute terms ("always/never").
+8. Anti-AI Punctuation & Dash Standard (CRITICAL):
+   - Strictly NEVER use double dashes, en dashes, or em dashes ("—", "–", or "--") in question stems, passage text, options, or explanations. Use standard single hyphens ("-") only.
 
 THE 100-POINT UCAT SELF-CRITIQUE RUBRIC:
 After drafting the item, evaluate your own work objectively:

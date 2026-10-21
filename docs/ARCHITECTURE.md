@@ -81,7 +81,7 @@ The system decomposes question authoring into 4 specialized autonomous engines p
   - Uses subtest-specific rules (e.g., categorical syllogisms for Decision Making, Venn reasoning for Abstract Reasoning, GMC Good Medical Practice guidance for Situational Judgement).
   - Explicitly crafts 1 definitive correct key and 3 sophisticated distractors representing realistic cognitive biases or calculation traps.
   - Requires strict JSON response matching the `QuestionDraft` schema.
-- **Inference Gateway**: High-throughput enterprise reasoning model (~110–140 tok/s, Temperature: `0.7`).
+- **Inference Gateway**: High-throughput enterprise reasoning model (~110-140 tok/s, Temperature: `0.7`).
 
 ### 3.2 Infynno Psychometric Scoring Engine (`reviewer.py`)
 - **Mission**: Acts as an impartial Senior Psychometric Auditor, independently evaluating the candidate question against a standardized **100-point rubric**:

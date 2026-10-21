@@ -226,4 +226,4 @@ Question Bank Generator/
 ---
 
 ## 📄 License & Attribution
-Proprietary — Infynno UCAT Question Bank Generator is engineered and maintained by **[Infynno Solutions LLP](https://infynno.com/)**. All rights reserved.
+Proprietary - Infynno UCAT Question Bank Generator is engineered and maintained by **[Infynno Solutions LLP](https://infynno.com/)**. All rights reserved.

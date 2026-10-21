@@ -108,7 +108,7 @@ export default function HeroLanding({
             id="btn-hero-get-started"
             onClick={onGetStarted}
           >
-            <span>Get Started — Create Questions</span>
+            <span>Get Started - Create Questions</span>
             <ArrowRight size={18} />
           </button>
 

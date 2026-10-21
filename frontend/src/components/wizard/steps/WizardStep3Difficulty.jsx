@@ -197,7 +197,7 @@ export default function WizardStep3Difficulty({
                 >
                   {passageQuestionCount === totalQuestions ? (
                     <>
-                      <strong style={{ color: 'var(--brand-primary)' }}>Full Passage Set:</strong> All {totalQuestions} questions will share 1 reading passage (250–400 words), just like real UCAT exam sets.
+                      <strong style={{ color: 'var(--brand-primary)' }}>Full Passage Set:</strong> All {totalQuestions} questions will share 1 reading passage (250-400 words), just like real UCAT exam sets.
                     </>
                   ) : (
                     <>

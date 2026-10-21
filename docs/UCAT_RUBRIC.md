@@ -38,51 +38,51 @@ pie title 100-Point Psychometric Rubric
 
 ---
 
-### Pillar 1: UCAT Authenticity & Tone (0 – 25 Points)
+### Pillar 1: UCAT Authenticity & Tone (0 - 25 Points)
 Evaluates whether the stimulus passage and prompt match the exact linguistic style, vocabulary density, and intellectual register of official Pearson VUE UCAT exam papers.
 
 | Score Range | Descriptor | Criteria |
 | :---: | :--- | :--- |
-| **23 – 25** | *Flawless Authenticity* | Indistinguishable from official UCAT consortium questions. British English spelling, sophisticated vocabulary, authentic academic or clinical vignette style. |
-| **19 – 22** | *Strong Authenticity* | Minor stylistic variance, but conceptually indistinguishable from authentic items. Appropriate clinical or logical tone. |
-| **14 – 18** | *Borderline* | Slightly simplistic language, non-British idioms, or scenario mildly uncharacteristic of UCAT testing conventions. |
-| **0 – 13** | *Unacceptable* | Trivia-like question, cartoonish scenario, or tone entirely foreign to professional medical admissions testing. |
+| **23 - 25** | *Flawless Authenticity* | Indistinguishable from official UCAT consortium questions. British English spelling, sophisticated vocabulary, authentic academic or clinical vignette style. |
+| **19 - 22** | *Strong Authenticity* | Minor stylistic variance, but conceptually indistinguishable from authentic items. Appropriate clinical or logical tone. |
+| **14 - 18** | *Borderline* | Slightly simplistic language, non-British idioms, or scenario mildly uncharacteristic of UCAT testing conventions. |
+| **0 - 13** | *Unacceptable* | Trivia-like question, cartoonish scenario, or tone entirely foreign to professional medical admissions testing. |
 
 ---
 
-### Pillar 2: Clarity & Logical Soundness (0 – 25 Points)
+### Pillar 2: Clarity & Logical Soundness (0 - 25 Points)
 Ensures the question stem is unambiguous, free from syntactic confusion, and logically watertight.
 
 | Score Range | Descriptor | Criteria |
 | :---: | :--- | :--- |
-| **23 – 25** | *Axiomatic Precision* | Absolute clarity. The question stem is concise and directs the candidate unequivocally. The premise contains all necessary information without extraneous ambiguity. |
-| **19 – 22** | *Sound & Clear* | Premise is logically valid with minimal extraneous fluff; stem is straightforward. |
-| **14 – 18** | *Ambiguous* | Borderline double-negative phrasing or subtle loophole in the stimulus that creates legitimate contention. |
-| **0 – 13** | *Logically Flawed* | Premise contradicts itself, missing crucial data required to solve, or multiple contradictory interpretations exist. |
+| **23 - 25** | *Axiomatic Precision* | Absolute clarity. The question stem is concise and directs the candidate unequivocally. The premise contains all necessary information without extraneous ambiguity. |
+| **19 - 22** | *Sound & Clear* | Premise is logically valid with minimal extraneous fluff; stem is straightforward. |
+| **14 - 18** | *Ambiguous* | Borderline double-negative phrasing or subtle loophole in the stimulus that creates legitimate contention. |
+| **0 - 13** | *Logically Flawed* | Premise contradicts itself, missing crucial data required to solve, or multiple contradictory interpretations exist. |
 
 ---
 
-### Pillar 3: Distractor Trap Quality (0 – 25 Points)
+### Pillar 3: Distractor Trap Quality (0 - 25 Points)
 The defining hallmark of authentic UCAT questions is the quality of the 3 incorrect options. UCAT distractors are **never random or obviously wrong**; they are deliberate psychological traps.
 
 | Score Range | Descriptor | Criteria |
 | :---: | :--- | :--- |
-| **23 – 25** | *Masterful Cognitive Traps* | All 3 distractors represent sophisticated, predictable cognitive errors: common calculation slips, inverted logical quantifiers, or alluring unwarranted assumptions. |
-| **19 – 22** | *Plausible Distractors* | At least 2 distractors require rigorous elimination; 1 distractor is slightly easier to discard. |
-| **14 – 18** | *Weak Distractors* | 2 or more distractors are trivial or easily eliminated by process of elimination without engaging with the stimulus. |
-| **0 – 13** | *Nonsensical Options* | Distractors are comical, out of scope, or wildly distinct in grammatical structure from the key. |
+| **23 - 25** | *Masterful Cognitive Traps* | All 3 distractors represent sophisticated, predictable cognitive errors: common calculation slips, inverted logical quantifiers, or alluring unwarranted assumptions. |
+| **19 - 22** | *Plausible Distractors* | At least 2 distractors require rigorous elimination; 1 distractor is slightly easier to discard. |
+| **14 - 18** | *Weak Distractors* | 2 or more distractors are trivial or easily eliminated by process of elimination without engaging with the stimulus. |
+| **0 - 13** | *Nonsensical Options* | Distractors are comical, out of scope, or wildly distinct in grammatical structure from the key. |
 
 ---
 
-### Pillar 4: Explanation & Key Rigor (0 – 25 Points)
+### Pillar 4: Explanation & Key Rigor (0 - 25 Points)
 Evaluates the educational depth and logical definitiveness of the correct key and step-by-step rationale.
 
 | Score Range | Descriptor | Criteria |
 | :---: | :--- | :--- |
-| **23 – 25** | *Gold-Standard Rationale* | Complete step-by-step proof explaining why the key is undeniably correct AND explicitly disproving every single distractor by name with cognitive error analysis. |
-| **19 – 22** | *Comprehensive* | Proves the correct key clearly; addresses primary distractors with satisfactory detail. |
-| **14 – 18** | *Partial Explanation* | States why the correct answer is right but fails to explain why the distractors are incorrect. |
-| **0 – 13** | *Inadequate* | Restates the answer key with zero pedagogical reasoning or deductive proof. |
+| **23 - 25** | *Gold-Standard Rationale* | Complete step-by-step proof explaining why the key is undeniably correct AND explicitly disproving every single distractor by name with cognitive error analysis. |
+| **19 - 22** | *Comprehensive* | Proves the correct key clearly; addresses primary distractors with satisfactory detail. |
+| **14 - 18** | *Partial Explanation* | States why the correct answer is right but fails to explain why the distractors are incorrect. |
+| **0 - 13** | *Inadequate* | Restates the answer key with zero pedagogical reasoning or deductive proof. |
 
 ---
 

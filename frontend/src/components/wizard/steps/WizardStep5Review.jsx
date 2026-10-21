@@ -115,7 +115,7 @@ export default function WizardStep5Review({
                   <span>Independent Questions ({totalQuestions} standalone questions, no shared passage)</span>
                 )
               ) : (
-                <span>{passageRequired === 'Yes' ? 'Reading Passage Attached (250–400 words)' : 'Direct Standalone Question (No Passage)'}</span>
+                <span>{passageRequired === 'Yes' ? 'Reading Passage Attached (250-400 words)' : 'Direct Standalone Question (No Passage)'}</span>
               )}
             </div>
           </div>
@@ -193,7 +193,7 @@ export default function WizardStep5Review({
         <Sparkles size={20} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
           Clicking <strong>Launch Generation</strong> will create your questions, verify them against official UCAT rubrics (&gt; 90 quality score),
-          and balance all answer choices in ~15–25 seconds.
+          and balance all answer choices in ~15-25 seconds.
         </div>
       </div>
     </div>

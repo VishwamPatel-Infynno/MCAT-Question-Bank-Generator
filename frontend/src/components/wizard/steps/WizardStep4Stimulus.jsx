@@ -54,7 +54,7 @@ export default function WizardStep4Stimulus({
                 Reading Passage Story
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                Include a 250–400 word realistic clinical or academic reading passage.
+                Include a 250-400 word realistic clinical or academic reading passage.
               </div>
             </div>
             <div className="pill-track" style={{ width: '260px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>

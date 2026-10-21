@@ -436,7 +436,7 @@ export default function QuestionCard({
               >
                 <Scale size={11} />
                 <span>
-                  Anti-Guessability: {optionSymmetry.status} ({optionSymmetry.min_word_count}–{optionSymmetry.max_word_count} words)
+                  Anti-Guessability: {optionSymmetry.status} ({optionSymmetry.min_word_count}-{optionSymmetry.max_word_count} words)
                 </span>
               </span>
             )}

@@ -1,4 +1,4 @@
-# UK UCAT Question Studio — REST & SSE API Reference
+# UK UCAT Question Studio - REST & SSE API Reference
 
 Engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
 
@@ -11,7 +11,7 @@ This document provides a comprehensive reference for all REST endpoints and Serv
 - **Base URL**: `http://localhost:8000` (or configured deployment host)
 - **Content Type**: `application/json` (REST endpoints), `text/event-stream` (Live generation)
 - **CORS Policy & Security Headers**: Restricted to trusted origins (`http://localhost:5173`, etc.) with OWASP security headers (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`).
-- **Autonomous Inference Gateway**: Backed by high-throughput enterprise reasoning models (~110–140 tok/s) with deterministic token billing ($0.10 input / $0.32 output per 1M tokens).
+- **Autonomous Inference Gateway**: Backed by high-throughput enterprise reasoning models (~110-140 tok/s) with deterministic token billing ($0.10 input / $0.32 output per 1M tokens).
 
 ---
 
@@ -76,15 +76,15 @@ Accept: text/event-stream
 
 | Field | Type | Required | Default | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `section` | `string` | **Yes** | — | `verbal_reasoning`, `decision_making`, `quantitative_reasoning`, `abstract_reasoning`, `situational_judgement` |
+| `section` | `string` | **Yes** | - | `verbal_reasoning`, `decision_making`, `quantitative_reasoning`, `abstract_reasoning`, `situational_judgement` |
 | `subtopic` | `string` | No | `null` | Categorized syllabus topic |
 | `difficulty` | `string` | No | `"medium"` | `easy`, `medium`, `hard` |
 | `require_image` | `boolean` | No | `false` | Force visual stimulus generation |
 | `custom_prompt` | `string` | No | `null` | Contextual steer or clinical vignette guidance |
-| `questions_to_generate` | `integer` | No | `1` | Number of questions to generate in batch (1–5) |
-| `single_choice_count` | `integer` | No | `null` | Number of single-choice items in batch (0–5) |
-| `multi_choice_count` | `integer` | No | `null` | Number of multi-choice items in batch (0–5) |
-| `passage_count` | `integer` | No | `null` | Number of passage-linked items in batch (0–5) |
+| `questions_to_generate` | `integer` | No | `1` | Number of questions to generate in batch (1-5) |
+| `single_choice_count` | `integer` | No | `null` | Number of single-choice items in batch (0-5) |
+| `multi_choice_count` | `integer` | No | `null` | Number of multi-choice items in batch (0-5) |
+| `passage_count` | `integer` | No | `null` | Number of passage-linked items in batch (0-5) |
 | `interaction_type` | `string` | No | `"single_choice"` | `single_choice`, `multi_choice`, `drag_drop` |
 | `passage_required` | `string \| boolean` | No | `null` | `"Yes"`, `"No"`, or boolean flag |
 | `passage_questions` | `integer` | No | `null` | Target question count per passage (e.g. 3, 4) |

@@ -671,7 +671,7 @@ export default function StagedBatchReview({
                   </h3>
                 </div>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                  Questions 1–{effectivePassageCount} reference the shared stimulus above
+                  Questions 1-{effectivePassageCount} reference the shared stimulus above
                 </span>
               </div>
               <div
@@ -695,7 +695,7 @@ export default function StagedBatchReview({
                   </h3>
                 </div>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                  Questions {effectivePassageCount + 1}–{effectiveTotal} are independent with individual vignettes
+                  Questions {effectivePassageCount + 1}-{effectiveTotal} are independent with individual vignettes
                 </span>
               </div>
               <div

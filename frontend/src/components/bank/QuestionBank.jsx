@@ -746,7 +746,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
         >
           {/* Summary Text */}
           <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Showing <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{startIndex}–{endIndex}</strong> of <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{questions.length}</strong> questions
+            Showing <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{startIndex}-{endIndex}</strong> of <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{questions.length}</strong> questions
           </div>
 
           {/* Controls: Page Size & Navigation */}

@@ -78,7 +78,7 @@ Where:
 | **1024 × 1024 (Standard Quality)** | **Single pass** | $1.0 \times 1.0$ | Flat unit rate | **$0.014000** |
 | **768 × 768 (Medium Balanced)** | **Single pass** | $0.75 \times 0.75$ | $0.014 \times 0.5625$ | **$0.007875** |
 | **512 × 512 (Fast Lightweight)** | **Single pass** | $0.5 \times 0.5$ | $0.014 \times 0.25$ | **$0.003500** |
-| **Programmatic SVG Fallback** | — | — | Offline vector diagram | **$0.000000** |
+| **Programmatic SVG Fallback** | - | - | Offline vector diagram | **$0.000000** |
 
 ---
 

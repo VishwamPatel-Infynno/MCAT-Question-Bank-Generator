@@ -1,4 +1,4 @@
-# Infynno UCAT Question Bank Generator — Frontend
+# Infynno UCAT Question Bank Generator - Frontend
 
 Modern, high-performance web workstation for **Infynno UCAT Question Bank Generator**, engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
 

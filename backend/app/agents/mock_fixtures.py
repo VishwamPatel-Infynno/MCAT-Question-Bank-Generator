@@ -171,7 +171,7 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
                 "Analysis of Options:\n"
                 "- Option C is CORRECT: The passage directly reports that 62% of the CIMT cohort achieved functional independence (mRS ≤ 1) versus 28% of controls, "
                 "and explicitly concludes that 'neuroplastic gains were significantly attenuated in patients aged over 78 years'.\n"
-                "- Option A is INCORRECT (Overgeneralisation trap): The passage mentions hippocampal neurogenesis as general context, but motor cortex remapping—not hippocampal neurogenesis—was the measured outcome.\n"
+                "- Option A is INCORRECT (Overgeneralisation trap): The passage mentions hippocampal neurogenesis as general context, but motor cortex remapping - not hippocampal neurogenesis - was the measured outcome.\n"
                 "- Option B is INCORRECT (Extreme quantifier trap): The passage states gains were 'significantly attenuated' (weakened), not 'entirely eliminated'.\n"
                 "- Option D is INCORRECT (Contradicted by data): Only 28% of controls achieved functional independence, which is a minority, not a majority."
             ),

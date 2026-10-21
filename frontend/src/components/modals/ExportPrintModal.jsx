@@ -777,7 +777,7 @@ export default function ExportPrintModal({
                         Infynno UCAT Practice Examination
                       </h3>
                       <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b', fontWeight: 500 }}>
-                        {paperMode === 'student' ? 'Student Exam Paper (Practice Mode — Unsolved)' : 'Complete Study Pack with Diagnostic Rationales'}
+                        {paperMode === 'student' ? 'Student Exam Paper (Practice Mode - Unsolved)' : 'Complete Study Pack with Diagnostic Rationales'}
                       </p>
                     </div>
                     <div style={{ border: '1.5px solid #0f172a', borderRadius: '4px', padding: '4px 10px', textAlign: 'center' }}>
@@ -881,7 +881,7 @@ export default function ExportPrintModal({
           {format === 'csv' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ padding: '10px 14px', background: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                Exports a structured CSV table containing all 16 UCAT schema fields (stems, options A–E, correct keys, trap defenses, and quality scores) compatible with Excel, Google Sheets, and psychometric databases.
+                Exports a structured CSV table containing all 16 UCAT schema fields (stems, options A-E, correct keys, trap defenses, and quality scores) compatible with Excel, Google Sheets, and psychometric databases.
               </div>
 
               <div 
