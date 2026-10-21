@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 import uuid
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Callable
 from typing import Any
 
 from langgraph.graph import END, StateGraph
@@ -583,6 +583,222 @@ def create_ucat_graph() -> StateGraph:
 ucat_graph = create_ucat_graph()
 
 
+def _build_batch_worker_request(
+    req: GenerationRequest,
+    idx: int,
+    total_qty: int,
+    batch_id: str | None,
+    effective_passage_count: int,
+    p_single: int,
+    ind_single: int,
+    shared_passage_id: str | None,
+    shared_passage_text: str | None,
+) -> tuple[GenerationRequest, str, bool, str, bool]:
+    """
+    Builds an isolated GenerationRequest for an individual question worker within a batch,
+    resolving whether the question is passage-linked or independent, and whether it is single or multi-choice.
+    """
+    item_run_id = str(uuid.uuid4()) if total_qty > 1 else req.run_id
+    is_passage_item = idx < effective_passage_count
+
+    if is_passage_item:
+        is_item_single = idx < p_single
+        item_interaction = "single_choice" if is_item_single else "multi_choice"
+        item_passage = "Yes"
+        item_passage_mode = "single_passage"
+        item_passage_id = shared_passage_id
+        item_stimulus = shared_passage_text
+    else:
+        rel_idx = idx - effective_passage_count
+        is_item_single = rel_idx < ind_single
+        item_interaction = "single_choice" if is_item_single else "multi_choice"
+        item_passage = "No"
+        item_passage_mode = "independent"
+        item_passage_id = None
+        item_stimulus = None
+
+    item_req = req.model_copy(
+        update={
+            "run_id": item_run_id,
+            "batch_id": batch_id,
+            "questions_to_generate": 1,
+            "interaction_type": item_interaction,
+            "passage_required": item_passage,
+            "passage_mode": item_passage_mode,
+            "passage_id": item_passage_id,
+            "shared_stimulus": item_stimulus,
+        }
+    )
+    return item_req, item_run_id, is_passage_item, item_interaction, is_item_single
+
+
+def _determine_item_diagram_requirement(
+    state: AgentWorkflowState,
+    idx: int,
+    is_passage_item: bool,
+    req_img_indices: list[int] | None,
+) -> bool:
+    """
+    Evaluates whether a specific question item within a batch requires a visual stimulus diagram.
+    Respects section type, passage attachment, explicit image flags, and granular question-level image indices.
+    """
+    req_data = state["request"]
+    sec_raw = req_data.get("section", "")
+    section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)
+    explicit_image = req_data.get("require_image", False)
+    visual_type = req_data.get("visual_type", "None")
+
+    if section_val in (UCATSection.ABSTRACT_REASONING.value, "AR"):
+        return True
+    if is_passage_item:
+        # Passage question items share the passage diagram; they NEVER have internal images
+        return False
+    if req_img_indices is not None:
+        # Granular question-level selection for independent/standalone items
+        return (idx + 1) in req_img_indices
+    if explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
+        return True
+    if section_val in (
+        UCATSection.VERBAL_REASONING.value,
+        UCATSection.SITUATIONAL_JUDGEMENT.value,
+        "VR",
+        "SJT",
+    ):
+        return False
+    return bool(state.get("current_draft", {}).get("image_needed", False))
+
+
+async def _run_question_review_loop(
+    state: AgentWorkflowState,
+    idx: int,
+    total_qty: int,
+    item_run_id: str,
+    gen_usage: dict[str, Any],
+    event_queue: asyncio.Queue[WorkflowEvent | None],
+    make_event: Callable[..., WorkflowEvent],
+) -> bool:
+    """
+    Executes the quality review, critique, remediation (regeneration), and quality gate routing
+    for a question draft. Returns True if the question passed quality gates, False if rejected.
+    """
+    if state.get("fused_self_passed"):
+        self_review = state.get("current_review") or {}
+        score = self_review.get("total_score", 95)
+        rev_done_evt = make_event(
+            event_type="agent_complete",
+            agent_name="Quality Reviewer",
+            message=f"Quality review passed (Self-Critique: {score}/100) for Question {idx + 1}.",
+            data={
+                "review": self_review,
+                "iteration": 1,
+                "latest_usage": gen_usage,
+                "index": idx + 1,
+                "total": total_qty,
+                "stage": "reviewing",
+                "score": score,
+            },
+            run_id=item_run_id,
+        )
+        await event_queue.put(rev_done_evt)
+        return True
+
+    while True:
+        iteration = state.get("iteration_count", 1)
+
+        rev_start_evt = make_event(
+            event_type="agent_start",
+            agent_name="Quality Reviewer",
+            message=f"Reviewing draft {idx + 1}/{total_qty} (Round {iteration}) against 90+ quality standards...",
+            data={
+                "index": idx + 1,
+                "total": total_qty,
+                "stage": "reviewing",
+                "iteration": iteration,
+            },
+            run_id=item_run_id,
+        )
+        await event_queue.put(rev_start_evt)
+
+        rev_res = await reviewer_node(state)
+        state.update(rev_res)
+
+        review = state["current_review"]
+        score = review["total_score"]
+        rev_usage = state.get("latest_usage", {})
+
+        rev_done_evt = make_event(
+            event_type="agent_complete",
+            agent_name="Quality Reviewer",
+            message=f"Quality review completed for Question {idx + 1}. Score: {score}/100.",
+            data={
+                "review": review,
+                "iteration": iteration,
+                "latest_usage": rev_usage,
+                "index": idx + 1,
+                "total": total_qty,
+                "stage": "reviewing",
+                "score": score,
+            },
+            run_id=item_run_id,
+        )
+        await event_queue.put(rev_done_evt)
+
+        next_step = route_after_review(state)
+        if next_step == "regenerator":
+            regen_start_evt = make_event(
+                event_type="agent_start",
+                agent_name="Question Improver",
+                message=f"Question {idx + 1} score {score}/100 needs improvement. Question Improver is refining answer options...",
+                data={
+                    "index": idx + 1,
+                    "total": total_qty,
+                    "stage": "remediating",
+                    "iteration": iteration,
+                    "score": score,
+                },
+                run_id=item_run_id,
+            )
+            await event_queue.put(regen_start_evt)
+
+            regen_res = await regenerator_node(state)
+            state.update(regen_res)
+
+            regen_usage = state.get("latest_usage", {})
+            regen_done_evt = make_event(
+                event_type="agent_complete",
+                agent_name="Question Improver",
+                message=f"Question {idx + 1} improved (Draft v{state['iteration_count']} • {regen_usage.get('total_tokens', 0)} tokens, ${regen_usage.get('cost_usd', 0.0):.5f}). Re-checking with Quality Reviewer...",
+                data={
+                    "draft": state["current_draft"],
+                    "latest_usage": regen_usage,
+                    "index": idx + 1,
+                    "total": total_qty,
+                    "stage": "remediating",
+                },
+                run_id=item_run_id,
+            )
+            await event_queue.put(regen_done_evt)
+            continue
+        elif next_step == "reject":
+            rej_res = await reject_node(state)
+            state.update(rej_res)
+            rej_data = state.get("rejection_data") or {}
+            if isinstance(rej_data, dict):
+                rej_data["index"] = idx + 1
+                rej_data["stage"] = "rejected"
+            rej_evt = make_event(
+                event_type="workflow_rejected",
+                agent_name="Quality Gate",
+                message=f"Quality check not passed for Question {idx + 1} (Score {score}/100 after {iteration} attempts).",
+                data=rej_data,
+                run_id=item_run_id,
+            )
+            await event_queue.put(rej_evt)
+            return False
+        else:
+            return True
+
+
 async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, None]:
     """
     Streams multi-agent workflow events in real time as Server-Sent Events (SSE).
@@ -845,44 +1061,26 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
         async def _worker(idx: int) -> None:
             async with semaphore:
-                item_run_id = str(uuid.uuid4()) if total_qty > 1 else req.run_id
-                is_passage_item = idx < effective_passage_count
-
-                if is_passage_item:
-                    is_item_single = idx < p_single
-                    item_interaction = "single_choice" if is_item_single else "multi_choice"
-                    item_passage = "Yes"
-                    item_passage_mode = "single_passage"
-                    item_passage_id = shared_passage_id
-                    item_stimulus = shared_passage_text
-                else:
-                    rel_idx = idx - effective_passage_count
-                    is_item_single = rel_idx < ind_single
-                    item_interaction = "single_choice" if is_item_single else "multi_choice"
-                    item_passage = "No"
-                    item_passage_mode = "independent"
-                    item_passage_id = None
-                    item_stimulus = None
-
-                item_req = req.model_copy(
-                    update={
-                        "run_id": item_run_id,
-                        "batch_id": batch_id,
-                        "questions_to_generate": 1,
-                        "interaction_type": item_interaction,
-                        "passage_required": item_passage,
-                        "passage_mode": item_passage_mode,
-                        "passage_id": item_passage_id,
-                        "shared_stimulus": item_stimulus,
-                    }
+                item_req, item_run_id, is_passage_item, item_interaction, is_item_single = (
+                    _build_batch_worker_request(
+                        req=req,
+                        idx=idx,
+                        total_qty=total_qty,
+                        batch_id=batch_id,
+                        effective_passage_count=effective_passage_count,
+                        p_single=p_single,
+                        ind_single=ind_single,
+                        shared_passage_id=shared_passage_id,
+                        shared_passage_text=shared_passage_text,
+                    )
                 )
 
                 if total_qty > 1:
-                    if is_passage_item:
-                        worker_msg = f"[{idx + 1}/{total_qty}] Writing linked {item_interaction.replace('_', ' ').title()} question from shared passage..."
-                    else:
-                        worker_msg = f"[{idx + 1}/{total_qty}] Writing independent {item_interaction.replace('_', ' ').title()} question (direct question)..."
-
+                    worker_msg = (
+                        f"[{idx + 1}/{total_qty}] Writing linked {item_interaction.replace('_', ' ').title()} question from shared passage..."
+                        if is_passage_item
+                        else f"[{idx + 1}/{total_qty}] Writing independent {item_interaction.replace('_', ' ').title()} question (direct question)..."
+                    )
                     batch_prog_evt = make_event(
                         event_type="batch_progress",
                         agent_name="System",
@@ -891,9 +1089,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             "current_index": idx + 1,
                             "total_count": total_qty,
                             "interaction_type": item_interaction,
-                            "passage_required": item_passage,
-                            "passage_mode": item_passage_mode,
-                            "passage_id": item_passage_id,
+                            "passage_required": item_req.passage_required,
+                            "passage_mode": item_req.passage_mode,
+                            "passage_id": item_req.passage_id,
                             "is_passage_item": is_passage_item,
                             "batch_id": batch_id,
                         },
@@ -926,7 +1124,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         "total": total_qty,
                         "stage": "drafting",
                         "interaction_type": item_interaction,
-                        "passage_required": item_passage,
+                        "passage_required": item_req.passage_required,
                     },
                     run_id=item_run_id,
                 )
@@ -951,131 +1149,22 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 )
                 await event_queue.put(gen_done_evt)
 
-                # Quality Review / Remediation Loop
-                question_passed = True
-                if state.get("fused_self_passed"):
-                    self_review = state.get("current_review") or {}
-                    score = self_review.get("total_score", 95)
-                    rev_done_evt = make_event(
-                        event_type="agent_complete",
-                        agent_name="Quality Reviewer",
-                        message=f"Quality review passed (Self-Critique: {score}/100) for Question {idx + 1}.",
-                        data={
-                            "review": self_review,
-                            "iteration": 1,
-                            "latest_usage": gen_usage,
-                            "index": idx + 1,
-                            "total": total_qty,
-                            "stage": "reviewing",
-                            "score": score,
-                        },
-                        run_id=item_run_id,
-                    )
-                    await event_queue.put(rev_done_evt)
-                else:
-                    while True:
-                        iteration = state.get("iteration_count", 1)
-
-                        rev_start_evt = make_event(
-                            event_type="agent_start",
-                            agent_name="Quality Reviewer",
-                            message=f"Reviewing draft {idx + 1}/{total_qty} (Round {iteration}) against 90+ quality standards...",
-                            data={
-                                "index": idx + 1,
-                                "total": total_qty,
-                                "stage": "reviewing",
-                                "iteration": iteration,
-                            },
-                            run_id=item_run_id,
-                        )
-                        await event_queue.put(rev_start_evt)
-
-                        rev_res = await reviewer_node(state)
-                        state.update(rev_res)
-
-                        review = state["current_review"]
-                        score = review["total_score"]
-                        rev_usage = state.get("latest_usage", {})
-
-                        rev_done_evt = make_event(
-                            event_type="agent_complete",
-                            agent_name="Quality Reviewer",
-                            message=f"Quality review completed for Question {idx + 1}. Score: {score}/100.",
-                            data={
-                                "review": review,
-                                "iteration": iteration,
-                                "latest_usage": rev_usage,
-                                "index": idx + 1,
-                                "total": total_qty,
-                                "stage": "reviewing",
-                                "score": score,
-                            },
-                            run_id=item_run_id,
-                        )
-                        await event_queue.put(rev_done_evt)
-
-                        # Route
-                        next_step = route_after_review(state)
-                        if next_step == "regenerator":
-                            regen_start_evt = make_event(
-                                event_type="agent_start",
-                                agent_name="Question Improver",
-                                message=f"Question {idx + 1} score {score}/100 needs improvement. Question Improver is refining answer options...",
-                                data={
-                                    "index": idx + 1,
-                                    "total": total_qty,
-                                    "stage": "remediating",
-                                    "iteration": iteration,
-                                    "score": score,
-                                },
-                                run_id=item_run_id,
-                            )
-                            await event_queue.put(regen_start_evt)
-
-                            regen_res = await regenerator_node(state)
-                            state.update(regen_res)
-
-                            regen_usage = state.get("latest_usage", {})
-                            regen_done_evt = make_event(
-                                event_type="agent_complete",
-                                agent_name="Question Improver",
-                                message=f"Question {idx + 1} improved (Draft v{state['iteration_count']} • {regen_usage.get('total_tokens', 0)} tokens, ${regen_usage.get('cost_usd', 0.0):.5f}). Re-checking with Quality Reviewer...",
-                                data={
-                                    "draft": state["current_draft"],
-                                    "latest_usage": regen_usage,
-                                    "index": idx + 1,
-                                    "total": total_qty,
-                                    "stage": "remediating",
-                                },
-                                run_id=item_run_id,
-                            )
-                            await event_queue.put(regen_done_evt)
-                            continue
-                        elif next_step == "reject":
-                            rej_res = await reject_node(state)
-                            state.update(rej_res)
-                            question_passed = False
-                            rej_data = state.get("rejection_data") or {}
-                            if isinstance(rej_data, dict):
-                                rej_data["index"] = idx + 1
-                                rej_data["stage"] = "rejected"
-                            rej_evt = make_event(
-                                event_type="workflow_rejected",
-                                agent_name="Quality Gate",
-                                message=f"Quality check not passed for Question {idx + 1} (Score {score}/100 after {iteration} attempts).",
-                                data=rej_data,
-                                run_id=item_run_id,
-                            )
-                            await event_queue.put(rej_evt)
-                            break
-                        else:
-                            break
+                # Step 2: Quality Review / Remediation Loop
+                question_passed = await _run_question_review_loop(
+                    state=state,
+                    idx=idx,
+                    total_qty=total_qty,
+                    item_run_id=item_run_id,
+                    gen_usage=gen_usage,
+                    event_queue=event_queue,
+                    make_event=make_event,
+                )
 
                 if question_passed:
-                    is_passage_item = is_single_passage_set and idx < effective_passage_count
+                    is_passage_item_check = is_single_passage_set and idx < effective_passage_count
 
                     # If this is a passage question and the passage has a visual stimulus diagram, attach reference
-                    if is_passage_item and (shared_passage_image_svg or shared_passage_image_url):
+                    if is_passage_item_check and (shared_passage_image_svg or shared_passage_image_url):
                         state["image_url"] = shared_passage_image_url
                         state["image_svg"] = shared_passage_image_svg
                         state["image_description"] = shared_passage_image_desc
@@ -1087,35 +1176,12 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             "note": "Visual stimulus belongs to shared reading passage",
                         }
 
-                    # Determine if THIS specific question item requires a diagram
-                    req_data = state["request"]
-                    sec_raw = req_data.get("section", "")
-                    section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)
-                    explicit_image = req_data.get("require_image", False)
-                    visual_type = req_data.get("visual_type", "None")
-                    req_img_indices = req.image_question_indices
-
-                    if section_val in (UCATSection.ABSTRACT_REASONING.value, "AR"):
-                        requires_image = True
-                    elif is_passage_item:
-                        # Passage question items share the passage diagram; they NEVER have internal images
-                        requires_image = False
-                    elif req_img_indices is not None:
-                        # Granular question-level selection for independent/standalone items
-                        requires_image = (idx + 1) in req_img_indices
-                    elif explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
-                        requires_image = True
-                    elif section_val in (
-                        UCATSection.VERBAL_REASONING.value,
-                        UCATSection.SITUATIONAL_JUDGEMENT.value,
-                        "VR",
-                        "SJT",
-                    ):
-                        requires_image = False
-                    else:
-                        requires_image = bool(
-                            state.get("current_draft", {}).get("image_needed", False)
-                        )
+                    requires_image = _determine_item_diagram_requirement(
+                        state=state,
+                        idx=idx,
+                        is_passage_item=is_passage_item_check,
+                        req_img_indices=req.image_question_indices,
+                    )
 
                     if requires_image:
                         img_start_evt = make_event(

@@ -1,31 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Sparkles,
   FileText,
-  ChevronDown,
-  ChevronUp,
   PanelLeftClose,
   PanelLeftOpen,
   X,
-  Target,
-  Plus,
-  Minus,
-  SlidersHorizontal,
   Compass,
   Image
 } from 'lucide-react';
 import { SECTION_ICONS, PACING_INFO } from '../../constants/ucat';
 import CustomSelect from '../common/CustomSelect';
-
-const TRAP_OPTIONS = [
-  { value: 'Automatic', label: 'Automatic Trap Balancing', description: 'AI evaluates and injects realistic traps for this subtest' },
-  { value: 'Keyword_Trap', label: 'Matching Words Trap', description: 'Similar words from passage with opposite or skewed meaning' },
-  { value: 'Partial_Match', label: 'Incomplete Information', description: 'Missing a computation step or omitting key constraints' },
-  { value: 'Extreme_Language', label: 'Extreme Words Trap', description: 'Absolute terms (always, never, only) not justified by facts' },
-  { value: 'Correlation_vs_Causation', label: 'Correlation vs Causation', description: 'Falsely assuming causal relationship from a correlated finding' },
-  { value: 'Scope_Shift', label: 'Out-of-Scope Conclusion', description: 'Extrapolating plausible assumptions beyond given evidence' },
-  { value: 'Half_Truth', label: 'True Fact but Irrelevant', description: 'Factually true statement that does not answer the question' }
-];
+import NumberStepper from '../common/NumberStepper';
+import IndependentDiagramControls from './IndependentDiagramControls';
+import QuestionStyleMixSection from './QuestionStyleMixSection';
+import ExamTrapsSection from './ExamTrapsSection';
 
 export default function GeneratorPanel({
   generatorForm,
@@ -121,8 +109,6 @@ export default function GeneratorPanel({
       : activeSingleImageCount + activeMultiImageCount);
   const hasPassageImage = !isAbstractReasoning && isPassageSet && Boolean(requirePassageImage);
   const totalImagesCount = isAbstractReasoning ? totalQuestions : (activeQuestionImagesCount + (hasPassageImage ? 1 : 0));
-
-  const [showAdvancedDirectives, setShowAdvancedDirectives] = useState(false);
 
   const handleTotalChange = (newTotal) => {
     const clamped = Math.max(1, Math.min(5, newTotal));
@@ -504,86 +490,18 @@ export default function GeneratorPanel({
         </div>
 
         {/* Stepper & Quick Chips */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: 'var(--bg-surface-subtle)',
-              border: '1px solid var(--border-light)',
-              borderRadius: 'var(--radius-xs)',
-              padding: '2px',
-              flex: 1
-            }}
-          >
-            <button
-              type="button"
-              id="btn-qty-minus"
-              onClick={() => handleTotalChange(totalQuestions - 1)}
-              disabled={totalQuestions <= 1}
-              style={{
-                width: '26px',
-                height: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: 'none',
-                background: 'transparent',
-                color: totalQuestions <= 1 ? 'var(--text-disabled)' : 'var(--text-primary)',
-                cursor: totalQuestions <= 1 ? 'not-allowed' : 'pointer'
-              }}
-              title="Decrease questions"
-            >
-              <Minus size={11} />
-            </button>
-            <div style={{ flex: 1, textAlign: 'center', fontSize: '0.775rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              {totalQuestions}
-            </div>
-            <button
-              type="button"
-              id="btn-qty-plus"
-              onClick={() => handleTotalChange(totalQuestions + 1)}
-              disabled={totalQuestions >= 5}
-              style={{
-                width: '26px',
-                height: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: 'none',
-                background: 'transparent',
-                color: totalQuestions >= 5 ? 'var(--text-disabled)' : 'var(--text-primary)',
-                cursor: totalQuestions >= 5 ? 'not-allowed' : 'pointer'
-              }}
-              title="Increase questions"
-            >
-              <Plus size={11} />
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', gap: '3px' }}>
-            {[1, 2, 3, 4, 5].map(cnt => (
-              <button
-                key={cnt}
-                type="button"
-                id={`btn-chip-qty-${cnt}`}
-                onClick={() => handleTotalChange(cnt)}
-                style={{
-                  padding: '4px 7px',
-                  borderRadius: 'var(--radius-xs)',
-                  fontSize: '0.7rem',
-                  fontWeight: totalQuestions === cnt ? 600 : 400,
-                  background: totalQuestions === cnt ? 'var(--brand-primary)' : 'var(--bg-surface-subtle)',
-                  color: totalQuestions === cnt ? '#ffffff' : 'var(--text-muted)',
-                  border: totalQuestions === cnt ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
-                  cursor: 'pointer'
-                }}
-              >
-                {cnt}
-              </button>
-            ))}
-          </div>
-        </div>
+        <NumberStepper
+          value={totalQuestions}
+          min={1}
+          max={5}
+          onChange={handleTotalChange}
+          idPrefix="btn-qty"
+          chipIdPrefix="btn-chip-qty"
+          quickChips={[1, 2, 3, 4, 5]}
+          label={(val) => val}
+          titleMinus="Decrease questions"
+          titlePlus="Increase questions"
+        />
 
         {/* Batch Allocation (when totalQuestions > 1) */}
         {totalQuestions > 1 ? (
@@ -631,87 +549,21 @@ export default function GeneratorPanel({
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        background: 'var(--bg-surface-subtle)',
-                        border: '1px solid var(--border-light)',
-                        borderRadius: 'var(--radius-xs)',
-                        padding: '2px',
-                        flex: 1
-                      }}
-                    >
-                      <button
-                        type="button"
-                        id="btn-passage-qty-minus"
-                        onClick={() => handlePassageQuestionCountChange(passageQuestionCount - 1)}
-                        disabled={passageQuestionCount <= 1}
-                        style={{
-                          width: '26px',
-                          height: '24px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          border: 'none',
-                          background: 'transparent',
-                          color: passageQuestionCount <= 1 ? 'var(--text-disabled)' : 'var(--text-primary)',
-                          cursor: passageQuestionCount <= 1 ? 'not-allowed' : 'pointer'
-                        }}
-                        title="Decrease passage question count"
-                      >
-                        <Minus size={11} />
-                      </button>
-                      <div style={{ flex: 1, textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                        {passageQuestionCount} of {totalQuestions}
-                      </div>
-                      <button
-                        type="button"
-                        id="btn-passage-qty-plus"
-                        onClick={() => handlePassageQuestionCountChange(passageQuestionCount + 1)}
-                        disabled={passageQuestionCount >= totalQuestions}
-                        style={{
-                          width: '26px',
-                          height: '24px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          border: 'none',
-                          background: 'transparent',
-                          color: passageQuestionCount >= totalQuestions ? 'var(--text-disabled)' : 'var(--text-primary)',
-                          cursor: passageQuestionCount >= totalQuestions ? 'not-allowed' : 'pointer'
-                        }}
-                        title="Increase passage question count"
-                      >
-                        <Plus size={11} />
-                      </button>
-                    </div>
-
-                    {/* Quick Allocation Chips */}
-                    <div style={{ display: 'flex', gap: '3px' }}>
-                      {Array.from({ length: totalQuestions }, (_, i) => i + 1).map(cnt => (
-                        <button
-                          key={cnt}
-                          type="button"
-                          id={`btn-chip-passage-qty-${cnt}`}
-                          onClick={() => handlePassageQuestionCountChange(cnt)}
-                          style={{
-                            padding: '4px 7px',
-                            borderRadius: 'var(--radius-xs)',
-                            fontSize: '0.675rem',
-                            fontWeight: passageQuestionCount === cnt ? 600 : 400,
-                            background: passageQuestionCount === cnt ? 'var(--status-purple-bg)' : 'var(--bg-surface-subtle)',
-                            color: passageQuestionCount === cnt ? 'var(--status-purple)' : 'var(--text-muted)',
-                            border: passageQuestionCount === cnt ? '1px solid var(--status-purple-border)' : '1px solid var(--border-light)',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          {cnt}P
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  <NumberStepper
+                    value={passageQuestionCount}
+                    min={1}
+                    max={totalQuestions}
+                    onChange={handlePassageQuestionCountChange}
+                    idPrefix="btn-passage-qty"
+                    chipIdPrefix="btn-chip-passage-qty"
+                    quickChips={Array.from({ length: totalQuestions }, (_, i) => i + 1)}
+                    chipLabel="P"
+                    activeBgColor="var(--status-purple-bg)"
+                    activeTextColor="var(--status-purple)"
+                    label={(val) => `${val} of ${totalQuestions}`}
+                    titleMinus="Decrease passage question count"
+                    titlePlus="Increase passage question count"
+                  />
 
                   <div
                     style={{
@@ -772,616 +624,41 @@ export default function GeneratorPanel({
             </div>
 
             {/* Answer Style Breakdown */}
-            {passageMode === 'single_passage' && passageQuestionCount < totalQuestions ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {/* Passage Group Formats */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    Passage Items ({passageQuestionCount} Qs) Style
-                  </span>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '5px 8px',
-                        background: 'var(--bg-surface-subtle)',
-                        borderRadius: 'var(--radius-xs)',
-                        border: '1px solid var(--border-light)'
-                      }}
-                    >
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Single</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <button
-                          type="button"
-                          id="btn-p-single-minus"
-                          onClick={() => handlePassageSingleChange(passageSingleCount - 1)}
-                          disabled={passageSingleCount <= 0}
-                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                        >
-                          <Minus size={9} />
-                        </button>
-                        <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center' }}>
-                          {passageSingleCount}
-                        </span>
-                        <button
-                          type="button"
-                          id="btn-p-single-plus"
-                          onClick={() => handlePassageSingleChange(passageSingleCount + 1)}
-                          disabled={passageSingleCount >= passageQuestionCount}
-                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                        >
-                          <Plus size={9} />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '5px 8px',
-                        background: 'var(--bg-surface-subtle)',
-                        borderRadius: 'var(--radius-xs)',
-                        border: '1px solid var(--border-light)'
-                      }}
-                    >
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Multi</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <button
-                          type="button"
-                          id="btn-p-multi-minus"
-                          onClick={() => handlePassageMultiChange(passageMultiCount - 1)}
-                          disabled={passageMultiCount <= 0}
-                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                        >
-                          <Minus size={9} />
-                        </button>
-                        <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: passageMultiCount > 0 ? 'var(--brand-indigo)' : 'var(--text-primary)' }}>
-                          {passageMultiCount}
-                        </span>
-                        <button
-                          type="button"
-                          id="btn-p-multi-plus"
-                          onClick={() => handlePassageMultiChange(passageMultiCount + 1)}
-                          disabled={passageMultiCount >= passageQuestionCount}
-                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                        >
-                          <Plus size={9} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Independent Group Formats */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    Independent Items ({totalQuestions - passageQuestionCount} Qs) Style
-                  </span>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '5px 8px',
-                        background: 'var(--bg-surface-subtle)',
-                        borderRadius: 'var(--radius-xs)',
-                        border: '1px solid var(--border-light)'
-                      }}
-                    >
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Single</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <button
-                          type="button"
-                          id="btn-ind-single-minus"
-                          onClick={() => handleIndependentSingleChange(independentSingleCount - 1)}
-                          disabled={independentSingleCount <= 0}
-                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                        >
-                          <Minus size={9} />
-                        </button>
-                        <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center' }}>
-                          {independentSingleCount}
-                        </span>
-                        <button
-                          type="button"
-                          id="btn-ind-single-plus"
-                          onClick={() => handleIndependentSingleChange(independentSingleCount + 1)}
-                          disabled={independentSingleCount >= (totalQuestions - passageQuestionCount)}
-                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                        >
-                          <Plus size={9} />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '5px 8px',
-                        background: 'var(--bg-surface-subtle)',
-                        borderRadius: 'var(--radius-xs)',
-                        border: '1px solid var(--border-light)'
-                      }}
-                    >
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Multi</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <button
-                          type="button"
-                          id="btn-ind-multi-minus"
-                          onClick={() => handleIndependentMultiChange(independentMultiCount - 1)}
-                          disabled={independentMultiCount <= 0}
-                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                        >
-                          <Minus size={9} />
-                        </button>
-                        <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: independentMultiCount > 0 ? 'var(--brand-indigo)' : 'var(--text-primary)' }}>
-                          {independentMultiCount}
-                        </span>
-                        <button
-                          type="button"
-                          id="btn-ind-multi-plus"
-                          onClick={() => handleIndependentMultiChange(independentMultiCount + 1)}
-                          disabled={independentMultiCount >= (totalQuestions - passageQuestionCount)}
-                          style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                        >
-                          <Plus size={9} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Question Style Mix ({singleChoiceCount} Single, {multiChoiceCount} Multi)
-                </span>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                  {/* Single Choice Counter */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '5px 8px',
-                      background: 'var(--bg-surface-subtle)',
-                      borderRadius: 'var(--radius-xs)',
-                      border: '1px solid var(--border-light)'
-                    }}
-                  >
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Single Choice</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <button
-                        type="button"
-                        id="btn-single-count-minus"
-                        onClick={() => handleSingleCountChange(singleChoiceCount - 1)}
-                        disabled={singleChoiceCount <= 0}
-                        style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                      >
-                        <Minus size={9} />
-                      </button>
-                      <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center' }}>
-                        {singleChoiceCount}
-                      </span>
-                      <button
-                        type="button"
-                        id="btn-single-count-plus"
-                        onClick={() => handleSingleCountChange(singleChoiceCount + 1)}
-                        disabled={singleChoiceCount >= totalQuestions}
-                        style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                      >
-                        <Plus size={9} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Multi Choice Counter */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '5px 8px',
-                      background: 'var(--bg-surface-subtle)',
-                      borderRadius: 'var(--radius-xs)',
-                      border: '1px solid var(--border-light)'
-                    }}
-                  >
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Multiple Choice</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <button
-                        type="button"
-                        id="btn-multi-count-minus"
-                        onClick={() => handleMultiCountChange(multiChoiceCount - 1)}
-                        disabled={multiChoiceCount <= 0}
-                        style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                      >
-                        <Minus size={9} />
-                      </button>
-                      <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: multiChoiceCount > 0 ? 'var(--brand-indigo)' : 'var(--text-primary)' }}>
-                        {multiChoiceCount}
-                      </span>
-                      <button
-                        type="button"
-                        id="btn-multi-count-plus"
-                        onClick={() => handleMultiCountChange(multiChoiceCount + 1)}
-                        disabled={multiChoiceCount >= totalQuestions}
-                        style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                      >
-                        <Plus size={9} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Stimulus Length Breakdown (Only when passageMode === 'independent') */}
-            {passageMode === 'independent' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Question Format Breakdown
-                </span>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                  {/* Passage Counter */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '5px 8px',
-                      background: 'var(--bg-surface-subtle)',
-                      borderRadius: 'var(--radius-xs)',
-                      border: '1px solid var(--border-light)'
-                    }}
-                  >
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Reading Passage</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <button
-                        type="button"
-                        id="btn-passage-count-minus"
-                        onClick={() => handlePassageCountChange(passageCount - 1)}
-                        disabled={passageCount <= 0}
-                        style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                      >
-                        <Minus size={9} />
-                      </button>
-                      <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: passageCount > 0 ? 'var(--brand-primary)' : 'var(--text-primary)' }}>
-                        {passageCount}
-                      </span>
-                      <button
-                        type="button"
-                        id="btn-passage-count-plus"
-                        onClick={() => handlePassageCountChange(passageCount + 1)}
-                        disabled={passageCount >= totalQuestions}
-                        style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                      >
-                        <Plus size={9} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Direct Question (No Passage) (Derived) */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '5px 8px',
-                      background: 'var(--bg-surface-subtle)',
-                      borderRadius: 'var(--radius-xs)',
-                      border: '1px solid var(--border-light)'
-                    }}
-                  >
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Direct (No Passage)</span>
-                    <span style={{ fontSize: '0.725rem', fontWeight: 700, paddingRight: '4px', color: 'var(--text-muted)' }}>
-                      {totalQuestions - passageCount}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
+            <QuestionStyleMixSection
+              totalQuestions={totalQuestions}
+              passageMode={passageMode}
+              passageQuestionCount={passageQuestionCount}
+              passageSingleCount={passageSingleCount}
+              passageMultiCount={passageMultiCount}
+              independentSingleCount={independentSingleCount}
+              independentMultiCount={independentMultiCount}
+              singleChoiceCount={singleChoiceCount}
+              multiChoiceCount={multiChoiceCount}
+              passageCount={passageCount}
+              handlePassageSingleChange={handlePassageSingleChange}
+              handlePassageMultiChange={handlePassageMultiChange}
+              handleIndependentSingleChange={handleIndependentSingleChange}
+              handleIndependentMultiChange={handleIndependentMultiChange}
+              handleSingleCountChange={handleSingleCountChange}
+              handleMultiCountChange={handleMultiCountChange}
+              handlePassageCountChange={handlePassageCountChange}
+            />
 
             {/* Independent Questions with Diagrams - Split by Answer Style */}
-            {!isAbstractReasoning && numIndependentQs > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed var(--border-light)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    {passageMode === 'single_passage' ? 'Independent Qs with Diagrams' : 'Questions with Diagrams'}
-                  </span>
-                  <span className="badge-minimal" style={{ fontSize: '0.625rem' }}>
-                    {activeQuestionImagesCount > 0
-                      ? `${activeQuestionImagesCount} of ${numIndependentQs} Qs ($${(activeQuestionImagesCount * 0.002).toFixed(4)})`
-                      : 'No Diagrams'}
-                  </span>
-                </div>
-
-                {/* 1. Single Choice Diagrams Control */}
-                {indSingleTotal > 0 && (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px',
-                      padding: '6px 8px',
-                      background: 'var(--bg-surface-subtle)',
-                      borderRadius: 'var(--radius-xs)',
-                      border: '1px solid var(--border-light)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                        Single Choice Diagrams
-                      </span>
-                      <span className="badge-minimal" style={{ fontSize: '0.585rem' }}>
-                        {activeSingleImageCount > 0
-                          ? `${activeSingleImageCount} of ${indSingleTotal} ($${(activeSingleImageCount * 0.002).toFixed(4)})`
-                          : 'No Diagrams'}
-                      </span>
-                    </div>
-
-                    {indSingleTotal === 1 ? (
-                      <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-                        {[
-                          { id: 'no', label: 'No Diagram' },
-                          { id: 'yes', label: 'With Diagram' }
-                        ].map(opt => {
-                          const hasImage = activeSingleImageCount > 0;
-                          const isSel = opt.id === 'yes' ? hasImage : !hasImage;
-                          return (
-                            <button
-                              key={opt.id}
-                              type="button"
-                              id={`btn-single-choice-diag-${opt.id}`}
-                              onClick={() => {
-                                if (setSingleImageCount) {
-                                  setSingleImageCount(opt.id === 'yes' ? 1 : 0, indSingleIndices, indMultiIndices);
-                                }
-                              }}
-                              className={`pill-track-btn ${isSel ? 'active' : ''}`}
-                              style={{ width: '100%', padding: '4px' }}
-                            >
-                              {opt.id === 'yes' && <Image size={11} />}
-                              <span>{opt.label}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              background: 'var(--bg-card)',
-                              border: '1px solid var(--border-light)',
-                              borderRadius: 'var(--radius-xs)',
-                              padding: '2px',
-                              flex: 1
-                            }}
-                          >
-                            <button
-                              type="button"
-                              id="btn-single-img-minus"
-                              onClick={() => setSingleImageCount && setSingleImageCount(activeSingleImageCount - 1, indSingleIndices, indMultiIndices)}
-                              disabled={activeSingleImageCount <= 0}
-                              style={{
-                                width: '22px',
-                                height: '22px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                border: 'none',
-                                background: 'transparent',
-                                color: activeSingleImageCount <= 0 ? 'var(--text-disabled)' : 'var(--text-primary)',
-                                cursor: activeSingleImageCount <= 0 ? 'not-allowed' : 'pointer'
-                              }}
-                              title="Decrease single choice questions with diagrams"
-                            >
-                              <Minus size={10} />
-                            </button>
-                            <div style={{ flex: 1, textAlign: 'center', fontSize: '0.725rem', fontWeight: 700, color: activeSingleImageCount > 0 ? 'var(--brand-primary)' : 'var(--text-primary)' }}>
-                              {activeSingleImageCount} of {indSingleTotal}
-                            </div>
-                            <button
-                              type="button"
-                              id="btn-single-img-plus"
-                              onClick={() => setSingleImageCount && setSingleImageCount(activeSingleImageCount + 1, indSingleIndices, indMultiIndices)}
-                              disabled={activeSingleImageCount >= indSingleTotal}
-                              style={{
-                                width: '22px',
-                                height: '22px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                border: 'none',
-                                background: 'transparent',
-                                color: activeSingleImageCount >= indSingleTotal ? 'var(--text-disabled)' : 'var(--text-primary)',
-                                cursor: activeSingleImageCount >= indSingleTotal ? 'not-allowed' : 'pointer'
-                              }}
-                              title="Increase single choice questions with diagrams"
-                            >
-                              <Plus size={10} />
-                            </button>
-                          </div>
-
-                          {/* Quick Chips */}
-                          <div style={{ display: 'flex', gap: '2px' }}>
-                            {Array.from({ length: indSingleTotal + 1 }, (_, i) => i).map(cnt => (
-                              <button
-                                key={cnt}
-                                type="button"
-                                id={`btn-chip-single-img-${cnt}`}
-                                onClick={() => setSingleImageCount && setSingleImageCount(cnt, indSingleIndices, indMultiIndices)}
-                                style={{
-                                  padding: '3px 6px',
-                                  borderRadius: 'var(--radius-xs)',
-                                  fontSize: '0.65rem',
-                                  fontWeight: activeSingleImageCount === cnt ? 600 : 400,
-                                  background: activeSingleImageCount === cnt ? 'var(--brand-primary)' : 'var(--bg-card)',
-                                  color: activeSingleImageCount === cnt ? '#ffffff' : 'var(--text-muted)',
-                                  border: activeSingleImageCount === cnt ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                {cnt}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {/* 2. Multiple Choice Diagrams Control */}
-                {indMultiTotal > 0 && (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px',
-                      padding: '6px 8px',
-                      background: 'var(--bg-surface-subtle)',
-                      borderRadius: 'var(--radius-xs)',
-                      border: '1px solid var(--border-light)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                        Multiple Choice Diagrams
-                      </span>
-                      <span className="badge-minimal" style={{ fontSize: '0.585rem' }}>
-                        {activeMultiImageCount > 0
-                          ? `${activeMultiImageCount} of ${indMultiTotal} ($${(activeMultiImageCount * 0.002).toFixed(4)})`
-                          : 'No Diagrams'}
-                      </span>
-                    </div>
-
-                    {indMultiTotal === 1 ? (
-                      <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-                        {[
-                          { id: 'no', label: 'No Diagram' },
-                          { id: 'yes', label: 'With Diagram' }
-                        ].map(opt => {
-                          const hasImage = activeMultiImageCount > 0;
-                          const isSel = opt.id === 'yes' ? hasImage : !hasImage;
-                          return (
-                            <button
-                              key={opt.id}
-                              type="button"
-                              id={`btn-multi-choice-diag-${opt.id}`}
-                              onClick={() => {
-                                if (setMultiImageCount) {
-                                  setMultiImageCount(opt.id === 'yes' ? 1 : 0, indSingleIndices, indMultiIndices);
-                                }
-                              }}
-                              className={`pill-track-btn ${isSel ? 'active' : ''}`}
-                              style={{ width: '100%', padding: '4px' }}
-                            >
-                              {opt.id === 'yes' && <Image size={11} />}
-                              <span>{opt.label}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              background: 'var(--bg-card)',
-                              border: '1px solid var(--border-light)',
-                              borderRadius: 'var(--radius-xs)',
-                              padding: '2px',
-                              flex: 1
-                            }}
-                          >
-                            <button
-                              type="button"
-                              id="btn-multi-img-minus"
-                              onClick={() => setMultiImageCount && setMultiImageCount(activeMultiImageCount - 1, indSingleIndices, indMultiIndices)}
-                              disabled={activeMultiImageCount <= 0}
-                              style={{
-                                width: '22px',
-                                height: '22px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                border: 'none',
-                                background: 'transparent',
-                                color: activeMultiImageCount <= 0 ? 'var(--text-disabled)' : 'var(--text-primary)',
-                                cursor: activeMultiImageCount <= 0 ? 'not-allowed' : 'pointer'
-                              }}
-                              title="Decrease multiple choice questions with diagrams"
-                            >
-                              <Minus size={10} />
-                            </button>
-                            <div style={{ flex: 1, textAlign: 'center', fontSize: '0.725rem', fontWeight: 700, color: activeMultiImageCount > 0 ? 'var(--brand-indigo)' : 'var(--text-primary)' }}>
-                              {activeMultiImageCount} of {indMultiTotal}
-                            </div>
-                            <button
-                              type="button"
-                              id="btn-multi-img-plus"
-                              onClick={() => setMultiImageCount && setMultiImageCount(activeMultiImageCount + 1, indSingleIndices, indMultiIndices)}
-                              disabled={activeMultiImageCount >= indMultiTotal}
-                              style={{
-                                width: '22px',
-                                height: '22px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                border: 'none',
-                                background: 'transparent',
-                                color: activeMultiImageCount >= indMultiTotal ? 'var(--text-disabled)' : 'var(--text-primary)',
-                                cursor: activeMultiImageCount >= indMultiTotal ? 'not-allowed' : 'pointer'
-                              }}
-                              title="Increase multiple choice questions with diagrams"
-                            >
-                              <Plus size={10} />
-                            </button>
-                          </div>
-
-                          {/* Quick Chips */}
-                          <div style={{ display: 'flex', gap: '2px' }}>
-                            {Array.from({ length: indMultiTotal + 1 }, (_, i) => i).map(cnt => (
-                              <button
-                                key={cnt}
-                                type="button"
-                                id={`btn-chip-multi-img-${cnt}`}
-                                onClick={() => setMultiImageCount && setMultiImageCount(cnt, indSingleIndices, indMultiIndices)}
-                                style={{
-                                  padding: '3px 6px',
-                                  borderRadius: 'var(--radius-xs)',
-                                  fontSize: '0.65rem',
-                                  fontWeight: activeMultiImageCount === cnt ? 600 : 400,
-                                  background: activeMultiImageCount === cnt ? 'var(--brand-indigo)' : 'var(--bg-card)',
-                                  color: activeMultiImageCount === cnt ? '#ffffff' : 'var(--text-muted)',
-                                  border: activeMultiImageCount === cnt ? '1px solid var(--brand-indigo)' : '1px solid var(--border-light)',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                {cnt}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+            <IndependentDiagramControls
+              isAbstractReasoning={isAbstractReasoning}
+              numIndependentQs={numIndependentQs}
+              passageMode={passageMode}
+              activeQuestionImagesCount={activeQuestionImagesCount}
+              indSingleTotal={indSingleTotal}
+              indMultiTotal={indMultiTotal}
+              indSingleIndices={indSingleIndices}
+              indMultiIndices={indMultiIndices}
+              activeSingleImageCount={activeSingleImageCount}
+              activeMultiImageCount={activeMultiImageCount}
+              setSingleImageCount={setSingleImageCount}
+              setMultiImageCount={setMultiImageCount}
+            />
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1549,73 +826,12 @@ export default function GeneratorPanel({
       </div>
 
       {/* SECTION 3: TRAPS & DIRECTIVES */}
-      <div className="dock-section">
-        <div className="section-header-minimal">
-          <span className="section-header-title">Exam Traps &amp; Rules</span>
-          <Target size={12} color="var(--text-muted)" />
-        </div>
-
-        {/* Question Trick Selector */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label htmlFor="select-primary-trap" style={{ fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            Wrong Answer Traps
-          </label>
-          <CustomSelect
-            id="select-primary-trap"
-            label="Wrong Answer Traps"
-            value={primaryTrap}
-            onChange={(newTrap) => setPrimaryTrap && setPrimaryTrap(newTrap)}
-            options={TRAP_OPTIONS}
-          />
-        </div>
-
-        {/* Advanced Accordion (Custom Directives) */}
-        <div>
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={() => setShowAdvancedDirectives(!showAdvancedDirectives)}
-            style={{ width: '100%', justifyContent: 'space-between', padding: '5px 8px', fontSize: '0.725rem', borderRadius: 'var(--radius-xs)' }}
-          >
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <SlidersHorizontal size={11} color="var(--brand-primary)" />
-              <span>Custom Instructions &amp; Directives</span>
-            </span>
-            {showAdvancedDirectives ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
-          </button>
-
-          {showAdvancedDirectives && (
-            <div
-              style={{
-                marginTop: '8px',
-                padding: '10px',
-                background: 'var(--bg-surface-subtle)',
-                borderRadius: 'var(--radius-xs)',
-                border: '1px solid var(--border-light)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px'
-              }}
-            >
-              {/* Custom Prompt Textarea */}
-              <div>
-                <label htmlFor="input-custom-prompt" style={{ display: 'block', fontSize: '0.675rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '3px' }}>
-                  Custom Instructions &amp; Topics
-                </label>
-                <textarea
-                  id="input-custom-prompt"
-                  aria-label="Custom Instructions and Topics"
-                  value={customPrompt}
-                  onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder="e.g. Focus on cardiology dosages or medical ethics..."
-                  rows={2}
-                  style={{ width: '100%', fontSize: '0.725rem', resize: 'vertical', borderRadius: 'var(--radius-xs)' }}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <ExamTrapsSection
+        primaryTrap={primaryTrap}
+        setPrimaryTrap={setPrimaryTrap}
+        customPrompt={customPrompt}
+        setCustomPrompt={setCustomPrompt}
+      />
 
       {/* DOCK FOOTER: ACTION BAR */}
       <div
