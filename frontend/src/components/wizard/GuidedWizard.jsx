@@ -623,14 +623,14 @@ export default function GuidedWizard({
               </div>
             </div>
 
-            {/* Total Questions Stepper & Quick Pills */}
+            {/* Total Questions Stepper */}
             <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-light)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
                   <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                     How Many Questions?
                   </div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
                     Create a single quick question or a practice batch of up to 5 questions.
                   </div>
                 </div>
@@ -646,31 +646,6 @@ export default function GuidedWizard({
                     titlePlus="Increase questions"
                   />
                 </div>
-              </div>
-
-              {/* Quick Preset Buttons */}
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {[1, 2, 3, 5].map((cnt) => {
-                  const isSelected = totalQuestions === cnt;
-                  return (
-                    <button
-                      key={cnt}
-                      type="button"
-                      className="hero-preset-chip"
-                      style={{
-                        padding: '6px 14px',
-                        fontSize: '0.825rem',
-                        background: isSelected ? 'var(--infynno-gradient)' : 'var(--bg-surface-subtle)',
-                        color: isSelected ? '#ffffff' : 'var(--text-primary)',
-                        borderColor: isSelected ? 'transparent' : 'var(--border-light)',
-                        fontWeight: isSelected ? 700 : 500
-                      }}
-                      onClick={() => handleTotalChange(cnt)}
-                    >
-                      <span>{cnt} {cnt === 1 ? 'Question' : 'Questions'}</span>
-                    </button>
-                  );
-                })}
               </div>
             </div>
 
