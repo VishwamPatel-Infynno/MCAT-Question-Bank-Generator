@@ -9,8 +9,13 @@ import {
   Calculator,
   Shapes,
   Scale,
-  Edit3
+  Edit3,
+  Image as ImageIcon
 } from 'lucide-react';
+import NumberStepper from '../common/NumberStepper';
+import QuestionStyleMixSection from '../generator/QuestionStyleMixSection';
+import IndependentDiagramControls from '../generator/IndependentDiagramControls';
+import { PACING_INFO } from '../../constants/ucat';
 
 const SECTION_METADATA = {
   verbal_reasoning: {
@@ -86,15 +91,91 @@ export default function GuidedWizard({
   const [step, setStep] = useState(1);
   const totalSteps = 5;
 
-  const { formData, updateFields } = generatorForm;
+  const form = generatorForm?.formData || {};
+  const update = generatorForm?.updateField || (() => {});
+  const updateFields = generatorForm?.updateFields || (() => {});
 
-  // Active section data
-  const currentSection = formData.selectedSection || 'verbal_reasoning';
-  const sectionMeta = SECTION_METADATA[currentSection] || SECTION_METADATA.verbal_reasoning;
+  const selectedSection = form.selectedSection || 'verbal_reasoning';
+  const selectedSubtopic = form.selectedSubtopic || '';
+  const setSelectedSubtopic = (v) => update('selectedSubtopic', v);
+  const difficulty = form.difficulty || 'medium';
+  const setDifficulty = (v) => update('difficulty', v);
+  const totalQuestions = form.totalQuestions ?? 1;
+  const setTotalQuestions = (v) => update('totalQuestions', v);
+  const singleChoiceCount = form.singleChoiceCount ?? 1;
+  const setSingleChoiceCount = (v) => update('singleChoiceCount', v);
+  const multiChoiceCount = form.multiChoiceCount ?? 0;
+  const setMultiChoiceCount = (v) => update('multiChoiceCount', v);
+  const passageCount = form.passageCount ?? 0;
+  const setPassageCount = (v) => update('passageCount', v);
+  const passageMode = form.passageMode || 'single_passage';
+  const setPassageMode = (v) => update('passageMode', v);
+  const passageQuestionCount = form.passageQuestionCount ?? 2;
+  const setPassageQuestionCount = (v) => update('passageQuestionCount', v);
+  const passageSingleCount = form.passageSingleCount ?? 1;
+  const setPassageSingleCount = (v) => update('passageSingleCount', v);
+  const passageMultiCount = form.passageMultiCount ?? 1;
+  const setPassageMultiCount = (v) => update('passageMultiCount', v);
+  const independentSingleCount = form.independentSingleCount ?? 2;
+  const setIndependentSingleCount = (v) => update('independentSingleCount', v);
+  const independentMultiCount = form.independentMultiCount ?? 1;
+  const setIndependentMultiCount = (v) => update('independentMultiCount', v);
+  const interactionType = form.interactionType || 'single_choice';
+  const setInteractionType = (v) => update('interactionType', v);
+  const passageRequired = form.passageRequired || 'No';
+  const setPassageRequired = (v) => update('passageRequired', v);
+  const primaryTrap = form.primaryTrap || 'Automatic';
+  const setPrimaryTrap = (v) => update('primaryTrap', v);
+  const imageMode = form.imageMode || 'none';
+  const setImageMode = generatorForm?.setImageMode;
+  const setImageCount = generatorForm?.setImageCount;
+  const setSingleImageCount = generatorForm?.setSingleImageCount;
+  const setMultiImageCount = generatorForm?.setMultiImageCount;
+  const imageQuestionIndices = form.imageQuestionIndices || [];
+  const requirePassageImage = form.requirePassageImage || false;
+  const setRequirePassageImage = generatorForm?.setRequirePassageImage;
+  const customPrompt = form.customPrompt || '';
+  const setCustomPrompt = (v) => update('customPrompt', v);
+
+  const isPassageSet = totalQuestions > 1 ? (passageMode === 'single_passage') : (passageRequired === 'Yes');
+  const isAbstractReasoning = selectedSection === 'abstract_reasoning';
+  const sectionMeta = SECTION_METADATA[selectedSection] || SECTION_METADATA.verbal_reasoning;
+  const pacing = PACING_INFO[selectedSection] || PACING_INFO.verbal_reasoning;
+
+  // Number of passage questions vs independent questions
+  const numPassageQs = totalQuestions > 1
+    ? (passageMode === 'single_passage' ? Math.min(passageQuestionCount, totalQuestions) : 0)
+    : (passageRequired === 'Yes' ? 1 : 0);
+  const numIndependentQs = Math.max(0, totalQuestions - numPassageQs);
+
+  const independentIndices = Array.from({ length: totalQuestions }, (_, i) => i + 1).slice(numPassageQs);
+
+  const indSingleTotal = totalQuestions > 1
+    ? (passageMode === 'single_passage' ? Math.max(0, independentSingleCount) : singleChoiceCount)
+    : (interactionType === 'single_choice' ? 1 : 0);
+  const indMultiTotal = totalQuestions > 1
+    ? (passageMode === 'single_passage' ? Math.max(0, independentMultiCount) : multiChoiceCount)
+    : (interactionType === 'multi_choice' ? 1 : 0);
+
+  const indSingleIndices = independentIndices.slice(0, indSingleTotal);
+  const indMultiIndices = independentIndices.slice(indSingleTotal, indSingleTotal + indMultiTotal);
+
+  const activeSingleImageIndices = (imageQuestionIndices || []).filter(i => indSingleIndices.includes(i));
+  const activeMultiImageIndices = (imageQuestionIndices || []).filter(i => indMultiIndices.includes(i));
+  const activeSingleImageCount = activeSingleImageIndices.length;
+  const activeMultiImageCount = activeMultiImageIndices.length;
+
+  const activeQuestionImagesCount = isAbstractReasoning
+    ? totalQuestions
+    : (imageMode === 'all'
+      ? independentIndices.length
+      : activeSingleImageCount + activeMultiImageCount);
+  const hasPassageImage = !isAbstractReasoning && isPassageSet && Boolean(requirePassageImage);
+  const totalImagesCount = isAbstractReasoning ? totalQuestions : (activeQuestionImagesCount + (hasPassageImage ? 1 : 0));
 
   // Subtopics for current section
   const availableSubtopics = useMemo(() => {
-    const secObj = sectionsData?.find(s => s.id === currentSection);
+    const secObj = sectionsData?.find(s => s.id === selectedSection);
     return secObj?.subtopics && secObj.subtopics.length > 0
       ? secObj.subtopics
       : [
@@ -104,16 +185,16 @@ export default function GuidedWizard({
           'Set A vs Set B Patterns',
           'Appropriateness & Integrity'
         ];
-  }, [sectionsData, currentSection]);
+  }, [sectionsData, selectedSection]);
 
   // Ensure selectedSubtopic is valid when section changes
   useEffect(() => {
-    if (availableSubtopics.length > 0 && !availableSubtopics.includes(formData.selectedSubtopic)) {
-      updateFields({ selectedSubtopic: availableSubtopics[0] });
+    if (availableSubtopics.length > 0 && !availableSubtopics.includes(selectedSubtopic)) {
+      setSelectedSubtopic(availableSubtopics[0]);
     }
-  }, [availableSubtopics, formData.selectedSubtopic, updateFields]);
+  }, [availableSubtopics, selectedSubtopic]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Handle section selection
+  // Section Selection handler
   const handleSelectSection = (sectionId) => {
     const isAR = sectionId === 'abstract_reasoning';
     const isVR = sectionId === 'verbal_reasoning';
@@ -124,6 +205,142 @@ export default function GuidedWizard({
       ...(isVR && { passageRequired: 'Yes', passageCount: 1 }),
       ...(!isVR && { passageRequired: 'No', passageCount: 0 })
     });
+    if (isAR && setImageMode) {
+      setImageMode('all');
+    }
+  };
+
+  // Stepper & Allocation Handlers matching GeneratorPanel exactly
+  const handleTotalChange = (newTotal) => {
+    const clamped = Math.max(1, Math.min(5, newTotal));
+    setTotalQuestions(clamped);
+    if (clamped === 1) {
+      setSingleChoiceCount(interactionType === 'multi_choice' ? 0 : 1);
+      setMultiChoiceCount(interactionType === 'multi_choice' ? 1 : 0);
+      setPassageCount(passageRequired === 'Yes' ? 1 : 0);
+    } else {
+      if (passageMode === 'single_passage') {
+        const clampedPassage = Math.max(1, Math.min(clamped, passageQuestionCount));
+        setPassageQuestionCount(clampedPassage);
+        const pMulti = Math.min(passageMultiCount, clampedPassage);
+        const pSingle = clampedPassage - pMulti;
+        setPassageMultiCount(pMulti);
+        setPassageSingleCount(pSingle);
+        const indTotal = clamped - clampedPassage;
+        let indMulti = 0;
+        let indSingle = 0;
+        if (indTotal > 0) {
+          indMulti = Math.min(independentMultiCount, indTotal);
+          indSingle = indTotal - indMulti;
+          setIndependentMultiCount(indMulti);
+          setIndependentSingleCount(indSingle);
+        }
+        setSingleChoiceCount(pSingle + indSingle);
+        setMultiChoiceCount(pMulti + indMulti);
+        setPassageCount(clampedPassage);
+      } else {
+        const curMulti = Math.min(multiChoiceCount, clamped);
+        setMultiChoiceCount(curMulti);
+        setSingleChoiceCount(clamped - curMulti);
+        setPassageCount(Math.min(passageCount, clamped));
+      }
+    }
+  };
+
+  const handlePassageModeChange = (mode) => {
+    setPassageMode(mode);
+    if (mode === 'single_passage') {
+      setPassageRequired('Yes');
+      setPassageCount(passageQuestionCount);
+    } else {
+      setPassageRequired('No');
+      setPassageCount(0);
+    }
+  };
+
+  const handlePassageQuestionCountChange = (newVal) => {
+    const val = Math.max(1, Math.min(totalQuestions, newVal));
+    setPassageQuestionCount(val);
+    const pMulti = Math.min(passageMultiCount, val);
+    const pSingle = val - pMulti;
+    setPassageMultiCount(pMulti);
+    setPassageSingleCount(pSingle);
+
+    const indTotal = totalQuestions - val;
+    let indMulti = 0;
+    let indSingle = 0;
+    if (indTotal > 0) {
+      indMulti = Math.min(independentMultiCount, indTotal);
+      indSingle = indTotal - indMulti;
+      setIndependentMultiCount(indMulti);
+      setIndependentSingleCount(indSingle);
+    }
+    setSingleChoiceCount(pSingle + indSingle);
+    setMultiChoiceCount(pMulti + indMulti);
+    setPassageCount(val);
+  };
+
+  const handlePassageSingleChange = (newVal) => {
+    const val = Math.max(0, Math.min(passageQuestionCount, newVal));
+    const pMulti = passageQuestionCount - val;
+    setPassageSingleCount(val);
+    setPassageMultiCount(pMulti);
+    const indTotal = totalQuestions - passageQuestionCount;
+    const indSingle = indTotal > 0 ? independentSingleCount : 0;
+    const indMulti = indTotal > 0 ? independentMultiCount : 0;
+    setSingleChoiceCount(val + indSingle);
+    setMultiChoiceCount(pMulti + indMulti);
+  };
+
+  const handlePassageMultiChange = (newVal) => {
+    const val = Math.max(0, Math.min(passageQuestionCount, newVal));
+    const pSingle = passageQuestionCount - val;
+    setPassageMultiCount(val);
+    setPassageSingleCount(pSingle);
+    const indTotal = totalQuestions - passageQuestionCount;
+    const indSingle = indTotal > 0 ? independentSingleCount : 0;
+    const indMulti = indTotal > 0 ? independentMultiCount : 0;
+    setSingleChoiceCount(pSingle + indSingle);
+    setMultiChoiceCount(val + indMulti);
+  };
+
+  const handleIndependentSingleChange = (newVal) => {
+    const indTotal = totalQuestions - passageQuestionCount;
+    if (indTotal <= 0) return;
+    const val = Math.max(0, Math.min(indTotal, newVal));
+    const indMulti = indTotal - val;
+    setIndependentSingleCount(val);
+    setIndependentMultiCount(indMulti);
+    setSingleChoiceCount(passageSingleCount + val);
+    setMultiChoiceCount(passageMultiCount + indMulti);
+  };
+
+  const handleIndependentMultiChange = (newVal) => {
+    const indTotal = totalQuestions - passageQuestionCount;
+    if (indTotal <= 0) return;
+    const val = Math.max(0, Math.min(indTotal, newVal));
+    const indSingle = indTotal - val;
+    setIndependentMultiCount(val);
+    setIndependentSingleCount(indSingle);
+    setSingleChoiceCount(passageSingleCount + indSingle);
+    setMultiChoiceCount(passageMultiCount + val);
+  };
+
+  const handleSingleCountChange = (newVal) => {
+    const val = Math.max(0, Math.min(totalQuestions, newVal));
+    setSingleChoiceCount(val);
+    setMultiChoiceCount(totalQuestions - val);
+  };
+
+  const handleMultiCountChange = (newVal) => {
+    const val = Math.max(0, Math.min(totalQuestions, newVal));
+    setMultiChoiceCount(val);
+    setSingleChoiceCount(totalQuestions - val);
+  };
+
+  const handlePassageCountChange = (newVal) => {
+    const val = Math.max(0, Math.min(totalQuestions, newVal));
+    setPassageCount(val);
   };
 
   const handleNext = () => {
@@ -164,9 +381,9 @@ export default function GuidedWizard({
             <span className="wizard-step-pill">Step {step} of {totalSteps}</span>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               {step === 1 && 'Exam Section Selection'}
-              {step === 2 && 'Subtopic & Content Focus'}
-              {step === 3 && 'Difficulty & Question Target'}
-              {step === 4 && 'Passage, Stimuli & Cognitive Traps'}
+              {step === 2 && 'Subtopic & Content Domain'}
+              {step === 3 && 'Difficulty & Question Style Mix'}
+              {step === 4 && 'Passage, Diagrams & Cognitive Traps'}
               {step === 5 && 'Review & Confirmation'}
             </span>
           </div>
@@ -199,7 +416,12 @@ export default function GuidedWizard({
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div className="wizard-heading-group">
-              <h2 className="wizard-step-title">Which UCAT section would you like to generate for?</h2>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <h2 className="wizard-step-title">Which UCAT section would you like to generate for?</h2>
+                <span className="badge-minimal">
+                  {pacing.target || '~28s / Q'} Target Pacing
+                </span>
+              </div>
               <p className="wizard-step-subtitle">
                 Select from the five official UCAT examination sections. Each section activates a specialized
                 psychometric rubric and prompt persona.
@@ -209,7 +431,7 @@ export default function GuidedWizard({
             <div className="wizard-sections-grid">
               {Object.values(SECTION_METADATA).map((sec) => {
                 const Icon = sec.icon;
-                const isSelected = currentSection === sec.id;
+                const isSelected = selectedSection === sec.id;
                 return (
                   <div
                     key={sec.id}
@@ -259,7 +481,7 @@ export default function GuidedWizard({
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                 {availableSubtopics.map((st) => {
-                  const isSelected = formData.selectedSubtopic === st;
+                  const isSelected = selectedSubtopic === st;
                   return (
                     <button
                       key={st}
@@ -271,7 +493,7 @@ export default function GuidedWizard({
                         borderColor: isSelected ? 'transparent' : 'var(--border-light)',
                         fontWeight: isSelected ? 600 : 500
                       }}
-                      onClick={() => updateFields({ selectedSubtopic: st })}
+                      onClick={() => setSelectedSubtopic(st)}
                     >
                       {isSelected && <CheckCircle2 size={14} />}
                       <span>{st}</span>
@@ -288,7 +510,7 @@ export default function GuidedWizard({
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {CONTENT_DOMAINS.map((domain) => {
-                  const isSelected = formData.contentDomain === domain;
+                  const isSelected = form.contentDomain === domain;
                   return (
                     <button
                       key={domain}
@@ -303,7 +525,7 @@ export default function GuidedWizard({
                         color: isSelected ? 'var(--brand-primary)' : 'var(--text-secondary)',
                         fontWeight: isSelected ? 600 : 500
                       }}
-                      onClick={() => updateFields({ contentDomain: isSelected ? '' : domain })}
+                      onClick={() => update('contentDomain', isSelected ? '' : domain)}
                     >
                       <span>{domain}</span>
                     </button>
@@ -315,14 +537,14 @@ export default function GuidedWizard({
         )}
 
         {/* =================================================================
-            STEP 3: DIFFICULTY & QUESTION TARGET
+            STEP 3: DIFFICULTY, QUESTION VOLUME & STYLE MIX (FULL PARITY)
            ================================================================= */}
         {step === 3 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
             <div className="wizard-heading-group">
-              <h2 className="wizard-step-title">Choose difficulty and batch size</h2>
+              <h2 className="wizard-step-title">Choose difficulty and question style mix</h2>
               <p className="wizard-step-subtitle">
-                Calibrate the cognitive load and determine how many items to generate.
+                Calibrate the cognitive load, batch size, and single vs multi-choice question distribution.
               </p>
             </div>
 
@@ -337,12 +559,12 @@ export default function GuidedWizard({
                   { id: 'medium', title: 'Standard Exam', desc: 'Authentic official UCAT timing & psychometric calibration.' },
                   { id: 'hard', title: 'Top Percentile', desc: 'Subtle distractor traps, high cognitive load, top decile target.' }
                 ].map((tier) => {
-                  const isSelected = (formData.difficulty || 'medium').toLowerCase() === tier.id;
+                  const isSelected = difficulty.toLowerCase() === tier.id;
                   return (
                     <div
                       key={tier.id}
                       className={`wizard-tier-card ${isSelected ? 'selected' : ''}`}
-                      onClick={() => updateFields({ difficulty: tier.id })}
+                      onClick={() => setDifficulty(tier.id)}
                       role="button"
                       tabIndex={0}
                     >
@@ -354,28 +576,49 @@ export default function GuidedWizard({
               </div>
             </div>
 
-            {/* Question Count Stepper */}
-            <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '10px', display: 'block' }}>
-                Total Questions to Generate:
-              </label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Total Questions Stepper & Quick Pills */}
+            <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-light)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    Total Questions to Generate
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                    Generate a single item or an official multi-question test set (1 to 5 questions).
+                  </div>
+                </div>
+                <div style={{ width: '130px' }}>
+                  <NumberStepper
+                    value={totalQuestions}
+                    min={1}
+                    max={5}
+                    onChange={handleTotalChange}
+                    idPrefix="btn-wizard-qty"
+                    label={(val) => `${val} Qs`}
+                    titleMinus="Decrease questions"
+                    titlePlus="Increase questions"
+                  />
+                </div>
+              </div>
+
+              {/* Quick Preset Buttons */}
+              <div style={{ display: 'flex', gap: '8px' }}>
                 {[1, 2, 3, 5].map((cnt) => {
-                  const isSelected = (formData.totalQuestions || 1) === cnt;
+                  const isSelected = totalQuestions === cnt;
                   return (
                     <button
                       key={cnt}
                       type="button"
                       className="hero-preset-chip"
                       style={{
-                        padding: '10px 20px',
-                        fontSize: '0.95rem',
-                        background: isSelected ? 'var(--infynno-gradient)' : 'var(--bg-surface-elevated)',
+                        padding: '6px 14px',
+                        fontSize: '0.825rem',
+                        background: isSelected ? 'var(--infynno-gradient)' : 'var(--bg-surface-subtle)',
                         color: isSelected ? '#ffffff' : 'var(--text-primary)',
                         borderColor: isSelected ? 'transparent' : 'var(--border-light)',
                         fontWeight: isSelected ? 700 : 500
                       }}
-                      onClick={() => updateFields({ totalQuestions: cnt, singleChoiceCount: cnt, multiChoiceCount: 0 })}
+                      onClick={() => handleTotalChange(cnt)}
                     >
                       <span>{cnt} {cnt === 1 ? 'Question' : 'Questions'}</span>
                     </button>
@@ -384,98 +627,369 @@ export default function GuidedWizard({
               </div>
             </div>
 
-            {/* Interaction Type Mix */}
-            <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '10px', display: 'block' }}>
-                Question Interaction Style:
-              </label>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  type="button"
-                  className="hero-preset-chip"
-                  style={{
-                    background: formData.interactionType !== 'multi_choice' ? 'rgba(79, 48, 185, 0.12)' : 'var(--bg-surface-elevated)',
-                    borderColor: formData.interactionType !== 'multi_choice' ? 'var(--brand-primary)' : 'var(--border-light)',
-                    color: formData.interactionType !== 'multi_choice' ? 'var(--brand-primary)' : 'var(--text-secondary)',
-                    fontWeight: 600
-                  }}
-                  onClick={() => updateFields({ interactionType: 'single_choice', multiChoiceCount: 0, singleChoiceCount: formData.totalQuestions || 1 })}
-                >
-                  <span>Single Best Answer (A-D)</span>
-                </button>
-                <button
-                  type="button"
-                  className="hero-preset-chip"
-                  style={{
-                    background: formData.interactionType === 'multi_choice' ? 'rgba(79, 48, 185, 0.12)' : 'var(--bg-surface-elevated)',
-                    borderColor: formData.interactionType === 'multi_choice' ? 'var(--brand-primary)' : 'var(--border-light)',
-                    color: formData.interactionType === 'multi_choice' ? 'var(--brand-primary)' : 'var(--text-secondary)',
-                    fontWeight: 600
-                  }}
-                  onClick={() => updateFields({ interactionType: 'multi_choice', multiChoiceCount: formData.totalQuestions || 1, singleChoiceCount: 0 })}
-                >
-                  <span>Multi-Choice (True/False Evaluation)</span>
-                </button>
+            {/* If 1 Question: Answer Style Single vs Multiple Answers */}
+            {totalQuestions === 1 && (
+              <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-light)' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', display: 'block' }}>
+                  Question Answer Style:
+                </label>
+                <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                  {[
+                    { id: 'single_choice', label: 'Single Best Answer (A-D)' },
+                    { id: 'multi_choice', label: 'Multiple Answers (True/False Evaluation)' }
+                  ].map(opt => {
+                    const isSel = interactionType === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        id={`btn-wizard-mode-${opt.id}`}
+                        onClick={() => {
+                          setInteractionType(opt.id);
+                          setSingleChoiceCount(opt.id === 'multi_choice' ? 0 : 1);
+                          setMultiChoiceCount(opt.id === 'multi_choice' ? 1 : 0);
+                        }}
+                        className={`pill-track-btn ${isSel ? 'active' : ''}`}
+                        style={{ width: '100%', padding: '8px' }}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* If > 1 Question: Full Batch Allocation & Question Style Mix */}
+            {totalQuestions > 1 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '18px', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-light)' }}>
+                {/* Reading Material Mode: Single Passage Set vs Independent Questions */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      Reading Material Structure
+                    </span>
+                    <span className="badge badge-purple" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
+                      {passageMode === 'single_passage' ? '1 Passage • N Questions' : 'Separate Vignettes'}
+                    </span>
+                  </div>
+
+                  <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                    {[
+                      { id: 'single_passage', label: 'Single Passage Set (Shared Material)' },
+                      { id: 'independent', label: 'Independent Questions (Standalone)' }
+                    ].map(opt => {
+                      const isSel = passageMode === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          id={`btn-wizard-passage-mode-${opt.id}`}
+                          onClick={() => handlePassageModeChange(opt.id)}
+                          className={`pill-track-btn ${isSel ? 'active' : ''}`}
+                          style={{ width: '100%', padding: '8px' }}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {passageMode === 'single_passage' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                          Questions linked to Shared Passage:
+                        </span>
+                        <div style={{ width: '140px' }}>
+                          <NumberStepper
+                            value={passageQuestionCount}
+                            min={1}
+                            max={totalQuestions}
+                            onChange={handlePassageQuestionCountChange}
+                            idPrefix="btn-wizard-passage-qty"
+                            activeColor="var(--status-purple)"
+                            label={(val) => `${val} of ${totalQuestions}`}
+                            titleMinus="Decrease passage question count"
+                            titlePlus="Increase passage question count"
+                          />
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          padding: '8px 12px',
+                          borderRadius: 'var(--radius-xs)',
+                          background: 'var(--brand-light)',
+                          border: '1px solid var(--border-brand)',
+                          fontSize: '0.75rem',
+                          color: 'var(--text-secondary)',
+                          lineHeight: 1.4
+                        }}
+                      >
+                        {passageQuestionCount === totalQuestions ? (
+                          <>
+                            <strong style={{ color: 'var(--brand-primary)' }}>Full Passage Set:</strong> All {totalQuestions} questions will reference 1 shared comprehensive passage (250–400 words).
+                          </>
+                        ) : (
+                          <>
+                            <strong style={{ color: 'var(--status-purple)' }}>Mixed Set:</strong> {passageQuestionCount} questions linked to 1 shared passage; remaining {totalQuestions - passageQuestionCount} questions are direct standalone items without passage.
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Precision Answer Style Breakdown */}
+                <div style={{ borderTop: '1px dashed var(--border-light)', paddingTop: '12px' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', display: 'block' }}>
+                    Answer Style Mix:
+                  </label>
+                  <QuestionStyleMixSection
+                    totalQuestions={totalQuestions}
+                    passageMode={passageMode}
+                    passageQuestionCount={passageQuestionCount}
+                    passageSingleCount={passageSingleCount}
+                    passageMultiCount={passageMultiCount}
+                    independentSingleCount={independentSingleCount}
+                    independentMultiCount={independentMultiCount}
+                    singleChoiceCount={singleChoiceCount}
+                    multiChoiceCount={multiChoiceCount}
+                    passageCount={passageCount}
+                    handlePassageSingleChange={handlePassageSingleChange}
+                    handlePassageMultiChange={handlePassageMultiChange}
+                    handleIndependentSingleChange={handleIndependentSingleChange}
+                    handleIndependentMultiChange={handleIndependentMultiChange}
+                    handleSingleCountChange={handleSingleCountChange}
+                    handleMultiCountChange={handleMultiCountChange}
+                    handlePassageCountChange={handlePassageCountChange}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {/* =================================================================
-            STEP 4: PASSAGE, VISUAL STIMULUS & TRAPS
+            STEP 4: PASSAGE, DIAGRAMS & COGNITIVE TRAPS (FULL PARITY)
            ================================================================= */}
         {step === 4 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
             <div className="wizard-heading-group">
-              <h2 className="wizard-step-title">Configure stimuli and cognitive traps</h2>
+              <h2 className="wizard-step-title">Configure stimuli, diagrams and cognitive traps</h2>
               <p className="wizard-step-subtitle">
-                Customize reading passages, visual image diagrams, and specific distractor trap types.
+                Fine-tune passage attachments, question-level vector diagrams, and cognitive distractor strategies.
               </p>
             </div>
 
-            {/* Reading Passage Toggle */}
-            <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-light)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    Reading Passage Stimulus
+            {/* 1 Question Passage & Diagram Toggles */}
+            {totalQuestions === 1 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-light)' }}>
+                {/* Reading Material */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      Reading Material
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                      Require a multi-paragraph clinical or academic reading passage.
+                    </div>
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                    Require a multi-paragraph clinical, academic, or scientific passage for the question stem.
+                  <div className="pill-track" style={{ width: '220px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                    {[
+                      { id: 'No', label: 'Direct Item' },
+                      { id: 'Yes', label: 'Passage' }
+                    ].map(opt => {
+                      const isSel = passageRequired === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          id={`btn-wizard-p-${opt.id.toLowerCase()}`}
+                          onClick={() => {
+                            setPassageRequired(opt.id);
+                            setPassageCount(opt.id === 'Yes' ? 1 : 0);
+                            setPassageMode(opt.id === 'Yes' ? 'single_passage' : 'independent');
+                          }}
+                          className={`pill-track-btn ${isSel ? 'active' : ''}`}
+                          style={{ width: '100%', padding: '6px' }}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  className="hero-preset-chip"
-                  style={{
-                    background: formData.passageRequired === 'Yes' ? 'var(--infynno-gradient)' : 'var(--bg-surface-subtle)',
-                    color: formData.passageRequired === 'Yes' ? '#ffffff' : 'var(--text-secondary)',
-                    fontWeight: 600
-                  }}
-                  onClick={() => updateFields({
-                    passageRequired: formData.passageRequired === 'Yes' ? 'No' : 'Yes',
-                    passageCount: formData.passageRequired === 'Yes' ? 0 : 1
-                  })}
-                >
-                  {formData.passageRequired === 'Yes' ? 'Active (Yes)' : 'Disabled (No)'}
-                </button>
-              </div>
-            </div>
 
-            {/* Visual Stimulus Toggle */}
+                {/* If Passage Active: Passage Diagram Toggle */}
+                {passageRequired === 'Yes' && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px dashed var(--border-light)', paddingTop: '10px' }}>
+                    <div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        Passage Diagram Stimulus
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                        Attach a diagram illustration to the reading passage ($0.0020).
+                      </div>
+                    </div>
+                    <div className="pill-track" style={{ width: '220px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                      <button
+                        type="button"
+                        id="btn-wizard-single-p-diag-no"
+                        onClick={() => setRequirePassageImage && setRequirePassageImage(false)}
+                        className={`pill-track-btn ${!requirePassageImage ? 'active' : ''}`}
+                        style={{ width: '100%', padding: '6px' }}
+                      >
+                        No Diagram
+                      </button>
+                      <button
+                        type="button"
+                        id="btn-wizard-single-p-diag-yes"
+                        onClick={() => setRequirePassageImage && setRequirePassageImage(true)}
+                        className={`pill-track-btn ${requirePassageImage ? 'active' : ''}`}
+                        style={{ width: '100%', padding: '6px' }}
+                      >
+                        <ImageIcon size={12} />
+                        <span>With Diagram</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* If Direct Question & Not Abstract Reasoning: Question Diagram Toggle */}
+                {!isAbstractReasoning && passageRequired === 'No' && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px dashed var(--border-light)', paddingTop: '10px' }}>
+                    <div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        Question Diagram
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                        Attach a visual pattern or diagram to the question stem ($0.0020).
+                      </div>
+                    </div>
+                    <div className="pill-track" style={{ width: '220px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                      {[
+                        { id: 'no', label: 'Text Only' },
+                        { id: 'yes', label: 'With Diagram' }
+                      ].map(opt => {
+                        const hasImage = (imageQuestionIndices || []).includes(1) || imageMode === 'all';
+                        const isSel = opt.id === 'yes' ? hasImage : !hasImage;
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            id={`btn-wizard-single-diag-${opt.id}`}
+                            onClick={() => {
+                              if (opt.id === 'yes') {
+                                if (setImageCount) setImageCount(1, [1]);
+                              } else {
+                                if (setImageCount) setImageCount(0, [1]);
+                              }
+                            }}
+                            className={`pill-track-btn ${isSel ? 'active' : ''}`}
+                            style={{ width: '100%', padding: '6px' }}
+                          >
+                            {opt.id === 'yes' && <ImageIcon size={12} />}
+                            <span>{opt.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* If > 1 Question: Passage Diagram & Independent Diagram Controls */}
+            {totalQuestions > 1 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-light)' }}>
+                {passageMode === 'single_passage' && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        Passage Diagram
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                        Generate a dedicated diagram for the shared reading passage ($0.0020).
+                      </div>
+                    </div>
+                    <div className="pill-track" style={{ width: '220px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                      <button
+                        type="button"
+                        id="btn-wizard-p-diag-no"
+                        onClick={() => setRequirePassageImage && setRequirePassageImage(false)}
+                        className={`pill-track-btn ${!requirePassageImage ? 'active' : ''}`}
+                        style={{ width: '100%', padding: '6px' }}
+                      >
+                        No Diagram
+                      </button>
+                      <button
+                        type="button"
+                        id="btn-wizard-p-diag-yes"
+                        onClick={() => setRequirePassageImage && setRequirePassageImage(true)}
+                        className={`pill-track-btn ${requirePassageImage ? 'active' : ''}`}
+                        style={{ width: '100%', padding: '6px' }}
+                      >
+                        <ImageIcon size={12} />
+                        <span>With Diagram</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Independent Questions with Diagrams Controls */}
+                <IndependentDiagramControls
+                  isAbstractReasoning={isAbstractReasoning}
+                  numIndependentQs={numIndependentQs}
+                  passageMode={passageMode}
+                  activeQuestionImagesCount={activeQuestionImagesCount}
+                  indSingleTotal={indSingleTotal}
+                  indMultiTotal={indMultiTotal}
+                  indSingleIndices={indSingleIndices}
+                  indMultiIndices={indMultiIndices}
+                  activeSingleImageCount={activeSingleImageCount}
+                  activeMultiImageCount={activeMultiImageCount}
+                  setSingleImageCount={setSingleImageCount}
+                  setMultiImageCount={setMultiImageCount}
+                />
+              </div>
+            )}
+
+            {/* Abstract Reasoning Always Has Visuals Notice */}
+            {isAbstractReasoning && (
+              <div
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'var(--brand-light)',
+                  border: '1px solid var(--border-medium)',
+                  fontSize: '0.8rem',
+                  color: 'var(--brand-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <Shapes size={16} />
+                <span>Abstract Reasoning questions strictly generate spatial geometric pattern diagrams for all {totalQuestions} items.</span>
+              </div>
+            )}
+
+            {/* Visual Engine Selector (SVG vs FLUX) */}
             <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-light)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    Visual Image / Diagram Stimulus
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    Visual Rendering Engine
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                    Generate geometric shapes or photorealistic illustrations (Always active for Abstract Reasoning).
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                    Choose between crisp vector diagrams (SVG) or photorealistic illustrations (FLUX AI).
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  {['None', 'SVG_Diagram', 'AI_FLUX_Image'].map((vType) => {
-                    const isSelected = (formData.visual_type || (formData.requireImage ? 'SVG_Diagram' : 'None')) === vType;
+                  {['SVG_Diagram', 'AI_FLUX_Image'].map((vType) => {
+                    const isSelected = (form.visual_type || 'SVG_Diagram') === vType;
                     return (
                       <button
                         key={vType}
@@ -489,12 +1003,9 @@ export default function GuidedWizard({
                           borderColor: isSelected ? 'transparent' : 'var(--border-light)',
                           fontWeight: isSelected ? 600 : 500
                         }}
-                        onClick={() => updateFields({
-                          visual_type: vType,
-                          requireImage: vType !== 'None'
-                        })}
+                        onClick={() => update('visual_type', vType)}
                       >
-                        {vType === 'None' ? 'None' : vType === 'SVG_Diagram' ? 'SVG Diagram' : 'AI FLUX Image'}
+                        {vType === 'SVG_Diagram' ? 'SVG Vector Diagram' : 'AI FLUX Photo'}
                       </button>
                     );
                   })}
@@ -507,15 +1018,15 @@ export default function GuidedWizard({
               <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', display: 'block' }}>
                 Primary Distractor Cognitive Trap:
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '10px' }}>
                 {COGNITIVE_TRAPS.map((trap) => {
-                  const isSelected = (formData.primaryTrap || 'Automatic') === trap.id;
+                  const isSelected = primaryTrap === trap.id;
                   return (
                     <div
                       key={trap.id}
                       className={`wizard-tier-card ${isSelected ? 'selected' : ''}`}
                       style={{ padding: '12px 14px' }}
-                      onClick={() => updateFields({ primaryTrap: trap.id })}
+                      onClick={() => setPrimaryTrap(trap.id)}
                       role="button"
                       tabIndex={0}
                     >
@@ -534,14 +1045,14 @@ export default function GuidedWizard({
             {/* Custom Guidelines Prompt */}
             <div>
               <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', display: 'block' }}>
-                Custom Prompt Instructions (Optional):
+                Custom Prompt Directives (Optional):
               </label>
               <textarea
                 className="input-textarea"
                 rows={2}
-                placeholder="e.g. Focus on pharmacology ethics involving adolescent patient consent..."
-                value={formData.customPrompt || ''}
-                onChange={(e) => updateFields({ customPrompt: e.target.value })}
+                placeholder="e.g. Focus on cardiology pharmacology ethics, ensure distractor D utilizes a subtle numerical trap..."
+                value={customPrompt}
+                onChange={(e) => setCustomPrompt(e.target.value)}
                 style={{ width: '100%', resize: 'vertical' }}
               />
             </div>
@@ -549,33 +1060,35 @@ export default function GuidedWizard({
         )}
 
         {/* =================================================================
-            STEP 5: REVIEW & CONFIRMATION SUMMARY CARD
+            STEP 5: REVIEW & CONFIRMATION SUMMARY CARD (DETAILED AUDIT)
            ================================================================= */}
         {step === 5 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div className="wizard-heading-group">
-              <h2 className="wizard-step-title">Review your configuration before generation</h2>
+              <h2 className="wizard-step-title">Review your examination parameters before generation</h2>
               <p className="wizard-step-subtitle">
-                Verify parameters. You can edit any item instantly before launching the multi-agent pipeline.
+                Complete psychometric specification audit. Click 'Edit' on any section to modify.
               </p>
             </div>
 
             <div className="wizard-summary-card">
-              {/* Row 1: Section & Subtopic */}
+              {/* Row 1: Section & Topic */}
               <div className="wizard-summary-row">
                 <div>
-                  <div className="wizard-summary-label">Target Section & Subtopic</div>
+                  <div className="wizard-summary-label">Target Subtest & Topic Focus</div>
                   <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
                     <span style={{ color: sectionMeta.color, fontWeight: 700 }}>{sectionMeta.label}</span>
                     <span style={{ color: 'var(--text-muted)' }}>•</span>
-                    <span>{formData.selectedSubtopic || 'Standard Examination'}</span>
+                    <span>{selectedSubtopic || 'General Practice'}</span>
+                    <span style={{ color: 'var(--text-muted)' }}>•</span>
+                    <span className="badge-minimal">{pacing.target || '~28s / Q'} Target Pacing</span>
                   </div>
                 </div>
                 <button
                   type="button"
                   className="wizard-summary-edit-btn"
                   onClick={() => setStep(1)}
-                  title="Edit Section & Subtopic"
+                  title="Edit Section & Topic"
                 >
                   <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
                   Edit
@@ -585,13 +1098,13 @@ export default function GuidedWizard({
               {/* Row 2: Difficulty & Quantity */}
               <div className="wizard-summary-row">
                 <div>
-                  <div className="wizard-summary-label">Difficulty & Target Volume</div>
+                  <div className="wizard-summary-label">Difficulty & Question Mix</div>
                   <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
-                    <span style={{ textTransform: 'capitalize' }}>{formData.difficulty || 'Medium'}</span>
+                    <span style={{ textTransform: 'capitalize' }}>{difficulty} Difficulty</span>
                     <span style={{ color: 'var(--text-muted)' }}>•</span>
-                    <span>{formData.totalQuestions || 1} Question(s)</span>
+                    <span>{totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'} total</span>
                     <span style={{ color: 'var(--text-muted)' }}>•</span>
-                    <span>{formData.interactionType === 'multi_choice' ? 'Multi-Choice' : 'Single Best Answer'}</span>
+                    <span>({singleChoiceCount} Single Choice, {multiChoiceCount} Multi Choice)</span>
                   </div>
                 </div>
                 <button
@@ -605,48 +1118,83 @@ export default function GuidedWizard({
                 </button>
               </div>
 
-              {/* Row 3: Stimuli & Traps */}
+              {/* Row 3: Reading Material Structure */}
               <div className="wizard-summary-row">
                 <div>
-                  <div className="wizard-summary-label">Stimuli & Cognitive Traps</div>
+                  <div className="wizard-summary-label">Reading Material Structure</div>
                   <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
-                    <span>Passage: {formData.passageRequired === 'Yes' ? 'Active' : 'Disabled'}</span>
-                    <span style={{ color: 'var(--text-muted)' }}>•</span>
-                    <span>Visuals: {formData.visual_type || (formData.requireImage ? 'Active' : 'None')}</span>
-                    <span style={{ color: 'var(--text-muted)' }}>•</span>
-                    <span>Trap: {formData.primaryTrap || 'Automatic'}</span>
+                    {totalQuestions > 1 ? (
+                      passageMode === 'single_passage' ? (
+                        <span>
+                          Single Passage Set ({passageQuestionCount} questions on 1 shared passage{totalQuestions > passageQuestionCount ? `, ${totalQuestions - passageQuestionCount} standalone items` : ''})
+                        </span>
+                      ) : (
+                        <span>Independent Vignettes ({totalQuestions} standalone questions)</span>
+                      )
+                    ) : (
+                      <span>{passageRequired === 'Yes' ? 'Reading Passage Attached (250–400 words)' : 'Direct Standalone Question (No Passage)'}</span>
+                    )}
                   </div>
                 </div>
                 <button
                   type="button"
                   className="wizard-summary-edit-btn"
-                  onClick={() => setStep(4)}
-                  title="Edit Stimuli & Traps"
+                  onClick={() => setStep(totalQuestions > 1 ? 3 : 4)}
+                  title="Edit Reading Material Structure"
                 >
                   <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
                   Edit
                 </button>
               </div>
 
-              {/* Row 4: Custom Directives */}
-              {formData.customPrompt && (
-                <div className="wizard-summary-row">
-                  <div>
-                    <div className="wizard-summary-label">Custom Directives</div>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '4px', fontStyle: 'italic' }}>
-                      "{formData.customPrompt}"
-                    </div>
+              {/* Row 4: Visual Stimuli & Diagram Budget */}
+              <div className="wizard-summary-row">
+                <div>
+                  <div className="wizard-summary-label">Visual Stimuli & Diagrams</div>
+                  <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
+                    <span>
+                      {totalImagesCount > 0
+                        ? `${totalImagesCount} ${totalImagesCount === 1 ? 'Diagram' : 'Diagrams'} ($${(totalImagesCount * 0.0020).toFixed(4)}) • ${form.visual_type || 'SVG Vector'}`
+                        : 'No Visual Stimuli (Text Only)'}
+                    </span>
+                    {hasPassageImage && <span className="badge-minimal">Passage Diagram</span>}
+                    {activeQuestionImagesCount > 0 && <span className="badge-minimal">{activeQuestionImagesCount} Q-Diagrams</span>}
                   </div>
-                  <button
-                    type="button"
-                    className="wizard-summary-edit-btn"
-                    onClick={() => setStep(4)}
-                  >
-                    <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
-                    Edit
-                  </button>
                 </div>
-              )}
+                <button
+                  type="button"
+                  className="wizard-summary-edit-btn"
+                  onClick={() => setStep(4)}
+                  title="Edit Visual Stimuli"
+                >
+                  <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
+                  Edit
+                </button>
+              </div>
+
+              {/* Row 5: Cognitive Traps & Directives */}
+              <div className="wizard-summary-row">
+                <div>
+                  <div className="wizard-summary-label">Cognitive Distractor Trap</div>
+                  <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
+                    <span>{COGNITIVE_TRAPS.find(t => t.id === primaryTrap)?.label || primaryTrap}</span>
+                    {customPrompt && (
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                        • "{customPrompt.length > 40 ? `${customPrompt.slice(0, 40)}...` : customPrompt}"
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="wizard-summary-edit-btn"
+                  onClick={() => setStep(4)}
+                  title="Edit Traps & Directives"
+                >
+                  <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
+                  Edit
+                </button>
+              </div>
             </div>
 
             {/* Launch Banner */}
