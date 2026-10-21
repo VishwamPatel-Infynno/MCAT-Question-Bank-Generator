@@ -18,7 +18,8 @@ import {
   HelpCircle,
   FileDown,
   ArrowUpDown,
-  Image as ImageIcon
+  Image as ImageIcon,
+  RotateCcw
 } from 'lucide-react';
 import { getExportUrl, batchDeleteQuestions } from '../../services/api';
 import { useQuestionBank } from '../../hooks/useQuestionBank';
@@ -49,7 +50,7 @@ const DIFFICULTY_FILTER_OPTIONS = [
   { id: 'hard', label: 'Hard' }
 ];
 
-export default function QuestionBank({ onSelectQuestion, onShowToast }) {
+export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigateToWizard }) {
   const {
     questions,
     loading,
@@ -72,6 +73,14 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
   const [expandedId, setExpandedId] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+
+  const hasActiveFilters = Boolean(searchQuery.trim() || sectionFilter || diffFilter);
+
+  const handleClearAllFilters = () => {
+    setSearchQuery('');
+    setSectionFilter('');
+    setDiffFilter('');
+  };
 
   // Client-Side Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -463,16 +472,48 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-md)',
-            color: 'var(--text-secondary)'
+            color: 'var(--text-secondary)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px'
           }}
         >
-          <Database size={36} color="var(--text-muted)" style={{ marginBottom: '12px' }} />
-          <h3 style={{ fontSize: '0.96rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
+          <Database size={36} color="var(--text-muted)" style={{ marginBottom: '4px' }} />
+          <h3 style={{ fontSize: '0.96rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
             No Questions Found
           </h3>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
-            No questions match your current filters. Clear filters or generate new questions in the Question Wizard.
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, maxWidth: '440px' }}>
+            {hasActiveFilters
+              ? 'No questions match your current search or filters. Clear your filters to see more, or create brand-new questions in the wizard.'
+              : 'Your question library is currently empty. Launch the Guided Wizard to generate your first set of exam questions!'}
           </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                id="btn-bank-clear-filters"
+                onClick={handleClearAllFilters}
+                className="btn-secondary"
+                style={{ padding: '6px 12px', fontSize: '0.78rem', gap: '6px' }}
+              >
+                <RotateCcw size={13} />
+                <span>Clear Active Filters</span>
+              </button>
+            )}
+            {onNavigateToWizard && (
+              <button
+                type="button"
+                id="btn-bank-empty-create"
+                onClick={onNavigateToWizard}
+                className="btn-primary"
+                style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
+              >
+                <Sparkles size={13} />
+                <span>✨ Create Questions in Wizard</span>
+              </button>
+            )}
+          </div>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

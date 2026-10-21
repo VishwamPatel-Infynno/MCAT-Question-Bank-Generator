@@ -592,6 +592,10 @@ export default function App() {
             <QuestionBank
               onSelectQuestion={handleSelectFromBank}
               onShowToast={showToast}
+              onNavigateToWizard={() => {
+                setActiveTab('generator');
+                setViewMode('wizard');
+              }}
             />
           </Suspense>
         )}

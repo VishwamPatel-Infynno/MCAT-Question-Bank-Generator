@@ -1032,7 +1032,7 @@ export default function GuidedWizard({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>1024×1024 High-Res</span>
                   <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>Official Exam Calibration</span>
-                  <span className="badge-minimal" style={{ fontSize: '0.72rem', background: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0' }}>
+                  <span className="badge-minimal" style={{ fontSize: '0.72rem', background: 'var(--status-success-bg)', color: 'var(--status-success)', borderColor: 'var(--status-success-border)' }}>
                     Multi-Layer Verified
                   </span>
                 </div>
@@ -1101,26 +1101,51 @@ export default function GuidedWizard({
             </div>
 
             <div className="wizard-summary-card">
-              {/* Row 1: Section & Topic */}
+              {/* Row 1: Section */}
               <div className="wizard-summary-row">
                 <div>
-                  <div className="wizard-summary-label">Target Section & Topic Focus</div>
+                  <div className="wizard-summary-label">Target Section</div>
                   <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
                     <span style={{ color: sectionMeta.color, fontWeight: 700 }}>{sectionMeta.label}</span>
-                    <span style={{ color: 'var(--text-muted)' }}>•</span>
-                    <span>{selectedSubtopic || 'General Practice'}</span>
                     <span style={{ color: 'var(--text-muted)' }}>•</span>
                     <span className="badge-minimal">⏱️ {pacing.target || '~28s / Q'} Target Speed</span>
                   </div>
                 </div>
                 <button
                   type="button"
+                  id="btn-wizard-summary-edit-section"
                   className="wizard-summary-edit-btn"
                   onClick={() => setStep(1)}
-                  title="Edit Section & Topic"
+                  title="Edit Exam Section"
                 >
                   <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
-                  Edit
+                  Edit Section
+                </button>
+              </div>
+
+              {/* Row 2: Topic Focus & Custom Scenario */}
+              <div className="wizard-summary-row">
+                <div>
+                  <div className="wizard-summary-label">Topic Focus & Custom Scenario</div>
+                  <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
+                    <span style={{ fontWeight: 600 }}>{selectedSubtopic || 'General Practice'}</span>
+                    {customPrompt && (
+                      <>
+                        <span style={{ color: 'var(--text-muted)' }}>•</span>
+                        <span style={{ fontStyle: 'italic', color: 'var(--text-secondary)' }}>"{customPrompt.slice(0, 48)}{customPrompt.length > 48 ? '...' : ''}"</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  id="btn-wizard-summary-edit-topic"
+                  className="wizard-summary-edit-btn"
+                  onClick={() => setStep(2)}
+                  title="Edit Topic & Custom Prompt"
+                >
+                  <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
+                  Edit Topic
                 </button>
               </div>
 
