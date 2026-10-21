@@ -16,55 +16,40 @@ export default function ReviewAuditView({ question, onClose }) {
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        top: 0, left: 0, right: 0, bottom: 0,
-        background: 'rgba(0, 0, 0, 0.65)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 100,
-        padding: '20px'
-      }}
+      className="modal-backdrop"
+      onClick={onClose}
     >
       <div
-        className="glass-panel-elevated"
+        className="modal-card"
         style={{
-          width: '100%',
-          maxWidth: '820px',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          padding: '28px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '24px'
+          maxWidth: '820px'
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="modal-header">
+          <div className="modal-title-group">
             <div
               style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '12px',
+                width: '38px',
+                height: '38px',
+                borderRadius: 'var(--radius-sm)',
                 background: 'var(--brand-light)',
                 border: '1px solid var(--border-brand)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--brand-primary)'
+                color: 'var(--brand-primary)',
+                flexShrink: 0
               }}
             >
-              <ShieldCheck size={22} />
+              <ShieldCheck size={20} />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              <h2 className="modal-title">
                 Question Quality &amp; Verification Audit
               </h2>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
                 Quality Score Review &bull; AI Compute Tracking &bull; Multi-Agent Verification
               </p>
             </div>
@@ -72,12 +57,16 @@ export default function ReviewAuditView({ question, onClose }) {
 
           <button
             onClick={onClose}
-            className="btn-secondary"
-            style={{ padding: '6px', borderRadius: '50%' }}
+            className="btn-ghost"
+            style={{ padding: '6px', borderRadius: 'var(--radius-sm)' }}
+            title="Close Audit"
           >
-            <X size={16} />
+            <X size={18} />
           </button>
         </div>
+
+        {/* Modal Body */}
+        <div className="modal-body">
 
         {/* Overall Score Banner */}
         <div
@@ -258,6 +247,14 @@ export default function ReviewAuditView({ question, onClose }) {
             </div>
           </div>
         )}
+        </div>
+
+        {/* Modal Footer */}
+        <div className="modal-footer">
+          <button onClick={onClose} className="btn-secondary">
+            Close Audit
+          </button>
+        </div>
       </div>
     </div>
   );

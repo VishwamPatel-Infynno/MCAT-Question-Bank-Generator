@@ -177,7 +177,7 @@ export default function StageJsonInspector({ question }) {
                       alignItems: 'center',
                       gap: '6px',
                       padding: '6px 12px',
-                      borderRadius: 'var(--radius-md)',
+                      borderRadius: 'var(--radius-sm)',
                       fontSize: '0.775rem',
                       fontWeight: 600,
                       cursor: 'pointer',
@@ -200,10 +200,10 @@ export default function StageJsonInspector({ question }) {
                 type="button"
                 onClick={handleCopy}
                 className="btn-secondary"
-                style={{ padding: '4px 10px', fontSize: '0.75rem', gap: '4px' }}
+                style={{ padding: '6px 12px', fontSize: '0.75rem', gap: '4px' }}
                 title="Copy current stage JSON to clipboard"
               >
-                {copied ? <Check size={13} color="#10b981" /> : <Copy size={13} />}
+                {copied ? <Check size={13} color="var(--status-success)" /> : <Copy size={13} />}
                 <span>{copied ? 'Copied!' : 'Copy Stage JSON'}</span>
               </button>
             )}

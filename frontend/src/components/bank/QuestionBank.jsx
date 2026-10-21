@@ -413,7 +413,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
               <button
                 onClick={handleSelectAll}
                 className="btn-secondary"
-                style={{ padding: '4px 8px', fontSize: '0.74rem', gap: '6px' }}
+                style={{ padding: '6px 10px', fontSize: '0.75rem', gap: '6px' }}
               >
                 {selectedIds.length === questions.length ? (
                   <CheckSquare size={13} color="var(--brand-primary)" />
@@ -435,7 +435,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
                 <button
                   onClick={handleBulkExportJson}
                   className="btn-secondary"
-                  style={{ padding: '4px 10px', fontSize: '0.74rem', gap: '6px' }}
+                  style={{ padding: '6px 12px', fontSize: '0.75rem', gap: '6px' }}
                 >
                   <FileDown size={13} />
                   <span>Export Selected ({selectedIds.length})</span>
@@ -445,7 +445,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
                   onClick={handleBulkDelete}
                   disabled={isDeletingBulk}
                   className="btn-danger"
-                  style={{ padding: '4px 10px', fontSize: '0.74rem', gap: '6px' }}
+                  style={{ padding: '6px 12px', fontSize: '0.75rem', gap: '6px' }}
                 >
                   <Trash2 size={13} />
                   <span>{isDeletingBulk ? 'Deleting...' : `Delete Selected (${selectedIds.length})`}</span>

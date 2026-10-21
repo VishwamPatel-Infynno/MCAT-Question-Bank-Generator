@@ -64,9 +64,9 @@
   --shadow-lg: 0 10px 24px -2px rgba(0, 0, 0, 0.35);
 
   --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 10px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
   --radius-full: 9999px;
 
   --transition-fast: 0.12s ease-out;
@@ -189,9 +189,9 @@ body {
   background: var(--infynno-gradient);
   color: #ffffff;
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 0.825rem;
   padding: 8px 16px;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-sm);
   border: 1px solid rgba(255, 255, 255, 0.16);
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(51, 90, 207, 0.25);
@@ -206,6 +206,25 @@ body {
 
 .btn-primary:active:not(:disabled) {
   transform: translateY(0);
+}
+
+/* Button Size Modifiers */
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  gap: 5px;
+}
+
+.btn-md {
+  padding: 8px 16px;
+  font-size: 0.825rem;
+  gap: 7px;
+}
+
+.btn-lg {
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  gap: 9px;
 }
 
 /* Infynno Solutions Brand Classes */
@@ -251,9 +270,9 @@ body {
   background: var(--bg-surface-elevated);
   color: var(--text-secondary);
   font-weight: 500;
-  font-size: 0.775rem;
-  padding: 6px 12px;
-  border-radius: var(--radius-xs);
+  font-size: 0.8rem;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border-light);
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -269,6 +288,29 @@ body {
   transform: translateY(0);
 }
 
+/* Ghost & Icon Button */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+  border-color: var(--border-light);
+}
+
 /* Success & Danger Actions */
 .btn-success {
   display: inline-flex;
@@ -278,9 +320,9 @@ body {
   background: var(--status-success);
   color: #ffffff;
   font-weight: 600;
-  font-size: 0.8rem;
-  padding: 7px 14px;
-  border-radius: var(--radius-xs);
+  font-size: 0.825rem;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
   border: 1px solid rgba(255, 255, 255, 0.12);
   cursor: pointer;
   box-shadow: var(--shadow-sm);
@@ -300,9 +342,9 @@ body {
   background: var(--status-danger-bg);
   color: var(--status-danger);
   font-weight: 500;
-  font-size: 0.775rem;
-  padding: 6px 12px;
-  border-radius: var(--radius-xs);
+  font-size: 0.8rem;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--status-danger-border);
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -317,10 +359,10 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: var(--radius-xs);
   font-size: 0.675rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.01em;
 }
 
@@ -466,6 +508,94 @@ input:focus, select:focus, textarea:focus {
   }
 }
 
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Standardized Modal Dialog System */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.modal-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 90vh;
+  animation: modalScaleIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--bg-surface-elevated);
+}
+
+.modal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-surface-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
 
 /* Minimalist Choice Cards (Question Preview) */
 .choice-option-card {
@@ -475,7 +605,7 @@ input:focus, select:focus, textarea:focus {
   padding: 12px 14px;
   background: var(--bg-surface-subtle);
   border: 1px solid var(--border-light);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
   text-align: left;
@@ -890,7 +1020,7 @@ input:focus, select:focus, textarea:focus {
   align-items: center;
   gap: 10px;
   padding: 14px 28px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--infynno-gradient);
   color: #ffffff;
   font-size: 1.05rem;
@@ -915,7 +1045,7 @@ input:focus, select:focus, textarea:focus {
   align-items: center;
   gap: 8px;
   padding: 14px 24px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-medium);
   color: var(--text-primary);
@@ -1298,7 +1428,7 @@ input:focus, select:focus, textarea:focus {
   font-weight: 600;
   cursor: pointer;
   padding: 4px 8px;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-sm);
   transition: background var(--transition-fast);
 }
 

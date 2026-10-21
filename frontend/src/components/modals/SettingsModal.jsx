@@ -47,67 +47,57 @@ export default function SettingsModal({ onClose }) {
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        top: 0, left: 0, right: 0, bottom: 0,
-        background: 'rgba(0, 0, 0, 0.65)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 100,
-        padding: '20px'
-      }}
+      className="modal-backdrop"
+      onClick={onClose}
     >
       <div
-        className="glass-panel-elevated"
+        className="modal-card"
         style={{
-          width: '100%',
-          maxWidth: '580px',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          padding: '28px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '20px'
+          maxWidth: '580px'
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="modal-header">
+          <div className="modal-title-group">
             <div
               style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '12px',
+                width: '38px',
+                height: '38px',
+                borderRadius: 'var(--radius-sm)',
                 background: 'var(--brand-light)',
                 border: '1px solid var(--border-brand)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--brand-primary)'
+                color: 'var(--brand-primary)',
+                flexShrink: 0
               }}
             >
-              <Settings size={22} />
+              <Settings size={20} />
             </div>
             <div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              <h3 className="modal-title">
                 Engine &amp; API Settings
               </h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
                 Configure AI models, API keys, and image generation settings.
               </p>
             </div>
           </div>
 
-          <button onClick={onClose} className="btn-secondary" style={{ padding: '6px', borderRadius: '50%' }}>
+          <button
+            onClick={onClose}
+            className="btn-ghost"
+            style={{ padding: '6px', borderRadius: 'var(--radius-sm)' }}
+            title="Close Settings"
+          >
             <X size={18} />
           </button>
         </div>
 
         {/* Form Body */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+        <div className="modal-body">
           {/* Text Model */}
           <div>
             <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
@@ -317,7 +307,7 @@ export default function SettingsModal({ onClose }) {
         </div>
 
         {/* Footer Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '10px', borderTop: '1px solid var(--border-light)' }}>
+        <div className="modal-footer" style={{ justifyContent: 'space-between' }}>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
             Infynno UCAT Question Bank Generator • An Infynno Solutions Product
           </div>
@@ -330,7 +320,7 @@ export default function SettingsModal({ onClose }) {
               id="settings-btn-save"
               onClick={handleSave}
               className="btn-primary"
-              style={{ background: savedSuccess ? '#10b981' : undefined }}
+              style={{ background: savedSuccess ? 'var(--status-success)' : undefined }}
             >
               {savedSuccess ? 'Saved Successfully!' : 'Save Configuration'}
             </button>

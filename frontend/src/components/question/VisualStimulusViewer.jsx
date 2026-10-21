@@ -319,18 +319,19 @@ export default function VisualStimulusViewer({
               alignItems: 'center',
               justifyContent: 'space-between',
               paddingBottom: '16px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+              borderBottom: '1px solid var(--border-light)',
+              background: 'transparent'
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#f8fafc' }}>
+              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Visual Stimulus Inspector
               </span>
               <span className="badge badge-purple" style={{ fontSize: '0.675rem' }}>
                 {visualType}
               </span>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                 Zoom: {Math.round(zoomLevel * 100)}%
               </span>
             </div>
@@ -341,7 +342,7 @@ export default function VisualStimulusViewer({
                 type="button"
                 onClick={handleZoomIn}
                 className="btn-secondary"
-                style={{ padding: '6px 10px', fontSize: '0.75rem', gap: '4px' }}
+                style={{ padding: '6px 12px', fontSize: '0.75rem', gap: '4px' }}
                 title="Zoom in (+25%)"
               >
                 <ZoomIn size={13} />
@@ -352,7 +353,7 @@ export default function VisualStimulusViewer({
                 type="button"
                 onClick={handleZoomOut}
                 className="btn-secondary"
-                style={{ padding: '6px 10px', fontSize: '0.75rem', gap: '4px' }}
+                style={{ padding: '6px 12px', fontSize: '0.75rem', gap: '4px' }}
                 title="Zoom out (-25%)"
               >
                 <ZoomOut size={13} />
@@ -363,7 +364,7 @@ export default function VisualStimulusViewer({
                 type="button"
                 onClick={handleResetZoom}
                 className="btn-secondary"
-                style={{ padding: '6px 10px', fontSize: '0.75rem', gap: '4px' }}
+                style={{ padding: '6px 12px', fontSize: '0.75rem', gap: '4px' }}
                 title="Reset zoom to 100%"
               >
                 <RotateCcw size={13} />
@@ -375,7 +376,7 @@ export default function VisualStimulusViewer({
                   type="button"
                   onClick={handleCopySvg}
                   className="btn-secondary"
-                  style={{ padding: '6px 10px', fontSize: '0.75rem', gap: '4px' }}
+                  style={{ padding: '6px 12px', fontSize: '0.75rem', gap: '4px' }}
                   title="Copy SVG markup"
                 >
                   {copiedSvg ? <Check size={13} color="var(--status-success)" /> : <FileCode size={13} />}
@@ -390,7 +391,7 @@ export default function VisualStimulusViewer({
                   setZoomLevel(1.0);
                 }}
                 className="btn-secondary"
-                style={{ padding: '6px 10px', fontSize: '0.75rem', gap: '4px', background: 'rgba(255, 255, 255, 0.1)' }}
+                style={{ padding: '6px 12px', fontSize: '0.75rem', gap: '4px' }}
                 title="Close lightbox (Esc)"
               >
                 <X size={14} />
@@ -457,14 +458,14 @@ export default function VisualStimulusViewer({
               <div
                 style={{
                   marginTop: '16px',
-                  color: '#e2e8f0',
+                  color: 'var(--text-primary)',
                   fontSize: '0.85rem',
                   fontWeight: 500,
                   textAlign: 'center',
-                  background: 'rgba(15, 23, 42, 0.65)',
+                  background: 'var(--bg-surface-elevated)',
                   padding: '6px 16px',
                   borderRadius: 'var(--radius-full)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)'
+                  border: '1px solid var(--border-light)'
                 }}
               >
                 Fig: {rawDescription}
