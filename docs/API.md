@@ -20,13 +20,19 @@ This document provides a comprehensive reference for all REST endpoints and Serv
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `POST` | `/api/generate` | Triggers multi-agent workflow and streams real-time SSE events (Candidate Staged) |
-| `POST` | `/api/questions` | **Admin Review Gate**: Persists an approved candidate question into PostgreSQL |
-| `POST` | `/api/questions/batch` | **Admin Review Gate**: Bulk-persists an array of approved candidates into PostgreSQL |
+| `POST` | `/api/questions` | **Admin Review Gate**: Persists an approved candidate question into the Question Bank |
+| `POST` | `/api/questions/batch` | **Admin Review Gate**: Bulk-persists an array of approved candidates into the Question Bank |
 | `GET` | `/api/questions` | Lists saved questions with filtering, search, and repository token metrics |
 | `GET` | `/api/questions/{id}` | Retrieves a single question by UUID4 primary key |
 | `DELETE` | `/api/questions/{id}` | Deletes a question by UUID4 primary key |
+| `GET` | `/api/passages` | Lists shared reading passages with question counts |
+| `GET` | `/api/passages/{id}` | Retrieves a single reading passage by UUID4 |
+| `GET` | `/api/passages/{id}/questions` | Retrieves all questions linked to a shared passage |
+| `GET` | `/api/batches` | Lists generation batches with question count aggregations |
+| `GET` | `/api/batches/{id}` | Retrieves a single generation batch by UUID4 |
+| `GET` | `/api/batches/{id}/questions` | Retrieves all questions generated in a batch |
 | `GET` | `/api/export` | Exports repository in JSON or CSV format |
-| `GET` | `/api/health` | Service health, PostgreSQL connectivity, active models, and pricing |
+| `GET` | `/api/health` | Service health, database connectivity, active models, and pricing |
 | `GET` | `/api/config` | Retrieves active model configuration and provider credentials |
 | `POST` | `/api/config` | Dynamically updates runtime model and provider settings |
 | `GET` | `/api/sections` | Returns official UK UCAT subtests and categorized syllabus topics |
@@ -358,17 +364,17 @@ Reports backend status, PostgreSQL database connection, database version, active
 ```json
 {
   "status": "healthy",
-  "database": "postgresql",
+  "database": "connected",
   "database_connected": true,
-  "database_version": "PostgreSQL 16.15 on aarch64-unknown-linux-musl...",
+  "database_status": "ready",
   "default_text_model": "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo",
-  "default_image_model": "black-forest-labs/FLUX-1-schnell",
+  "default_image_model": "deepinfra/black-forest-labs/FLUX-1-schnell",
   "has_deepinfra_key": true,
   "has_gemini_key": false,
   "has_openai_key": false,
   "max_regenerations": 3,
   "passing_threshold": 90,
-  "cost_per_million_input": 0.10,
+  "cost_per_million_input": 0.1,
   "cost_per_million_output": 0.32,
   "image_width": 1024,
   "image_height": 1024,
@@ -444,3 +450,48 @@ Returns the official 5 UK UCAT subtests with their syllabus topics.
   ]
 }
 ```
+
+---
+
+### 3.11 Passages Management Endpoints
+`GET /api/passages` | `GET /api/passages/{id}` | `GET /api/passages/{id}/questions`
+
+Enables listing shared reading passage stimuli and retrieving all questions grouped under a single shared passage.
+
+#### List Passages (`GET /api/passages`)
+```bash
+curl -X GET http://localhost:8000/api/passages
+```
+
+#### Get Single Passage (`GET /api/passages/{id}`)
+```bash
+curl -X GET http://localhost:8000/api/passages/550e8400-e29b-41d4-a716-446655440000
+```
+
+#### Get All Questions for a Passage (`GET /api/passages/{id}/questions`)
+```bash
+curl -X GET http://localhost:8000/api/passages/550e8400-e29b-41d4-a716-446655440000/questions
+```
+
+---
+
+### 3.12 Generation Batches Endpoints
+`GET /api/batches` | `GET /api/batches/{id}` | `GET /api/batches/{id}/questions`
+
+Enables tracking multi-question batch execution runs, monitoring staged candidate counts, and retrieving all items generated within a specific run.
+
+#### List Batches (`GET /api/batches`)
+```bash
+curl -X GET http://localhost:8000/api/batches
+```
+
+#### Get Single Batch (`GET /api/batches/{id}`)
+```bash
+curl -X GET http://localhost:8000/api/batches/6ba7b810-9dad-11d1-80b4-00c04fd430c8
+```
+
+#### Get All Questions in a Batch (`GET /api/batches/{id}/questions`)
+```bash
+curl -X GET http://localhost:8000/api/batches/6ba7b810-9dad-11d1-80b4-00c04fd430c8/questions
+```
+

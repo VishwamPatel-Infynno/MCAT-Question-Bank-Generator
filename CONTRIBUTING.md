@@ -10,7 +10,7 @@ Thank you for your interest in contributing to the **Infynno UCAT Question Bank 
 
 ### 1. Prerequisites
 - **Python 3.11+**
-- **Node.js 20+** & **npm**
+- **Node.js 20+** & **pnpm (v9+)**
 - **Docker & Docker Compose** (for PostgreSQL 16)
 - High-Throughput Inference Gateway credentials
 
@@ -34,9 +34,8 @@ PYTHONPATH=backend uvicorn app.main:app --port 8000 --reload
 
 ### 4. Frontend Setup
 ```bash
-cd frontend
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 ---
@@ -46,17 +45,17 @@ npm run dev
 Before submitting any code changes, ensure all verification suites pass with zero defects:
 
 ```bash
-# 1. Backend pytest suite (15 unit & integration tests)
-PYTHONPATH=backend pytest backend/tests/test_backend.py -v
+# 1. Backend pytest suite (31 unit & integration tests)
+PYTHONPATH=backend pytest backend/tests -v -k "not live_e2e"
 
 # 2. Backend Python linter
 ruff check backend
 
 # 3. Frontend Oxlint linter (0 errors, 0 warnings policy)
-cd frontend && npm run lint
+pnpm lint
 
 # 4. Frontend production build
-npm run build
+pnpm build
 ```
 
 ---
@@ -72,7 +71,7 @@ npm run build
    - Business/Agent Logic: `backend/app/agents/`
    - Data Access Layer: `backend/app/repositories/`
    - Database Entities: `backend/app/models/`
-   - Frontend: Feature-based component directories with centralized hooks and constants.
+   - Frontend: Feature-based component directories (`wizard/`, `pipeline/`, `question/`, `bank/`, `layout/`, `modals/`, `common/`) with centralized hooks and constants.
 
 ---
 

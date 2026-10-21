@@ -14,7 +14,7 @@ Before starting, ensure your system meets the following requirements:
 | :--- | :--- | :--- |
 | **Python** | `3.11+` | Backend runtime & FastAPI application |
 | **Node.js** | `18.0+` (LTS) | Frontend runtime & Vite build engine |
-| **npm** | `9.0+` | Node package manager |
+| **pnpm** | `9.0+` | Fast, disk space efficient package manager |
 | **Docker & Docker Compose** | `20.10+` / `v2+` | Containerized PostgreSQL 16 database |
 | **Git** | `2.30+` | Version control |
 
@@ -42,6 +42,10 @@ cp .env.example .env
 | `PASSING_SCORE_THRESHOLD` | `integer`| `90` | Minimum score required to pass psychometric gate |
 | `COST_PER_MILLION_INPUT_TOKENS` | `float` | `0.10` | Input token price ($0.10 / 1M tokens) |
 | `COST_PER_MILLION_OUTPUT_TOKENS`| `float` | `0.32` | Output token price ($0.32 / 1M tokens) |
+| `IMAGE_WIDTH` | `integer` | `1024` | Default width for FLUX-1-schnell diagrams |
+| `IMAGE_HEIGHT` | `integer` | `1024` | Default height for FLUX-1-schnell diagrams |
+| `IMAGE_ITERS` | `integer` | `4` | Inference step iterations for FLUX diagrams |
+| `IMAGE_COST_PER_STEP` | `float` | `0.0005` | Cost per step per megapixel in USD |
 
 ---
 
@@ -91,14 +95,11 @@ The backend will initialize the database tables automatically on startup (`init_
 In a new terminal window:
 
 ```bash
-# 1. Navigate to the frontend directory
-cd frontend
+# 1. Install dependencies using pnpm
+pnpm install
 
-# 2. Install dependencies
-npm install
-
-# 3. Start Vite development server
-npm run dev
+# 2. Start Vite development server
+pnpm dev
 ```
 
 Open **[http://localhost:5173](http://localhost:5173)** in your browser.
@@ -125,13 +126,13 @@ The repository maintains an uncompromising **Zero-Defect Quality Policy** enforc
 
 ### 5.1 Backend Verification Suite
 
-Run the complete 15-test unit & integration suite using `pytest`:
+Run the complete 31-test unit & integration suite using `pytest`:
 
 ```bash
 source .venv/bin/activate
 
-# 1. Run all 15 backend unit and contract tests (100% pass guarantee)
-PYTHONPATH=backend pytest backend/tests/test_backend.py -v
+# 1. Run all 31 backend unit and contract tests (100% pass guarantee)
+PYTHONPATH=backend pytest backend/tests -v -k "not live_e2e"
 
 # 2. Run Python linting and code quality checks
 ruff check backend
@@ -155,13 +156,11 @@ PYTHONPATH=backend pytest backend/tests/test_e2e_live.py -v
 ### 5.2 Frontend Quality & Production Verification
 
 ```bash
-cd frontend
-
 # 1. High-speed Oxlint check (Zero warnings, zero errors required)
-npm run lint
+pnpm lint
 
 # 2. Compile optimized production bundle with Vite
-npm run build
+pnpm build
 ```
 
 ---

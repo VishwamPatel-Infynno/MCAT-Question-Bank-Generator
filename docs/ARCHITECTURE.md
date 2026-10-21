@@ -8,7 +8,7 @@ This document details the software architecture, multi-agent design patterns, st
 
 ## 1. High-Level Architecture Overview
 
-The system is constructed as an asynchronous, event-driven multi-agent workflow coordinated by **LangGraph** and served via **FastAPI** with **Server-Sent Events (SSE)** to a high-performance **React 19** frontend operating on a Modern Enterprise Minimalist single-canvas dock.
+The system is constructed as an asynchronous, event-driven multi-agent workflow coordinated by **LangGraph** and served via **FastAPI** with **Server-Sent Events (SSE)** to a high-performance **React 19** frontend featuring an interactive **5-Step Guided Question Wizard** and a dedicated full-width **Generation & Review Workspace**.
 
 ```mermaid
 graph TD
@@ -217,8 +217,35 @@ The persistence tier runs on **PostgreSQL 16** managed through **SQLAlchemy 2.0 
 
 ```mermaid
 erDiagram
+    PASSAGES ||--o{ QUESTIONS : "contains (1:N)"
+    BATCHES ||--o{ QUESTIONS : "groups (1:N)"
+
+    PASSAGES {
+        VARCHAR(64) id PK "Unique UUID4 passage identifier"
+        VARCHAR(64) section "UCAT section enum"
+        VARCHAR(128) subtopic "Categorized syllabus topic"
+        TEXT passage_text "Shared clinical or academic reading passage"
+        TEXT visual_stimulus_svg "Programmatic SVG diagram"
+        TEXT visual_stimulus_url "External diagram URL"
+        TEXT visual_description "Alt text description"
+        INTEGER question_count "Number of questions sharing this passage"
+        VARCHAR(64) created_at "ISO-8601 UTC timestamp"
+    }
+
+    BATCHES {
+        VARCHAR(64) id PK "Unique UUID4 batch identifier"
+        VARCHAR(64) section "UCAT section enum"
+        VARCHAR(128) subtopic "Categorized syllabus topic"
+        VARCHAR(32) difficulty "easy | medium | hard"
+        INTEGER total_questions "Total items requested in batch"
+        INTEGER staged_questions "Items verified and staged"
+        VARCHAR(64) created_at "ISO-8601 UTC timestamp"
+    }
+
     QUESTIONS {
         VARCHAR(64) id PK "Unique UUID4 identifier"
+        VARCHAR(64) passage_id FK "Optional reference to PASSAGES"
+        VARCHAR(64) batch_id FK "Optional reference to BATCHES"
         VARCHAR(64) section "UCAT section enum"
         VARCHAR(128) section_label "Human-readable subtest name"
         VARCHAR(128) subtopic "Categorized syllabus topic"
@@ -242,7 +269,6 @@ erDiagram
         JSONB token_usage_details "Per-agent itemized token breakdown"
         VARCHAR(64) combination_id "Matrix combination code (CMB00001)"
         VARCHAR(64) run_id "Execution run UUID4"
-        VARCHAR(64) batch_id "Batch run UUID4"
         VARCHAR(128) subcategory "Matrix subcategory taxonomy"
         VARCHAR(128) content_domain "Matrix domain (Science, Ethics)"
         VARCHAR(128) question_type "Passage_MCQ, True_False_Cant_Tell"
@@ -252,15 +278,18 @@ erDiagram
         INTEGER passage_questions "Passage question count"
         VARCHAR(16) image_required "Yes or No"
         VARCHAR(64) visual_type "None, SVG_Diagram, AI_FLUX_Image"
+        TSVECTOR tsv_content "PostgreSQL FTS token vector for hybrid search"
         VARCHAR(64) created_at "ISO-8601 UTC timestamp"
     }
 ```
 
 ### 6.2 Key Database Features
+- **3-Table Normalized Architecture**: Separates shared reading passages (`PASSAGES`), batch generation records (`BATCHES`), and item-level question records (`QUESTIONS`) with automatic foreign key cascades.
+- **Hybrid Full-Text Search (FTS)**: Built-in `tsv_content` tsvector column with GIN index on `questions` enabling sub-millisecond lexical search with ILIKE substring fallback.
 - **Native JSONB Storage**: Flexible storage for option lists, reviewer rubrics, evolution histories, and granular per-agent token tracking.
-- **B-Tree Indexes**: Placed on `section`, `subtopic`, `difficulty`, `combination_id`, `run_id`, `batch_id`, and `created_at` for sub-millisecond filtering and sorting.
+- **B-Tree Indexes**: Placed on `section`, `subtopic`, `difficulty`, `combination_id`, `run_id`, `batch_id`, `passage_id`, and `created_at` for rapid filtering and sorting.
 - **Connection Pooling**: Managed via `async_sessionmaker` with `pool_size=10`, `max_overflow=20`, and `pool_pre_ping=True` to prevent stale connection drops.
-- **Automatic Schema Migration**: Built-in `init_db()` automatically runs `ALTER TABLE questions ADD COLUMN IF NOT EXISTS ...` ensuring zero downtime when new tracking fields are added.
+- **Automatic Schema Migration**: Built-in `init_db()` automatically runs non-destructive `ALTER TABLE questions ADD COLUMN IF NOT EXISTS ...` ensuring zero downtime across updates.
 
 ---
 
@@ -278,9 +307,11 @@ backend/app/
 │   ├── base.py          # Declarative Base
 │   └── session.py       # Async engine, connection pool, init_db, health checks
 ├── models/              # SQLAlchemy 2.0 ORM Entities
-│   └── question.py      # QuestionModel with JSONB columns & B-Tree indexes
+│   ├── question.py      # QuestionModel with JSONB columns & B-Tree indexes
+│   ├── passage.py       # PassageModel for shared reading passage stimuli
+│   └── batch.py         # BatchModel for multi-question generation runs
 ├── repositories/        # Data Access Layer (DAL)
-│   └── question_repo.py # Clean async CRUD operations & token aggregations
+│   └── question_repo.py # Clean async CRUD operations, FTS search & token aggregations
 ├── schemas/             # Pydantic Domain Transfer Schemas
 │   ├── ucat.py          # UCAT sections & subtopic taxonomy
 │   ├── token.py         # TokenUsage & TokenCostAccumulator schemas
@@ -293,7 +324,7 @@ backend/app/
 │   ├── generator.py     # Question Generator Agent
 │   ├── reviewer.py      # Question Reviewer Agent (100-pt rubric)
 │   ├── regenerator.py   # Question Re-Generator Agent
-│   └── image_generator.py # Programmatic SVG & AI visual generator
+│   └── image_generator.py # Programmatic SVG & AI visual generator (FLUX-1-schnell)
 ├── workflow/            # Orchestration Engine
 │   ├── state.py         # AgentWorkflowState typed dict
 │   └── graph.py         # LangGraph StateGraph with conditional quality routing
@@ -302,8 +333,10 @@ backend/app/
 │   └── v1/
 │       ├── generation.py # SSE streaming question generator endpoint
 │       ├── questions.py  # Question Bank CRUD, Admin Approval & JSON/CSV exports
+│       ├── passages.py   # Passage stimulus listing & grouped question retrieval
+│       ├── batches.py    # Batch execution tracking & grouped retrieval
 │       ├── config.py     # Inference Gateway configuration & model settings
-│       └── health.py     # DB connectivity & system health checks
+│       └── health.py     # Database connectivity & system health checks
 └── main.py              # FastAPI application entrypoint with security headers & CORS
 ```
 
@@ -322,11 +355,12 @@ frontend/src/
 ├── components/          # Domain-organized UI components
 │   ├── index.js         # Barrel exports for clean component imports
 │   ├── layout/          # Layout components (Navbar, Footer)
-│   ├── generator/       # Studio Blueprint, GeneratorPanel, MultiAgentPipelineVisualizer, RejectionCard
-│   ├── question/        # CandidateStagedBanner, QuestionCard, ReviewAuditView, StageJsonInspector, StagedBatchReview
+│   ├── wizard/          # Guided Wizard (HeroLanding, GuidedWizard, IndependentDiagramControls, QuestionStyleMixSection)
+│   ├── pipeline/        # AI Pipeline (AgentVisualizer, MultiAgentPipelineVisualizer, RejectionCard)
+│   ├── question/        # Review Desk (QuestionCard, ReviewAuditView, StageJsonInspector, StagedBatchReview, VisualStimulusViewer)
 │   ├── bank/            # Repository table, filter chips, pagination, export (QuestionBank)
 │   ├── modals/          # Dialog modals (SettingsModal)
-│   └── common/          # Common primitives (InfynnoLogo, Toast)
+│   └── common/          # Common primitives (CustomSelect, InfynnoLogo, NumberStepper, Toast)
 ├── services/
 │   └── api.js           # SSE event reader, candidate approval & REST API client
 ├── index.css            # Enterprise CSS tokens, conduit animations, dual-theme styling

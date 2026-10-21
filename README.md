@@ -63,10 +63,10 @@ graph LR
 
 ### 4. Modern Enterprise Minimalist UI (Dual Theme: Dark & Light)
 - **Linear/Vercel-Inspired Aesthetic**: Hairline borders (`rgba(255, 255, 255, 0.06)` dark / `#e8ecf2` light), quiet obsidian and alabaster surfaces, and zero multi-card clutter.
-- **Unified Parameter Dock (`.dock-panel`)**: Seamless single-canvas sidebar organized by uppercase micro-kickers (`01 / SUBTEST & TOPIC`, `02 / FORMAT & RIGOR`, `03 / DIRECTIVES & TRAPS`), with flat subtest list and subtle active indicator dots.
-- **Collapsible Dock Rail**: 56px collapsed state (`.dock-panel-collapsed`) to maximize question review canvas space.
-- **Horizontal 4-Node Pipeline Stepper**: Clean sequential nodes (`01 Draft`, `02 Audit`, `03 Remediate`, `04 Stimulus`) with live status indicators.
-- **Editorial Question Presentation**: Clinical reading passages formatted in serif typography with line-height `1.68` for fatigue-free reading; circular option badges (`A`, `B`, `C`, `D`) and distractor trap rationalization drawers.
+- **Hero Landing Screen (`HeroLanding.jsx`)**: Minimalist welcome canvas presenting official UCAT subtests, instant practice presets, and target pacing badges (~14s to ~64s per question).
+- **5-Step Guided Question Wizard (`GuidedWizard.jsx`)**: Step-by-step authoring workflow with interactive **Exam Coach Tips** that dynamically react to chosen sections, topics, difficulty tiers, and cognitive traps.
+- **Dedicated Generation & Review Workspace**: Clean, distraction-free full-width canvas (`maxWidth: 1040px`) hosting live multi-agent synthesis, telemetry, and batch staging without cramped column docks.
+- **Editorial Question Presentation**: Clinical reading passages formatted in serif typography with line-height `1.68` for fatigue-free reading; circular option badges (`A`, `B`, `C`, `D`), distractor trap rationalization drawers, and inline editing.
 - **Instant Theme Switching**: Seamless toggle between Dark and Light themes with WCAG AA compliance via the `T` key shortcut.
 - **Full Keyboard Navigation**: `⌘ + Enter` (Generate), `T` (Theme), `/` (Search Bank), `A` (Approve), `D` (Discard), `Escape` (Close Modals).
 
@@ -96,9 +96,11 @@ PYTHONPATH=backend uvicorn app.main:app --port 8000 --reload
 
 ### 3. Frontend Setup
 ```bash
-cd frontend
-npm install
-npm run dev
+# Install dependencies using pnpm
+pnpm install
+
+# Start development server
+pnpm dev
 ```
 *Frontend runs on **[http://localhost:5173](http://localhost:5173)**.*
 
@@ -106,27 +108,25 @@ npm run dev
 
 ## 🧪 Automated Testing & Linters
 
-Run the full backend test suite covering schemas, routing logic, strict quality gates, SVG synthesis, PostgreSQL operations, and token calculations:
+Run the full backend test suite covering schemas, routing logic, strict quality gates, SVG & FLUX synthesis, database operations, and token calculations:
 
 ```bash
-# Run backend deterministic test suite (15 passed)
+# Run backend deterministic test suite (31 passed)
 source .venv/bin/activate
-pytest backend/tests/test_backend.py -v
+pytest backend/tests -v -k "not live_e2e"
 
-# Run backend linter (ruff)
+# Run backend linter (ruff: 0 errors)
 ruff check backend
 ```
 
 Verify frontend code hygiene and production bundle:
 
 ```bash
-cd frontend
+# Run frontend linter (oxlint: 0 warnings, 0 errors across 35 files)
+pnpm lint
 
-# Run frontend linter (oxlint: 0 warnings, 0 errors)
-npm run lint
-
-# Build production bundle (vite build: ~189ms)
-npm run build
+# Build production bundle (vite build: ~218ms)
+pnpm build
 ```
 
 ---
@@ -147,7 +147,8 @@ Question Bank Generator/
 ├── backend/
 │   ├── requirements.txt         # Python dependencies
 │   ├── tests/
-│   │   ├── test_backend.py      # Automated pytest suite (15 unit & integration tests)
+│   │   ├── test_backend.py      # Automated pytest suite (26 unit & integration tests)
+│   │   ├── test_database_structure.py # Relational schema, passage & batch sync tests (5 tests)
 │   │   └── test_e2e_live.py     # Live end-to-end integration test suite (9 tests)
 │   └── app/
 │       ├── main.py              # FastAPI app with modern lifespan context & security headers
@@ -160,9 +161,11 @@ Question Bank Generator/
 │       │   └── __init__.py
 │       ├── models/              # SQLAlchemy ORM models
 │       │   ├── question.py      # QuestionModel with JSONB columns & B-tree indexes
+│       │   ├── passage.py       # PassageModel for shared reading stimuli
+│       │   ├── batch.py         # BatchModel for multi-question generation runs
 │       │   └── __init__.py
 │       ├── repositories/        # Data Access Layer (DAL)
-│       │   ├── question_repo.py # Clean CRUD & aggregate token usage queries
+│       │   ├── question_repo.py # Clean CRUD, hybrid FTS & aggregate token usage queries
 │       │   └── __init__.py
 │       ├── schemas/             # Domain Pydantic V2 schemas
 │       │   ├── ucat.py          # UCAT sections & subtopic taxonomy
@@ -177,7 +180,7 @@ Question Bank Generator/
 │       │   ├── generator.py     # Question Generator Agent
 │       │   ├── reviewer.py      # Question Reviewer Agent (100-pt rubric)
 │       │   ├── regenerator.py   # Remediation Engine Agent (<= 90 trigger)
-│       │   ├── image_generator.py # Programmatic SVG & visual stimulus generator
+│       │   ├── image_generator.py # Programmatic SVG & FLUX-1-schnell visual generator
 │       │   └── __init__.py
 │       ├── workflow/            # LangGraph multi-agent state graph
 │       │   ├── state.py         # AgentWorkflowState typed dictionary
@@ -188,14 +191,16 @@ Question Bank Generator/
 │           └── v1/
 │               ├── generation.py # SSE streaming question generator endpoint
 │               ├── questions.py  # Question Bank CRUD & JSON/CSV exports
+│               ├── passages.py   # Shared passage stimuli listing & retrieval
+│               ├── batches.py    # Batch execution runs & staged item retrieval
 │               ├── config.py     # Engine configuration & model settings
-│               ├── health.py     # DB connectivity & system health checks
+│               ├── health.py     # Database connectivity & system health checks
 │               └── __init__.py
 └── frontend/
-    ├── package.json             # React 19 dependencies & scripts
+    ├── package.json             # React 19 dependencies & scripts (pnpm workspace)
     ├── vite.config.js           # Vite build configuration with chunk splitting
     └── src/
-        ├── App.jsx              # Main application shell with useQuestionGenerator
+        ├── App.jsx              # Main application shell with dedicated Review Workspace
         ├── index.css            # Modern Enterprise Minimalist design system (Dual Theme)
         ├── constants/           # Centralized application constants
         │   ├── ucat.js          # Subtest icons, pacing targets & fallback taxonomy
@@ -208,11 +213,12 @@ Question Bank Generator/
         ├── components/          # Domain-organized UI components
         │   ├── index.js         # Barrel exports for clean component imports
         │   ├── layout/          # Layout components (Navbar, Footer)
-        │   ├── generator/       # Studio components (GeneratorPanel, MultiAgentPipelineVisualizer, StudioBlueprint, RejectionCard)
-        │   ├── question/        # Review Desk components (QuestionCard, StagedBatchReview, ReviewAuditView, StageJsonInspector)
+        │   ├── wizard/          # Guided Wizard (HeroLanding, GuidedWizard, IndependentDiagramControls, QuestionStyleMixSection)
+        │   ├── pipeline/        # AI Pipeline (AgentVisualizer, MultiAgentPipelineVisualizer, RejectionCard)
+        │   ├── question/        # Review Desk (QuestionCard, ReviewAuditView, StageJsonInspector, StagedBatchReview, VisualStimulusViewer)
         │   ├── bank/            # Question repository (QuestionBank)
         │   ├── modals/          # Dialog modals (SettingsModal)
-        │   └── common/          # Common primitives (InfynnoLogo, Toast)
+        │   └── common/          # Common primitives (CustomSelect, InfynnoLogo, NumberStepper, Toast)
         └── services/
             └── api.js           # SSE event reader & REST API client
 ```
