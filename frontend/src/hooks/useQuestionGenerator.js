@@ -182,7 +182,7 @@ export function useQuestionGenerator({ onNeedsApiKey } = {}) {
           setIsGenerating(false);
           setActiveAgent('Configuration Required');
           abortControllerRef.current = null;
-          if (evt.message && evt.message.includes('DeepInfra API Key') && onNeedsApiKey) {
+          if (evt.message && (evt.message.includes('API Key is required') || evt.message.includes('DeepInfra API Key') || evt.message.includes('Gateway Key')) && onNeedsApiKey) {
             onNeedsApiKey();
           }
         }

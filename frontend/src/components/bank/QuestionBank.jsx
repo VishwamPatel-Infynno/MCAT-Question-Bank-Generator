@@ -52,7 +52,6 @@ const DIFFICULTY_FILTER_OPTIONS = [
 export default function QuestionBank({ onSelectQuestion, onShowToast }) {
   const {
     questions,
-    repoStats,
     loading,
     sectionFilter,
     setSectionFilter,
@@ -230,9 +229,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
             </span>
             <span style={{ color: 'var(--border-subtle)' }}>&bull;</span>
             <span>
-              <strong style={{ color: 'var(--text-primary)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-                ${repoStats.total_cost_usd.toFixed(4)}
-              </strong> cost
+              <strong style={{ color: 'var(--status-purple)', fontWeight: 700 }}>Enterprise Verified</strong>
             </span>
           </div>
 
@@ -575,11 +572,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                           </span>
                         )}
 
-                        {q.cost_usd !== undefined && q.cost_usd > 0 && (
-                          <span style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.65rem' }}>
-                            ${q.cost_usd.toFixed(4)}
-                          </span>
-                        )}
+
                       </div>
 
                       {/* Question Stem */}

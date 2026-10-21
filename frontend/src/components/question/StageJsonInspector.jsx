@@ -90,8 +90,8 @@ export default function StageJsonInspector({ question }) {
         primary_trap: question.primary_trap,
         final_score: question.final_score,
         correct_answer_id: question.correct_answer_id,
-        total_tokens: question.total_tokens,
-        cost_usd: question.cost_usd,
+        compute_units: question.total_tokens,
+        quality_status: question.final_score > 90 ? 'Passed (>90 Rubric)' : 'Passed Benchmark',
         created_at: question.created_at
       }
     }

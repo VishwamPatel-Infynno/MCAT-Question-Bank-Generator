@@ -3,7 +3,7 @@ export const DEFAULT_TEXT_MODEL = 'deepinfra/meta-llama/Llama-3.3-70B-Instruct-T
 export const PRICING_RATES = {
   inputPerMillion: 0.10,
   outputPerMillion: 0.32,
-  label: '$0.10 in / $0.32 out / 1M tokens'
+  label: 'Proprietary High-Throughput Exam Engine'
 };
 
 export const DEFAULT_IMAGE_MODEL = 'black-forest-labs/FLUX-1-schnell';
@@ -13,7 +13,7 @@ export const IMAGE_PRICING = {
   defaultWidth: 1024,
   defaultHeight: 1024,
   defaultIters: 4,
-  formulaLabel: '$0.0005 × (W/1024) × (H/1024) × iters',
+  formulaLabel: 'High-Resolution Neural Synthesis',
   calculate: (w = 1024, h = 1024, iters = 4) => (0.0005 * (w / 1024) * (h / 1024) * iters)
 };
 
@@ -26,6 +26,7 @@ export const IMAGE_RESOLUTION_PRESETS = [
 export const MODEL_OPTIONS = [
   {
     id: 'deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo',
-    label: 'Autonomous Psychometric Engine (v2.0 High-Throughput Enterprise)'
+    label: 'Infynno Autonomous Psychometric Engine (v2.0 Enterprise)'
   }
 ];
+

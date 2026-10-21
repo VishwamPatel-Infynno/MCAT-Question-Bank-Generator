@@ -43,7 +43,6 @@ export default function AgentVisualizer({
   const latestUsageEvent = [...events].reverse().find(e => e.data?.cumulative_usage);
   const cumulativeUsage = latestUsageEvent?.data?.cumulative_usage;
   const totalTokens = cumulativeUsage?.total_tokens || 0;
-  const totalCost = cumulativeUsage?.total_cost_usd || 0;
 
   // Extract latest active event message for single-source status
   const latestProgressEvent = [...events].reverse().find(e => e.message && e.event_type !== 'agent_complete');
@@ -84,7 +83,7 @@ export default function AgentVisualizer({
             <Timer size={12} /> {elapsedTime}s
           </span>
           <span style={{ fontFamily: 'var(--font-mono)' }}>
-            {totalTokens.toLocaleString()} tokens (${totalCost.toFixed(4)})
+            {totalTokens.toLocaleString()} Compute Units
           </span>
           <button
             onClick={() => setShowTelemetry(!showTelemetry)}

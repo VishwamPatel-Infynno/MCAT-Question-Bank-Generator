@@ -62,10 +62,10 @@ export default function ReviewAuditView({ question, onClose }) {
             </div>
             <div>
               <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Question Quality &amp; Cost Breakdown
+                Question Quality &amp; Verification Audit
               </h2>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                Quality Score Review &bull; AI Token Tracking &bull; Improvements
+                Quality Score Review &bull; AI Compute Tracking &bull; Multi-Agent Verification
               </p>
             </div>
           </div>
@@ -110,34 +110,34 @@ export default function ReviewAuditView({ question, onClose }) {
           </div>
         </div>
 
-        {/* Token Usage & Cost Audit Section */}
+        {/* AI Compute Units & Workload Audit Section */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h4 style={{ fontSize: '0.775rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              AI Usage &amp; Cost Breakdown
+              AI Compute &amp; Workload Breakdown
             </h4>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              DeepInfra Engine ($0.10 in &bull; $0.32 out / 1M tokens)
+              Infynno Multi-Agent Quality Engine
             </span>
           </div>
 
           {/* Metric Cards Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
             <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>PROMPT TOKENS</div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>INPUT UNITS</div>
               <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--brand-primary)' }}>{(question.prompt_tokens || 0).toLocaleString()}</div>
             </div>
             <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>COMPLETION TOKENS</div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>GENERATION UNITS</div>
               <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--brand-indigo)' }}>{(question.completion_tokens || 0).toLocaleString()}</div>
             </div>
             <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>TOTAL TOKENS</div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>TOTAL COMPUTE UNITS</div>
               <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--status-success)' }}>{(question.total_tokens || 0).toLocaleString()}</div>
             </div>
             <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>ACCUMULATED COST</div>
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--status-warning)' }}>${(question.cost_usd || 0).toFixed(5)}</div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>QUALITY STATUS</div>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--status-success)' }}>Pass (&gt; 90)</div>
             </div>
           </div>
         </div>

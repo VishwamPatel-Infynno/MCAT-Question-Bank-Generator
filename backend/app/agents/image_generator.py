@@ -256,7 +256,7 @@ async def generate_image_stimulus(
 
     if not config.DEEPINFRA_API_KEY:
         logger.error(
-            "DEEPINFRA_API_KEY is not configured. Strict image generation policy prohibits SVG mock fallbacks."
+            "AI Gateway Key is not configured. Strict image generation policy prohibits SVG mock fallbacks."
         )
         error_usage = {
             "agent_name": "Image Generator",
@@ -266,7 +266,7 @@ async def generate_image_stimulus(
             "total_tokens": 0,
             "cost_usd": 0.0,
             "details": {
-                "error": "DEEPINFRA_API_KEY is not configured. Visual stimuli strictly require an active AI image model.",
+                "error": "AI Gateway Key is not configured. Visual stimuli strictly require an active AI image engine.",
                 "type": "error",
             },
         }

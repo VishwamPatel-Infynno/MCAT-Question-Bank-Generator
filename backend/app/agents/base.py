@@ -76,7 +76,7 @@ async def call_llm(
         effective_key = config.DEEPINFRA_API_KEY or os.getenv("DEEPINFRA_API_KEY")
         if not effective_key:
             raise ValueError(
-                "DeepInfra API Key is required. Please configure it in Settings or set DEEPINFRA_API_KEY in your .env file."
+                "AI Gateway API Key is required. Please configure it in Settings or set the server environment key."
             )
         kwargs["api_key"] = effective_key
     elif "gemini" in chosen_model.lower() and config.GEMINI_API_KEY:

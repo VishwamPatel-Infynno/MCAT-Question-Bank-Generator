@@ -397,7 +397,7 @@ async def test_deepinfra_strict_api_key_enforcement():
                 system_prompt="test system",
                 model="deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo",
             )
-        assert "DeepInfra API Key is required" in str(excinfo.value)
+        assert "AI Gateway API Key is required" in str(excinfo.value)
     finally:
         config.DEEPINFRA_API_KEY = original_key
         if original_env:

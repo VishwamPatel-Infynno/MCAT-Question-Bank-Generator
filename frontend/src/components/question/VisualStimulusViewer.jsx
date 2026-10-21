@@ -55,7 +55,7 @@ export default function VisualStimulusViewer({
   }
 
   const isSvg = Boolean(svgContent);
-  const visualType = isSvg ? 'SVG Vector Diagram' : 'AI FLUX Image';
+  const visualType = isSvg ? 'SVG Vector Diagram' : 'Infynno Neural Diagram';
 
   const handleCopySvg = (e) => {
     e?.stopPropagation();
@@ -102,7 +102,7 @@ export default function VisualStimulusViewer({
             Visual Stimulus
           </span>
           <span className="badge badge-purple" style={{ fontSize: '0.575rem', padding: '1px 5px' }}>
-            {isSvg ? 'SVG' : 'FLUX'}
+            {isSvg ? 'SVG' : 'AI Diagram'}
           </span>
         </div>
         <div 

@@ -27,8 +27,6 @@ export default function SettingsModal({ onClose }) {
     }).catch(() => {});
   }, []);
 
-  const liveImageCost = (0.0005 * (imageWidth / 1024) * (imageHeight / 1024) * imageIters).toFixed(5);
-
   const handleSave = async () => {
     const payload = {
       default_text_model: model,
@@ -123,12 +121,12 @@ export default function SettingsModal({ onClose }) {
               options={MODEL_OPTIONS.map(opt => ({
                 value: opt.id,
                 label: opt.label,
-                description: '$0.10 input / $0.32 output per 1M tokens'
+                description: 'Enterprise Multi-Agent Verification'
               }))}
               searchable={false}
             />
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              $0.10 input / $0.32 output per 1M tokens.
+              Enterprise-grade psychometric calibration and validation.
             </div>
           </div>
 
@@ -142,7 +140,7 @@ export default function SettingsModal({ onClose }) {
             }}
           >
             <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
-              DeepInfra API Key
+              Infynno AI Gateway Key
             </label>
             <input
               id="settings-input-deepinfra-key"
@@ -153,7 +151,7 @@ export default function SettingsModal({ onClose }) {
               style={{ width: '100%' }}
             />
             <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', marginTop: '6px' }}>
-              Leave blank to use the DEEPINFRA_API_KEY from your backend .env file.
+              Leave blank to use the pre-configured server environment key.
             </div>
           </div>
 
@@ -173,11 +171,11 @@ export default function SettingsModal({ onClose }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Image size={16} color="var(--brand-primary)" />
                 <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Diagram &amp; Image Settings (FLUX)
+                  Visual Stimulus &amp; Diagram Settings (Infynno Neural Studio)
                 </span>
               </div>
               <span className="badge badge-cyan" style={{ fontSize: '0.7rem' }}>
-                ${liveImageCost} / image
+                High-Precision AI Generation
               </span>
             </div>
 
@@ -220,10 +218,10 @@ export default function SettingsModal({ onClose }) {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                 <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                  Inference Precision Steps (iters)
+                  Neural Detail &amp; Calibration Level
                 </label>
                 <span className="badge badge-amber" style={{ fontSize: '0.72rem' }}>
-                  {imageIters} steps
+                  {imageIters} precision levels
                 </span>
               </div>
               <input
@@ -236,11 +234,11 @@ export default function SettingsModal({ onClose }) {
                 style={{ width: '100%' }}
               />
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                Optimized for 1–4 steps (4 steps recommended for crisp psychometric diagrams).
+                Calibrated for optimal crispness in UCAT geometric and pattern diagrams.
               </div>
             </div>
 
-            {/* Cost Formula Card */}
+            {/* Quality & Synthesis Card */}
             <div
               style={{
                 background: 'var(--status-success-bg)',
@@ -252,7 +250,7 @@ export default function SettingsModal({ onClose }) {
                 lineHeight: 1.4
               }}
             >
-              <strong>Engine Rate:</strong> $0.0005 × ({imageWidth} / 1024) × ({imageHeight} / 1024) × {imageIters} iters = <strong>${liveImageCost}</strong>
+              <strong>Resolution &amp; Quality:</strong> Optimized {imageWidth} × {imageHeight} High-Resolution Synthesis (Level {imageIters})
             </div>
           </div>
 
