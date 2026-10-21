@@ -242,7 +242,9 @@ export default function QuestionStyleMixSection({
                 padding: '3px 6px',
                 background: 'var(--bg-surface-subtle)',
                 borderRadius: 'var(--radius-xs)',
-                border: '1px solid var(--border-light)'
+                border: '1px solid var(--border-light)',
+                minHeight: '30px',
+                boxSizing: 'border-box'
               }}
             >
               <span style={{ fontSize: '0.675rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Reading Passage</span>
@@ -272,7 +274,7 @@ export default function QuestionStyleMixSection({
                 background: 'var(--bg-surface-subtle)',
                 borderRadius: 'var(--radius-xs)',
                 border: '1px solid var(--border-light)',
-                minHeight: '28px',
+                minHeight: '30px',
                 boxSizing: 'border-box'
               }}
             >

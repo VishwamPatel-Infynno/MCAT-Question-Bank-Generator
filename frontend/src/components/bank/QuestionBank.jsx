@@ -221,7 +221,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
             }}
           >
             <span>
-              <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{questions.length}</strong> questions
+              <strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{questions.length}</strong> {questions.length === 1 ? 'question' : 'questions'}
             </span>
             <span style={{ color: 'var(--border-subtle)' }}>&bull;</span>
             <span>
@@ -238,20 +238,36 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
 
           <div style={{ display: 'flex', gap: '6px' }}>
             <a
-              href={getExportUrl('json')}
-              download="ucat_questions.json"
+              href={questions.length > 0 ? getExportUrl('json') : undefined}
+              download={questions.length > 0 ? "ucat_questions.json" : undefined}
               className="btn-secondary"
-              style={{ textDecoration: 'none', padding: '6px 12px', fontSize: '0.78rem' }}
-              title="Download entire question bank as JSON"
+              style={{
+                textDecoration: 'none',
+                padding: '6px 12px',
+                fontSize: '0.78rem',
+                opacity: questions.length === 0 ? 0.5 : 1,
+                pointerEvents: questions.length === 0 ? 'none' : 'auto',
+                cursor: questions.length === 0 ? 'not-allowed' : 'pointer'
+              }}
+              aria-disabled={questions.length === 0}
+              title={questions.length > 0 ? "Download entire question bank as JSON" : "No questions to export"}
             >
               <Download size={13} /> JSON
             </a>
             <a
-              href={getExportUrl('csv')}
-              download="ucat_questions.csv"
+              href={questions.length > 0 ? getExportUrl('csv') : undefined}
+              download={questions.length > 0 ? "ucat_questions.csv" : undefined}
               className="btn-secondary"
-              style={{ textDecoration: 'none', padding: '6px 12px', fontSize: '0.78rem' }}
-              title="Download entire question bank as CSV"
+              style={{
+                textDecoration: 'none',
+                padding: '6px 12px',
+                fontSize: '0.78rem',
+                opacity: questions.length === 0 ? 0.5 : 1,
+                pointerEvents: questions.length === 0 ? 'none' : 'auto',
+                cursor: questions.length === 0 ? 'not-allowed' : 'pointer'
+              }}
+              aria-disabled={questions.length === 0}
+              title={questions.length > 0 ? "Download entire question bank as CSV" : "No questions to export"}
             >
               <Download size={13} /> CSV
             </a>

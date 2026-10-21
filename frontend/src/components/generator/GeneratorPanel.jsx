@@ -576,7 +576,13 @@ export default function GeneratorPanel({
                       </>
                     ) : (
                       <>
-                        <strong style={{ color: 'var(--status-purple)' }}>Mixed Set:</strong> {passageQuestionCount} questions linked to 1 shared passage (250–400w); remaining {totalQuestions - passageQuestionCount} questions are direct standalone questions (no passage).
+                        <strong style={{ color: 'var(--status-purple)' }}>Mixed Set:</strong>{' '}
+                        {passageQuestionCount} {passageQuestionCount === 1 ? 'question' : 'questions'} linked to 1 shared passage (250–400w);{' '}
+                        remaining {totalQuestions - passageQuestionCount}{' '}
+                        {totalQuestions - passageQuestionCount === 1
+                          ? 'question is a direct standalone question'
+                          : 'questions are direct standalone questions'}{' '}
+                        (no passage).
                       </>
                     )}
                   </div>
@@ -842,7 +848,7 @@ export default function GeneratorPanel({
           <span style={{ color: 'var(--text-muted)' }}>Target:</span>
           <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
             {totalQuestions > 1 && passageMode === 'single_passage'
-              ? `${totalQuestions} Questions Set (1 Shared Passage)${totalImagesCount > 0 ? ` • ${totalImagesCount} ${totalImagesCount === 1 ? 'diagram' : 'diagrams'}` : ''}`
+              ? `${totalQuestions}-Question ${passageQuestionCount < totalQuestions ? 'Mixed Set' : 'Passage Set'} (1 Shared Passage)${totalImagesCount > 0 ? ` • ${totalImagesCount} ${totalImagesCount === 1 ? 'diagram' : 'diagrams'}` : ''}`
               : `${totalQuestions} ${totalQuestions === 1 ? 'Question' : 'Questions'} • ${currentSectionObj.label}${totalImagesCount > 0 ? ` • ${totalImagesCount} ${totalImagesCount === 1 ? 'diagram' : 'diagrams'}` : ''}`}
           </span>
         </div>
@@ -865,10 +871,18 @@ export default function GeneratorPanel({
             <span>
               {isGenerating
                 ? (totalQuestions > 1
-                    ? (passageMode === 'single_passage' ? `Creating ${totalQuestions}-Question Passage Set...` : `Creating ${totalQuestions} Questions...`)
+                    ? (passageMode === 'single_passage'
+                        ? (passageQuestionCount < totalQuestions
+                            ? `Creating ${totalQuestions}-Question Mixed Set...`
+                            : `Creating ${totalQuestions}-Question Passage Set...`)
+                        : `Creating ${totalQuestions} Questions...`)
                     : 'Creating Question...')
                 : (totalQuestions > 1
-                    ? (passageMode === 'single_passage' ? `Create Passage Set (${totalQuestions} Qs)` : `Create ${totalQuestions} Questions`)
+                    ? (passageMode === 'single_passage'
+                        ? (passageQuestionCount < totalQuestions
+                            ? `Create Mixed Set (${totalQuestions} Qs)`
+                            : `Create Passage Set (${totalQuestions} Qs)`)
+                        : `Create ${totalQuestions} Questions`)
                     : 'Create Question')}
             </span>
             {!isGenerating && (
