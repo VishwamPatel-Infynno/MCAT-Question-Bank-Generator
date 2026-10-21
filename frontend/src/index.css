@@ -466,49 +466,6 @@ input:focus, select:focus, textarea:focus {
   }
 }
 
-/* Modern Enterprise Minimalist Layout Primitives */
-.dock-panel {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm);
-  box-shadow: none;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.dock-panel-collapsed {
-  padding: 12px 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  width: 52px;
-  overflow: hidden;
-}
-
-.dock-section {
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border-light);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.dock-section:last-child {
-  border-bottom: none;
-}
-
-.dock-kicker {
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
 
 /* Minimalist Choice Cards (Question Preview) */
 .choice-option-card {
@@ -561,43 +518,6 @@ input:focus, select:focus, textarea:focus {
   color: #ffffff;
 }
 
-/* Studio Presets - Understated Minimalist */
-.preset-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  padding: 16px 18px;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  text-align: left;
-}
-
-.preset-card:hover {
-  border-color: var(--border-brand);
-  background: var(--bg-surface-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
-}
-
-.preset-card:active {
-  transform: translateY(0);
-}
-
-/* Studio Blueprint Card */
-.blueprint-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  transition: border-color var(--transition-fast);
-}
-
-.blueprint-card:hover {
-  border-color: var(--border-medium);
-}
 
 /* Inline Agent Pipeline Stepper */
 .pipeline-stepper-container {
@@ -1388,8 +1308,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* Generation & Review Workspace Action Bar */
-.workspace-action-bar,
-.studio-action-bar {
+.workspace-action-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1401,8 +1320,7 @@ input:focus, select:focus, textarea:focus {
   box-shadow: var(--shadow-sm);
 }
 
-.workspace-action-btn-primary,
-.studio-action-btn-primary {
+.workspace-action-btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1418,14 +1336,12 @@ input:focus, select:focus, textarea:focus {
   transition: all 0.2s ease;
 }
 
-.workspace-action-btn-primary:hover,
-.studio-action-btn-primary:hover {
+.workspace-action-btn-primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(79, 48, 185, 0.4);
 }
 
-.workspace-action-btn-secondary,
-.studio-action-btn-secondary {
+.workspace-action-btn-secondary {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1440,8 +1356,7 @@ input:focus, select:focus, textarea:focus {
   transition: all 0.2s ease;
 }
 
-.workspace-action-btn-secondary:hover,
-.studio-action-btn-secondary:hover {
+.workspace-action-btn-secondary:hover {
   background: var(--bg-surface-hover);
   color: var(--text-primary);
 }

@@ -8,12 +8,10 @@ export { default as CustomSelect } from './common/CustomSelect';
 export { default as NumberStepper } from './common/NumberStepper';
 export { ToastContainer } from './common/Toast';
 
-// Generator & Agent Pipeline
-export { default as AgentVisualizer } from './generator/AgentVisualizer';
-export { default as MultiAgentPipelineVisualizer } from './generator/MultiAgentPipelineVisualizer';
-export { default as RejectionCard } from './generator/RejectionCard';
-export { default as IndependentDiagramControls } from './generator/IndependentDiagramControls';
-export { default as QuestionStyleMixSection } from './generator/QuestionStyleMixSection';
+// AI Multi-Agent Pipeline & Review Workspace
+export { default as AgentVisualizer } from './pipeline/AgentVisualizer';
+export { default as MultiAgentPipelineVisualizer } from './pipeline/MultiAgentPipelineVisualizer';
+export { default as RejectionCard } from './pipeline/RejectionCard';
 
 // Question & Review
 export { default as QuestionCard } from './question/QuestionCard';
@@ -26,6 +24,8 @@ export { default as StageJsonInspector } from './question/StageJsonInspector';
 // Wizard & Guided Onboarding
 export { default as HeroLanding } from './wizard/HeroLanding';
 export { default as GuidedWizard } from './wizard/GuidedWizard';
+export { default as IndependentDiagramControls } from './wizard/IndependentDiagramControls';
+export { default as QuestionStyleMixSection } from './wizard/QuestionStyleMixSection';
 
 // Heavy views (QuestionBank, ReviewAuditView, SettingsModal) are intentionally
 // loaded via React.lazy() in App.jsx to preserve optimal code splitting.

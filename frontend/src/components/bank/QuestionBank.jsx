@@ -589,7 +589,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
                     </div>
                   </div>
 
-                  {/* Actions: Review in Studio, Expand Details, Copy, Delete */}
+                  {/* Actions: Review in Workspace, Expand Details, Copy, Delete */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <button
                       onClick={() => onSelectQuestion(q)}

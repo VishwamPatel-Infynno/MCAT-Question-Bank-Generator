@@ -13,8 +13,8 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import NumberStepper from '../common/NumberStepper';
-import QuestionStyleMixSection from '../generator/QuestionStyleMixSection';
-import IndependentDiagramControls from '../generator/IndependentDiagramControls';
+import QuestionStyleMixSection from './QuestionStyleMixSection';
+import IndependentDiagramControls from './IndependentDiagramControls';
 import { PACING_INFO } from '../../constants/ucat';
 
 const SECTION_METADATA = {
@@ -1270,7 +1270,7 @@ export default function GuidedWizard({
 
         <button
           type="button"
-          className="studio-action-btn-primary"
+          className="workspace-action-btn-primary"
           id={step === totalSteps ? 'btn-wizard-launch-generation' : 'btn-wizard-next-step'}
           onClick={handleNext}
           style={{ padding: '10px 22px', fontSize: '0.95rem' }}
