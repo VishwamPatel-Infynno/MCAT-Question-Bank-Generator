@@ -59,6 +59,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('generator');
   const [sectionsData, setSectionsData] = useState([]);
   const generatorForm = useGeneratorForm();
+  const { updateFields } = generatorForm;
 
   // Layout & Dock State
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
@@ -118,7 +119,7 @@ export default function App() {
       .then((data) => {
         if (data.sections && data.sections.length > 0) {
           setSectionsData(data.sections);
-          generatorForm.updateFields({
+          updateFields({
             selectedSection: data.sections[0].id,
             selectedSubtopic: data.sections[0].subtopics?.[0] || ''
           });
@@ -127,13 +128,12 @@ export default function App() {
       .catch((err) => {
         console.error('Failed to fetch sections:', err);
         setSectionsData(UCAT_SECTIONS_FALLBACK);
-        generatorForm.updateFields({
+        updateFields({
           selectedSection: UCAT_SECTIONS_FALLBACK[0].id,
           selectedSubtopic: UCAT_SECTIONS_FALLBACK[0].subtopics?.[0] || ''
         });
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [updateFields]);
 
   const [isQuestionSaved, setIsQuestionSaved] = useState(false);
   const [savedQuestionIds, setSavedQuestionIds] = useState(() => new Set());

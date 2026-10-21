@@ -19,9 +19,7 @@ async def regenerate_question(
     section_name = UCAT_SECTION_LABELS.get(req.section, req.section.value)
     options_formatted = "\n".join([f"{opt.id}: {opt.text}" for opt in draft.options])
 
-    is_passage_active = bool(req.shared_stimulus and req.shared_stimulus.strip()) or (
-        req.passage_required is not None and str(req.passage_required).lower() in ("yes", "true")
-    )
+    is_passage_active = req.is_passage_active
 
     weaknesses_text = (
         "\n".join([f"- {w}" for w in review.weaknesses]) or "General refinement needed"

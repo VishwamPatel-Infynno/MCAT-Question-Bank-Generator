@@ -48,9 +48,9 @@ Do NOT write a new passage. Formulate your question stem, options, correct key(s
 ---
 {req.shared_stimulus.strip()}
 ---"""
-    elif req.passage_required and str(req.passage_required).lower() in ("yes", "true"):
+    elif req.is_passage_active:
         user_prompt += "\nPassage Required: Yes - Provide a rigorous, substantive 250-400 word academic or clinical passage with dense data and structured paragraphs."
-    elif req.passage_required and str(req.passage_required).lower() in ("no", "false"):
+    else:
         user_prompt += (
             "\nPassage Required: No - Direct question ONLY. Do NOT write any reading passage, scenario, or vignette in stimulus_text. "
             'Leave stimulus_text strictly as an empty string (""). Pose the question directly in question_stem.'
@@ -100,11 +100,7 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
     correct_id_str = ", ".join(keys_list)
 
     # Enforce reading passage vs direct independent question
-    is_passage_active = bool(req.shared_stimulus and req.shared_stimulus.strip()) or (
-        req.passage_required is not None and str(req.passage_required).lower() in ("yes", "true")
-    )
-
-    if not is_passage_active:
+    if not req.is_passage_active:
         effective_stimulus = ""
     else:
         effective_stimulus = (
@@ -128,7 +124,7 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
             )
             else data.get(
                 "image_needed",
-                req.require_image or req.section == UCATSection.ABSTRACT_REASONING,
+                req.requires_visual_stimulus,
             )
         ),
         image_prompt_or_type=data.get("image_prompt_or_type"),

@@ -95,6 +95,7 @@ async def test_e2e_live_generation_sse_stream():
         "subtopic": "Critical Reading & Inferences",
         "difficulty": "medium",
         "require_image": False,
+        "passage_required": "Yes",
     }
 
     events = []

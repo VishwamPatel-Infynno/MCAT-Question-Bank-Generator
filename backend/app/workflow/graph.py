@@ -114,29 +114,12 @@ def route_after_fused_generation(state: AgentWorkflowState) -> str:
         )
         return "reviewer"
 
-    req_data = state["request"]
-    sec_raw = req_data.get("section", "")
-    section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)
-    req_indices = req_data.get("image_question_indices")
-    if req_indices is not None:
-        explicit_image = 1 in req_indices
-    else:
-        explicit_image = req_data.get("require_image", False)
-    visual_type = req_data.get("visual_type", "None")
-
-    if explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
-        requires_image = True
-    elif section_val in (
-        UCATSection.VERBAL_REASONING.value,
-        UCATSection.SITUATIONAL_JUDGEMENT.value,
-        "VR",
-        "SJT",
-    ):
-        requires_image = False
-    elif section_val in (UCATSection.ABSTRACT_REASONING.value, "AR"):
-        requires_image = True
-    else:
-        requires_image = bool(state.get("current_draft", {}).get("image_needed", False))
+    req_raw = state["request"]
+    req = req_raw if isinstance(req_raw, GenerationRequest) else GenerationRequest(**req_raw)
+    requires_image = req.requires_visual_stimulus or (
+        req.section not in (UCATSection.VERBAL_REASONING, UCATSection.SITUATIONAL_JUDGEMENT)
+        and bool(state.get("current_draft", {}).get("image_needed", False))
+    )
 
     if requires_image:
         logger.info("Fused draft passed (> 90). Routing to Image Generator.")
@@ -314,31 +297,12 @@ def route_after_review(state: AgentWorkflowState) -> str:
             return "reject"
 
     # Passing score (> 90): check if image generation is required
-    sec_raw = req_data.get("section", "")
-    section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)
-    req_indices = req_data.get("image_question_indices")
-    if req_indices is not None:
-        explicit_image = 1 in req_indices
-    else:
-        explicit_image = req_data.get("require_image", False)
-    visual_type = req_data.get("visual_type", "None")
-
-    if explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
-        requires_image = True
-    elif section_val in (
-        UCATSection.VERBAL_REASONING.value,
-        UCATSection.SITUATIONAL_JUDGEMENT.value,
-        "VR",
-        "SJT",
-    ):
-        # Strict Exam Rubric Guard: Verbal Reasoning and SJT are 100% textual, bypass image generator
-        requires_image = False
-    elif section_val in (UCATSection.ABSTRACT_REASONING.value, "AR"):
-        # Abstract Reasoning always requires visual geometric stimulus
-        requires_image = True
-    else:
-        # Decision Making (Venn/Logic) or Quantitative Reasoning: respect draft image_needed flag
-        requires_image = bool(state.get("current_draft", {}).get("image_needed", False))
+    req_raw = state["request"]
+    req = req_raw if isinstance(req_raw, GenerationRequest) else GenerationRequest(**req_raw)
+    requires_image = req.requires_visual_stimulus or (
+        req.section not in (UCATSection.VERBAL_REASONING, UCATSection.SITUATIONAL_JUDGEMENT)
+        and bool(state.get("current_draft", {}).get("image_needed", False))
+    )
 
     if requires_image:
         logger.info(f"Score {score} > {threshold}. Routing to Image Generator.")

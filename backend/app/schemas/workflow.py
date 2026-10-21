@@ -88,6 +88,39 @@ class GenerationRequest(BaseModel):
         description="Whether to automatically persist candidate in PostgreSQL (default: False for admin review)",
     )
 
+    @property
+    def is_passage_active(self) -> bool:
+        """Determines whether a reading passage stimulus is active for this request."""
+        if self.passage_required is not None:
+            return str(self.passage_required).lower() in ("yes", "true", "1")
+        if self.shared_stimulus and self.shared_stimulus.strip():
+            return True
+        if self.section in (UCATSection.VERBAL_REASONING, "VR", "verbal_reasoning"):
+            return True
+        return False
+
+    @property
+    def requires_visual_stimulus(self) -> bool:
+        """Determines whether visual image/diagram stimulus generation is required."""
+        if self.visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
+            return True
+        if self.require_image or self.require_passage_image:
+            return True
+        if self.image_question_indices and len(self.image_question_indices) > 0:
+            return True
+        if self.section in (
+            UCATSection.VERBAL_REASONING,
+            "VR",
+            "verbal_reasoning",
+            UCATSection.SITUATIONAL_JUDGEMENT,
+            "SJT",
+            "situational_judgement",
+        ):
+            return False
+        if self.section in (UCATSection.ABSTRACT_REASONING, "AR", "abstract_reasoning"):
+            return True
+        return False
+
     @field_validator("combination_id", mode="before")
     @classmethod
     def validate_combination_id(cls, v):
