@@ -86,7 +86,7 @@ export default function HeroLanding({
         {/* Corporate Badge */}
         <div className="hero-badge-pill">
           <Sparkles size={14} />
-          <span>Infynno Solutions LLP • AI Exam Studio 2.0</span>
+          <span>Infynno Solutions • Smart UCAT Exam Studio</span>
         </div>
 
         {/* Hero Title */}
@@ -96,8 +96,8 @@ export default function HeroLanding({
 
         {/* Tagline */}
         <p className="hero-tagline">
-          Autonomous Multi-Agent AI Exam Engineering Studio. Generate psychometrically verified,
-          official-rubric UCAT examination items with self-critique, distractor balancing, and instant export.
+          Create realistic UK UCAT exam questions in seconds. Powered by intelligent AI agents that draft,
+          review, and polish high-scoring practice items to official exam standards.
         </p>
 
         {/* Centered CTA Buttons */}
@@ -129,9 +129,9 @@ export default function HeroLanding({
             <div className="hero-feature-icon">
               <Layers size={18} />
             </div>
-            <div className="hero-feature-title">5 Official Sections</div>
+            <div className="hero-feature-title">5 Official Exam Sections</div>
             <div className="hero-feature-desc">
-              Verbal, Decision Making, Quantitative, Abstract & Situational Judgement calibrated to UCAT standards.
+              Practice Verbal, Decision Making, Quantitative, Abstract & Situational Judgement with realistic timing.
             </div>
           </div>
 
@@ -139,9 +139,9 @@ export default function HeroLanding({
             <div className="hero-feature-icon">
               <ShieldCheck size={18} />
             </div>
-            <div className="hero-feature-title">100-Point Quality Gate</div>
+            <div className="hero-feature-title">AI Quality Review</div>
             <div className="hero-feature-desc">
-              Strict multi-agent review rubric: items must score &gt; 90 on authenticity, clarity, and distractors.
+              Every question is automatically evaluated by a reviewer agent for clarity, accuracy, and fairness.
             </div>
           </div>
 
@@ -149,9 +149,9 @@ export default function HeroLanding({
             <div className="hero-feature-icon">
               <Compass size={18} />
             </div>
-            <div className="hero-feature-title">Anti-Guessability Engine</div>
+            <div className="hero-feature-title">Smart Answer Choices</div>
             <div className="hero-feature-desc">
-              Automated option symmetry length balancing, distractor plausibility, and cognitive trap engineering.
+              No obvious giveaways. Wrong answers look realistic to test true understanding and spot tricky traps.
             </div>
           </div>
 
@@ -159,16 +159,16 @@ export default function HeroLanding({
             <div className="hero-feature-icon">
               <Database size={18} />
             </div>
-            <div className="hero-feature-title">PostgreSQL 16 & Export</div>
+            <div className="hero-feature-title">Save, Review & Export</div>
             <div className="hero-feature-desc">
-              Multi-question batch staging, administrative approval workflow, and one-click JSON / RFC 4180 CSV export.
+              Organize questions in your searchable library, approve drafts, and export anytime to CSV or JSON.
             </div>
           </div>
         </div>
 
         {/* 1-Click Preset Shortcuts */}
         <div className="hero-presets-container">
-          <div className="hero-presets-label">Or launch a pre-configured practice preset:</div>
+          <div className="hero-presets-label">✨ Or start instantly with a popular practice set:</div>
           <div className="hero-presets-chips">
             {PRESETS.map((preset) => {
               const Icon = preset.icon;

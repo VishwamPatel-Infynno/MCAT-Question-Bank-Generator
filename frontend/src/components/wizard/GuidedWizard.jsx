@@ -23,36 +23,40 @@ const SECTION_METADATA = {
     label: 'Verbal Reasoning',
     shortCode: 'VR',
     icon: BookOpen,
-    tag: 'Reading Comprehension',
+    tag: 'Reading & Logic',
     color: '#3B82F6',
-    desc: 'Critically evaluate written passages, test propositional logic, and draw calibrated inferences under exam time constraints.'
+    desc: 'Read concise academic passages and answer questions under real exam timing.',
+    coachTip: '⚡ Exam Coach Tip: In Verbal Reasoning (~28s / Q), focus on speed! Watch out for subtle differences between "often", "sometimes", and "always".'
   },
   decision_making: {
     id: 'decision_making',
     label: 'Decision Making',
     shortCode: 'DM',
     icon: BrainCircuit,
-    tag: 'Logic & Arguments',
+    tag: 'Logic & Puzzles',
     color: '#8B5CF6',
-    desc: 'Solve complex deductive logic puzzles, syllogisms, Euler/Venn diagram arguments, and probabilistic scenarios.'
+    desc: 'Solve logic puzzles, Venn diagrams, and probability problems to deduce correct answers.',
+    coachTip: '⚡ Exam Coach Tip: In Decision Making (~64s / Q), sketching quick diagrams or truth tables on your whiteboard saves huge amounts of time!'
   },
   quantitative_reasoning: {
     id: 'quantitative_reasoning',
     label: 'Quantitative Reasoning',
     shortCode: 'QR',
     icon: Calculator,
-    tag: 'Numerical Calculations',
+    tag: 'Math & Data',
     color: '#10B981',
-    desc: 'Solve multi-step numerical problems, proportional changes, currency exchanges, geometry, and data interpretation.'
+    desc: 'Solve practical math problems involving clinical dosages, percentages, geometry, and graphs.',
+    coachTip: '⚡ Exam Coach Tip: In Quantitative Reasoning (~41s / Q), check the units first and estimate before calculating to rule out bad answers quickly.'
   },
   abstract_reasoning: {
     id: 'abstract_reasoning',
     label: 'Abstract Reasoning',
     shortCode: 'AR',
     icon: Shapes,
-    tag: 'Visual Pattern Logic',
+    tag: 'Shape Patterns',
     color: '#F59E0B',
-    desc: 'Identify spatial shape rules, rotational symmetry, Set A vs Set B attributes, and sequential transformation patterns.'
+    desc: 'Spot geometric rules, rotational symmetry, shape counts, and Set A vs Set B patterns.',
+    coachTip: '⚡ Exam Coach Tip: In Abstract Reasoning (~14s / Q), test simple rules first: count shapes, count sides, and look for color alternation.'
   },
   situational_judgement: {
     id: 'situational_judgement',
@@ -61,7 +65,8 @@ const SECTION_METADATA = {
     icon: Scale,
     tag: 'Medical Ethics',
     color: '#EC4899',
-    desc: 'Assess professional integrity, patient perspective, medical ethics, and appropriate conduct according to GMC guidelines.'
+    desc: 'Evaluate real-life clinical scenarios and patient ethics based on official GMC guidance.',
+    coachTip: '⚡ Exam Coach Tip: In Situational Judgement (~22s / Q), patient safety, honesty, and immediate clinical escalation are top priorities in GMC ethics.'
   }
 };
 
@@ -75,11 +80,11 @@ const CONTENT_DOMAINS = [
 ];
 
 const COGNITIVE_TRAPS = [
-  { id: 'Automatic', label: 'Automatic (AI Calibrated)', desc: 'Agent evaluates the hardest trap for the section' },
-  { id: 'Keyword_Trap', label: 'Keyword Match Trap', desc: 'Distractor matches wording verbatim but contradicts nuance' },
-  { id: 'Scope_Shift', label: 'Scope Shift', desc: 'Distractor generalizes beyond stated evidence' },
-  { id: 'Correlation_Causation', label: 'Correlation vs Causation', desc: 'Distractor confuses an observed link with causality' },
-  { id: 'Extreme_Language', label: 'Extreme Language', desc: 'Distractor uses rigid qualifiers (always, never, must)' }
+  { id: 'Automatic', label: 'Automatic (Smart AI Choice)', desc: 'The AI picks the most realistic trap for this question type.' },
+  { id: 'Keyword_Trap', label: 'Keyword Match Trap', desc: 'Uses exact words from the passage, but twists the meaning to fool fast readers.' },
+  { id: 'Scope_Shift', label: 'Scope Shift Trap', desc: 'Sounds completely true, but goes slightly beyond what the text actually stated.' },
+  { id: 'Correlation_Causation', label: 'Correlation vs. Causation', desc: 'Tricks you into thinking that because two events happened together, one caused the other.' },
+  { id: 'Extreme_Language', label: 'Extreme Language Trap', desc: 'Uses rigid words like "always", "never", or "must" that make the statement incorrect.' }
 ];
 
 export default function GuidedWizard({
@@ -380,11 +385,11 @@ export default function GuidedWizard({
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span className="wizard-step-pill">Step {step} of {totalSteps}</span>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              {step === 1 && 'Exam Section Selection'}
-              {step === 2 && 'Subtopic & Content Domain'}
-              {step === 3 && 'Difficulty & Question Style Mix'}
-              {step === 4 && 'Passage, Diagrams & Cognitive Traps'}
-              {step === 5 && 'Review & Confirmation'}
+              {step === 1 && 'Choose Exam Section'}
+              {step === 2 && 'Pick Topic & Scenario'}
+              {step === 3 && 'Difficulty & Questions'}
+              {step === 4 && 'Passages, Diagrams & Traps'}
+              {step === 5 && 'Review & Generate'}
             </span>
           </div>
 
@@ -416,15 +421,14 @@ export default function GuidedWizard({
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div className="wizard-heading-group">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <h2 className="wizard-step-title">Which UCAT section would you like to generate for?</h2>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                <h2 className="wizard-step-title">Which UCAT section would you like to practice?</h2>
                 <span className="badge-minimal">
-                  {pacing.target || '~28s / Q'} Target Pacing
+                  ⏱️ {pacing.target || '~28s / Q'} Target Speed
                 </span>
               </div>
               <p className="wizard-step-subtitle">
-                Select from the five official UCAT examination sections. Each section activates a specialized
-                psychometric rubric and prompt persona.
+                Select one of the five official exam sections below. Each section activates tailored questions, timing guidelines, and scoring criteria.
               </p>
             </div>
 
@@ -459,6 +463,29 @@ export default function GuidedWizard({
                 );
               })}
             </div>
+
+            {/* Interactive Section Coach Tip */}
+            {sectionMeta.coachTip && (
+              <div style={{
+                padding: '12px 16px',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(79, 48, 185, 0.08)',
+                border: '1px solid rgba(79, 48, 185, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                fontSize: '0.85rem',
+                color: 'var(--text-primary)'
+              }}>
+                <Sparkles size={18} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
+                <div>
+                  <strong style={{ color: 'var(--brand-primary)' }}>Coach Tip for {sectionMeta.label}:</strong>{' '}
+                  <span style={{ color: 'var(--text-secondary)' }}>
+                    {sectionMeta.coachTip.replace(/^⚡ Exam Coach Tip:\s*/, '')}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -466,18 +493,18 @@ export default function GuidedWizard({
             STEP 2: SUBTOPIC & CONTENT DOMAIN
            ================================================================= */}
         {step === 2 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
             <div className="wizard-heading-group">
-              <h2 className="wizard-step-title">Specify the subtopic and content domain</h2>
+              <h2 className="wizard-step-title">What specific topic do you want to focus on?</h2>
               <p className="wizard-step-subtitle">
-                Target a specific cognitive construct within {sectionMeta.label}.
+                Select the exact question style or skill you'd like to practice within {sectionMeta.label}.
               </p>
             </div>
 
             {/* Subtopic Selector */}
             <div>
               <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '10px', display: 'block' }}>
-                Subtopic Construct:
+                Choose Topic or Question Type:
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                 {availableSubtopics.map((st) => {
@@ -506,7 +533,7 @@ export default function GuidedWizard({
             {/* Content Domain */}
             <div>
               <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '10px', display: 'block' }}>
-                Content Domain / Theme (Optional):
+                Background Theme or Scenario (Optional):
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {CONTENT_DOMAINS.map((domain) => {
@@ -533,6 +560,26 @@ export default function GuidedWizard({
                 })}
               </div>
             </div>
+
+            {/* Interactive Feedback Card */}
+            {selectedSubtopic && (
+              <div style={{
+                padding: '12px 16px',
+                borderRadius: 'var(--radius-md)',
+                background: 'var(--bg-surface-elevated)',
+                border: '1px solid var(--border-light)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                fontSize: '0.84rem'
+              }}>
+                <CheckCircle2 size={16} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
+                <span>
+                  Practicing: <strong>{selectedSubtopic}</strong>
+                  {form.contentDomain ? <> in <em>{form.contentDomain}</em></> : ''}
+                </span>
+              </div>
+            )}
           </div>
         )}
 
@@ -542,22 +589,22 @@ export default function GuidedWizard({
         {step === 3 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
             <div className="wizard-heading-group">
-              <h2 className="wizard-step-title">Choose difficulty and question style mix</h2>
+              <h2 className="wizard-step-title">How challenging should this be, and how many questions do you need?</h2>
               <p className="wizard-step-subtitle">
-                Calibrate the cognitive load, batch size, and single vs multi-choice question distribution.
+                Pick your challenge level and choose how many single-choice or multi-statement items to generate.
               </p>
             </div>
 
             {/* Difficulty Cards */}
             <div>
               <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '10px', display: 'block' }}>
-                Target Difficulty Tier:
+                Select Challenge Level:
               </label>
               <div className="wizard-difficulty-grid">
                 {[
-                  { id: 'easy', title: 'Foundational', desc: 'Direct inferences, clean premises, foundational revision.' },
-                  { id: 'medium', title: 'Standard Exam', desc: 'Authentic official UCAT timing & psychometric calibration.' },
-                  { id: 'hard', title: 'Top Percentile', desc: 'Subtle distractor traps, high cognitive load, top decile target.' }
+                  { id: 'easy', title: 'Foundational (Beginner)', desc: 'Direct clues and straightforward reasoning, ideal for learning the concepts.' },
+                  { id: 'medium', title: 'Standard Exam', desc: 'Matches official UCAT test-day timing and authentic distractor complexity.' },
+                  { id: 'hard', title: 'Top Percentile (Challenging)', desc: 'Subtle traps and multi-layered deductions for top-decile scorers.' }
                 ].map((tier) => {
                   const isSelected = difficulty.toLowerCase() === tier.id;
                   return (
@@ -581,10 +628,10 @@ export default function GuidedWizard({
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <div>
                   <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    Total Questions to Generate
+                    How Many Questions?
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    Generate a single item or an official multi-question test set (1 to 5 questions).
+                    Create a single quick question or a practice batch of up to 5 questions.
                   </div>
                 </div>
                 <div style={{ width: '130px' }}>
@@ -631,12 +678,12 @@ export default function GuidedWizard({
             {totalQuestions === 1 && (
               <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-light)' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', display: 'block' }}>
-                  Question Answer Style:
+                  Question Answer Format:
                 </label>
                 <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
                   {[
-                    { id: 'single_choice', label: 'Single Best Answer (A-D)' },
-                    { id: 'multi_choice', label: 'Multiple Answers (True/False Evaluation)' }
+                    { id: 'single_choice', label: 'Single Best Answer (A to D)' },
+                    { id: 'multi_choice', label: 'Multiple Statements (True / False)' }
                   ].map(opt => {
                     const isSel = interactionType === opt.id;
                     return (
@@ -667,17 +714,17 @@ export default function GuidedWizard({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      Reading Material Structure
+                      Reading Passage Setup
                     </span>
                     <span className="badge badge-purple" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
-                      {passageMode === 'single_passage' ? '1 Passage • N Questions' : 'Separate Vignettes'}
+                      {passageMode === 'single_passage' ? '1 Passage • Linked Questions' : 'Separate Scenarios'}
                     </span>
                   </div>
 
                   <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
                     {[
-                      { id: 'single_passage', label: 'Single Passage Set (Shared Material)' },
-                      { id: 'independent', label: 'Independent Questions (Standalone)' }
+                      { id: 'single_passage', label: 'Shared Reading Passage (Common Story)' },
+                      { id: 'independent', label: 'Independent Questions (Separate Vignettes)' }
                     ].map(opt => {
                       const isSel = passageMode === opt.id;
                       return (
@@ -699,7 +746,7 @@ export default function GuidedWizard({
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                          Questions linked to Shared Passage:
+                          Questions attached to the Shared Passage:
                         </span>
                         <div style={{ width: '140px' }}>
                           <NumberStepper
@@ -729,11 +776,11 @@ export default function GuidedWizard({
                       >
                         {passageQuestionCount === totalQuestions ? (
                           <>
-                            <strong style={{ color: 'var(--brand-primary)' }}>Full Passage Set:</strong> All {totalQuestions} questions will reference 1 shared comprehensive passage (250–400 words).
+                            <strong style={{ color: 'var(--brand-primary)' }}>Full Passage Set:</strong> All {totalQuestions} questions will share 1 reading passage (250–400 words), just like real UCAT exam sets.
                           </>
                         ) : (
                           <>
-                            <strong style={{ color: 'var(--status-purple)' }}>Mixed Set:</strong> {passageQuestionCount} questions linked to 1 shared passage; remaining {totalQuestions - passageQuestionCount} questions are direct standalone items without passage.
+                            <strong style={{ color: 'var(--status-purple)' }}>Mixed Practice Set:</strong> {passageQuestionCount} questions will share the reading passage; the remaining {totalQuestions - passageQuestionCount} will be standalone questions.
                           </>
                         )}
                       </div>
@@ -777,9 +824,9 @@ export default function GuidedWizard({
         {step === 4 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
             <div className="wizard-heading-group">
-              <h2 className="wizard-step-title">Configure stimuli, diagrams and cognitive traps</h2>
+              <h2 className="wizard-step-title">Add reading passages, diagrams, and tricky traps</h2>
               <p className="wizard-step-subtitle">
-                Fine-tune passage attachments, question-level vector diagrams, and cognitive distractor strategies.
+                Customise your practice set with reading passages, AI-generated diagrams, and specific distractor traps.
               </p>
             </div>
 
@@ -790,16 +837,16 @@ export default function GuidedWizard({
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
                     <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      Reading Material
+                      Reading Passage Story
                     </div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                      Require a multi-paragraph clinical or academic reading passage.
+                      Include a 250–400 word realistic clinical or academic reading passage.
                     </div>
                   </div>
-                  <div className="pill-track" style={{ width: '220px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                  <div className="pill-track" style={{ width: '260px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
                     {[
-                      { id: 'No', label: 'Direct Item' },
-                      { id: 'Yes', label: 'Passage' }
+                      { id: 'No', label: 'Standalone Item' },
+                      { id: 'Yes', label: 'With Passage' }
                     ].map(opt => {
                       const isSel = passageRequired === opt.id;
                       return (
@@ -827,10 +874,10 @@ export default function GuidedWizard({
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px dashed var(--border-light)', paddingTop: '10px' }}>
                     <div>
                       <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        Passage Diagram Stimulus
+                        Passage Diagram
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                        Attach a diagram illustration to the reading passage ($0.0020).
+                        Attach an AI-generated diagram illustration to the reading passage ($0.0020).
                       </div>
                     </div>
                     <div className="pill-track" style={{ width: '220px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
@@ -865,7 +912,7 @@ export default function GuidedWizard({
                         Question Diagram
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                        Attach a visual pattern or diagram to the question stem ($0.0020).
+                        Attach an AI visual pattern or diagram to the question stem ($0.0020).
                       </div>
                     </div>
                     <div className="pill-track" style={{ width: '220px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
@@ -908,10 +955,10 @@ export default function GuidedWizard({
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
                       <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        Passage Diagram
+                        Shared Passage Diagram
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                        Generate a dedicated diagram for the shared reading passage ($0.0020).
+                        Generate a dedicated AI diagram for the shared reading passage ($0.0020).
                       </div>
                     </div>
                     <div className="pill-track" style={{ width: '220px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
@@ -972,7 +1019,7 @@ export default function GuidedWizard({
                 }}
               >
                 <Shapes size={16} />
-                <span>Abstract Reasoning questions strictly generate spatial geometric pattern diagrams for all {totalQuestions} items.</span>
+                <span>Abstract Reasoning questions always generate visual pattern diagrams for all {totalQuestions} items.</span>
               </div>
             )}
 
@@ -1020,7 +1067,7 @@ export default function GuidedWizard({
             {/* Cognitive Trap Selector */}
             <div>
               <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', display: 'block' }}>
-                Primary Distractor Cognitive Trap:
+                Choose a tricky trap for the wrong answers (distractors):
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '10px' }}>
                 {COGNITIVE_TRAPS.map((trap) => {
@@ -1049,16 +1096,19 @@ export default function GuidedWizard({
             {/* Custom Guidelines Prompt */}
             <div>
               <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', display: 'block' }}>
-                Custom Prompt Directives (Optional):
+                Any custom instructions for the AI? (Optional):
               </label>
               <textarea
                 className="input-textarea"
                 rows={2}
-                placeholder="e.g. Focus on cardiology pharmacology ethics, ensure distractor D utilizes a subtle numerical trap..."
+                placeholder="e.g. Focus on pediatric cardiology dosages, make Option B a tempting trap, or include patient refusal of consent..."
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
                 style={{ width: '100%', resize: 'vertical' }}
               />
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                💡 Tip: Type any specific clinical topic, condition, or question style you want the AI to include!
+              </div>
             </div>
           </div>
         )}
@@ -1069,9 +1119,9 @@ export default function GuidedWizard({
         {step === 5 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div className="wizard-heading-group">
-              <h2 className="wizard-step-title">Review your examination parameters before generation</h2>
+              <h2 className="wizard-step-title">Everything looks ready! Review your setup</h2>
               <p className="wizard-step-subtitle">
-                Complete psychometric specification audit. Click 'Edit' on any section to modify.
+                Check your settings below. Click 'Edit' beside any row to adjust it, or launch generation now!
               </p>
             </div>
 
@@ -1079,13 +1129,13 @@ export default function GuidedWizard({
               {/* Row 1: Section & Topic */}
               <div className="wizard-summary-row">
                 <div>
-                  <div className="wizard-summary-label">Target Subtest & Topic Focus</div>
+                  <div className="wizard-summary-label">Target Section & Topic Focus</div>
                   <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
                     <span style={{ color: sectionMeta.color, fontWeight: 700 }}>{sectionMeta.label}</span>
                     <span style={{ color: 'var(--text-muted)' }}>•</span>
                     <span>{selectedSubtopic || 'General Practice'}</span>
                     <span style={{ color: 'var(--text-muted)' }}>•</span>
-                    <span className="badge-minimal">{pacing.target || '~28s / Q'} Target Pacing</span>
+                    <span className="badge-minimal">⏱️ {pacing.target || '~28s / Q'} Target Speed</span>
                   </div>
                 </div>
                 <button
@@ -1102,13 +1152,13 @@ export default function GuidedWizard({
               {/* Row 2: Difficulty & Quantity */}
               <div className="wizard-summary-row">
                 <div>
-                  <div className="wizard-summary-label">Difficulty & Question Mix</div>
+                  <div className="wizard-summary-label">Difficulty & Question Count</div>
                   <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
                     <span style={{ textTransform: 'capitalize' }}>{difficulty} Difficulty</span>
                     <span style={{ color: 'var(--text-muted)' }}>•</span>
                     <span>{totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'} total</span>
                     <span style={{ color: 'var(--text-muted)' }}>•</span>
-                    <span>({singleChoiceCount} Single Choice, {multiChoiceCount} Multi Choice)</span>
+                    <span>({singleChoiceCount} Single Best Answer, {multiChoiceCount} Multi Statement)</span>
                   </div>
                 </div>
                 <button
@@ -1125,15 +1175,15 @@ export default function GuidedWizard({
               {/* Row 3: Reading Material Structure */}
               <div className="wizard-summary-row">
                 <div>
-                  <div className="wizard-summary-label">Reading Material Structure</div>
+                  <div className="wizard-summary-label">Reading Passage Setup</div>
                   <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
                     {totalQuestions > 1 ? (
                       passageMode === 'single_passage' ? (
                         <span>
-                          Single Passage Set ({passageQuestionCount} questions on 1 shared passage{totalQuestions > passageQuestionCount ? `, ${totalQuestions - passageQuestionCount} standalone items` : ''})
+                          Shared Reading Passage ({passageQuestionCount} questions linked to passage{totalQuestions > passageQuestionCount ? `, ${totalQuestions - passageQuestionCount} standalone items` : ''})
                         </span>
                       ) : (
-                        <span>Independent Vignettes ({totalQuestions} standalone questions)</span>
+                        <span>Independent Questions ({totalQuestions} standalone questions, no shared passage)</span>
                       )
                     ) : (
                       <span>{passageRequired === 'Yes' ? 'Reading Passage Attached (250–400 words)' : 'Direct Standalone Question (No Passage)'}</span>
@@ -1179,7 +1229,7 @@ export default function GuidedWizard({
               {/* Row 5: Cognitive Traps & Directives */}
               <div className="wizard-summary-row">
                 <div>
-                  <div className="wizard-summary-label">Cognitive Distractor Trap</div>
+                  <div className="wizard-summary-label">Tricky Distractor Trap</div>
                   <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
                     <span>{COGNITIVE_TRAPS.find(t => t.id === primaryTrap)?.label || primaryTrap}</span>
                     {customPrompt && (
@@ -1213,8 +1263,8 @@ export default function GuidedWizard({
             }}>
               <Sparkles size={20} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
               <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-                Clicking <strong>Launch Multi-Agent Generation</strong> will execute the Question Generator,
-                Reviewer self-critique, and Psychometric Quality Gate (&gt; 90). Live tokens, latency, and costs will stream in real-time.
+                Clicking <strong>Launch Generation</strong> will create your questions, verify them against official UCAT rubrics (&gt; 90 quality score),
+                and balance all answer choices in ~15–25 seconds.
               </div>
             </div>
           </div>
@@ -1253,7 +1303,7 @@ export default function GuidedWizard({
           {step === totalSteps ? (
             <>
               <Sparkles size={16} />
-              <span>🚀 Launch Multi-Agent Generation</span>
+              <span>🚀 Launch Generation</span>
             </>
           ) : (
             <>
