@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { 
   Database, 
   Search, 
-  Download, 
   Trash2, 
   Award, 
   Copy, 
@@ -21,11 +20,12 @@ import {
   Image as ImageIcon,
   RotateCcw
 } from 'lucide-react';
-import { getExportUrl, batchDeleteQuestions } from '../../services/api';
+import { batchDeleteQuestions } from '../../services/api';
 import { useQuestionBank } from '../../hooks/useQuestionBank';
 import VisualStimulusViewer from '../question/VisualStimulusViewer';
 import SharedPassageCard from '../question/SharedPassageCard';
 import CustomSelect from '../common/CustomSelect';
+import ExportPrintModal from '../modals/ExportPrintModal';
 
 const SORT_OPTIONS = [
   { id: 'newest', label: 'Newest First' },
@@ -73,6 +73,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
   const [expandedId, setExpandedId] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   const hasActiveFilters = Boolean(searchQuery.trim() || sectionFilter || diffFilter);
 
@@ -165,27 +166,6 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
     }
   };
 
-  const handleBulkExportJson = () => {
-    const exportData = selectedIds.length > 0 
-      ? questions.filter(q => selectedIds.includes(q.id))
-      : questions;
-    
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ucat_selected_${exportData.length}_questions.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    if (onShowToast) {
-      onShowToast({
-        type: 'success',
-        title: 'Export Complete',
-        message: `Exported ${exportData.length} question(s) to JSON.`
-      });
-    }
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Top Header & Precision Metric Strip */}
@@ -242,42 +222,24 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: '6px' }}>
-            <a
-              href={questions.length > 0 ? getExportUrl('json') : undefined}
-              download={questions.length > 0 ? "ucat_questions.json" : undefined}
-              className="btn-secondary"
-              style={{
-                textDecoration: 'none',
-                padding: '6px 12px',
-                fontSize: '0.78rem',
-                opacity: questions.length === 0 ? 0.5 : 1,
-                pointerEvents: questions.length === 0 ? 'none' : 'auto',
-                cursor: questions.length === 0 ? 'not-allowed' : 'pointer'
-              }}
-              aria-disabled={questions.length === 0}
-              title={questions.length > 0 ? "Download entire question bank as JSON" : "No questions to export"}
-            >
-              <Download size={13} /> JSON
-            </a>
-            <a
-              href={questions.length > 0 ? getExportUrl('csv') : undefined}
-              download={questions.length > 0 ? "ucat_questions.csv" : undefined}
-              className="btn-secondary"
-              style={{
-                textDecoration: 'none',
-                padding: '6px 12px',
-                fontSize: '0.78rem',
-                opacity: questions.length === 0 ? 0.5 : 1,
-                pointerEvents: questions.length === 0 ? 'none' : 'auto',
-                cursor: questions.length === 0 ? 'not-allowed' : 'pointer'
-              }}
-              aria-disabled={questions.length === 0}
-              title={questions.length > 0 ? "Download entire question bank as CSV" : "No questions to export"}
-            >
-              <Download size={13} /> CSV
-            </a>
-          </div>
+          <button
+            type="button"
+            id="btn-open-export-studio"
+            onClick={() => setShowExportModal(true)}
+            className="btn-secondary"
+            style={{
+              padding: '6px 14px',
+              fontSize: '0.78rem',
+              gap: '6px',
+              opacity: questions.length === 0 ? 0.5 : 1,
+              cursor: questions.length === 0 ? 'not-allowed' : 'pointer'
+            }}
+            disabled={questions.length === 0}
+            title={questions.length > 0 ? "Open Export & Print Studio" : "No questions to export"}
+          >
+            <FileDown size={14} />
+            <span>Export &amp; Print Studio</span>
+          </button>
         </div>
       </div>
 
@@ -433,9 +395,12 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
             {selectedIds.length > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button
-                  onClick={handleBulkExportJson}
+                  type="button"
+                  id="btn-bulk-export-studio"
+                  onClick={() => setShowExportModal(true)}
                   className="btn-secondary"
                   style={{ padding: '6px 12px', fontSize: '0.75rem', gap: '6px' }}
+                  title="Open Export & Print Studio with selected questions"
                 >
                   <FileDown size={13} />
                   <span>Export Selected ({selectedIds.length})</span>
@@ -880,6 +845,19 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
             )}
           </div>
         </div>
+      )}
+
+      {/* Export & Print Studio Modal */}
+      {showExportModal && (
+        <ExportPrintModal
+          isOpen={showExportModal}
+          onClose={() => setShowExportModal(false)}
+          allQuestions={questions}
+          selectedIds={selectedIds}
+          filteredQuestions={questions}
+          hasActiveFilters={hasActiveFilters}
+          onShowToast={onShowToast}
+        />
       )}
     </div>
   );

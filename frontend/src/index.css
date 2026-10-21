@@ -1491,6 +1491,25 @@ input:focus, select:focus, textarea:focus {
   color: var(--text-primary);
 }
 
+/* ==========================================================================
+   Print & PDF Export Utility Styles
+   ========================================================================== */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
 
+  .navbar,
+  .footer,
+  .toast-container,
+  .modal-backdrop,
+  .workspace-action-bar {
+    display: none !important;
+  }
 
-
+  .page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+}
