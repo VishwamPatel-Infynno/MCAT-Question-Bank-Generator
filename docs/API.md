@@ -33,8 +33,7 @@ This document provides a comprehensive reference for all REST endpoints and Serv
 | `GET` | `/api/batches/{id}/questions` | Retrieves all questions generated in a batch |
 | `GET` | `/api/export` | Exports repository in JSON or CSV format |
 | `GET` | `/api/health` | Service health, database connectivity, active models, and pricing |
-| `GET` | `/api/config` | Retrieves active model configuration and provider credentials |
-| `POST` | `/api/config` | Dynamically updates runtime model and provider settings |
+| `GET` | `/api/config` | Retrieves active model configuration and runtime status |
 | `GET` | `/api/sections` | Returns official UK UCAT subtests and categorized syllabus topics |
 
 ---
@@ -391,27 +390,13 @@ curl -X GET http://localhost:8000/api/health
 ---
 
 ### 3.9 Configuration & Runtime Settings
-`GET /api/config` | `POST /api/config`
+`GET /api/config`
 
-Enables reading and dynamically updating runtime engine settings and model choices without restarting the backend process (credentials are securely managed in server `.env`).
+Enables reading active runtime engine settings, model choices, and pricing parameters for diagnostics and status inspection. Credentials are securely managed in server `.env`.
 
 #### Read Configuration (`GET /api/config`)
 ```bash
 curl -X GET http://localhost:8000/api/config
-```
-
-#### Update Configuration (`POST /api/config`)
-```bash
-curl -X POST http://localhost:8000/api/config \
-  -H "Content-Type: application/json" \
-  -d '{
-    "default_text_model": "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo",
-    "default_image_model": "black-forest-labs/FLUX-2-klein-4b",
-    "image_width": 1024,
-    "image_height": 1024,
-    "image_iters": 0,
-    "max_regenerations": 3
-  }'
 ```
 
 ---

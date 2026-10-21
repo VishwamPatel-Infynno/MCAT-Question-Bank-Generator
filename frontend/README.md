@@ -35,8 +35,7 @@ frontend/src/
 │   │   ├── Footer.jsx            # Infynno Solutions LLP attribution & resource footer
 │   │   └── Navbar.jsx            # Header with branding, navigation tabs, status, and theme toggle
 │   ├── modals/
-│   │   ├── ExportPrintModal.jsx  # Exam Paper (PDF), Study Pack, CSV and JSON export modal
-│   │   └── SettingsModal.jsx     # Model configuration & Infynno corporate profile
+│   │   └── ExportPrintModal.jsx  # Exam Paper (PDF), Study Pack, CSV and JSON export modal
 │   ├── pipeline/
 │   │   ├── AgentVisualizer.jsx   # Live generating telemetry & compact stepper
 │   │   ├── MultiAgentPipelineVisualizer.jsx # 4-Agent architecture & conduit visualizer
@@ -57,7 +56,7 @@ frontend/src/
 │       ├── QuestionStyleMixSection.jsx # Single vs multi-choice allocation controls
 │       └── steps/                # Subcomponents for wizard steps 1 through 5
 ├── constants/
-│   ├── config.js                 # Pricing models, image parameters, resolution presets
+│   ├── config.js                 # Pricing models, image parameters, token rates
 │   └── ucat.js                   # UCAT subtests, pacing specs, icons, and fallback topics
 ├── hooks/
 │   ├── index.js                  # Barrel export for custom hooks

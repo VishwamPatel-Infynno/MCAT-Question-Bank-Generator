@@ -359,7 +359,7 @@ frontend/src/
 │   ├── pipeline/        # AI Pipeline (AgentVisualizer, MultiAgentPipelineVisualizer, RejectionCard)
 │   ├── question/        # Review Desk (QuestionCard, ReviewAuditView, StageJsonInspector, StagedBatchReview, VisualStimulusViewer)
 │   ├── bank/            # Repository table, filter chips, pagination, export (QuestionBank)
-│   ├── modals/          # Dialog modals (SettingsModal)
+│   ├── modals/          # Dialog modals (ExportPrintModal)
 │   └── common/          # Common primitives (CustomSelect, InfynnoLogo, NumberStepper, Toast)
 ├── services/
 │   └── api.js           # SSE event reader, candidate approval & REST API client

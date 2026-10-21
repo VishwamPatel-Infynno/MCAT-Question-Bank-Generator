@@ -1,11 +1,10 @@
 import React from 'react';
-import { Sparkles, Database, Settings, Sun, Moon, ExternalLink } from 'lucide-react';
+import { Sparkles, Database, Sun, Moon, ExternalLink } from 'lucide-react';
 import InfynnoLogo from '../common/InfynnoLogo';
 
 export default function Navbar({
   activeTab,
   setActiveTab,
-  onOpenSettings,
   backendStatus,
   theme,
   onToggleTheme,
@@ -183,18 +182,6 @@ export default function Navbar({
         >
           {theme === 'dark' ? <Sun size={13} color="#fbbf24" /> : <Moon size={13} color="var(--brand-primary)" />}
           <span className="kbd-hint" style={{ fontSize: '0.575rem', padding: '1px 3px', marginLeft: '3px' }}>T</span>
-        </button>
-
-        {/* Settings Button */}
-        <button
-          id="btn-settings-open"
-          onClick={onOpenSettings}
-          className="btn-secondary"
-          style={{ padding: '5px 10px', fontSize: '0.75rem', borderRadius: 'var(--radius-xs)', gap: '5px' }}
-          title="Configure API Keys & Settings"
-        >
-          <Settings size={13} />
-          <span>Settings</span>
         </button>
       </div>
     </header>

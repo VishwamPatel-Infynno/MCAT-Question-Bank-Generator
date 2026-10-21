@@ -63,20 +63,6 @@ export async function batchApproveQuestions(questions) {
   return res.json();
 }
 
-export async function fetchSettings() {
-  const res = await fetch(`${API_BASE}/config`);
-  return res.json();
-}
-
-export async function updateSettings(settings) {
-  const res = await fetch(`${API_BASE}/config`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(settings)
-  });
-  return res.json();
-}
-
 export function getExportUrl(format = 'json') {
   return `${API_BASE}/export?format=${format}`;
 }

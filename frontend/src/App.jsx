@@ -22,7 +22,6 @@ import { fetchSections, fetchHealth, approveQuestion, batchApproveQuestions } fr
 // Dynamic code-split chunk imports for optimal bundle size
 const QuestionBank = lazy(() => import('./components/bank/QuestionBank'));
 const ReviewAuditView = lazy(() => import('./components/question/ReviewAuditView'));
-const SettingsModal = lazy(() => import('./components/modals/SettingsModal'));
 
 function LazyLoadingSpinner({ label = 'Loading...' }) {
   return (
@@ -65,7 +64,6 @@ export default function App() {
 
   // Modals & Status
   const [auditQuestion, setAuditQuestion] = useState(null);
-  const [showSettings, setShowSettings] = useState(false);
   const [backendStatus, setBackendStatus] = useState(false);
 
   // Toast Notifications
@@ -325,7 +323,6 @@ export default function App() {
     onDiscard: activeQuestion && !isQuestionSaved ? handleDiscardQuestion : undefined,
     onToggleTheme: toggleTheme,
     onEscape: () => {
-      if (showSettings) setShowSettings(false);
       if (auditQuestion) setAuditQuestion(null);
     }
   });
@@ -383,7 +380,6 @@ export default function App() {
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenSettings={() => setShowSettings(true)}
         backendStatus={backendStatus}
         theme={theme}
         onToggleTheme={toggleTheme}
@@ -612,12 +608,6 @@ export default function App() {
         </Suspense>
       )}
 
-      {/* Settings Modal */}
-      {showSettings && (
-        <Suspense fallback={null}>
-          <SettingsModal onClose={() => setShowSettings(false)} />
-        </Suspense>
-      )}
 
       {/* Toast Notification Container */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />

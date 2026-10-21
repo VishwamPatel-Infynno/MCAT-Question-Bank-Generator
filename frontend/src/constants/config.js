@@ -16,10 +16,3 @@ export const IMAGE_PRICING = {
   formulaLabel: 'FLUX-2 Klein Ultra-Fast Neural Synthesis ($0.014 / img)',
   calculate: (w = 1024, h = 1024) => 0.014 * (w / 1024) * (h / 1024)
 };
-
-export const IMAGE_RESOLUTION_PRESETS = [
-  { label: '1024 × 1024 (Standard Quality)', width: 1024, height: 1024 },
-  { label: '768 × 768 (Medium Balanced)', width: 768, height: 768 },
-  { label: '512 × 512 (Fast Lightweight)', width: 512, height: 512 }
-];
-
