@@ -924,47 +924,6 @@ export default function GuidedWizard({
               </div>
             )}
 
-            {/* Infynno Neural Visual Studio */}
-            <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-light)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '8px',
-                    background: 'var(--primary-subtle)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'var(--primary)',
-                    border: '1px solid var(--border-color)'
-                  }}>
-                    <ImageIcon size={20} />
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                        Infynno Neural Visual Studio
-                      </span>
-                      <span className="badge-minimal" style={{ background: 'var(--primary-subtle)', color: 'var(--primary)', fontWeight: 600, fontSize: '0.72rem' }}>
-                        High-Resolution Neural Engine
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                      All visual stimuli (patterns, geometry, charts & diagrams) are synthesized with precision and calibrated against official UK UCAT standards.
-                    </div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>1024×1024 High-Res</span>
-                  <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>Official Exam Calibration</span>
-                  <span className="badge-minimal" style={{ fontSize: '0.72rem', background: 'var(--status-success-bg)', color: 'var(--status-success)', borderColor: 'var(--status-success-border)' }}>
-                    Multi-Layer Verified
-                  </span>
-                </div>
-              </div>
-            </div>
-
             {/* Cognitive Trap Selector */}
             <div>
               <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', display: 'block' }}>
@@ -1134,7 +1093,7 @@ export default function GuidedWizard({
                   <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
                     <span>
                       {totalImagesCount > 0
-                        ? `${totalImagesCount} ${totalImagesCount === 1 ? 'Diagram' : 'Diagrams'} • Infynno Neural Visual Studio (High-Resolution)`
+                        ? `${totalImagesCount} ${totalImagesCount === 1 ? 'Diagram' : 'Diagrams'} (High-Resolution)`
                         : 'No Visual Stimuli (Text Only)'}
                     </span>
                     {hasPassageImage && <span className="badge-minimal">Passage Diagram</span>}
