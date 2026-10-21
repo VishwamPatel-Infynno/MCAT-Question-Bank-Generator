@@ -8,20 +8,6 @@ from app.db.session import async_session_factory
 from app.models.batch import GenerationBatchModel
 from app.models.passage import PassageModel
 from app.models.question import QuestionModel
-from app.repositories.batch_repo import (
-    _batch_model_to_schema,
-    _batch_schema_to_model,
-    get_batch_by_id,
-    get_batches,
-    save_batch,
-)
-from app.repositories.passage_repo import (
-    _passage_model_to_schema,
-    _passage_schema_to_model,
-    get_passage_by_id,
-    get_passages,
-    save_passage,
-)
 from app.schemas import OptionChoice, Question, ReviewScore
 
 logger = logging.getLogger(__name__)
@@ -422,23 +408,13 @@ async def delete_questions_batch(question_ids: list[str]) -> int:
 
 __all__ = [
     "BatchSaveResult",
-    "_batch_model_to_schema",
-    "_batch_schema_to_model",
     "_model_to_schema",
-    "_passage_model_to_schema",
-    "_passage_schema_to_model",
     "_schema_to_model",
     "delete_question",
     "delete_questions_batch",
-    "get_batch_by_id",
-    "get_batches",
-    "get_passage_by_id",
-    "get_passages",
     "get_question_by_id",
     "get_questions",
     "get_repository_metrics",
-    "save_batch",
-    "save_passage",
     "save_question",
     "save_questions_batch",
 ]

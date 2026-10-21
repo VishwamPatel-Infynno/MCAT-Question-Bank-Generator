@@ -4,7 +4,7 @@ import httpx
 import pytest
 from app.db.session import init_db
 from app.main import app
-from app.repositories.question_repo import (
+from app.repositories import (
     delete_question,
     get_batch_by_id,
     get_passage_by_id,

@@ -27,28 +27,41 @@ frontend/src/
 │   ├── bank/
 │   │   └── QuestionBank.jsx      # Repository table, filters, sorting, bulk actions, and export
 │   ├── common/
+│   │   ├── CustomSelect.jsx      # Accessible custom dropdown select primitive
 │   │   ├── InfynnoLogo.jsx       # Official corporate vector logo primitive
+│   │   ├── NumberStepper.jsx     # Accessible numerical stepper primitive
 │   │   └── Toast.jsx             # Floating toast notification system
-│   ├── generator/
-│   │   ├── AgentVisualizer.jsx   # Live generating telemetry & compact stepper
-│   │   ├── GeneratorPanel.jsx    # Left-hand 3-stage guided setup dock
-│   │   ├── MultiAgentPipelineVisualizer.jsx # 4-Agent architecture & electric wiring hub
-│   │   ├── RejectionCard.jsx     # Diagnostic display when score fails threshold
-│   │   └── StudioBlueprint.jsx   # Canvas blueprint summary & quick presets
 │   ├── layout/
 │   │   ├── Footer.jsx            # Infynno Solutions LLP attribution & resource footer
 │   │   └── Navbar.jsx            # Header with branding, navigation tabs, status, and theme toggle
 │   ├── modals/
+│   │   ├── ExportPrintModal.jsx  # Exam Paper (PDF), Study Pack, CSV and JSON export modal
 │   │   └── SettingsModal.jsx     # Model configuration & Infynno corporate profile
-│   └── question/
-│       ├── QuestionCard.jsx      # Interactive student practice & review card
-│       ├── ReviewAuditView.jsx   # 100-point rubric breakdown & token cost modal
-│       ├── StageJsonInspector.jsx# Deep stage outcome JSON inspector modal
-│       └── StagedBatchReview.jsx # Multi-question batch confirmation deck
+│   ├── pipeline/
+│   │   ├── AgentVisualizer.jsx   # Live generating telemetry & compact stepper
+│   │   ├── MultiAgentPipelineVisualizer.jsx # 4-Agent architecture & conduit visualizer
+│   │   └── RejectionCard.jsx     # Diagnostic display when score fails threshold
+│   ├── question/
+│   │   ├── QuestionCard.jsx      # Interactive student practice & review card
+│   │   ├── QuestionDraftingSkeleton.jsx # Pulse skeleton for question creation
+│   │   ├── ReviewAuditView.jsx   # 100-point rubric breakdown & token cost modal
+│   │   ├── SharedPassageCard.jsx # Shared reading passage stimulus display card
+│   │   ├── StageJsonInspector.jsx# Deep stage outcome JSON inspector modal
+│   │   ├── StagedBatchReview.jsx # Multi-question batch confirmation deck
+│   │   ├── StagedQuestionSlotCard.jsx # Individual question slot reviewer card
+│   │   └── VisualStimulusViewer.jsx # SVG & neural visual diagram renderer
+│   └── wizard/
+│       ├── GuidedWizard.jsx      # 5-step guided exam generation wizard dock
+│       ├── HeroLanding.jsx       # Welcome landing hero header
+│       ├── IndependentDiagramControls.jsx # Standalone diagram requirements selector
+│       ├── QuestionStyleMixSection.jsx # Single vs multi-choice allocation controls
+│       └── steps/                # Subcomponents for wizard steps 1 through 5
 ├── constants/
 │   ├── config.js                 # Pricing models, image parameters, resolution presets
 │   └── ucat.js                   # UCAT subtests, pacing specs, icons, and fallback topics
 ├── hooks/
+│   ├── index.js                  # Barrel export for custom hooks
+│   ├── useGeneratorForm.js       # Form state & validation logic
 │   ├── useKeyboardShortcuts.js   # Global hotkeys (⌘↵ to generate, A to approve, D to discard)
 │   ├── useQuestionBank.js        # Debounced search, sorting, and bank fetching
 │   ├── useQuestionGenerator.js   # SSE streaming, batch progress, and state management
