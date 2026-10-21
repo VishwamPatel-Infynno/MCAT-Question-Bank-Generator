@@ -94,7 +94,7 @@ graph TD
         CalcCost --> TokenUsageObj[TokenUsage Schema: p_tokens, c_tokens, total, cost_usd]
     end
 
-    subgraph "Agent State Graph (app.workflow.graph)"
+    subgraph "Agent State Graph (app.workflow.nodes & app.workflow.engine)"
         TokenUsageObj --> Accumulate[Accumulator in Agent Node]
         Accumulate --> RunningTotals["running_total_tokens += node.total<br>running_cost += node.cost"]
         Accumulate --> ItemizedList["agent_usage_breakdown.append({agent, iteration, ...})"]
@@ -109,7 +109,7 @@ graph TD
 
 ### 3.1 Data Structures
 
-#### `TokenUsage` Schema ([`app/schemas.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/schemas.py#L90-L96))
+#### `TokenUsage` Schema ([`app/schemas/token.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/schemas/token.py#L9-L15))
 ```python
 class TokenUsage(BaseModel):
     prompt_tokens: int = Field(0, description="Input tokens processed")

@@ -11,15 +11,18 @@ Engineered by **[Infynno Solutions LLP](https://infynno.com/)**, powered by a **
 
 ## 📚 Comprehensive Documentation Suite
 
-For deep-dive technical specifications, architecture diagrams, API schemas, and authoring guidelines, consult the dedicated guides in the [`docs/`](docs/) directory:
+For deep-dive technical specifications, architecture diagrams, API schemas, and authoring guidelines, consult the dedicated guides in the [`docs/`](docs/) directory and repository root:
 
 | Document | Description |
 | :--- | :--- |
+| **[UI/UX Design System (DESIGN.md)](DESIGN.md)** | Authoritative design tokens, dual obsidian/alabaster themes, typography scale, component contracts, accessibility criteria (WCAG AA), and micro-animations. |
 | **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 4-agent specifications, Strict Quality Gate, SSE pipeline, batch routing, and PostgreSQL 16 ERD. |
 | **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation, batch generation schemas, SSE event stream contracts, filter parameters, and cURL examples. |
 | **[Token Usage & Cost Tracking](docs/TOKEN_TRACKING.md)** | High-throughput rate card ($0.10 in / $0.32 out per 1M tokens), exact mathematical cost formulas, multi-agent accumulation, and UI observability. |
 | **[Installation, Setup & Deployment](docs/SETUP_AND_CONFIG.md)** | Step-by-step setup, Docker PostgreSQL 16 guide, environment variables reference, production deployment, linters, and troubleshooting. |
 | **[UCAT Psychometric Rubric & Standards](docs/UCAT_RUBRIC.md)** | Official 5 subtests pacing, 100-point 4-pillar evaluation rubric, $> 90$ quality benchmark, and cognitive distractor trap engineering. |
+| **[Backend Developer Guide](backend/README.md)** | Layer separation, modular workflow engine (`engine.py`, `nodes.py`, `routes.py`), repositories, testing, and seeding scripts. |
+| **[Frontend Workstation Guide](frontend/README.md)** | Modern React 19 architecture, component directory, hooks, scripts, and local development instructions. |
 
 ---
 
@@ -69,6 +72,11 @@ graph LR
 - **Editorial Question Presentation**: Clinical reading passages formatted in serif typography with line-height `1.68` for fatigue-free reading; circular option badges (`A`, `B`, `C`, `D`), distractor trap rationalization drawers, and inline editing.
 - **Instant Theme Switching**: Seamless toggle between Dark and Light themes with WCAG AA compliance via the `T` key shortcut.
 - **Full Keyboard Navigation**: `⌘ + Enter` (Generate), `T` (Theme), `/` (Search Bank), `A` (Approve), `D` (Discard), `Escape` (Close Modals).
+
+### 5. Professional Export & Print Studio (`ExportPrintModal.jsx`)
+- **Official Exam Booklet (PDF / Print)**: Generates classroom and mock test papers with candidate metadata headers, section pacing guides (~14s to ~64s per item), and `.page-break` rules preventing awkward splits across pages.
+- **Comprehensive Study Pack**: Pairs every reading stimulus with its question stem, correct key, and complete step-by-step cognitive proof rationales.
+- **Direct Data Exports**: Download the entire repository or filtered subsets as standardized CSV files or normalized JSON bundles.
 
 ---
 
@@ -136,6 +144,7 @@ pnpm build
 ```
 Question Bank Generator/
 ├── README.md                    # Project overview & documentation index
+├── DESIGN.md                    # Authoritative UI/UX Design System Guide (tokens, dual themes)
 ├── docker-compose.yml           # PostgreSQL 16 container definition
 ├── .env.example                 # Environment variables template
 ├── docs/                        # Comprehensive Documentation Suite
@@ -145,6 +154,7 @@ Question Bank Generator/
 │   ├── SETUP_AND_CONFIG.md      # Installation, deployment & troubleshooting
 │   └── UCAT_RUBRIC.md           # 100-point psychometric rubric & authoring standards
 ├── backend/
+│   ├── README.md                # Dedicated backend developer guide
 │   ├── requirements.txt         # Python dependencies
 │   ├── tests/
 │   │   ├── test_backend.py      # Automated pytest suite (26 unit & integration tests)
@@ -166,6 +176,8 @@ Question Bank Generator/
 │       │   └── __init__.py
 │       ├── repositories/        # Data Access Layer (DAL)
 │       │   ├── question_repo.py # Clean CRUD, hybrid FTS & aggregate token usage queries
+│       │   ├── batch_repo.py    # Staged batch run queries & persistence
+│       │   ├── passage_repo.py  # Shared stimulus reading passage queries
 │       │   └── __init__.py
 │       ├── schemas/             # Domain Pydantic V2 schemas
 │       │   ├── ucat.py          # UCAT sections & subtopic taxonomy
@@ -183,8 +195,11 @@ Question Bank Generator/
 │       │   ├── image_generator.py # Programmatic SVG & FLUX-2-klein-4b visual generator
 │       │   └── __init__.py
 │       ├── workflow/            # LangGraph multi-agent state graph
-│       │   ├── state.py         # AgentWorkflowState typed dictionary
+│       │   ├── engine.py        # Core asynchronous workflow runner & event emitters
+│       │   ├── nodes.py         # Discrete agent worker nodes (Generator, Reviewer, etc.)
+│       │   ├── routes.py        # Deterministic conditional edge routing (Quality Gate)
 │       │   ├── graph.py         # StateGraph with strict quality gate routing
+│       │   ├── state.py         # AgentWorkflowState typed dictionary
 │       │   └── __init__.py
 │       └── api/                 # Modular API Routers
 │           ├── router.py        # Central API v1 router aggregator
@@ -193,10 +208,11 @@ Question Bank Generator/
 │               ├── questions.py  # Question Bank CRUD & JSON/CSV exports
 │               ├── passages.py   # Shared passage stimuli listing & retrieval
 │               ├── batches.py    # Batch execution runs & staged item retrieval
-│               ├── config.py     # Engine configuration & model settings
+│               ├── config.py     # Read-only engine configuration & model settings
 │               ├── health.py     # Database connectivity & system health checks
 │               └── __init__.py
 └── frontend/
+    ├── README.md                # Modern React 19 architecture & component guide
     ├── package.json             # React 19 dependencies & scripts (pnpm workspace)
     ├── vite.config.js           # Vite build configuration with chunk splitting
     └── src/
@@ -206,8 +222,10 @@ Question Bank Generator/
         │   ├── ucat.js          # Subtest icons, pacing targets & fallback taxonomy
         │   └── config.js        # Model options & pricing constants
         ├── hooks/               # Custom stateful React hooks
+        │   ├── index.js                 # Barrel export for custom hooks
         │   ├── useTheme.js              # Theme manager (Dark/Light with localStorage)
         │   ├── useKeyboardShortcuts.js  # Global hotkeys (⌘↵, T, A, D, /, Esc)
+        │   ├── useGeneratorForm.js      # Form state, validation & preset handlers
         │   ├── useQuestionGenerator.js  # SSE streaming multi-agent orchestrator hook
         │   └── useQuestionBank.js       # CRUD, filtering, clipboard & repository stats hook
         ├── components/          # Domain-organized UI components

@@ -1,0 +1,191 @@
+# Infynno Design System & UI Specification (DESIGN.md)
+
+> **Infynno Solutions LLP • Infinite Innovations • [infynno.com](https://infynno.com/)**  
+> **Product**: Infynno UCAT Question Bank Generator v2.0  
+> **Aesthetic Philosophy**: Linear/Vercel-inspired high-precision minimalism, dark obsidian default with alabaster light mode, serif clinical passages, and animated electric conduit telemetry.
+
+---
+
+## 1. Design Philosophy & Architectural Principles
+
+The Infynno UCAT Question Studio is built for medical educators, test-prep authors, and clinical candidates who require focused, fatigue-free reading environments combined with real-time multi-agent observability.
+
+1. **Precision Minimalism**: Quiet surfaces, hairline borders (`1px solid var(--border-light)`), subtle elevations, and zero card clutter.
+2. **Editorial Typographic Hierarchy**: Clinical reading passages rendered in warm, high-legibility serif type (`Newsreader`, line-height `1.68`), while UI controls and telemetry use modern sans-serif (`Plus Jakarta Sans`) and monospace (`JetBrains Mono`).
+3. **Reactive Observability**: Complex multi-agent workflow steps (Generator, Reviewer, Regenerator, Image Engine) are visualized through glowing electric conduit animations without distracting from the editorial workspace.
+4. **Seamless Dual-Theme Ergonomics**: First-class dark obsidian (`#080c14`) and alabaster light (`#f8fafc`) palettes toggled instantly with zero flicker (`T` shortcut or navbar control).
+5. **Print & Export Fidelity**: Built-in `@media print` CSS rules and clean paper layouts for professional PDF exam booklets and student study packs.
+
+---
+
+## 2. Color System & Design Tokens
+
+Design tokens are defined as CSS custom properties in [`frontend/src/index.css`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/index.css) and automatically respond to the `[data-theme="dark"]` and `[data-theme="light"]` attributes on the root `<html>` element.
+
+### 2.1 Infynno Corporate Brand Palette
+These core gradient tokens anchor the brand identity across buttons, active tab indicators, and progress tracks:
+
+| Token Name | Hex / Value | Role |
+| :--- | :--- | :--- |
+| `--infynno-violet` | `#4F30B9` | Primary deep violet anchor |
+| `--infynno-blue` | `#335ACF` | Core Infynno royal blue |
+| `--infynno-cyan` | `#1E7ADF` | Vibrant electric cyan accent |
+| `--infynno-gradient` | `linear-gradient(135deg, #4F30B9 0%, #335ACF 50%, #1E7ADF 100%)` | Interactive primary actions, badges, progress bars |
+| `--infynno-glow` | `0 0 16px rgba(51, 90, 207, 0.25)` | Focused element glow |
+
+---
+
+### 2.2 Theme Surface & Border Variables
+
+```mermaid
+graph LR
+    subgraph "Dark Obsidian (Default)"
+        D_Canvas[--bg-canvas: #080c14] --> D_Surface[--bg-surface: #0d121d]
+        D_Surface --> D_Elevated[--bg-surface-elevated: #121826]
+        D_Elevated --> D_Border[--border-light: rgba(255,255,255,0.06)]
+    end
+    subgraph "Alabaster Light"
+        L_Canvas[--bg-canvas: #f8fafc] --> L_Surface[--bg-surface: #ffffff]
+        L_Surface --> L_Elevated[--bg-surface-elevated: #ffffff]
+        L_Elevated --> L_Border[--border-light: #e8ecf2]
+    end
+```
+
+| Token | Dark Theme (`[data-theme="dark"]`) | Light Theme (`[data-theme="light"]`) | Usage |
+| :--- | :--- | :--- | :--- |
+| `--bg-app` / `--bg-canvas` | `#080c14` | `#f8fafc` | Viewport backdrop |
+| `--bg-surface` | `#0d121d` | `#ffffff` | Standard card panels |
+| `--bg-surface-elevated`| `#121826` | `#ffffff` | Modals, active states, dropdowns |
+| `--bg-surface-subtle`  | `#0a0e18` | `#f8fafc` | Inactive steps, table headers |
+| `--bg-surface-hover`   | `#151c2c` | `#f1f5f9` | Hover states |
+| `--border-light`       | `rgba(255, 255, 255, 0.06)` | `#e8ecf2` | Primary panel hairline dividers |
+| `--border-medium`      | `rgba(255, 255, 255, 0.10)` | `#cbd5e1` | Input focus, active borders |
+| `--border-strong`      | `rgba(255, 255, 255, 0.16)` | `#94a3b8` | Elevated modal outlines |
+| `--text-primary`       | `#f8fafc` | `#0f172a` | Headers, reading passages, keys |
+| `--text-secondary`     | `#94a3b8` | `#475569` | Body copy, secondary options |
+| `--text-muted`         | `#64748b` | `#64748b` | Metadata, micro-badges, hints |
+| `--text-dim`           | `#475569` | `#94a3b8` | Placeholders, inactive labels |
+
+---
+
+### 2.3 Status & Psychometric Scoring Tokens
+
+| Status Pillar | Foreground Token | Dark BG / Border | Light BG / Border | Semantic Role |
+| :--- | :--- | :--- | :--- | :--- |
+| **Pass / Success** | `--status-success` (`#10b981`) | `rgba(16,185,129,0.06)` / `0.22` | `#ecfdf5` / `#a7f3d0` | Psychometric Score > 90, Approved |
+| **Warning / Caution** | `--status-warning` (`#f59e0b`) | `rgba(245,158,11,0.06)` / `0.22` | `#fffbeb` / `#fde68a` | Remediation in progress, Borderline draft |
+| **Reject / Danger** | `--status-danger` (`#f43f5e`) | `rgba(244,63,94,0.06)` / `0.22` | `#fff1f2` / `#fecdd3` | Score <= 90 after 3 cycles, Discarded draft |
+| **Cognitive Trap** | `--status-purple` (`#8b5cf6`) | `rgba(139,92,246,0.06)` / `0.22` | `#f5f3ff` / `#ddd6fe` | Distractor analysis, trap rationalization |
+
+---
+
+### 2.4 UCAT Subtest Domain Accents
+
+Each official UK UCAT section receives a dedicated signature accent for instant identification across wizards, cards, and filters:
+
+```
+Verbal Reasoning        -> Electric Blue   (#38bdf8 / #0284c7)
+Decision Making         -> Deep Indigo     (#818cf8 / #4f46e5)
+Quantitative Reasoning  -> Amber Gold      (#f59e0b / #d97706)
+Abstract Reasoning      -> Emerald Green   (#10b981 / #059669)
+Situational Judgement   -> Rose Ruby       (#f43f5e / #e11d48)
+```
+
+---
+
+## 3. Typography & Spatial Layout
+
+### 3.1 Font Stacks
+```css
+--font-sans:  'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+--font-serif: 'Newsreader', Georgia, serif;
+--font-mono:  'JetBrains Mono', monospace;
+```
+
+- **Plus Jakarta Sans**: Primary application typography. Clean, modern geometric proportions ensure high legibility in buttons, tabs, wizards, and tables.
+- **Newsreader Serif**: Used exclusively for clinical reading passages and stimulus articles. Set with `font-size: 1.05rem`, `line-height: 1.68`, and letter-spacing `-0.01em` to emulate high-end medical journal formatting and prevent cognitive fatigue.
+- **JetBrains Mono**: Used for token metrics, stopwatch timers, cost calculations, JSON trees, and shortcut badges (`⌘↵`, `A`, `D`).
+
+### 3.2 Spatial Scale & Border Radii
+- **Workspace Canvas**: Constrained to `maxWidth: 1040px` centered with auto margins, ensuring consistent eye travel without overly wide reading lines.
+- **Radius Hierarchy**:
+  - `--radius-xs`: `4px` (micro tags, tooltips)
+  - `--radius-sm`: `8px` (buttons, select menus, input fields)
+  - `--radius-md`: `12px` (sub-cards, option containers)
+  - `--radius-lg`: `16px` (main workspace cards, modal dialogs)
+  - `--radius-full`: `9999px` (circular option badges A-D, theme switchers, status pills)
+
+---
+
+## 4. Component Design Specifications
+
+### 4.1 Guided Question Wizard (`GuidedWizard.jsx`)
+- **Step 1: Section & Exam Style**: Subtest selection with pacing badges (~14s to ~64s) and style mix controls.
+- **Step 2: Syllabus Subtopics**: Section-specific subtopic selector with fallback taxonomy.
+- **Step 3: Difficulty & Trap Calibration**: 3 difficulty tiers (Foundation, Standard UCAT, High Scorer / Advanced) paired with deliberate cognitive trap engineering.
+- **Step 4: Reading Material & Stimulus**: Option to generate novel clinical texts or attach shared passages.
+- **Step 5: Review & Batch Launch**: Batch size controls (1 to 10 items) and diagram generation toggle with dynamic DeepInfra cost preview.
+
+### 4.2 Multi-Agent Conduit Telemetry (`MultiAgentPipelineVisualizer.jsx`)
+- Four connected nodes (**Generator**, **Reviewer**, **Regenerator**, **Image Engine**).
+- Conduits between nodes feature an animated electric gradient pulse (`conduit-flow-active`) during active streaming.
+- Collapsible SSE telemetry drawer displaying raw event stream timestamps, event types, and token updates.
+
+### 4.3 Editorial Review Desk (`QuestionCard.jsx`, `StagedBatchReview.jsx`)
+- **Option Badges**: Large circular `A`, `B`, `C`, `D` pills that highlight emerald on correct answers and crimson on incorrect distractors with clear checkmark/cross indicators.
+- **Distractor Rationalization Drawers**: Collapsible cards detailing the exact psychometric reason why each wrong option constitutes a realistic cognitive trap.
+- **Inline Editor**: Live editable fields allowing educators to adjust stem text, key letters, or explanation proofs before committing to the question bank.
+
+### 4.4 Psychometric Audit Modal (`ReviewAuditView.jsx`)
+- Displays the 4-pillar breakdown (Authenticity, Clarity, Distractor Traps, Explanation Rigor) scored out of 25 each.
+- Itemized per-cycle token usage table detailing prompt tokens, completion tokens, execution time, and sub-micro-cent USD cost.
+
+### 4.5 Export & Print Studio (`ExportPrintModal.jsx`)
+- Multi-format modal providing instant preview and export for:
+  1. **Exam Paper (PDF / Print)**: Formatted with title blocks, candidate name lines, timing guidelines, and page-break rules.
+  2. **Comprehensive Study Pack**: Includes full passages, question stems, answers, and in-depth step-by-step rationales.
+  3. **CSV Export**: Standardized comma-delimited export ready for LMS and spreadsheet ingestion.
+  4. **JSON Bundle**: Full relational representation including evolution histories and token metrics.
+
+---
+
+## 5. Micro-Animations & Dynamic Feedback
+
+1. **Electric Conduit Pulse**:
+```css
+@keyframes conduitFlow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+```
+2. **Skeleton Shimmer**:
+```css
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+```
+3. **Card Lift**: Subtle `-1px` vertical translation on button and interactive card hover paired with `--shadow-md`.
+4. **Theme Transition**: Smooth `0.18s ease-out` transition applied to background colors and borders to eliminate abrupt flashes when switching between dark and light themes.
+
+---
+
+## 6. Keyboard Shortcuts & Accessibility Standards
+
+- **WCAG AA Compliance**: All text tokens in both Dark and Light themes maintain a minimum contrast ratio of 4.5:1 for body copy and 3:1 for large text and UI components.
+- **Visible Focus Rings**: Custom focus outlines (`outline: 2px solid var(--brand-primary); outline-offset: 2px;`) across all accessible inputs and buttons.
+- **Global Keyboard Accelerators**:
+  - `⌘ + Enter` / `Ctrl + Enter`: Trigger question or batch generation.
+  - `T`: Instant toggle between Dark and Light themes.
+  - `/`: Immediately focus the Question Bank search input.
+  - `A`: Approve active staged question.
+  - `D`: Discard active staged question.
+  - `Escape`: Close any open dialog modal (Audit View, Stage JSON, Export Studio).
+
+---
+
+## 7. Anti-AI Dash Standard
+
+To ensure human editorial authenticity and eliminate unstyled typographical artifacts:
+- Never use unspaced em-dashes (`—`) or en-dashes (`–`) in UI copy, prompts, or generated questions.
+- Use clean single hyphens (`-`) flanked by standard spacing when connecting clauses (e.g., `Question Bank - Filter by Section`).

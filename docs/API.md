@@ -377,8 +377,8 @@ Reports backend status, PostgreSQL database connection, database version, active
   "cost_per_million_output": 0.32,
   "image_width": 1024,
   "image_height": 1024,
-  "image_iters": 4,
-  "current_image_cost_usd": 0.002
+  "image_iters": 0,
+  "current_image_cost_usd": 0.014
 }
 ```
 
@@ -392,9 +392,31 @@ curl -X GET http://localhost:8000/api/health
 ### 3.9 Configuration & Runtime Settings
 `GET /api/config`
 
-Enables reading active runtime engine settings, model choices, and pricing parameters for diagnostics and status inspection. Credentials are securely managed in server `.env`.
+Enables reading active runtime engine settings, model choices, and pricing parameters for diagnostics and status inspection. Credentials are securely isolated in the server `.env` file and exposed only as boolean availability flags.
 
-#### Read Configuration (`GET /api/config`)
+#### Response (`200 OK`)
+```json
+{
+  "default_text_model": "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo",
+  "default_image_model": "deepinfra/black-forest-labs/FLUX-2-klein-4b",
+  "has_deepinfra_key": true,
+  "has_gemini_key": false,
+  "has_openai_key": false,
+  "has_anthropic_key": false,
+  "has_groq_key": false,
+  "max_regenerations": 3,
+  "passing_threshold": 90,
+  "cost_per_million_input": 0.1,
+  "cost_per_million_output": 0.32,
+  "image_width": 1024,
+  "image_height": 1024,
+  "image_iters": 0,
+  "image_cost_base_rate": 0.014,
+  "current_image_cost_usd": 0.014
+}
+```
+
+#### cURL Example
 ```bash
 curl -X GET http://localhost:8000/api/config
 ```

@@ -103,7 +103,7 @@ The system decomposes question authoring into 4 specialized autonomous engines p
   - Re-submits the updated draft back to the Reviewer for re-audit.
 - **Inference Gateway**: High-throughput enterprise reasoning model (Temperature: `0.6`).
 
-### 3.4 Strict Quality Gate (`reject_node` in `graph.py`)
+### 3.4 Strict Quality Gate (`reject_node` in `app/workflow/nodes.py`)
 - **Mission**: Deterministic circuit breaker. If a candidate draft fails to exceed 90 points after reaching the maximum permitted remediation cycles (`MAX_REGENERATION_ATTEMPTS = 3`), the workflow halts immediately.
 - **Safety Guarantee**:
   - **Bypasses Image Generation**: Prevents wasted computation and unnecessary token expenses.
@@ -114,7 +114,7 @@ The system decomposes question authoring into 4 specialized autonomous engines p
 - **Mission**: Generates visual stimuli for questions requiring graphical diagrams (mandatory for Abstract Reasoning; optional for Decision Making and Quantitative Reasoning).
 - **Hybrid Visual Engine**:
   - *Programmatic SVG Renderer*: Generates clean, crisp, scalable vector graphics for Venn diagrams, geometric transformation grids, and statistical bar charts.
-  - *Generative Image Provider*: Configurable for high-resolution visual synthesis (FLUX.1 Schnell, Gemini Imagen, or OpenAI DALL-E).
+  - *FLUX-2-klein-4b Neural Visual Engine*: State-of-the-art rectified-flow transformer (`black-forest-labs/FLUX-2-klein-4b`) hosted on DeepInfra for photorealistic clinical illustrations with dynamic provider cost extraction and a flat $0.014 unit baseline rate.
 
 ---
 
@@ -293,11 +293,43 @@ erDiagram
 
 ---
 
-## 7. Codebase Directory Structure & Modular Layers
+## 7. Export & Print Studio Architecture
 
-The codebase follows professional software engineering practices, separating responsibilities into clean, decoupled layers across both backend and frontend.
+The **Export & Print Studio** ([`ExportPrintModal.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/modals/ExportPrintModal.jsx)) provides client-side document synthesis and multi-format export capabilities for educators and candidates.
 
-### 7.1 Backend Modular Layers
+```mermaid
+graph TD
+    QB[Question Bank / Filtered Items] --> Studio[Export & Print Studio Engine]
+    
+    Studio --> PDF[PDF Exam Paper]
+    Studio --> StudyPack[Comprehensive Study Pack]
+    Studio --> CSV[Standardized CSV Export]
+    Studio --> JSON[Normalized JSON Bundle]
+    
+    PDF --> PrintStyles["@media print Layout Engine<br>(Header block, timer, page-break rules)"]
+    StudyPack --> PrintStyles
+    CSV --> BrowserDL[Browser Direct Download]
+    JSON --> BrowserDL
+```
+
+### 7.1 Export Modes
+1. **Official Exam Paper (PDF / Print)**:
+   - Formatted for classroom and mock exam printing with candidate name/date header, official pacing instructions (~14s to ~64s per item), and clean typographic separation.
+   - Enforces `.page-break { break-before: page; }` CSS print rules to ensure reading passages and question options never split awkwardly across page folds.
+2. **Comprehensive Study Pack (PDF / Print)**:
+   - Includes reading stimulus, question stem, answer key, and the complete step-by-step cognitive proof and distractor trap analysis.
+3. **CSV Export Engine**:
+   - Converts relational questions into standardized comma-separated columns (`id`, `section`, `subtopic`, `difficulty`, `stem`, `option_a` through `option_d`, `key`, `explanation`, `score`).
+4. **JSON Relational Bundle**:
+   - Serializes question items including full 4-pillar review rubrics, per-agent token tracking telemetry, and evolution histories.
+
+---
+
+## 8. Codebase Directory Structure & Modular Layers
+
+The codebase follows enterprise software engineering practices, separating responsibilities into clean, decoupled layers across backend, frontend, and design systems.
+
+### 8.1 Backend Modular Layers
 
 ```
 backend/app/
@@ -311,7 +343,9 @@ backend/app/
 │   ├── passage.py       # PassageModel for shared reading passage stimuli
 │   └── batch.py         # BatchModel for multi-question generation runs
 ├── repositories/        # Data Access Layer (DAL)
-│   └── question_repo.py # Clean async CRUD operations, FTS search & token aggregations
+│   ├── question_repo.py # Clean async CRUD operations, FTS search & token aggregations
+│   ├── batch_repo.py    # Staged batch run queries & persistence
+│   └── passage_repo.py  # Shared stimulus reading passage queries
 ├── schemas/             # Pydantic Domain Transfer Schemas
 │   ├── ucat.py          # UCAT sections & subtopic taxonomy
 │   ├── token.py         # TokenUsage & TokenCostAccumulator schemas
@@ -325,9 +359,12 @@ backend/app/
 │   ├── reviewer.py      # Question Reviewer Agent (100-pt rubric)
 │   ├── regenerator.py   # Question Re-Generator Agent
 │   └── image_generator.py # Programmatic SVG & AI visual generator (FLUX-2-klein-4b)
-├── workflow/            # Orchestration Engine
-│   ├── state.py         # AgentWorkflowState typed dict
-│   └── graph.py         # LangGraph StateGraph with conditional quality routing
+├── workflow/            # LangGraph Orchestration Engine
+│   ├── engine.py        # Core asynchronous workflow runner & event emitters
+│   ├── nodes.py         # Discrete agent worker nodes (Generator, Reviewer, etc.)
+│   ├── routes.py        # Deterministic conditional edge routing (Quality Gate)
+│   ├── graph.py         # StateGraph builder and compiled graph
+│   └── state.py         # AgentWorkflowState typed dict
 ├── api/                 # Modular API Routers
 │   ├── router.py        # Central API v1 router aggregator
 │   └── v1/
@@ -335,12 +372,12 @@ backend/app/
 │       ├── questions.py  # Question Bank CRUD, Admin Approval & JSON/CSV exports
 │       ├── passages.py   # Passage stimulus listing & grouped question retrieval
 │       ├── batches.py    # Batch execution tracking & grouped retrieval
-│       ├── config.py     # Inference Gateway configuration & model settings
+│       ├── config.py     # Read-only runtime engine configuration & pricing
 │       └── health.py     # Database connectivity & system health checks
 └── main.py              # FastAPI application entrypoint with security headers & CORS
 ```
 
-### 7.2 Frontend Domain-Driven Architecture
+### 8.2 Frontend Domain-Driven Architecture
 
 ```
 frontend/src/
@@ -348,10 +385,12 @@ frontend/src/
 │   ├── ucat.js          # Subtest icons, pacing targets & fallback taxonomy
 │   └── config.js        # Model options & pricing constants
 ├── hooks/               # Custom stateful React hooks
+│   ├── index.js         # Barrel export for custom hooks
+│   ├── useGeneratorForm.js     # Form state, validation & preset handlers
 │   ├── useQuestionGenerator.js # SSE streaming multi-agent orchestrator hook
 │   ├── useQuestionBank.js      # CRUD, filtering, clipboard & repository stats hook
-│   ├── useKeyboardShortcuts.js # Keyboard shortcuts (⌘↵, A, D, T)
-│   └── useTheme.js             # Dual-theme engine (dark / light)
+│   ├── useKeyboardShortcuts.js # Keyboard shortcuts (⌘↵, A, D, T, /, Esc)
+│   └── useTheme.js             # Dual-theme engine (dark / light with localStorage)
 ├── components/          # Domain-organized UI components
 │   ├── index.js         # Barrel exports for clean component imports
 │   ├── layout/          # Layout components (Navbar, Footer)
@@ -366,5 +405,7 @@ frontend/src/
 ├── index.css            # Enterprise CSS tokens, conduit animations, dual-theme styling
 └── main.jsx             # React 19 application root
 ```
+
+For complete UI design tokens, color scales, typography guidelines, and component contracts, consult [`DESIGN.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/DESIGN.md).
 
 

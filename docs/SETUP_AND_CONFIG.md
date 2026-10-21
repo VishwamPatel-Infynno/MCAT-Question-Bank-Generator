@@ -178,12 +178,37 @@ PYTHONPATH=backend gunicorn app.main:app \
   --error-logfile -
 ```
 
-### 6.2 Production Frontend Build
-Compile static production assets with Vite:
+### 5.3 Database Seeding & Mock Practice Questions
+
+To instantly populate the database with authentic, high-quality UCAT practice questions across all 5 subtests (complete with rubrics and evolution histories):
 
 ```bash
-cd frontend
-npm run build
+source .venv/bin/activate
+python backend/scripts/seed_questions.py
+```
+
+---
+
+## 6. Production Deployment Guidelines
+
+### 6.1 Production Backend (Gunicorn + Uvicorn)
+In production, use `gunicorn` with multiple `uvicorn.workers.UvicornWorker` workers:
+
+```bash
+pip install gunicorn
+PYTHONPATH=backend gunicorn app.main:app \
+  -w 4 \
+  -k uvicorn.workers.UvicornWorker \
+  --bind 0.0.0.0:8000 \
+  --access-logfile - \
+  --error-logfile -
+```
+
+### 6.2 Production Frontend Build
+Compile static production assets with Vite using pnpm:
+
+```bash
+pnpm build
 ```
 This outputs optimized static bundles into `frontend/dist/`, which can be served via Nginx, Cloudflare Pages, AWS S3 / CloudFront, or Vercel.
 
@@ -204,7 +229,7 @@ DATABASE_URL=postgresql+asyncpg://<USER>:<PASSWORD>@<HOST>:<PORT>/<DATABASE>?ssl
 - **Port Conflict**: If local PostgreSQL is already running on port 5432, stop local postgres (`brew services stop postgresql` or `sudo systemctl stop postgresql`) or edit `docker-compose.yml` to bind to port `5433:5432` and update `DATABASE_URL` accordingly.
 
 ### `ValueError: DeepInfra API Key is required`
-- The system strictly validates API keys when sending live requests to `deepinfra/*` models. Either supply a valid key in `.env` or in the in-app **Settings** modal.
+- The system strictly validates API keys when sending live requests to `deepinfra/*` models. All credentials must be securely supplied in the server `.env` file (`DEEPINFRA_API_KEY="..."`). For security isolation, client-side runtime key entry has been deprecated.
 
 ### CORS Errors in Browser Console
 - If hosting the backend and frontend on separate domains, ensure the FastAPI `CORSMiddleware` in [`backend/app/main.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/main.py#L20-L28) includes your frontend domain in `allow_origins`.

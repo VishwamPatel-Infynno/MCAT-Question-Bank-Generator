@@ -10,11 +10,12 @@ Built with **React 19**, **Vite 8**, **Oxlint**, and a custom dark-glass precisi
 
 The frontend provides an intuitive, real-time command canvas for UK UCAT question generation, AI team tracking, and question bank management:
 
-- **Question Setup Panel**: 3-stage guided workflow for selecting sections (Verbal Reasoning, Decision Making, Quantitative Reasoning, Abstract Reasoning, Situational Judgement), difficulty, answer style, reading material, and wrong answer traps.
-- **Live 4-Agent AI Team**: Animated live tracker displaying the AI team (**Question Writer**, **Quality Reviewer**, **Question Improver**, and **Diagram & Chart Maker**).
+- **Question Setup Panel**: 5-step guided workflow for selecting sections (Verbal Reasoning, Decision Making, Quantitative Reasoning, Abstract Reasoning, Situational Judgement), syllabus subtopics, difficulty calibration, reading material stimuli, and cognitive distractor traps.
+- **Live 4-Agent AI Team**: Animated live tracker displaying the AI team (**Question Writer**, **Quality Reviewer**, **Question Improver**, and **Diagram & Chart Maker**) with electric conduit telemetry.
 - **Staged Batch Review & Approval**: Interactive batch staging deck allowing educators to inspect, edit, discard, or approve multiple generated items before saving to the database.
 - **Question Quality & Cost Breakdown**: Comprehensive 100-point 4-pillar quality check with itemized token tracking and micro-dollar cost calculations.
-- **Enterprise Question Bank**: High-speed searchable, filterable repository with multi-format export (JSON/CSV) and copy-to-clipboard actions.
+- **Export & Print Studio**: Professional modal for exporting PDF Exam Papers (with candidate headers and page breaks), Study Packs, CSV, and JSON bundles.
+- **Enterprise Question Bank**: High-speed searchable, filterable repository with multi-format export and copy-to-clipboard actions.
 
 ---
 
@@ -61,7 +62,7 @@ frontend/src/
 ├── hooks/
 │   ├── index.js                  # Barrel export for custom hooks
 │   ├── useGeneratorForm.js       # Form state & validation logic
-│   ├── useKeyboardShortcuts.js   # Global hotkeys (⌘↵ to generate, A to approve, D to discard)
+│   ├── useKeyboardShortcuts.js   # Global hotkeys (⌘↵ to generate, A to approve, D to discard, T to toggle theme)
 │   ├── useQuestionBank.js        # Debounced search, sorting, and bank fetching
 │   ├── useQuestionGenerator.js   # SSE streaming, batch progress, and state management
 │   └── useTheme.js               # Dark/light mode persistence
@@ -75,25 +76,29 @@ frontend/src/
 
 ## 🚀 Available Scripts
 
-In the `frontend` directory, you can run:
+In the repository root or `frontend` directory, you can run:
 
 ```bash
 # Start local development server with Hot Module Replacement (HMR)
-npm run dev
+pnpm dev
 
 # Run Oxlint high-speed linter (0 errors, 0 warnings policy)
-npm run lint
+pnpm lint
 
 # Build production bundle with Vite
-npm run build
+pnpm build
 
 # Preview the production build locally
-npm run preview
+pnpm preview
 ```
 
 ---
 
 ## 💎 Design System & Infynno Brand Tokens
+
+The frontend uses an enterprise precision design system. For exhaustive tokens, typography hierarchies, component contracts, and accessibility specifications, consult the authoritative guide:
+
+👉 **[UI/UX Design System Specification (DESIGN.md)](../DESIGN.md)**
 
 - **Brand Violet**: `#4F30B9`
 - **Brand Blue**: `#335ACF`
