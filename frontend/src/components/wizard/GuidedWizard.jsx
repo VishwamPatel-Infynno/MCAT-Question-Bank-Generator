@@ -23,8 +23,7 @@ import {
 export default function GuidedWizard({
   generatorForm,
   sectionsData,
-  onLaunchGeneration,
-  onExitToHome
+  onLaunchGeneration
 }) {
   const [step, setStep] = useState(1);
   const totalSteps = 5;
@@ -292,8 +291,6 @@ export default function GuidedWizard({
   const handleBack = () => {
     if (step > 1) {
       setStep(prev => prev - 1);
-    } else {
-      onExitToHome();
     }
   };
 
@@ -325,16 +322,6 @@ export default function GuidedWizard({
               {step === 5 && 'Review & Generate'}
             </span>
           </div>
-
-          <button
-            type="button"
-            className="btn-ghost"
-            style={{ fontSize: '0.8rem', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
-            onClick={onExitToHome}
-            title="Exit wizard and return to Home"
-          >
-            Exit to Home
-          </button>
         </div>
 
         {/* Progress Track */}
@@ -1162,10 +1149,17 @@ export default function GuidedWizard({
           type="button"
           className="btn-secondary"
           onClick={handleBack}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          disabled={step === 1}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            opacity: step === 1 ? 0.5 : 1,
+            cursor: step === 1 ? 'not-allowed' : 'pointer'
+          }}
         >
           <ArrowLeft size={16} />
-          <span>{step === 1 ? 'Cancel / Exit' : 'Back'}</span>
+          <span>Back</span>
         </button>
 
         {/* Step Dots */}

@@ -417,7 +417,6 @@ export default function App() {
                   setViewMode('workspace');
                   handleGenerate();
                 }}
-                onExitToHome={() => setViewMode('hero')}
               />
             )}
 
