@@ -471,7 +471,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast }) {
             No Questions Found
           </h3>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
-            No questions match your current filters. Clear filters or generate new questions in the Studio.
+            No questions match your current filters. Clear filters or generate new questions in the Question Wizard.
           </p>
         </div>
       ) : (

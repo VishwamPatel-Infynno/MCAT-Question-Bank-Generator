@@ -1387,7 +1387,8 @@ input:focus, select:focus, textarea:focus {
   text-decoration: underline;
 }
 
-/* Studio Header Action Bar */
+/* Generation & Review Workspace Action Bar */
+.workspace-action-bar,
 .studio-action-bar {
   display: flex;
   align-items: center;
@@ -1400,6 +1401,7 @@ input:focus, select:focus, textarea:focus {
   box-shadow: var(--shadow-sm);
 }
 
+.workspace-action-btn-primary,
 .studio-action-btn-primary {
   display: inline-flex;
   align-items: center;
@@ -1416,11 +1418,13 @@ input:focus, select:focus, textarea:focus {
   transition: all 0.2s ease;
 }
 
+.workspace-action-btn-primary:hover,
 .studio-action-btn-primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(79, 48, 185, 0.4);
 }
 
+.workspace-action-btn-secondary,
 .studio-action-btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -1436,6 +1440,7 @@ input:focus, select:focus, textarea:focus {
   transition: all 0.2s ease;
 }
 
+.workspace-action-btn-secondary:hover,
 .studio-action-btn-secondary:hover {
   background: var(--bg-surface-hover);
   color: var(--text-primary);

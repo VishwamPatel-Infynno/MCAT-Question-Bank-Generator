@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
-import { Sparkles, Home, Sliders, Database } from 'lucide-react';
+import { Sparkles, Home, Database } from 'lucide-react';
 import {
   Navbar,
-  GeneratorPanel,
   AgentVisualizer,
   QuestionCard,
   QuestionDraftingSkeleton,
   StagedBatchReview,
   RejectionCard,
   ToastContainer,
-  StudioBlueprint,
   HeroLanding,
   GuidedWizard,
   Footer
@@ -60,13 +58,10 @@ function LazyLoadingSpinner({ label = 'Loading...' }) {
 export default function App() {
   const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('generator');
-  const [viewMode, setViewMode] = useState('hero'); // 'hero' | 'wizard' | 'studio'
+  const [viewMode, setViewMode] = useState('hero'); // 'hero' | 'wizard' | 'workspace'
   const [sectionsData, setSectionsData] = useState([]);
   const generatorForm = useGeneratorForm();
   const { updateFields } = generatorForm;
-
-  // Layout & Dock State
-  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
 
   // Modals & Status
   const [auditQuestion, setAuditQuestion] = useState(null);
@@ -144,7 +139,7 @@ export default function App() {
 
   const handleGenerate = useCallback(() => {
     if (isGenerating) return;
-    setViewMode('studio');
+    setViewMode('workspace');
     setIsQuestionSaved(false);
     setSavedQuestionIds(new Set());
     const {
@@ -377,11 +372,11 @@ export default function App() {
       ...(q.passage_required && { passageRequired: q.passage_required })
     });
     setActiveTab('generator');
-    setViewMode('studio');
+    setViewMode('workspace');
     showToast({
       type: 'info',
-      title: 'Loaded in Studio',
-      message: 'Question loaded into Review Desk.'
+      title: 'Loaded into Review',
+      message: 'Question loaded into Review Workspace.'
     });
   };
 
@@ -419,22 +414,22 @@ export default function App() {
                 generatorForm={generatorForm}
                 sectionsData={sectionsData}
                 onLaunchGeneration={() => {
-                  setViewMode('studio');
+                  setViewMode('workspace');
                   handleGenerate();
                 }}
-                onExitToStudio={() => setViewMode('studio')}
+                onExitToHome={() => setViewMode('hero')}
               />
             )}
 
-            {viewMode === 'studio' && (
-              <div>
-                {/* Studio Top Action Bar */}
-                <div className="studio-action-bar" id="studio-action-bar">
+            {viewMode === 'workspace' && (
+              <div style={{ maxWidth: '1040px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* Generation & Review Action Bar */}
+                <div className="workspace-action-bar" id="workspace-action-bar">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <button
                       type="button"
-                      className="studio-action-btn-primary"
-                      id="btn-studio-new-wizard"
+                      className="workspace-action-btn-primary"
+                      id="btn-workspace-new-wizard"
                       onClick={() => setViewMode('wizard')}
                       title="Launch Guided 5-Step Question Wizard"
                     >
@@ -444,10 +439,10 @@ export default function App() {
 
                     <button
                       type="button"
-                      className="studio-action-btn-secondary"
-                      id="btn-studio-home"
+                      className="workspace-action-btn-secondary"
+                      id="btn-workspace-home"
                       onClick={() => setViewMode('hero')}
-                      title="Return to Infynno Hero Landing"
+                      title="Return to Home"
                     >
                       <Home size={15} />
                       <span>Home</span>
@@ -457,17 +452,7 @@ export default function App() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <button
                       type="button"
-                      className="studio-action-btn-secondary"
-                      onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
-                      title={isPanelCollapsed ? 'Expand parameter controls' : 'Collapse parameter controls'}
-                    >
-                      <Sliders size={15} />
-                      <span>{isPanelCollapsed ? 'Show Parameters' : 'Hide Parameters'}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      className="studio-action-btn-secondary"
+                      className="workspace-action-btn-secondary"
                       onClick={() => setActiveTab('bank')}
                       title="Open Question Bank"
                     >
@@ -477,110 +462,125 @@ export default function App() {
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: isPanelCollapsed ? '64px 1fr' : 'minmax(320px, 380px) 1fr',
-                    gap: '24px',
-                    alignItems: 'start',
-                    transition: 'grid-template-columns 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-                  }}
-                >
-                  {/* Left Parameter Dock */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <GeneratorPanel
-                      generatorForm={generatorForm}
-                      sectionsData={sectionsData}
-                      onGenerate={handleGenerate}
-                      onCancel={handleCancelGeneration}
-                      isGenerating={isGenerating}
-                      isCollapsed={isPanelCollapsed}
-                      onToggleCollapse={() => setIsPanelCollapsed(!isPanelCollapsed)}
-                    />
-                  </div>
+                {/* Multi-Agent Command Rail */}
+                <AgentVisualizer
+                  activeAgent={activeAgent}
+                  iterationCount={iterationCount}
+                  events={events}
+                  latestReview={latestReview}
+                  isGenerating={isGenerating}
+                  batchProgress={batchProgress}
+                  perQuestionState={perQuestionState}
+                  onCancel={handleCancelGeneration}
+                />
 
-                  {/* Right Review Canvas */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                    {/* Multi-Agent Command Rail */}
-                    <AgentVisualizer
-                      activeAgent={activeAgent}
-                      iterationCount={iterationCount}
-                      events={events}
-                      latestReview={latestReview}
-                      isGenerating={isGenerating}
-                      batchProgress={batchProgress}
-                      perQuestionState={perQuestionState}
-                    />
-
-                    {/* Output: Rejection Card, Staged Batch Review, Single Question Card, or Empty State Placeholder */}
-                    {rejectedData ? (
-                      <RejectionCard
-                        rejectionData={rejectedData}
-                        onRetry={handleGenerate}
-                      />
-                    ) : ((stagedQuestions.length > 1) || (stagedQuestions.length > 0 && generatorForm.formData.totalQuestions > 1) || (isGenerating && (batchProgress?.total > 1 || generatorForm.formData.totalQuestions > 1))) ? (
-                      <StagedBatchReview
-                        stagedQuestions={stagedQuestions}
-                        targetTotal={generatorForm.formData.totalQuestions}
-                        savedQuestionIds={savedQuestionIds}
-                        isGenerating={isGenerating}
-                        batchProgress={batchProgress}
-                        perQuestionState={perQuestionState}
-                        onApproveSelected={handleBatchApprove}
-                        onApproveAll={handleBatchApprove}
-                        onDiscardQuestion={handleDiscardQuestionInBatch}
-                        onDiscardAll={handleDiscardBatch}
-                        onDiscardUnsaved={handleDiscardUnsaved}
-                        onFinishBatch={handleFinishBatch}
-                        onNavigateToBank={() => setActiveTab('bank')}
-                        onOpenAudit={(q) => setAuditQuestion(q)}
-                        onUpdateQuestion={(updated) => {
-                          setStagedQuestions(prev => prev.map(item => item.id === updated.id ? updated : item));
-                          if (activeQuestion?.id === updated.id) {
-                            setActiveQuestion(updated);
-                          }
-                          showToast({
-                            type: 'success',
-                            title: 'Changes Applied',
-                            message: 'Question text updated.'
-                          });
-                        }}
-                      />
-                    ) : activeQuestion ? (
-                      <QuestionCard
-                        question={activeQuestion}
-                        isSaved={isQuestionSaved}
-                        onApprove={handleApproveQuestion}
-                        onDiscard={handleDiscardQuestion}
-                        onOpenAudit={(q) => setAuditQuestion(q)}
-                        onNextQuestion={handleGenerate}
-                        onUpdateQuestion={(updated) => {
-                          setActiveQuestion(updated);
-                          setStagedQuestions(prev => prev.map(item => item.id === updated.id ? updated : item));
-                          showToast({
-                            type: 'success',
-                            title: 'Changes Applied',
-                            message: 'Question text updated.'
-                          });
-                        }}
-                      />
-                    ) : isGenerating ? (
-                      <QuestionDraftingSkeleton
-                        sectionLabel={sectionsData?.find(s => s.id === generatorForm.formData.section)?.label || 'UCAT Question'}
-                        difficulty={generatorForm.formData.difficulty || 'Medium'}
-                        interactionType={generatorForm.formData.interactionType || 'single_choice'}
-                        isPassage={generatorForm.formData.passageRequired === 'Yes'}
-                        slotNumber={1}
-                      />
-                    ) : (
-                      <StudioBlueprint
-                        {...generatorForm.formData}
-                        sectionsData={sectionsData}
-                        onApplyPreset={handleApplyPreset}
-                      />
-                    )}
+                {/* Output: Rejection Card, Staged Batch Review, Single Question Card, or Empty State Placeholder */}
+                {rejectedData ? (
+                  <RejectionCard
+                    rejectionData={rejectedData}
+                    onRetry={handleGenerate}
+                  />
+                ) : ((stagedQuestions.length > 1) || (stagedQuestions.length > 0 && generatorForm.formData.totalQuestions > 1) || (isGenerating && (batchProgress?.total > 1 || generatorForm.formData.totalQuestions > 1))) ? (
+                  <StagedBatchReview
+                    stagedQuestions={stagedQuestions}
+                    targetTotal={generatorForm.formData.totalQuestions}
+                    savedQuestionIds={savedQuestionIds}
+                    isGenerating={isGenerating}
+                    batchProgress={batchProgress}
+                    perQuestionState={perQuestionState}
+                    onApproveSelected={handleBatchApprove}
+                    onApproveAll={handleBatchApprove}
+                    onDiscardQuestion={handleDiscardQuestionInBatch}
+                    onDiscardAll={handleDiscardBatch}
+                    onDiscardUnsaved={handleDiscardUnsaved}
+                    onFinishBatch={handleFinishBatch}
+                    onNavigateToBank={() => setActiveTab('bank')}
+                    onOpenAudit={(q) => setAuditQuestion(q)}
+                    onUpdateQuestion={(updated) => {
+                      setStagedQuestions(prev => prev.map(item => item.id === updated.id ? updated : item));
+                      if (activeQuestion?.id === updated.id) {
+                        setActiveQuestion(updated);
+                      }
+                      showToast({
+                        type: 'success',
+                        title: 'Changes Applied',
+                        message: 'Question text updated.'
+                      });
+                    }}
+                  />
+                ) : activeQuestion ? (
+                  <QuestionCard
+                    question={activeQuestion}
+                    isSaved={isQuestionSaved}
+                    onApprove={handleApproveQuestion}
+                    onDiscard={handleDiscardQuestion}
+                    onOpenAudit={(q) => setAuditQuestion(q)}
+                    onNextQuestion={() => setViewMode('wizard')}
+                    onUpdateQuestion={(updated) => {
+                      setActiveQuestion(updated);
+                      setStagedQuestions(prev => prev.map(item => item.id === updated.id ? updated : item));
+                      showToast({
+                        type: 'success',
+                        title: 'Changes Applied',
+                        message: 'Question text updated.'
+                      });
+                    }}
+                  />
+                ) : isGenerating ? (
+                  <QuestionDraftingSkeleton
+                    sectionLabel={sectionsData?.find(s => s.id === generatorForm.formData.section)?.label || 'UCAT Question'}
+                    difficulty={generatorForm.formData.difficulty || 'Medium'}
+                    interactionType={generatorForm.formData.interactionType || 'single_choice'}
+                    isPassage={generatorForm.formData.passageRequired === 'Yes'}
+                    slotNumber={1}
+                  />
+                ) : (
+                  /* Clean Empty State */
+                  <div
+                    style={{
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-light)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '48px 24px',
+                      textAlign: 'center',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '16px'
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '50%',
+                        background: 'rgba(79, 48, 185, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--brand-primary)'
+                      }}
+                    >
+                      <Sparkles size={28} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                        Ready to Create Questions
+                      </h3>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '420px', margin: '0 auto' }}>
+                        Configure exam sections, difficulty, reading passages, and diagrams with the Guided Question Wizard.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      style={{ padding: '10px 22px', fontSize: '0.9rem', fontWeight: 600 }}
+                      onClick={() => setViewMode('wizard')}
+                    >
+                      ✨ Open Question Wizard
+                    </button>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </>

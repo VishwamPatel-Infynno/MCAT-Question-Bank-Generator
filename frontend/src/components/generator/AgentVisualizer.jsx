@@ -13,7 +13,8 @@ export default function AgentVisualizer({
   latestReview,
   isGenerating,
   batchProgress,
-  perQuestionState = {}
+  perQuestionState = {},
+  onCancel
 }) {
   const [showTelemetry, setShowTelemetry] = useState(false);
   const [elapsedTime, setElapsedTime] = useState('0.0');
@@ -82,6 +83,25 @@ export default function AgentVisualizer({
           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <Timer size={12} /> {elapsedTime}s
           </span>
+          {isGenerating && onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: 'var(--status-danger)',
+                padding: '2px 8px',
+                borderRadius: 'var(--radius-xs)',
+                fontSize: '0.675rem',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+              title="Stop generation workflow"
+            >
+              Stop
+            </button>
+          )}
           <span style={{ fontFamily: 'var(--font-mono)' }}>
             {totalTokens.toLocaleString()} Compute Units
           </span>

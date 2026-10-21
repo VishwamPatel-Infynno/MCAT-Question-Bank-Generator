@@ -91,7 +91,7 @@ export default function GuidedWizard({
   generatorForm,
   sectionsData,
   onLaunchGeneration,
-  onExitToStudio
+  onExitToHome
 }) {
   const [step, setStep] = useState(1);
   const totalSteps = 5;
@@ -360,7 +360,7 @@ export default function GuidedWizard({
     if (step > 1) {
       setStep(prev => prev - 1);
     } else {
-      onExitToStudio();
+      onExitToHome();
     }
   };
 
@@ -396,11 +396,11 @@ export default function GuidedWizard({
           <button
             type="button"
             className="btn-ghost"
-            style={{ fontSize: '0.8rem', padding: '4px 8px' }}
-            onClick={onExitToStudio}
-            title="Exit wizard and switch directly to the Studio workspace"
+            style={{ fontSize: '0.8rem', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+            onClick={onExitToHome}
+            title="Exit wizard and return to Home"
           >
-            Direct Studio Mode →
+            Exit to Home
           </button>
         </div>
 
