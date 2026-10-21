@@ -40,7 +40,7 @@ export default function HeroLanding({
         difficulty: 'hard',
         totalQuestions: 1,
         requireImage: true,
-        visual_type: 'SVG_Diagram'
+        visual_type: 'AI_FLUX_Image'
       }
     },
     {

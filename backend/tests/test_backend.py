@@ -155,18 +155,38 @@ async def test_strict_rejection_routing_when_score_le_90():
 
 
 @pytest.mark.asyncio
-async def test_image_generator_svg(monkeypatch):
-    monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
+async def test_strict_ai_image_generator(monkeypatch):
+    """
+    Verifies strict AI image model policy:
+    1. Returns error and NO SVG when API key is missing.
+    2. Returns pure AI-generated image (image_url) and NO SVG when model succeeds.
+    """
     req_ar = GenerationRequest(section=UCATSection.ABSTRACT_REASONING, difficulty=Difficulty.HARD)
     draft_ar = get_mock_draft(req_ar)
+
+    # 1. Missing API key -> strict error, never fall back to SVG
+    monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
     _img_url, img_svg, _img_desc, usage = await generate_image_stimulus(draft_ar, req_ar)
 
-    assert img_svg is not None
-    assert "<svg" in img_svg
-    assert "</svg>" in img_svg
+    assert _img_url is None
+    assert img_svg is None
     assert usage is not None
     assert usage["agent_name"] == "Image Generator"
-    assert usage["cost_usd"] == 0.0
+    assert "error" in usage["details"]
+
+    # 2. Valid API key & mocked FLUX call -> returns image_url, img_svg is strictly None
+    monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "mock_key")
+    async def mock_call_flux(*args, **kwargs):
+        return "data:image/jpeg;base64,mock_flux_binary"
+
+    from app.agents import image_generator
+    monkeypatch.setattr(image_generator, "call_deepinfra_flux", mock_call_flux)
+
+    img_url, img_svg, img_desc, usage_success = await generate_image_stimulus(draft_ar, req_ar)
+    assert img_url == "data:image/jpeg;base64,mock_flux_binary"
+    assert img_svg is None
+    assert usage_success["cost_usd"] > 0.0
+    assert usage_success["details"]["type"] == "ai_generated_image"
 
 
 def test_flux_image_cost_formula():
@@ -192,8 +212,19 @@ def test_flux_image_cost_formula():
 
 
 @pytest.mark.asyncio
-async def test_image_node_workflow_accumulation():
-    """Verifies that image_node accurately accumulates usage into workflow state."""
+async def test_image_node_workflow_accumulation(monkeypatch):
+    """Verifies that image_node accurately accumulates usage into workflow state with AI image model."""
+    async def mock_gen_img(*args, **kwargs):
+        return (
+            "data:image/jpeg;base64,mock_flux",
+            None,
+            "Mock visual prompt",
+            {"agent_name": "Image Generator", "cost_usd": 0.0020, "model": "black-forest-labs/FLUX-1-schnell"}
+        )
+
+    from app.workflow import graph
+    monkeypatch.setattr(graph, "generate_image_stimulus", mock_gen_img)
+
     req = GenerationRequest(section=UCATSection.ABSTRACT_REASONING, difficulty=Difficulty.MEDIUM)
     draft = get_mock_draft(req)
     state = {
@@ -208,6 +239,8 @@ async def test_image_node_workflow_accumulation():
     res = await image_node(state)
     assert res["active_agent"] == "Image Generator"
     assert res["status"] == "image_generated"
+    assert res["image_url"] == "data:image/jpeg;base64,mock_flux"
+    assert res["image_svg"] is None
     assert len(res["agent_usage_breakdown"]) == 3
     assert res["agent_usage_breakdown"][-1]["agent_name"] == "Image Generator"
     assert "latest_usage" in res
@@ -1281,6 +1314,17 @@ async def test_passage_set_with_passage_level_visual_stimulus(monkeypatch):
     monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
     monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
 
+    async def mock_passage_img(*args, **kwargs):
+        return (
+            "data:image/jpeg;base64,mock_passage_flux",
+            None,
+            "Passage visual stimulus",
+            {"agent_name": "Image Generator", "cost_usd": 0.0020, "model": "black-forest-labs/FLUX-1-schnell"}
+        )
+
+    from app.workflow import graph
+    monkeypatch.setattr(graph, "generate_image_stimulus", mock_passage_img)
+
     req = GenerationRequest(
         section=UCATSection.DECISION_MAKING,
         difficulty=Difficulty.MEDIUM,
@@ -1304,11 +1348,13 @@ async def test_passage_set_with_passage_level_visual_stimulus(monkeypatch):
         and e.get("data", {}).get("stage") == "passage_image"
     ]
     assert len(passage_img_completes) == 1
-    assert passage_img_completes[0]["data"]["image_svg"] or passage_img_completes[0]["data"]["image_url"]
+    assert passage_img_completes[0]["data"]["image_url"] == "data:image/jpeg;base64,mock_passage_flux"
+    assert passage_img_completes[0]["data"]["image_svg"] is None
 
     # 2. workflow_complete has shared passage image
     complete_evt = next(e for e in events if e.get("event_type") == "workflow_complete")
-    assert complete_evt["data"]["shared_passage_image_svg"] or complete_evt["data"]["shared_passage_image_url"]
+    assert complete_evt["data"]["shared_passage_image_url"] == "data:image/jpeg;base64,mock_passage_flux"
+    assert complete_evt["data"]["shared_passage_image_svg"] is None
 
     # 3. Questions have passage_visual_stimulus in outcomes and do NOT run question-wise image generation
     questions = complete_evt["data"]["questions"]

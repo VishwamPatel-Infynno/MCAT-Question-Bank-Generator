@@ -202,6 +202,7 @@ export default function App() {
       passage_required: passageRequired,
       primary_trap: primaryTrap !== 'Automatic' ? primaryTrap : undefined,
       require_image: hasAnyImage,
+      visual_type: hasAnyImage ? 'AI_FLUX_Image' : 'None',
       image_question_indices: isAbstractReasoning ? undefined : (imageMode !== 'none' ? effectiveImageIndices : []),
       require_passage_image: isAbstractReasoning ? true : Boolean(requirePassageImage),
       custom_prompt: customPrompt.trim() || undefined

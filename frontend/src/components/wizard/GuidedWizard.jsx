@@ -200,7 +200,7 @@ export default function GuidedWizard({
     const isVR = sectionId === 'verbal_reasoning';
     updateFields({
       selectedSection: sectionId,
-      ...(isAR && { requireImage: true, visual_type: 'SVG_Diagram' }),
+      ...(isAR && { requireImage: true, visual_type: 'AI_FLUX_Image' }),
       ...(!isAR && { requireImage: false, visual_type: 'None' }),
       ...(isVR && { passageRequired: 'Yes', passageCount: 1 }),
       ...(!isVR && { passageRequired: 'No', passageCount: 0 })
@@ -976,39 +976,43 @@ export default function GuidedWizard({
               </div>
             )}
 
-            {/* Visual Engine Selector (SVG vs FLUX) */}
+            {/* AI Image Model Engine (Strict FLUX-1-schnell) */}
             <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-light)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    Visual Rendering Engine
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '8px',
+                    background: 'var(--primary-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--primary)',
+                    border: '1px solid var(--border-color)'
+                  }}>
+                    <ImageIcon size={20} />
                   </div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    Choose between crisp vector diagrams (SVG) or photorealistic illustrations (FLUX AI).
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                        AI Image Model Engine
+                      </span>
+                      <span className="badge-minimal" style={{ background: 'var(--primary-subtle)', color: 'var(--primary)', fontWeight: 600, fontSize: '0.72rem' }}>
+                        black-forest-labs/FLUX-1-schnell
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                      All visual stimuli (patterns, geometry, charts & diagrams) are synthesized strictly by the FLUX.1 neural image model.
+                    </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {['SVG_Diagram', 'AI_FLUX_Image'].map((vType) => {
-                    const isSelected = (form.visual_type || 'SVG_Diagram') === vType;
-                    return (
-                      <button
-                        key={vType}
-                        type="button"
-                        className="badge-minimal"
-                        style={{
-                          padding: '6px 12px',
-                          cursor: 'pointer',
-                          background: isSelected ? 'var(--infynno-gradient)' : 'var(--bg-surface-subtle)',
-                          color: isSelected ? '#ffffff' : 'var(--text-secondary)',
-                          borderColor: isSelected ? 'transparent' : 'var(--border-light)',
-                          fontWeight: isSelected ? 600 : 500
-                        }}
-                        onClick={() => update('visual_type', vType)}
-                      >
-                        {vType === 'SVG_Diagram' ? 'SVG Vector Diagram' : 'AI FLUX Photo'}
-                      </button>
-                    );
-                  })}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>1024×1024 High-Res</span>
+                  <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>4 Inference Steps</span>
+                  <span className="badge-minimal" style={{ fontSize: '0.72rem', background: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0' }}>
+                    $0.0020 / image
+                  </span>
                 </div>
               </div>
             </div>
@@ -1154,7 +1158,7 @@ export default function GuidedWizard({
                   <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
                     <span>
                       {totalImagesCount > 0
-                        ? `${totalImagesCount} ${totalImagesCount === 1 ? 'Diagram' : 'Diagrams'} ($${(totalImagesCount * 0.0020).toFixed(4)}) • ${form.visual_type || 'SVG Vector'}`
+                        ? `${totalImagesCount} ${totalImagesCount === 1 ? 'Diagram' : 'Diagrams'} ($${(totalImagesCount * 0.0020).toFixed(4)}) • AI FLUX.1 Schnell`
                         : 'No Visual Stimuli (Text Only)'}
                     </span>
                     {hasPassageImage && <span className="badge-minimal">Passage Diagram</span>}

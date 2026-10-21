@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Any
 
@@ -27,58 +28,89 @@ def calculate_flux_image_cost(
 
 
 async def call_deepinfra_flux(
-    prompt: str, width: int, height: int, iters: int, api_key: str
+    prompt: str,
+    width: int,
+    height: int,
+    iters: int,
+    api_key: str,
+    model: str | None = None,
 ) -> str | None:
     """
-    Calls DeepInfra API for black-forest-labs/FLUX-1-schnell image generation.
-    Supports both native inference endpoint and OpenAI-compatible endpoint.
+    Calls DeepInfra API for dedicated AI image generation (default: black-forest-labs/FLUX-1-schnell).
+    Supports both native inference endpoint and OpenAI-compatible endpoint with automated retry & backoff.
     """
-    async with httpx.AsyncClient(timeout=35.0) as client:
-        # 1. Native DeepInfra inference endpoint
-        try:
-            native_url = "https://api.deepinfra.com/v1/inference/black-forest-labs/FLUX-1-schnell"
-            payload = {
-                "prompt": prompt,
-                "width": width,
-                "height": height,
-                "num_inference_steps": iters,
-            }
-            res = await client.post(
-                native_url, json=payload, headers={"Authorization": f"Bearer {api_key}"}
-            )
-            if res.status_code == 200:
-                data = res.json()
-                if "images" in data and len(data["images"]) > 0:
-                    return data["images"][0]
-                if "output" in data and len(data["output"]) > 0:
-                    return data["output"][0]
-        except Exception as e:
-            logger.warning(f"DeepInfra native FLUX inference error: {e}")
+    model_id = (model or config.DEFAULT_IMAGE_MODEL).replace("deepinfra/", "").strip()
+    if not model_id:
+        model_id = "black-forest-labs/FLUX-1-schnell"
 
-        # 2. OpenAI-compatible endpoint on DeepInfra
+    max_retries = 2
+    for attempt in range(max_retries + 1):
         try:
-            openai_url = "https://api.deepinfra.com/v1/openai/images/generations"
-            payload = {
-                "model": "black-forest-labs/FLUX-1-schnell",
-                "prompt": prompt,
-                "size": f"{width}x{height}",
-                "n": 1,
-            }
-            res = await client.post(
-                openai_url, json=payload, headers={"Authorization": f"Bearer {api_key}"}
-            )
-            if res.status_code == 200:
-                data = res.json()
-                if "data" in data and len(data["data"]) > 0:
-                    item = data["data"][0]
-                    return item.get("url") or (
-                        f"data:image/jpeg;base64,{item.get('b64_json')}"
-                        if item.get("b64_json")
-                        else None
+            async with httpx.AsyncClient(timeout=35.0) as client:
+                # 1. Native DeepInfra inference endpoint
+                try:
+                    native_url = f"https://api.deepinfra.com/v1/inference/{model_id}"
+                    payload = {
+                        "prompt": prompt,
+                        "width": width,
+                        "height": height,
+                        "num_inference_steps": iters,
+                    }
+                    res = await client.post(
+                        native_url, json=payload, headers={"Authorization": f"Bearer {api_key}"}
                     )
-        except Exception as e:
-            logger.warning(f"DeepInfra OpenAI-compatible FLUX endpoint error: {e}")
+                    if res.status_code == 200:
+                        data = res.json()
+                        if "images" in data and len(data["images"]) > 0:
+                            return data["images"][0]
+                        if "output" in data and len(data["output"]) > 0:
+                            return data["output"][0]
+                    else:
+                        logger.warning(
+                            f"DeepInfra native FLUX inference status {res.status_code}: {res.text[:200]}"
+                        )
+                except Exception as e:
+                    logger.warning(f"DeepInfra native FLUX inference error: {e}")
 
+                # 2. OpenAI-compatible endpoint on DeepInfra
+                try:
+                    openai_url = "https://api.deepinfra.com/v1/openai/images/generations"
+                    payload = {
+                        "model": model_id,
+                        "prompt": prompt,
+                        "size": f"{width}x{height}",
+                        "n": 1,
+                    }
+                    res = await client.post(
+                        openai_url, json=payload, headers={"Authorization": f"Bearer {api_key}"}
+                    )
+                    if res.status_code == 200:
+                        data = res.json()
+                        if "data" in data and len(data["data"]) > 0:
+                            item = data["data"][0]
+                            return item.get("url") or (
+                                f"data:image/jpeg;base64,{item.get('b64_json')}"
+                                if item.get("b64_json")
+                                else None
+                            )
+                    else:
+                        logger.warning(
+                            f"DeepInfra OpenAI-compatible FLUX status {res.status_code}: {res.text[:200]}"
+                        )
+                except Exception as e:
+                    logger.warning(f"DeepInfra OpenAI-compatible FLUX endpoint error: {e}")
+
+        except Exception as client_err:
+            logger.warning(
+                f"HTTP client error in FLUX call (attempt {attempt + 1}/{max_retries + 1}): {client_err}"
+            )
+
+        if attempt < max_retries:
+            backoff_secs = 1.0 * (attempt + 1)
+            logger.info(f"Retrying AI image model generation in {backoff_secs}s...")
+            await asyncio.sleep(backoff_secs)
+
+    logger.error(f"AI image model ({model_id}) generation failed after {max_retries + 1} attempts.")
     return None
 
 
@@ -211,84 +243,89 @@ async def generate_image_stimulus(
     draft: QuestionDraft, req: GenerationRequest
 ) -> tuple[str | None, str | None, str | None, dict[str, Any]]:
     """
-    Invokes the Image Generator Agent:
-    1. If DEEPINFRA_API_KEY is present, uses black-forest-labs/FLUX-1-schnell via DeepInfra API.
-       Tracks cost using $0.0005 * (width / 1024) * (height / 1024) * iters.
-    2. Gracefully falls back to high-fidelity light-mode SVG diagrams when offline or without API key.
-    Returns: (image_url, image_svg, image_description, usage_dict)
+    Invokes the Image Generator Agent strictly using the AI Image Model (FLUX-1-schnell via DeepInfra).
+    Strict policy: Never uses SVG mock fallbacks. Returns: (image_url, None, image_description, usage_dict).
     """
     width = config.IMAGE_WIDTH
     height = config.IMAGE_HEIGHT
     iters = config.IMAGE_ITERS
+    model_id = (
+        config.DEFAULT_IMAGE_MODEL.replace("deepinfra/", "").strip()
+        or "black-forest-labs/FLUX-1-schnell"
+    )
 
-    # If DeepInfra API key is available, generate AI image via FLUX-1-schnell
-    if config.DEEPINFRA_API_KEY:
-        prompt_for_image = (
-            draft.image_prompt_or_type
-            or f"UK UCAT clinical medical aptitude exam stimulus diagram for {req.section.value}: {draft.question_stem}"
+    if not config.DEEPINFRA_API_KEY:
+        logger.error(
+            "DEEPINFRA_API_KEY is not configured. Strict image generation policy prohibits SVG mock fallbacks."
         )
-        flux_prompt = f"Medical educational test diagram on clean white background, high contrast, clear labeling for UK UCAT medical test: {prompt_for_image}"
-        logger.info(f"Generating AI image with FLUX-1-schnell ({width}x{height}, {iters} iters)...")
-        img_data = await call_deepinfra_flux(
-            prompt=flux_prompt,
-            width=width,
-            height=height,
-            iters=iters,
-            api_key=config.DEEPINFRA_API_KEY,
-        )
-        if img_data:
-            cost = calculate_flux_image_cost(width, height, iters)
-            usage_dict = {
-                "agent_name": "Image Generator",
-                "model": "black-forest-labs/FLUX-1-schnell",
-                "prompt_tokens": 0,
-                "completion_tokens": 0,
-                "total_tokens": 0,
-                "cost_usd": cost,
-                "details": {
-                    "provider": "deepinfra",
-                    "width": width,
-                    "height": height,
-                    "iters": iters,
-                    "cost_formula": "$0.0005 * (width/1024) * (height/1024) * iters",
-                    "type": "ai_generated_image",
-                },
-            }
-            return (img_data, None, prompt_for_image, usage_dict)
-        else:
-            logger.warning(
-                "FLUX-1-schnell call failed or returned empty image, falling back to SVG"
-            )
+        error_usage = {
+            "agent_name": "Image Generator",
+            "model": model_id,
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0,
+            "details": {
+                "error": "DEEPINFRA_API_KEY is not configured. Visual stimuli strictly require an active AI image model.",
+                "type": "error",
+            },
+        }
+        return (None, None, None, error_usage)
 
-    # SVG Fallback
-    svg_usage = {
+    prompt_for_image = (
+        draft.image_prompt_or_type
+        or f"UK UCAT clinical medical aptitude exam stimulus diagram for {req.section.value}: {draft.question_stem}"
+    )
+    flux_prompt = (
+        f"Medical educational test diagram on clean white background, high contrast, "
+        f"clear labeling for UK UCAT medical test: {prompt_for_image}"
+    )
+    logger.info(f"Generating AI image with {model_id} ({width}x{height}, {iters} iters)...")
+
+    img_data = await call_deepinfra_flux(
+        prompt=flux_prompt,
+        width=width,
+        height=height,
+        iters=iters,
+        api_key=config.DEEPINFRA_API_KEY,
+        model=model_id,
+    )
+
+    if img_data:
+        cost = calculate_flux_image_cost(width, height, iters)
+        usage_dict = {
+            "agent_name": "Image Generator",
+            "model": model_id,
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": cost,
+            "details": {
+                "provider": "deepinfra",
+                "width": width,
+                "height": height,
+                "iters": iters,
+                "cost_formula": "$0.0005 * (width/1024) * (height/1024) * iters",
+                "type": "ai_generated_image",
+            },
+        }
+        return (img_data, None, prompt_for_image, usage_dict)
+
+    # If call_deepinfra_flux returns None after all retries:
+    logger.error(
+        f"AI Image Model ({model_id}) failed to generate an image. Strictly returning failure without SVG mock fallback."
+    )
+    failure_usage = {
         "agent_name": "Image Generator",
-        "model": "programmatic-svg",
+        "model": model_id,
         "prompt_tokens": 0,
         "completion_tokens": 0,
         "total_tokens": 0,
         "cost_usd": 0.0,
-        "details": {"type": "programmatic_svg", "note": "Free high-contrast vector diagram"},
+        "details": {
+            "error": f"Failed to generate image via {model_id} after retries.",
+            "type": "error",
+        },
     }
+    return (None, None, prompt_for_image, failure_usage)
 
-    if req.section == UCATSection.ABSTRACT_REASONING:
-        svg_content = generate_abstract_reasoning_svg()
-        desc = "UK UCAT Abstract Reasoning Set A vs Set B geometric pattern diagram"
-        return (None, svg_content, desc, svg_usage)
-
-    elif req.section == UCATSection.DECISION_MAKING and (
-        "venn" in (draft.stimulus_text + draft.question_stem).lower()
-        or "syllogism" in (draft.stimulus_text + draft.question_stem).lower()
-    ):
-        svg_content = generate_venn_diagram_svg()
-        desc = "Decision Making logical set relationships & Venn deduction diagram"
-        return (None, svg_content, desc, svg_usage)
-
-    elif req.section == UCATSection.QUANTITATIVE_REASONING:
-        svg_content = generate_quantitative_chart_svg()
-        desc = "Quantitative Reasoning dosage and clinical metrics table visual"
-        return (None, svg_content, desc, svg_usage)
-
-    # General fallback SVG
-    svg_fallback = generate_venn_diagram_svg(title=f"Stimulus: {draft.question_stem[:40]}")
-    return (None, svg_fallback, f"Visual stimulus for {req.section.value}", svg_usage)
