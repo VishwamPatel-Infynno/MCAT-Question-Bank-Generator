@@ -1,5 +1,4 @@
 import React from 'react';
-import { Image } from 'lucide-react';
 import NumberStepper from '../common/NumberStepper';
 
 export default function IndependentDiagramControls({
@@ -58,49 +57,18 @@ export default function IndependentDiagramControls({
             </span>
           </div>
 
-          {indSingleTotal === 1 ? (
-            <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-              {[
-                { id: 'no', label: 'No Diagram' },
-                { id: 'yes', label: 'With Diagram' }
-              ].map(opt => {
-                const hasImage = activeSingleImageCount > 0;
-                const isSel = opt.id === 'yes' ? hasImage : !hasImage;
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    id={`btn-single-choice-diag-${opt.id}`}
-                    onClick={() => {
-                      if (setSingleImageCount) {
-                        setSingleImageCount(opt.id === 'yes' ? 1 : 0, indSingleIndices, indMultiIndices);
-                      }
-                    }}
-                    className={`pill-track-btn ${isSel ? 'active' : ''}`}
-                    style={{ width: '100%', padding: '4px' }}
-                  >
-                    {opt.id === 'yes' && <Image size={11} />}
-                    <span>{opt.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <NumberStepper
-              value={activeSingleImageCount}
-              min={0}
-              max={indSingleTotal}
-              onChange={(cnt) => setSingleImageCount && setSingleImageCount(cnt, indSingleIndices, indMultiIndices)}
-              idPrefix="btn-single-img"
-              chipIdPrefix="btn-chip-single-img"
-              quickChips={true}
-              size="sm"
-              bgCard={true}
-              activeColor="var(--brand-primary)"
-              titleMinus="Decrease single choice questions with diagrams"
-              titlePlus="Increase single choice questions with diagrams"
-            />
-          )}
+          <NumberStepper
+            value={activeSingleImageCount}
+            min={0}
+            max={indSingleTotal}
+            onChange={(cnt) => setSingleImageCount && setSingleImageCount(cnt, indSingleIndices, indMultiIndices)}
+            idPrefix="btn-single-img"
+            size="sm"
+            bgCard={true}
+            activeColor="var(--brand-primary)"
+            titleMinus="Decrease single choice questions with diagrams"
+            titlePlus="Increase single choice questions with diagrams"
+          />
         </div>
       )}
 
@@ -128,49 +96,18 @@ export default function IndependentDiagramControls({
             </span>
           </div>
 
-          {indMultiTotal === 1 ? (
-            <div className="pill-track" style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-              {[
-                { id: 'no', label: 'No Diagram' },
-                { id: 'yes', label: 'With Diagram' }
-              ].map(opt => {
-                const hasImage = activeMultiImageCount > 0;
-                const isSel = opt.id === 'yes' ? hasImage : !hasImage;
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    id={`btn-multi-choice-diag-${opt.id}`}
-                    onClick={() => {
-                      if (setMultiImageCount) {
-                        setMultiImageCount(opt.id === 'yes' ? 1 : 0, indSingleIndices, indMultiIndices);
-                      }
-                    }}
-                    className={`pill-track-btn ${isSel ? 'active' : ''}`}
-                    style={{ width: '100%', padding: '4px' }}
-                  >
-                    {opt.id === 'yes' && <Image size={11} />}
-                    <span>{opt.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <NumberStepper
-              value={activeMultiImageCount}
-              min={0}
-              max={indMultiTotal}
-              onChange={(cnt) => setMultiImageCount && setMultiImageCount(cnt, indSingleIndices, indMultiIndices)}
-              idPrefix="btn-multi-img"
-              chipIdPrefix="btn-chip-multi-img"
-              quickChips={true}
-              size="sm"
-              bgCard={true}
-              activeColor="var(--brand-indigo)"
-              titleMinus="Decrease multiple choice questions with diagrams"
-              titlePlus="Increase multiple choice questions with diagrams"
-            />
-          )}
+          <NumberStepper
+            value={activeMultiImageCount}
+            min={0}
+            max={indMultiTotal}
+            onChange={(cnt) => setMultiImageCount && setMultiImageCount(cnt, indSingleIndices, indMultiIndices)}
+            idPrefix="btn-multi-img"
+            size="sm"
+            bgCard={true}
+            activeColor="var(--brand-indigo)"
+            titleMinus="Decrease multiple choice questions with diagrams"
+            titlePlus="Increase multiple choice questions with diagrams"
+          />
         </div>
       )}
     </div>

@@ -489,15 +489,13 @@ export default function GeneratorPanel({
           </span>
         </div>
 
-        {/* Stepper & Quick Chips */}
+        {/* Stepper Only */}
         <NumberStepper
           value={totalQuestions}
           min={1}
           max={5}
           onChange={handleTotalChange}
           idPrefix="btn-qty"
-          chipIdPrefix="btn-chip-qty"
-          quickChips={[1, 2, 3, 4, 5]}
           label={(val) => val}
           titleMinus="Decrease questions"
           titlePlus="Increase questions"
@@ -555,11 +553,7 @@ export default function GeneratorPanel({
                     max={totalQuestions}
                     onChange={handlePassageQuestionCountChange}
                     idPrefix="btn-passage-qty"
-                    chipIdPrefix="btn-chip-passage-qty"
-                    quickChips={Array.from({ length: totalQuestions }, (_, i) => i + 1)}
-                    chipLabel="P"
-                    activeBgColor="var(--status-purple-bg)"
-                    activeTextColor="var(--status-purple)"
+                    activeColor="var(--status-purple)"
                     label={(val) => `${val} of ${totalQuestions}`}
                     titleMinus="Decrease passage question count"
                     titlePlus="Increase passage question count"

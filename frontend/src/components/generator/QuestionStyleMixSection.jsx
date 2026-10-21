@@ -1,5 +1,5 @@
 import React from 'react';
-import { Minus, Plus } from 'lucide-react';
+import NumberStepper from '../common/NumberStepper';
 
 export default function QuestionStyleMixSection({
   totalQuestions = 1,
@@ -38,35 +38,26 @@ export default function QuestionStyleMixSection({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '5px 8px',
+                  padding: '3px 6px',
                   background: 'var(--bg-surface-subtle)',
                   borderRadius: 'var(--radius-xs)',
                   border: '1px solid var(--border-light)'
                 }}
               >
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Single</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <button
-                    type="button"
-                    id="btn-p-single-minus"
-                    onClick={() => handlePassageSingleChange && handlePassageSingleChange(passageSingleCount - 1)}
-                    disabled={passageSingleCount <= 0}
-                    style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                  >
-                    <Minus size={9} />
-                  </button>
-                  <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center' }}>
-                    {passageSingleCount}
-                  </span>
-                  <button
-                    type="button"
-                    id="btn-p-single-plus"
-                    onClick={() => handlePassageSingleChange && handlePassageSingleChange(passageSingleCount + 1)}
-                    disabled={passageSingleCount >= passageQuestionCount}
-                    style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                  >
-                    <Plus size={9} />
-                  </button>
+                <span style={{ fontSize: '0.675rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Single</span>
+                <div style={{ width: '74px' }}>
+                  <NumberStepper
+                    value={passageSingleCount}
+                    min={0}
+                    max={passageQuestionCount}
+                    onChange={(val) => handlePassageSingleChange && handlePassageSingleChange(val)}
+                    idPrefix="btn-p-single"
+                    size="sm"
+                    label={(val) => val}
+                    bgCard={true}
+                    titleMinus="Decrease passage single choice questions"
+                    titlePlus="Increase passage single choice questions"
+                  />
                 </div>
               </div>
 
@@ -76,35 +67,27 @@ export default function QuestionStyleMixSection({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '5px 8px',
+                  padding: '3px 6px',
                   background: 'var(--bg-surface-subtle)',
                   borderRadius: 'var(--radius-xs)',
                   border: '1px solid var(--border-light)'
                 }}
               >
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Multi</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <button
-                    type="button"
-                    id="btn-p-multi-minus"
-                    onClick={() => handlePassageMultiChange && handlePassageMultiChange(passageMultiCount - 1)}
-                    disabled={passageMultiCount <= 0}
-                    style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                  >
-                    <Minus size={9} />
-                  </button>
-                  <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: passageMultiCount > 0 ? 'var(--brand-indigo)' : 'var(--text-primary)' }}>
-                    {passageMultiCount}
-                  </span>
-                  <button
-                    type="button"
-                    id="btn-p-multi-plus"
-                    onClick={() => handlePassageMultiChange && handlePassageMultiChange(passageMultiCount + 1)}
-                    disabled={passageMultiCount >= passageQuestionCount}
-                    style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                  >
-                    <Plus size={9} />
-                  </button>
+                <span style={{ fontSize: '0.675rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Multi</span>
+                <div style={{ width: '74px' }}>
+                  <NumberStepper
+                    value={passageMultiCount}
+                    min={0}
+                    max={passageQuestionCount}
+                    onChange={(val) => handlePassageMultiChange && handlePassageMultiChange(val)}
+                    idPrefix="btn-p-multi"
+                    size="sm"
+                    label={(val) => val}
+                    bgCard={true}
+                    activeColor="var(--brand-indigo)"
+                    titleMinus="Decrease passage multiple choice questions"
+                    titlePlus="Increase passage multiple choice questions"
+                  />
                 </div>
               </div>
             </div>
@@ -121,35 +104,26 @@ export default function QuestionStyleMixSection({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '5px 8px',
+                  padding: '3px 6px',
                   background: 'var(--bg-surface-subtle)',
                   borderRadius: 'var(--radius-xs)',
                   border: '1px solid var(--border-light)'
                 }}
               >
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Single</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <button
-                    type="button"
-                    id="btn-ind-single-minus"
-                    onClick={() => handleIndependentSingleChange && handleIndependentSingleChange(independentSingleCount - 1)}
-                    disabled={independentSingleCount <= 0}
-                    style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                  >
-                    <Minus size={9} />
-                  </button>
-                  <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center' }}>
-                    {independentSingleCount}
-                  </span>
-                  <button
-                    type="button"
-                    id="btn-ind-single-plus"
-                    onClick={() => handleIndependentSingleChange && handleIndependentSingleChange(independentSingleCount + 1)}
-                    disabled={independentSingleCount >= (totalQuestions - passageQuestionCount)}
-                    style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                  >
-                    <Plus size={9} />
-                  </button>
+                <span style={{ fontSize: '0.675rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Single</span>
+                <div style={{ width: '74px' }}>
+                  <NumberStepper
+                    value={independentSingleCount}
+                    min={0}
+                    max={totalQuestions - passageQuestionCount}
+                    onChange={(val) => handleIndependentSingleChange && handleIndependentSingleChange(val)}
+                    idPrefix="btn-ind-single"
+                    size="sm"
+                    label={(val) => val}
+                    bgCard={true}
+                    titleMinus="Decrease independent single choice questions"
+                    titlePlus="Increase independent single choice questions"
+                  />
                 </div>
               </div>
 
@@ -158,35 +132,27 @@ export default function QuestionStyleMixSection({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '5px 8px',
+                  padding: '3px 6px',
                   background: 'var(--bg-surface-subtle)',
                   borderRadius: 'var(--radius-xs)',
                   border: '1px solid var(--border-light)'
                 }}
               >
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Multi</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <button
-                    type="button"
-                    id="btn-ind-multi-minus"
-                    onClick={() => handleIndependentMultiChange && handleIndependentMultiChange(independentMultiCount - 1)}
-                    disabled={independentMultiCount <= 0}
-                    style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                  >
-                    <Minus size={9} />
-                  </button>
-                  <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: independentMultiCount > 0 ? 'var(--brand-indigo)' : 'var(--text-primary)' }}>
-                    {independentMultiCount}
-                  </span>
-                  <button
-                    type="button"
-                    id="btn-ind-multi-plus"
-                    onClick={() => handleIndependentMultiChange && handleIndependentMultiChange(independentMultiCount + 1)}
-                    disabled={independentMultiCount >= (totalQuestions - passageQuestionCount)}
-                    style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                  >
-                    <Plus size={9} />
-                  </button>
+                <span style={{ fontSize: '0.675rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Multi</span>
+                <div style={{ width: '74px' }}>
+                  <NumberStepper
+                    value={independentMultiCount}
+                    min={0}
+                    max={totalQuestions - passageQuestionCount}
+                    onChange={(val) => handleIndependentMultiChange && handleIndependentMultiChange(val)}
+                    idPrefix="btn-ind-multi"
+                    size="sm"
+                    label={(val) => val}
+                    bgCard={true}
+                    activeColor="var(--brand-indigo)"
+                    titleMinus="Decrease independent multiple choice questions"
+                    titlePlus="Increase independent multiple choice questions"
+                  />
                 </div>
               </div>
             </div>
@@ -204,35 +170,26 @@ export default function QuestionStyleMixSection({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '5px 8px',
+                padding: '3px 6px',
                 background: 'var(--bg-surface-subtle)',
                 borderRadius: 'var(--radius-xs)',
                 border: '1px solid var(--border-light)'
               }}
             >
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Single Choice</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <button
-                  type="button"
-                  id="btn-single-count-minus"
-                  onClick={() => handleSingleCountChange && handleSingleCountChange(singleChoiceCount - 1)}
-                  disabled={singleChoiceCount <= 0}
-                  style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                >
-                  <Minus size={9} />
-                </button>
-                <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center' }}>
-                  {singleChoiceCount}
-                </span>
-                <button
-                  type="button"
-                  id="btn-single-count-plus"
-                  onClick={() => handleSingleCountChange && handleSingleCountChange(singleChoiceCount + 1)}
-                  disabled={singleChoiceCount >= totalQuestions}
-                  style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                >
-                  <Plus size={9} />
-                </button>
+              <span style={{ fontSize: '0.675rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Single Choice</span>
+              <div style={{ width: '74px' }}>
+                <NumberStepper
+                  value={singleChoiceCount}
+                  min={0}
+                  max={totalQuestions}
+                  onChange={(val) => handleSingleCountChange && handleSingleCountChange(val)}
+                  idPrefix="btn-single-count"
+                  size="sm"
+                  label={(val) => val}
+                  bgCard={true}
+                  titleMinus="Decrease single choice count"
+                  titlePlus="Increase single choice count"
+                />
               </div>
             </div>
 
@@ -242,35 +199,27 @@ export default function QuestionStyleMixSection({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '5px 8px',
+                padding: '3px 6px',
                 background: 'var(--bg-surface-subtle)',
                 borderRadius: 'var(--radius-xs)',
                 border: '1px solid var(--border-light)'
               }}
             >
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Multiple Choice</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <button
-                  type="button"
-                  id="btn-multi-count-minus"
-                  onClick={() => handleMultiCountChange && handleMultiCountChange(multiChoiceCount - 1)}
-                  disabled={multiChoiceCount <= 0}
-                  style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                >
-                  <Minus size={9} />
-                </button>
-                <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: multiChoiceCount > 0 ? 'var(--brand-indigo)' : 'var(--text-primary)' }}>
-                  {multiChoiceCount}
-                </span>
-                <button
-                  type="button"
-                  id="btn-multi-count-plus"
-                  onClick={() => handleMultiCountChange && handleMultiCountChange(multiChoiceCount + 1)}
-                  disabled={multiChoiceCount >= totalQuestions}
-                  style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                >
-                  <Plus size={9} />
-                </button>
+              <span style={{ fontSize: '0.675rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Multiple Choice</span>
+              <div style={{ width: '74px' }}>
+                <NumberStepper
+                  value={multiChoiceCount}
+                  min={0}
+                  max={totalQuestions}
+                  onChange={(val) => handleMultiCountChange && handleMultiCountChange(val)}
+                  idPrefix="btn-multi-count"
+                  size="sm"
+                  label={(val) => val}
+                  bgCard={true}
+                  activeColor="var(--brand-indigo)"
+                  titleMinus="Decrease multiple choice count"
+                  titlePlus="Increase multiple choice count"
+                />
               </div>
             </div>
           </div>
@@ -290,35 +239,26 @@ export default function QuestionStyleMixSection({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '5px 8px',
+                padding: '3px 6px',
                 background: 'var(--bg-surface-subtle)',
                 borderRadius: 'var(--radius-xs)',
                 border: '1px solid var(--border-light)'
               }}
             >
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Reading Passage</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <button
-                  type="button"
-                  id="btn-passage-count-minus"
-                  onClick={() => handlePassageCountChange && handlePassageCountChange(passageCount - 1)}
-                  disabled={passageCount <= 0}
-                  style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                >
-                  <Minus size={9} />
-                </button>
-                <span style={{ fontSize: '0.725rem', fontWeight: 700, minWidth: '12px', textAlign: 'center', color: passageCount > 0 ? 'var(--brand-primary)' : 'var(--text-primary)' }}>
-                  {passageCount}
-                </span>
-                <button
-                  type="button"
-                  id="btn-passage-count-plus"
-                  onClick={() => handlePassageCountChange && handlePassageCountChange(passageCount + 1)}
-                  disabled={passageCount >= totalQuestions}
-                  style={{ width: '16px', height: '16px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
-                >
-                  <Plus size={9} />
-                </button>
+              <span style={{ fontSize: '0.675rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Reading Passage</span>
+              <div style={{ width: '74px' }}>
+                <NumberStepper
+                  value={passageCount}
+                  min={0}
+                  max={totalQuestions}
+                  onChange={(val) => handlePassageCountChange && handlePassageCountChange(val)}
+                  idPrefix="btn-passage-count"
+                  size="sm"
+                  label={(val) => val}
+                  bgCard={true}
+                  titleMinus="Decrease passage questions"
+                  titlePlus="Increase passage questions"
+                />
               </div>
             </div>
 
@@ -328,14 +268,16 @@ export default function QuestionStyleMixSection({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '5px 8px',
+                padding: '3px 6px',
                 background: 'var(--bg-surface-subtle)',
                 borderRadius: 'var(--radius-xs)',
-                border: '1px solid var(--border-light)'
+                border: '1px solid var(--border-light)',
+                minHeight: '28px',
+                boxSizing: 'border-box'
               }}
             >
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Direct (No Passage)</span>
-              <span style={{ fontSize: '0.725rem', fontWeight: 700, paddingRight: '4px', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.675rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Direct (No Passage)</span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, paddingRight: '12px', color: 'var(--text-muted)' }}>
                 {totalQuestions - passageCount}
               </span>
             </div>
