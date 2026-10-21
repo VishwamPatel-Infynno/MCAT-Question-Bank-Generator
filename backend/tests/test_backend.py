@@ -212,6 +212,18 @@ def test_flux_image_cost_formula():
     # Resolution 1024x1024, 1 iter -> 0.0005 * 1 * 1 * 1 = $0.0005
     assert calculate_flux_image_cost(1024, 1024, 1) == 0.0005
 
+    # FLUX-2-klein-4b flat rate testing
+    assert (
+        calculate_flux_image_cost(1024, 1024, 0, model="black-forest-labs/FLUX-2-klein-4b") == 0.014
+    )
+    assert (
+        config.calculate_flux_image_cost(1024, 1024, 0, model="black-forest-labs/FLUX-2-klein-4b")
+        == 0.014
+    )
+    assert (
+        calculate_flux_image_cost(512, 512, 0, model="black-forest-labs/FLUX-2-klein-4b") == 0.0035
+    )
+
 
 @pytest.mark.asyncio
 async def test_image_node_workflow_accumulation(monkeypatch):

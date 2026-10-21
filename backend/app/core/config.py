@@ -25,24 +25,37 @@ class Settings(BaseSettings):
         os.getenv("COST_PER_MILLION_OUTPUT_TOKENS", "0.32")
     )
 
-    # Image generation model: black-forest-labs/FLUX-1-schnell via DeepInfra
-    DEFAULT_IMAGE_MODEL: str = os.getenv("DEFAULT_IMAGE_MODEL", "black-forest-labs/FLUX-1-schnell")
+    # Image generation model: black-forest-labs/FLUX-2-klein-4b via DeepInfra
+    DEFAULT_IMAGE_MODEL: str = os.getenv("DEFAULT_IMAGE_MODEL", "black-forest-labs/FLUX-2-klein-4b")
     IMAGE_WIDTH: int = int(os.getenv("IMAGE_WIDTH", "1024"))
     IMAGE_HEIGHT: int = int(os.getenv("IMAGE_HEIGHT", "1024"))
-    IMAGE_ITERS: int = int(os.getenv("IMAGE_ITERS", "4"))
-    IMAGE_COST_PER_BASE_UNIT: float = float(os.getenv("IMAGE_COST_PER_BASE_UNIT", "0.0005"))
+    IMAGE_ITERS: int = int(os.getenv("IMAGE_ITERS", "0"))
+    IMAGE_COST_PER_BASE_UNIT: float = float(os.getenv("IMAGE_COST_PER_BASE_UNIT", "0.014"))
 
     def calculate_flux_image_cost(
-        self, width: int | None = None, height: int | None = None, iters: int | None = None
+        self,
+        width: int | None = None,
+        height: int | None = None,
+        iters: int | None = None,
+        model: str | None = None,
     ) -> float:
         """
-        Calculates FLUX-1-schnell image generation cost using DeepInfra formula:
-        Cost = $0.0005 * (width / 1024) * (height / 1024) * iters
+        Calculates image generation cost using DeepInfra model pricing:
+        - FLUX-2-klein-4b (flat rate): Flat $0.014 per image (at 1024x1024 base unit)
+        - Step-based (iters > 0): rate * (width / 1024) * (height / 1024) * iters
         """
         w = width if width is not None else self.IMAGE_WIDTH
         h = height if height is not None else self.IMAGE_HEIGHT
-        it = iters if iters is not None else self.IMAGE_ITERS
-        return round(self.IMAGE_COST_PER_BASE_UNIT * (w / 1024.0) * (h / 1024.0) * it, 6)
+
+        # If iters is explicitly passed (>0), compute per-step rate (FLUX-1-schnell standard)
+        if iters is not None and iters > 0:
+            rate = (
+                0.0005 if self.IMAGE_COST_PER_BASE_UNIT == 0.014 else self.IMAGE_COST_PER_BASE_UNIT
+            )
+            return round(rate * (w / 1024.0) * (h / 1024.0) * iters, 6)
+
+        rate = self.IMAGE_COST_PER_BASE_UNIT
+        return round(rate * (w / 1024.0) * (h / 1024.0), 6)
 
     # API Keys
     DEEPINFRA_API_KEY: str = os.getenv("DEEPINFRA_API_KEY", "")

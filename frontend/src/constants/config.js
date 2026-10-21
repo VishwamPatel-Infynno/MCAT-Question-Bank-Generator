@@ -6,15 +6,15 @@ export const PRICING_RATES = {
   label: 'Proprietary High-Throughput Exam Engine'
 };
 
-export const DEFAULT_IMAGE_MODEL = 'black-forest-labs/FLUX-1-schnell';
+export const DEFAULT_IMAGE_MODEL = 'black-forest-labs/FLUX-2-klein-4b';
 
 export const IMAGE_PRICING = {
-  baseRate: 0.0005,
+  baseRate: 0.014,
   defaultWidth: 1024,
   defaultHeight: 1024,
-  defaultIters: 4,
-  formulaLabel: 'High-Resolution Neural Synthesis',
-  calculate: (w = 1024, h = 1024, iters = 4) => (0.0005 * (w / 1024) * (h / 1024) * iters)
+  defaultIters: 0,
+  formulaLabel: 'FLUX-2 Klein Ultra-Fast Neural Synthesis ($0.014 / img)',
+  calculate: (w = 1024, h = 1024) => 0.014 * (w / 1024) * (h / 1024)
 };
 
 export const IMAGE_RESOLUTION_PRESETS = [

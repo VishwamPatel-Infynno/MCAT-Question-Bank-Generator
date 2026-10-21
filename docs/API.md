@@ -368,7 +368,7 @@ Reports backend status, PostgreSQL database connection, database version, active
   "database_connected": true,
   "database_status": "ready",
   "default_text_model": "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo",
-  "default_image_model": "deepinfra/black-forest-labs/FLUX-1-schnell",
+  "default_image_model": "deepinfra/black-forest-labs/FLUX-2-klein-4b",
   "has_deepinfra_key": true,
   "has_gemini_key": false,
   "has_openai_key": false,
@@ -406,11 +406,11 @@ curl -X POST http://localhost:8000/api/config \
   -H "Content-Type: application/json" \
   -d '{
     "default_text_model": "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo",
-    "default_image_model": "black-forest-labs/FLUX-1-schnell",
+    "default_image_model": "black-forest-labs/FLUX-2-klein-4b",
     "deepinfra_api_key": "your_api_key_here",
     "image_width": 1024,
     "image_height": 1024,
-    "image_iters": 4,
+    "image_iters": 0,
     "max_regenerations": 3
   }'
 ```

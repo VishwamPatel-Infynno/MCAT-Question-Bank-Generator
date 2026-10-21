@@ -324,7 +324,7 @@ backend/app/
 │   ├── generator.py     # Question Generator Agent
 │   ├── reviewer.py      # Question Reviewer Agent (100-pt rubric)
 │   ├── regenerator.py   # Question Re-Generator Agent
-│   └── image_generator.py # Programmatic SVG & AI visual generator (FLUX-1-schnell)
+│   └── image_generator.py # Programmatic SVG & AI visual generator (FLUX-2-klein-4b)
 ├── workflow/            # Orchestration Engine
 │   ├── state.py         # AgentWorkflowState typed dict
 │   └── graph.py         # LangGraph StateGraph with conditional quality routing

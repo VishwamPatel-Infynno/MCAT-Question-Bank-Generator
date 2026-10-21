@@ -180,7 +180,7 @@ Question Bank Generator/
 │       │   ├── generator.py     # Question Generator Agent
 │       │   ├── reviewer.py      # Question Reviewer Agent (100-pt rubric)
 │       │   ├── regenerator.py   # Remediation Engine Agent (<= 90 trigger)
-│       │   ├── image_generator.py # Programmatic SVG & FLUX-1-schnell visual generator
+│       │   ├── image_generator.py # Programmatic SVG & FLUX-2-klein-4b visual generator
 │       │   └── __init__.py
 │       ├── workflow/            # LangGraph multi-agent state graph
 │       │   ├── state.py         # AgentWorkflowState typed dictionary

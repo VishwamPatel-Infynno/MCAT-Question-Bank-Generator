@@ -53,31 +53,31 @@ def calculate_token_cost(prompt_tokens: int, completion_tokens: int) -> float:
 
 ---
 
-## 3. FLUX-1-schnell Image Generation Pricing
+## 3. FLUX-2-klein-4b Image Generation Pricing
 
-For visual question stimuli, the system integrates **`black-forest-labs/FLUX-1-schnell`** hosted on **DeepInfra**:
+For visual question stimuli, the system integrates **`black-forest-labs/FLUX-2-klein-4b`** hosted on **DeepInfra**:
 
-- **Model Identifier**: `black-forest-labs/FLUX-1-schnell`
-- **Architecture**: Distilled rectified-flow transformer optimized for 1–4 inference steps.
+- **Model Identifier**: `black-forest-labs/FLUX-2-klein-4b`
+- **Architecture**: Compact rectified-flow transformer from the Flux 2 family, delivering superior prompt adherence, clean white-background test illustrations, and sub-2.0s generation times.
 
 ### Official DeepInfra Image Pricing Formula
 
-$$\text{Price (USD)} = 0.0005 \times \left(\frac{\text{width}}{1024}\right) \times \left(\frac{\text{height}}{1024}\right) \times \text{iters}$$
+FLUX-2-klein-4b is billed at a flat rate per image on DeepInfra:
+
+$$\text{Price (USD)} = 0.014 \times \left(\frac{\text{width}}{1024}\right) \times \left(\frac{\text{height}}{1024}\right)$$
 
 Where:
 * **$\text{width}$**: Pixel width of the generated image (normalized against a $1024$ baseline).
 * **$\text{height}$**: Pixel height of the generated image (normalized against a $1024$ baseline).
-* **$\text{iters}$**: The number of inference steps (`num_inference_steps`) requested.
+* **Dynamic API Telemetry**: The engine automatically extracts and records the exact provider-reported cost from DeepInfra's `inference_status.cost` payload when available.
 
-### Resolution & Step Variation Cost Table
+### Resolution Variation Cost Table
 
-| Resolution (W × H) | Inference Steps (`iters`) | Scaling Factor | Unit Calculation | Cost per Image (USD) |
+| Resolution (W × H) | Inference Mode | Scaling Factor | Unit Calculation | Cost per Image (USD) |
 | :--- | :---: | :---: | :--- | :---: |
-| **1024 × 1024 (Standard)** | **4 steps** | $1.0 \times 1.0$ | $0.0005 \times 1 \times 1 \times 4$ | **$0.002000** |
-| **1024 × 1024 (Rapid)** | **1 step** | $1.0 \times 1.0$ | $0.0005 \times 1 \times 1 \times 1$ | **$0.000500** |
-| **768 × 768 (Balanced)** | **4 steps** | $0.75 \times 0.75$ | $0.0005 \times 0.5625 \times 4$ | **$0.001125** |
-| **512 × 512 (Fast)** | **4 steps** | $0.5 \times 0.5$ | $0.0005 \times 0.25 \times 4$ | **$0.000500** |
-| **512 × 512 (Draft)** | **1 step** | $0.5 \times 0.5$ | $0.0005 \times 0.25 \times 1$ | **$0.000125** |
+| **1024 × 1024 (Standard Quality)** | **Single pass** | $1.0 \times 1.0$ | Flat unit rate | **$0.014000** |
+| **768 × 768 (Medium Balanced)** | **Single pass** | $0.75 \times 0.75$ | $0.014 \times 0.5625$ | **$0.007875** |
+| **512 × 512 (Fast Lightweight)** | **Single pass** | $0.5 \times 0.5$ | $0.014 \times 0.25$ | **$0.003500** |
 | **Programmatic SVG Fallback** | — | — | Offline vector diagram | **$0.000000** |
 
 ---

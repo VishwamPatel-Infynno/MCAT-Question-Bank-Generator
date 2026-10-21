@@ -34,7 +34,7 @@ cp .env.example .env
 | :--- | :--- | :--- | :--- |
 | `DATABASE_URL` | `string` | `postgresql+asyncpg://ucat_user:ucat_password@localhost:5432/ucat_db` | Async SQLAlchemy PostgreSQL connection string |
 | `DEFAULT_TEXT_MODEL` | `string` | `deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo` | Primary LiteLLM model identifier |
-| `DEFAULT_IMAGE_MODEL` | `string` | `deepinfra/black-forest-labs/FLUX-1-schnell` | Image model for visual stimuli |
+| `DEFAULT_IMAGE_MODEL` | `string` | `deepinfra/black-forest-labs/FLUX-2-klein-4b` | Image model for visual stimuli |
 | `DEEPINFRA_API_KEY` | `string` | `""` | DeepInfra API authorization key |
 | `GEMINI_API_KEY` | `string` | `""` | Optional Google Gemini API key |
 | `OPENAI_API_KEY` | `string` | `""` | Optional OpenAI API key |
@@ -42,10 +42,10 @@ cp .env.example .env
 | `PASSING_SCORE_THRESHOLD` | `integer`| `90` | Minimum score required to pass psychometric gate |
 | `COST_PER_MILLION_INPUT_TOKENS` | `float` | `0.10` | Input token price ($0.10 / 1M tokens) |
 | `COST_PER_MILLION_OUTPUT_TOKENS`| `float` | `0.32` | Output token price ($0.32 / 1M tokens) |
-| `IMAGE_WIDTH` | `integer` | `1024` | Default width for FLUX-1-schnell diagrams |
-| `IMAGE_HEIGHT` | `integer` | `1024` | Default height for FLUX-1-schnell diagrams |
-| `IMAGE_ITERS` | `integer` | `4` | Inference step iterations for FLUX diagrams |
-| `IMAGE_COST_PER_STEP` | `float` | `0.0005` | Cost per step per megapixel in USD |
+| `IMAGE_WIDTH` | `integer` | `1024` | Default width for FLUX diagrams |
+| `IMAGE_HEIGHT` | `integer` | `1024` | Default height for FLUX diagrams |
+| `IMAGE_ITERS` | `integer` | `0` | Inference step iterations (0 for flat-rate models) |
+| `IMAGE_COST_PER_BASE_UNIT` | `float` | `0.014` | Flat unit rate in USD ($0.014/img) |
 
 ---
 

@@ -15,16 +15,24 @@ def calculate_flux_image_cost(
     height: int | None = None,
     iters: int | None = None,
     base_rate: float | None = None,
+    model: str | None = None,
 ) -> float:
     """
-    Calculates DeepInfra FLUX-1-schnell image generation cost using official formula:
-    Price = $0.0005 * (width / 1024) * (height / 1024) * iters
+    Calculates DeepInfra image generation cost.
+    For FLUX-2-klein-4b: Flat $0.0140 per image (scaled by resolution).
+    For iters > 0 / step-based: $0.0005 * (width / 1024) * (height / 1024) * iters.
     """
     w = width if width is not None else config.IMAGE_WIDTH
     h = height if height is not None else config.IMAGE_HEIGHT
-    it = iters if iters is not None else config.IMAGE_ITERS
-    rate = base_rate if base_rate is not None else config.IMAGE_COST_PER_BASE_UNIT
-    return round(rate * (w / 1024.0) * (h / 1024.0) * it, 6)
+
+    # If iters is explicitly passed (>0), compute per-step rate (FLUX-1-schnell standard)
+    if iters is not None and iters > 0:
+        rate = base_rate if base_rate is not None else 0.0005
+        return round(rate * (w / 1024.0) * (h / 1024.0) * iters, 6)
+
+    # Flat-rate pricing (FLUX-2-klein-4b)
+    rate = base_rate if base_rate is not None else 0.014
+    return round(rate * (w / 1024.0) * (h / 1024.0), 6)
 
 
 async def call_deepinfra_flux(
@@ -34,14 +42,15 @@ async def call_deepinfra_flux(
     iters: int,
     api_key: str,
     model: str | None = None,
-) -> str | None:
+) -> tuple[str | None, float | None]:
     """
-    Calls DeepInfra API for dedicated AI image generation (default: black-forest-labs/FLUX-1-schnell).
+    Calls DeepInfra API for dedicated AI image generation (default: black-forest-labs/FLUX-2-klein-4b).
     Supports both native inference endpoint and OpenAI-compatible endpoint with automated retry & backoff.
+    Returns: (image_data, actual_cost_if_reported)
     """
     model_id = (model or config.DEFAULT_IMAGE_MODEL).replace("deepinfra/", "").strip()
     if not model_id:
-        model_id = "black-forest-labs/FLUX-1-schnell"
+        model_id = "black-forest-labs/FLUX-2-klein-4b"
 
     max_retries = 2
     for attempt in range(max_retries + 1):
@@ -50,21 +59,28 @@ async def call_deepinfra_flux(
                 # 1. Native DeepInfra inference endpoint
                 try:
                     native_url = f"https://api.deepinfra.com/v1/inference/{model_id}"
-                    payload = {
+                    payload: dict[str, Any] = {
                         "prompt": prompt,
                         "width": width,
                         "height": height,
-                        "num_inference_steps": iters,
                     }
+                    if "klein" not in model_id.lower() and iters > 0:
+                        payload["num_inference_steps"] = iters
+
                     res = await client.post(
                         native_url, json=payload, headers={"Authorization": f"Bearer {api_key}"}
                     )
                     if res.status_code == 200:
                         data = res.json()
+                        cost = None
+                        if "inference_status" in data and isinstance(
+                            data["inference_status"], dict
+                        ):
+                            cost = data["inference_status"].get("cost")
                         if "images" in data and len(data["images"]) > 0:
-                            return data["images"][0]
+                            return (data["images"][0], cost)
                         if "output" in data and len(data["output"]) > 0:
-                            return data["output"][0]
+                            return (data["output"][0], cost)
                     else:
                         logger.warning(
                             f"DeepInfra native FLUX inference status {res.status_code}: {res.text[:200]}"
@@ -88,11 +104,13 @@ async def call_deepinfra_flux(
                         data = res.json()
                         if "data" in data and len(data["data"]) > 0:
                             item = data["data"][0]
-                            return item.get("url") or (
+                            img = item.get("url") or (
                                 f"data:image/jpeg;base64,{item.get('b64_json')}"
                                 if item.get("b64_json")
                                 else None
                             )
+                            if img:
+                                return (img, None)
                     else:
                         logger.warning(
                             f"DeepInfra OpenAI-compatible FLUX status {res.status_code}: {res.text[:200]}"
@@ -111,7 +129,7 @@ async def call_deepinfra_flux(
             await asyncio.sleep(backoff_secs)
 
     logger.error(f"AI image model ({model_id}) generation failed after {max_retries + 1} attempts.")
-    return None
+    return (None, None)
 
 
 def generate_abstract_reasoning_svg(title: str = "Abstract Reasoning - Pattern Sets") -> str:
@@ -243,7 +261,7 @@ async def generate_image_stimulus(
     draft: QuestionDraft, req: GenerationRequest
 ) -> tuple[str | None, str | None, str | None, dict[str, Any]]:
     """
-    Invokes the Image Generator Agent strictly using the AI Image Model (FLUX-1-schnell via DeepInfra).
+    Invokes the Image Generator Agent strictly using the AI Image Model (FLUX-2-klein-4b via DeepInfra).
     Strict policy: Never uses SVG mock fallbacks. Returns: (image_url, None, image_description, usage_dict).
     """
     width = config.IMAGE_WIDTH
@@ -251,7 +269,7 @@ async def generate_image_stimulus(
     iters = config.IMAGE_ITERS
     model_id = (
         config.DEFAULT_IMAGE_MODEL.replace("deepinfra/", "").strip()
-        or "black-forest-labs/FLUX-1-schnell"
+        or "black-forest-labs/FLUX-2-klein-4b"
     )
 
     if not config.DEEPINFRA_API_KEY:
@@ -282,7 +300,7 @@ async def generate_image_stimulus(
     )
     logger.info(f"Generating AI image with {model_id} ({width}x{height}, {iters} iters)...")
 
-    img_data = await call_deepinfra_flux(
+    res = await call_deepinfra_flux(
         prompt=flux_prompt,
         width=width,
         height=height,
@@ -290,9 +308,34 @@ async def generate_image_stimulus(
         api_key=config.DEEPINFRA_API_KEY,
         model=model_id,
     )
+    if isinstance(res, tuple):
+        img_data, reported_cost = res
+    else:
+        img_data, reported_cost = res, None
 
     if img_data:
-        cost = calculate_flux_image_cost(width, height, iters)
+        cost = (
+            reported_cost
+            if (
+                reported_cost is not None
+                and isinstance(reported_cost, (int, float))
+                and reported_cost > 0
+            )
+            else calculate_flux_image_cost(width, height, iters, model=model_id)
+        )
+        cost_formula = (
+            "DeepInfra API reported inference cost"
+            if (
+                reported_cost is not None
+                and isinstance(reported_cost, (int, float))
+                and reported_cost > 0
+            )
+            else (
+                f"Flat $0.0140 * ({width}/1024) * ({height}/1024)"
+                if "klein" in model_id.lower()
+                else f"$0.0005 * ({width}/1024) * ({height}/1024) * {iters}"
+            )
+        )
         usage_dict = {
             "agent_name": "Image Generator",
             "model": model_id,
@@ -305,7 +348,7 @@ async def generate_image_stimulus(
                 "width": width,
                 "height": height,
                 "iters": iters,
-                "cost_formula": "$0.0005 * (width/1024) * (height/1024) * iters",
+                "cost_formula": cost_formula,
                 "type": "ai_generated_image",
             },
         }
