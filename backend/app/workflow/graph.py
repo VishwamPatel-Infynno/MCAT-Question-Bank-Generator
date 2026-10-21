@@ -277,7 +277,6 @@ async def regenerator_node(state: AgentWorkflowState) -> dict[str, Any]:
 def route_after_review(state: AgentWorkflowState) -> str:
     review = state.get("current_review")
     iteration = state.get("iteration_count", 1)
-    req_data = state["request"]
 
     score = review.get("total_score", 100) if review else 100
     threshold = config.PASSING_SCORE_THRESHOLD

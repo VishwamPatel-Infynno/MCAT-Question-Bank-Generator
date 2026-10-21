@@ -5,7 +5,7 @@ from typing import Any
 import httpx
 
 from app.core.config import config
-from app.schemas import GenerationRequest, QuestionDraft, UCATSection
+from app.schemas import GenerationRequest, QuestionDraft
 
 logger = logging.getLogger(__name__)
 
