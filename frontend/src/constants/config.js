@@ -23,10 +23,3 @@ export const IMAGE_RESOLUTION_PRESETS = [
   { label: '512 × 512 (Fast Lightweight)', width: 512, height: 512 }
 ];
 
-export const MODEL_OPTIONS = [
-  {
-    id: 'deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo',
-    label: 'Infynno Autonomous Psychometric Engine (v2.0 Enterprise)'
-  }
-];
-

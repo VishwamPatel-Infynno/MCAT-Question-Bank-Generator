@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { X, Settings, Sliders, Image, ExternalLink } from 'lucide-react';
 import { fetchSettings, updateSettings } from '../../services/api';
-import { MODEL_OPTIONS, DEFAULT_TEXT_MODEL, IMAGE_RESOLUTION_PRESETS } from '../../constants/config';
+import { IMAGE_RESOLUTION_PRESETS } from '../../constants/config';
 import InfynnoLogo from '../common/InfynnoLogo';
-import CustomSelect from '../common/CustomSelect';
 
 export default function SettingsModal({ onClose }) {
-  const [model, setModel] = useState(DEFAULT_TEXT_MODEL);
   const [maxRegenerations, setMaxRegenerations] = useState(3);
 
   // FLUX-1-schnell Image Settings
@@ -18,7 +16,6 @@ export default function SettingsModal({ onClose }) {
 
   useEffect(() => {
     fetchSettings().then(cfg => {
-      if (cfg.default_text_model) setModel(cfg.default_text_model);
       if (cfg.max_regenerations) setMaxRegenerations(cfg.max_regenerations);
       if (cfg.image_width) setImageWidth(cfg.image_width);
       if (cfg.image_height) setImageHeight(cfg.image_height);
@@ -28,7 +25,6 @@ export default function SettingsModal({ onClose }) {
 
   const handleSave = async () => {
     const payload = {
-      default_text_model: model,
       max_regenerations: maxRegenerations,
       image_width: imageWidth,
       image_height: imageHeight,
@@ -79,7 +75,7 @@ export default function SettingsModal({ onClose }) {
                 Studio Engine &amp; Generation Settings
               </h3>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                Configure AI models, neural diagram resolution, and quality calibration.
+                Configure neural diagram resolution, precision calibration, and quality remediation.
               </p>
             </div>
           </div>
@@ -96,28 +92,6 @@ export default function SettingsModal({ onClose }) {
 
         {/* Form Body */}
         <div className="modal-body">
-          {/* Text Model */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
-              AI Model for Question Writing
-            </label>
-            <CustomSelect
-              id="settings-select-model"
-              label="AI Model for Question Writing"
-              value={model}
-              onChange={(newModel) => setModel(newModel)}
-              options={MODEL_OPTIONS.map(opt => ({
-                value: opt.id,
-                label: opt.label,
-                description: 'Enterprise Multi-Agent Verification'
-              }))}
-              searchable={false}
-            />
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Enterprise-grade psychometric calibration and validation.
-            </div>
-          </div>
-
 
           {/* Diagram & Stimulus Generator Section */}
           <div
