@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import StageJsonInspector from './StageJsonInspector';
 import VisualStimulusViewer from './VisualStimulusViewer';
+import MentorExplanationView from './MentorExplanationView';
 
 export default function QuestionCard({ 
   question, 
@@ -549,21 +550,21 @@ export default function QuestionCard({
                 color: 'var(--text-secondary)'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', color: 'var(--brand-primary)', fontWeight: 600 }}>
-                <HelpCircle size={15} />
-                <span>Why Answers are Right or Wrong</span>
-              </div>
               {isEditing ? (
-                <textarea
-                  value={editedExplanation}
-                  onChange={(e) => setEditedExplanation(e.target.value)}
-                  rows={4}
-                  style={{ width: '100%', fontSize: '0.85rem', lineHeight: '1.6' }}
-                />
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', color: 'var(--brand-primary)', fontWeight: 600 }}>
+                    <HelpCircle size={15} />
+                    <span>Why Answers are Right or Wrong</span>
+                  </div>
+                  <textarea
+                    value={editedExplanation}
+                    onChange={(e) => setEditedExplanation(e.target.value)}
+                    rows={4}
+                    style={{ width: '100%', fontSize: '0.85rem', lineHeight: '1.6' }}
+                  />
+                </>
               ) : (
-                <div style={{ whiteSpace: 'pre-line', color: 'var(--text-primary)' }}>
-                  {question.explanation}
-                </div>
+                <MentorExplanationView explanation={question.explanation} />
               )}
             </div>
           )}

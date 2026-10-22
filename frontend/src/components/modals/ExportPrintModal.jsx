@@ -511,6 +511,7 @@ export default function ExportPrintModal({
             gap: 10px;
             padding: 4px 6px;
             border-radius: 4px;
+            line-height: 1.45;
           }
           .option-bubble {
             font-family: monospace;
@@ -518,15 +519,22 @@ export default function ExportPrintModal({
             color: #94a3b8;
             font-size: 12px;
             white-space: nowrap;
+            flex-shrink: 0;
+            line-height: 1.45;
           }
           .option-letter {
             font-size: 13px;
             color: #0f172a;
             white-space: nowrap;
+            flex-shrink: 0;
+            line-height: 1.45;
+            min-width: 18px;
           }
           .option-text {
             font-size: 13px;
             color: #1e293b;
+            flex: 1;
+            line-height: 1.45;
           }
           .page-break {
             page-break-before: always;
@@ -894,12 +902,12 @@ export default function ExportPrintModal({
                           {q.question_stem || q.stem || ''}
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           {(q.options || []).map(opt => (
-                            <div key={opt.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: '#1e293b' }}>
-                              <span style={{ color: '#94a3b8', fontFamily: 'monospace', fontWeight: 700 }}>[ &nbsp; ]</span>
-                              <strong style={{ minWidth: '18px' }}>{opt.id}.</strong>
-                              <span>{opt.text}</span>
+                            <div key={opt.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '0.8rem', color: '#1e293b', lineHeight: 1.45 }}>
+                              <span style={{ color: '#94a3b8', fontFamily: 'monospace', fontWeight: 700, flexShrink: 0, lineHeight: 1.45, userSelect: 'none' }}>[ &nbsp; ]</span>
+                              <strong style={{ minWidth: '18px', flexShrink: 0, lineHeight: 1.45, color: '#0f172a' }}>{opt.id}.</strong>
+                              <span style={{ flex: 1, lineHeight: 1.45 }}>{opt.text}</span>
                             </div>
                           ))}
                         </div>

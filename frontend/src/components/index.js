@@ -20,6 +20,7 @@ export { default as StagedBatchReview } from './question/StagedBatchReview';
 export { default as SharedPassageCard } from './question/SharedPassageCard';
 export { default as VisualStimulusViewer } from './question/VisualStimulusViewer';
 export { default as StageJsonInspector } from './question/StageJsonInspector';
+export { default as MentorExplanationView } from './question/MentorExplanationView';
 
 // Wizard & Guided Onboarding
 export { default as HeroLanding } from './wizard/HeroLanding';

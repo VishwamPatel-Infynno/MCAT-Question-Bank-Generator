@@ -12,7 +12,12 @@ CORE STANDARDS FOR UK UCAT QUESTIONS:
 4. Passage Calibration:
    - When Passage Required is "Yes": Generate a rich, publication-caliber 250-400 word academic or clinical passage with rigorous data density and clear paragraphing.
    - When Passage Required is "No" (Direct Independent Questions): Strictly do NOT generate any reading passage, scenario, or vignette. Leave "stimulus_text" strictly empty (""). The question stem MUST directly state the entire question, premises, calculations, or problem prompt directly within "question_stem".
-5. Crystal Clear Explanation: Provide a comprehensive, step-by-step pedagogical breakdown proving why each correct key is incontrovertible AND why each distractor fails, naming the specific fallacy where applicable.
+5. Mentor-Style Conversational Explanation (CRITICAL):
+   - Tone & Register: Write in a warm, encouraging, conversational mentor style, as if an expert senior clinical tutor is sitting beside the student explaining the solution one-on-one.
+   - Clarity & Intuition: Start with the core intuition so any candidate immediately grasps the big picture without confusion or doubt. Explain why the reasoning works in clear, engaging, accessible language without academic stuffiness.
+   - Dual-Section Structure:
+     * Walkthrough & Winning Strategy: Walk through the solution step-by-step with supportive commentary, proving why the correct key is incontrovertible.
+     * Trap Breakdown (Why Other Options Fail): For each incorrect option, explain conversationally why an applicant might be tempted by it and the exact cognitive trap or flaw that disqualifies it.
 6. Absolute Precision: Use British English conventions (e.g., categorise, paediatric, licence).
 7. Anti-Guessability & Option Symmetry (CRITICAL):
    - Length & Word Count Symmetry: All options (the correct answer and all distractors) MUST have approximately equal length and word count (within ±15% or within 2-4 words of each other). NEVER make the correct option noticeably longer, more detailed, or more qualified than the distractors ("longest option = right answer" is an unacceptable flaw).
@@ -104,7 +109,7 @@ RULES FOR REGENERATION:
 3. Ensure the stimulus text and question stem are crystal clear, completely unambiguous, and written in British English.
 4. For multi-choice questions, preserve the multi-key format and explicit instruction in the stem.
 5. If a long passage was requested, maintain rich passage depth (250-400 words). If Passage Required was "No", keep "stimulus_text" strictly empty ("") and preserve direct question stem format.
-6. Expand and enrich the explanation: provide a bulletproof step-by-step rationale for why every correct answer is definitive and why each distractor fails.
+6. Expand and enrich the explanation: write in a supportive, conversational mentor voice that walks through the winning strategy step-by-step and unpacks why each distractor trap was tempting and how to avoid it.
 7. Maintain valid options count (4 choices A-D, or 5 choices A-E for multi-choice).
 8. Strict Option Symmetry & Anti-Guessability:
    - Equalize the length and word count of all options to within ±15% (or within 2-4 words of each other).
@@ -155,7 +160,12 @@ CORE STANDARDS FOR UK UCAT QUESTIONS:
 4. Passage Calibration:
    - When Passage Required is "Yes": Generate a rich, publication-caliber 250-400 word academic or clinical passage with rigorous data density and clear paragraphing.
    - When Passage Required is "No" (Direct Independent Questions): Strictly do NOT generate any reading passage, scenario, or vignette. Leave "stimulus_text" strictly empty (""). The question stem MUST directly state the entire question, premises, calculations, or problem prompt directly within "question_stem".
-5. Crystal Clear Explanation: Provide a comprehensive, step-by-step pedagogical breakdown proving why each correct key is incontrovertible AND why each distractor fails, naming the specific fallacy where applicable.
+5. Mentor-Style Conversational Explanation (CRITICAL):
+   - Tone & Register: Write in a warm, encouraging, conversational mentor style, as if an expert senior clinical tutor is sitting beside the student explaining the solution one-on-one.
+   - Clarity & Intuition: Start with the core intuition so any candidate immediately grasps the big picture without confusion or doubt. Explain why the reasoning works in clear, engaging, accessible language without academic stuffiness.
+   - Dual-Section Structure:
+     * Walkthrough & Winning Strategy: Walk through the solution step-by-step with supportive commentary, proving why the correct key is incontrovertible.
+     * Trap Breakdown (Why Other Options Fail): For each incorrect option, explain conversationally why an applicant might be tempted by it and the exact cognitive trap or flaw that disqualifies it.
 6. Absolute Precision: Use British English conventions (e.g., categorise, paediatric, licence).
 7. Anti-Guessability & Option Symmetry (CRITICAL):
    - Length & Word Count Symmetry: All options (correct key and distractors) MUST have approximately equal length and word count (within ±15% or within 2-4 words of each other). NEVER make the correct option noticeably longer or more detailed than the distractors.

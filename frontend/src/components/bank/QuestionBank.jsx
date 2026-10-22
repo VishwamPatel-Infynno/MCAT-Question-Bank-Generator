@@ -14,7 +14,6 @@ import {
   CheckSquare, 
   Square,
   Sparkles,
-  HelpCircle,
   FileDown,
   ArrowUpDown,
   Image as ImageIcon,
@@ -26,6 +25,7 @@ import VisualStimulusViewer from '../question/VisualStimulusViewer';
 import SharedPassageCard from '../question/SharedPassageCard';
 import CustomSelect from '../common/CustomSelect';
 import ExportPrintModal from '../modals/ExportPrintModal';
+import MentorExplanationView from '../question/MentorExplanationView';
 
 const SORT_OPTIONS = [
   { id: 'newest', label: 'Newest First' },
@@ -705,19 +705,13 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
                     {q.explanation && (
                       <div
                         style={{
-                          padding: '12px 16px',
+                          padding: '14px 16px',
                           background: 'var(--bg-surface-elevated)',
                           borderRadius: 'var(--radius-sm)',
                           border: '1px solid var(--border-subtle)',
-                          fontSize: '0.82rem',
-                          color: 'var(--text-secondary)',
-                          lineHeight: '1.6'
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--brand-primary)', marginBottom: '4px' }}>
-                          <HelpCircle size={13} /> Explanation &amp; Answer Breakdown
-                        </div>
-                        {q.explanation}
+                        <MentorExplanationView explanation={q.explanation} isCompact={true} />
                       </div>
                     )}
                   </div>
