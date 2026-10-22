@@ -44,8 +44,9 @@ def calculate_token_cost(prompt_tokens: int, completion_tokens: int) -> float:
 | Scenario | Prompt Tokens ($P$) | Completion Tokens ($C$) | Input Cost | Output Cost | Total Cost (USD) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Micro Benchmark (1k / 1k)** | 1,000 | 1,000 | $0.00010 | $0.00032 | **$0.00042** |
+| **Fused Draft & Self-Critique Pass** | 720 | 480 | $0.000072 | $0.0001536 | **$0.0002256** |
 | **Generator Pass (Draft v1)** | 450 | 320 | $0.000045 | $0.0001024 | **$0.0001474** |
-| **Reviewer Audit Pass** | 380 | 210 | $0.000038 | $0.0000672 | **$0.0001052** |
+| **Independent Reviewer Audit Pass** | 380 | 210 | $0.000038 | $0.0000672 | **$0.0001052** |
 | **Re-Generator Remediation** | 510 | 390 | $0.000051 | $0.0001248 | **$0.0001758** |
 | **2-Cycle Full Question Lifecycle** | 1,720 | 1,130 | $0.000172 | $0.0003616 | **$0.0005336** |
 | **1 Million Input Tokens** | 1,000,000 | 0 | $0.10000 | $0.00000 | **$0.10000** |
@@ -187,3 +188,8 @@ Token and cost data is surfaced across 4 distinct user interfaces in the fronten
   `14,250 ($0.0027)`
 - **Table Row Chips**: Each question row includes a compact chip:
   `🪙 2,850 tok • $0.00053`
+
+### 5. Staged Batch Review Deck (`StagedBatchReview.jsx`)
+- Displays cumulative batch token consumption and aggregate batch cost before admin approval.
+- Allows educators to inspect individual slot cards with their respective token weights and reviewer scores.
+

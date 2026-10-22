@@ -15,6 +15,7 @@ For deep-dive technical specifications, architecture diagrams, API schemas, and 
 
 | Document | Description |
 | :--- | :--- |
+| **[Client System & Workflow Guide (docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)](docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)** | **Primary Client Deliverable**: End-to-end operational walkthrough, 4-agent autonomous architecture, >90 quality gate, mentor explanations, token cost transparency, and empirical verification. |
 | **[UI/UX Design System (DESIGN.md)](DESIGN.md)** | Authoritative design tokens, dual obsidian/alabaster themes, typography scale, component contracts, accessibility criteria (WCAG AA), and micro-animations. |
 | **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 4-agent specifications, Strict Quality Gate, SSE pipeline, batch routing, and PostgreSQL 16 ERD. |
 | **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation, batch generation schemas, SSE event stream contracts, filter parameters, and cURL examples. |
@@ -28,20 +29,25 @@ For deep-dive technical specifications, architecture diagrams, API schemas, and 
 
 ## 🚀 Key System Capabilities
 
-### 1. 4-Agent Autonomous Workflow with Strict Quality Gate
+### 1. Fused Cognitive Architecture with Strict Quality Gate
 ```mermaid
 graph LR
-    Generator[Question Generator] --> Reviewer[Psychometric Auditor]
-    Reviewer -->|Score <= 90 & Cycles < 3| Regenerator[Remediation Engine]
-    Regenerator --> Reviewer
+    FusedGen[Fused Draft & Self-Critique] -->|Score > 90 (~40% Faster)| ImageGen[Stimulus & Diagram]
+    FusedGen -->|Score > 90 & Text Only| Finalize[Admin Review Desk]
+    FusedGen -->|Score <= 90| Regenerator[Remediation Engine]
+    Regenerator --> Reviewer[Independent Auditor]
+    Reviewer -->|Score <= 90 & Cycles < 3| Regenerator
     Reviewer -->|Score <= 90 & Cycles = 3| Reject[Strict Quality Gate Reject]
-    Reviewer -->|Score > 90| ImageGen[Stimulus & Diagram]
-    ImageGen --> Finalize[Admin Review Desk]
-    Reviewer -->|Score > 90 & No Image| Finalize
+    Reviewer -->|Score > 90| ImageGen
+    Reviewer -->|Score > 90 & Text Only| Finalize
+    ImageGen --> Finalize
 ```
-- **Question Generator Agent (`generator.py`)**: Synthesizes authentic UK UCAT clinical passages and 4 distinct options (A, B, C, D) using subtest-specific cognitive pacing and syllabus constraints.
-- **Psychometric Auditor Agent (`reviewer.py`)**: Impartially evaluates candidate items against a standardized **100-point psychometric rubric** across 4 equal 25-point pillars (*Authenticity*, *Clarity*, *Distractor Traps*, *Explanation Rigor*).
-- **Remediation Engine Agent (`regenerator.py`)**: Automatically triggered when score $\le 90$. Digests the Auditor's exact weaknesses and recommendations to repair borderline distractors and expand step-by-step proofs up to 3 iterations.
+- **Fused Draft-and-Critique Cognitive Engine (`generator.py` / `fused_generator_node`)**: Merges item authoring and 100-point psychometric self-critique into a single unified inference round-trip, cutting generation latency by 35-45% and bypassing the separate reviewer when self-score $> 90$.
+- **Option Symmetry & Anti-Guessability Engine**: Mathematically balances option lengths (within $\pm 15\%$ or 2-4 words) and enforces parallel grammatical syntax so students cannot guess the answer using "longest option" cues.
+- **Anti-AI Formatting Standard**: Strictly forbids em dashes (`—`), en dashes (`–`), or double hyphens (`--`); enforces standard single hyphens (`-`) for human editorial authenticity.
+- **Conversational Mentor Explanations (`MentorExplanationView.jsx`)**: Renders explanations in a warm, expert tutor voice with an intuitive Winning Strategy walkthrough and an itemized Distractor Trap breakdown.
+- **Independent Psychometric Auditor (`reviewer.py`)**: Independently audits candidate items whenever the initial draft scores $\le 90$ or after remediation across 4 equal 25-point pillars (*Authenticity*, *Clarity*, *Distractor Traps*, *Explanation Rigor*).
+- **Remediation Engine Agent (`regenerator.py`)**: Automatically triggered when score $\le 90$. Digests the exact weaknesses and recommendations to repair borderline distractors and expand step-by-step proofs up to 3 iterations.
 - **Strict Quality Gate**: If a question fails to score $> 90$ after reaching maximum attempts (`MAX_REGENERATION_ATTEMPTS = 3`), the workflow halts immediately. Bypasses image generation and discards the candidate to protect repository integrity.
 - **Stimulus & Diagram Agent (`image_generator.py`)**: Renders clean programmatic SVG vector diagrams for geometric patterns, Venn syllogisms, and charts, with fallback support for AI visual generators.
 

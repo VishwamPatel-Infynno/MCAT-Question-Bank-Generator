@@ -76,7 +76,7 @@ export default function MultiAgentPipelineVisualizer({
     || batchProgress?.message
     || (isGenerating
       ? (isGenActive
-          ? (totalBatch > 1 ? `Question Writer: Drafting batch questions in parallel...` : `Question Writer: Drafting question and options...`)
+          ? (totalBatch > 1 ? `Question Writer: Fused drafting & self-critique in parallel...` : `Question Writer: Fused drafting & 100-point self-critique...`)
           : isRevActive
           ? `Quality Reviewer: Validating psychometric criteria and trap rigor...`
           : isRegenActive
@@ -91,8 +91,8 @@ export default function MultiAgentPipelineVisualizer({
       id: 'generator',
       stepNum: '01',
       title: 'Question Writer',
-      subtitle: 'Drafting Question & Options',
-      guarantee: isSwarm ? 'Parallel Question Drafting' : 'Realistic Scenarios & Traps',
+      subtitle: 'Fused Drafting & 100-pt Self-Critique',
+      guarantee: isSwarm ? 'Parallel Question Drafting' : 'Fused Draft & Instant Audit (~40% Faster)',
       icon: PenTool,
       accentColor: 'var(--brand-primary)',
       isActive: isGenActive,

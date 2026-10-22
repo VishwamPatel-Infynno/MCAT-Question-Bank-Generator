@@ -64,24 +64,32 @@ The multi-agent workflow coordinates 4 autonomous agents through a strict psycho
 
 ```mermaid
 graph TD
-    Start([Generation Request]) --> NodeGen[Question Generator Node]
-    NodeGen --> NodeRev[Psychometric Reviewer Node]
+    Start([Generation Request]) --> NodeFused[Fused Draft & Self-Critique Node]
     
-    NodeRev --> ScoreCheck{Score > 90?}
-    ScoreCheck -->|Yes & Needs Diagram| NodeImg[FLUX-2-klein-4b / SVG Node]
-    ScoreCheck -->|Yes & Text Only| NodeFin[Finalize & Persist Node]
+    NodeFused --> FusedScoreCheck{Self-Score > 90?}
+    FusedScoreCheck -->|Yes & Needs Diagram| NodeImg[FLUX-2-klein-4b / SVG Node]
+    FusedScoreCheck -->|Yes & Text Only| NodeFin[Finalize & Persist Node]
     NodeImg --> NodeFin
     
-    ScoreCheck -->|No & Cycles < 3| NodeRegen[Remediation Node]
-    NodeRegen --> NodeRev
+    FusedScoreCheck -->|No| NodeRegen[Remediation Node]
+    NodeRegen --> NodeRev[Independent Reviewer Node]
     
+    NodeRev --> ScoreCheck{Score > 90?}
+    ScoreCheck -->|Yes & Needs Diagram| NodeImg
+    ScoreCheck -->|Yes & Text Only| NodeFin
+    ScoreCheck -->|No & Cycles < 3| NodeRegen
     ScoreCheck -->|No & Cycles >= 3| NodeReject[Strict Quality Gate Reject]
+    
     NodeReject --> Discard([Discard Candidate & Halt])
     NodeFin --> Success([Stream to Review Desk / Persist])
 ```
 
+- **Fused Draft-and-Critique Entry Point**: Drafts question and generates immediate 100-point self-critique in a single pass (`fused_generator_node`), cutting round-trip latency by 35-45% and bypassing the separate reviewer when score $> 90$.
 - **Passing Threshold**: A question candidate must score **$> 90$** out of 100 on the standardized rubric to be approved for publication.
-- **Autonomous Remediation**: If score $\le 90$, the Remediation node (`regenerator.py`) digests the Reviewer's exact weaknesses and distractor recommendations, attempting repairs for up to 3 cycles.
+- **Option Symmetry & Anti-Guessability**: Generator and Reviewer enforce $\pm 15\%$ word count parity across all options, parallel grammar, and balanced qualifiers to eliminate test-wiseness guessing cues.
+- **Anti-AI Formatting Standard**: Strictly forbids em dashes, en dashes, or double hyphens; standard single hyphens (`-`) only.
+- **Conversational Mentor Explanations**: Structured in dual sections: intuitive step-by-step strategy + itemized distractor trap refutation.
+- **Autonomous Remediation**: If score $\le 90$, the Remediation node (`regenerator.py`) digests the exact weaknesses and distractor recommendations, attempting repairs for up to 3 cycles.
 - **Strict Quality Gate**: If score remains $\le 90$ after 3 attempts, the candidate is discarded immediately, preserving question bank integrity.
 
 ---

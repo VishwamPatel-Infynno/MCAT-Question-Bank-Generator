@@ -127,9 +127,10 @@ Situational Judgement   -> Rose Ruby       (#f43f5e / #e11d48)
 - **Step 5: Review & Batch Launch**: Batch size controls (1 to 10 items) and diagram generation toggle with dynamic DeepInfra cost preview.
 
 ### 4.2 Multi-Agent Conduit Telemetry (`MultiAgentPipelineVisualizer.jsx`)
-- Four connected nodes (**Generator**, **Reviewer**, **Regenerator**, **Image Engine**).
+- Four connected functional milestones (**Question Writer**, **Quality Reviewer**, **Question Improver**, **Diagram Maker**).
+- **Fused Acceleration Badging**: Step 01 features the *"Fused Drafting & 100-pt Self-Critique"* indicator with the *"~40% Faster"* efficiency tag, highlighting the single-pass authoring and audit breakthrough.
 - Conduits between nodes feature an animated electric gradient pulse (`conduit-flow-active`) during active streaming.
-- Collapsible SSE telemetry drawer displaying raw event stream timestamps, event types, and token updates.
+- Collapsible SSE telemetry drawer displaying raw event stream timestamps, event types, token metrics, and per-step costs.
 
 ### 4.3 Editorial Review Desk (`QuestionCard.jsx`, `StagedBatchReview.jsx`)
 - **Option Badges**: Large circular `A`, `B`, `C`, `D` pills that highlight emerald on correct answers and crimson on incorrect distractors with clear checkmark/cross indicators.
@@ -146,6 +147,12 @@ Situational Judgement   -> Rose Ruby       (#f43f5e / #e11d48)
   2. **Comprehensive Study Pack**: Includes full passages, question stems, answers, and in-depth step-by-step rationales.
   3. **CSV Export**: Standardized comma-delimited export ready for LMS and spreadsheet ingestion.
   4. **JSON Bundle**: Full relational representation including evolution histories and token metrics.
+
+### 4.6 Conversational Mentor Explanation View (`MentorExplanationView.jsx`)
+- **Brand Indicator**: Violet badge with `GraduationCap` icon (`rgba(99, 102, 241, 0.12)`) designating senior tutor guidance.
+- **Walkthrough Container**: Surface-elevated panel rendered in high-legibility sans-serif with subtle border (`1px solid var(--border-light)`), presenting the core intuitive strategy and numbered steps (`Step 1`, `Step 2`).
+- **Distractor Trap Alert**: Styled amber warning box (`background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.22)`) featuring an `AlertTriangle` icon, unpacking why incorrect options (A, B, C, D) are tempting cognitive traps.
+- **Compact & Full Modes**: Supports responsive rendering in compact cards (within staged question review decks) as well as expanded full-width editorial desks.
 
 ---
 

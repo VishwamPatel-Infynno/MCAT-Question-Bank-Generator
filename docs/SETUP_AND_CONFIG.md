@@ -163,21 +163,6 @@ pnpm build
 
 ---
 
-## 6. Production Deployment Guidelines
-
-### 6.1 Production Backend (Gunicorn + Uvicorn)
-In production, use `gunicorn` with multiple `uvicorn.workers.UvicornWorker` workers:
-
-```bash
-pip install gunicorn
-PYTHONPATH=backend gunicorn app.main:app \
-  -w 4 \
-  -k uvicorn.workers.UvicornWorker \
-  --bind 0.0.0.0:8000 \
-  --access-logfile - \
-  --error-logfile -
-```
-
 ### 5.3 Database Seeding & Mock Practice Questions
 
 To instantly populate the database with authentic, high-quality UCAT practice questions across all 5 subtests (complete with rubrics and evolution histories):

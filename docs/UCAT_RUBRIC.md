@@ -93,13 +93,12 @@ The system enforces an uncompromising quality threshold:
 $$\mathbf{Passing\ Benchmark:\ Score} > \mathbf{90\ points}\ (91 - 100)$$
 $$\mathbf{Remediation\ Loop:\ Score} \le \mathbf{90\ points}\ (0 - 90)$$
 
-### Why $\le 90$ Triggers Remediation
-A score of 88 or 90 indicates a good question with a minor flaw (e.g., one slightly weak distractor or an explanation lacking explicit distractor counterproofs). In medical admissions preparation, a borderline distractor can miscalibrate student test strategy.
-
-1. **Cycle 1 (Initial Draft)**: Scored by Reviewer.
-2. **Cycle 2 (Remediation)**: If score $\le 90$, Re-Generator Agent addresses specific reviewer critiques.
+### The Dual-Stage Evaluation Protocol
+The 100-point rubric operates across two coordinated mechanisms:
+1. **Stage 1 (Fused Draft & Self-Critique)**: The Question Generator performs an immediate, rigorous 4-pillar self-audit in the same inference round-trip as item drafting. If the self-score is $> 90$, the candidate item passes immediately without requiring a redundant second LLM call, reducing latency by $\sim 35 - 45\%$.
+2. **Stage 2 (Remediation & Independent Audit)**: If the draft scores $\le 90$ points, the Autonomous Remediation Engine repairs the item based on the critique, and the Independent Senior Psychometric Auditor re-scores the revised candidate.
 3. **Cycle 3 (Final Polish)**: If still $\le 90$, re-attempted once more.
-4. **Strict Rejection**: If a draft fails to score $> 90$ by Cycle 3, the **Strict Quality Gate** discards the question entirely.
+4. **Strict Quality Gate Reject**: If a draft fails to score $> 90$ by Cycle 3, the circuit breaker halts and discards the question entirely. Zero substandard questions enter the repository.
 
 ---
 
@@ -124,3 +123,58 @@ When generating distractors for UCAT multiple-choice items, the system applies t
 
 ### 4.5 The "Sub-Pattern Distractor" (Abstract Reasoning)
 - *Mechanism*: Satisfies the primary pattern rule of Set A (e.g., even number of circles) but violates the secondary conditional rule (e.g., shapes must alternate in shading).
+
+---
+
+## 5. Option Symmetry & Anti-Guessability Standards
+
+A critical flaw in standard AI question authoring is the inadvertent introduction of test-wiseness cues. The studio enforces strict mathematical and grammatical symmetry across all options (the correct answer and all distractors):
+
+### 5.1 Length & Word Count Parity
+- **The $\pm 15\%$ Word Count Rule**: All four options (A, B, C, D) must have approximately equal length and word count (within $\pm 15\%$ or within 2-4 words of each other).
+- **Zero "Longest Option" Tell-Tales**: Off-the-shelf LLMs frequently write the correct answer with extra qualifiers, making it noticeably longer than distractors. If the correct key is $\ge 20\%$ longer than the distractors, the psychometric reviewer automatically docks 5 to 8 points from Pillar 3 (*Distractor Trap Quality*).
+
+### 5.2 Grammatical & Syntactical Parallelism
+- **Parallel Part of Speech**: Every option in a question must begin with the identical grammatical construct:
+  - All imperative verbs (e.g., *"Prescribe...", "Request...", "Refer..."*)
+  - All gerunds (e.g., *"Administering...", "Conducting...", "Evaluating..."*)
+  - All noun phrases (e.g., *"The immediate elevation...", "The secondary reduction..."*)
+  - All complete declarative sentences.
+- **Syntactic Cadence**: Options must maintain identical rhythmic and structural complexity so no single option appears more qualified or scholarly than the others.
+
+### 5.3 Uniform Epistemic Hedging & Qualifiers
+- **Balanced Hedging**: Do NOT use hedging language (*"may", "tends to", "in certain conditions", "often"*) exclusively in the correct answer while using absolute terms (*"always", "never", "only", "completely"*) in distractors. All choices must maintain an equivalent level of epistemic qualification.
+
+---
+
+## 6. Anti-AI Punctuation & Dash Standard
+
+To ensure human authorial authenticity and eliminate synthetic AI artifacts:
+- **Strict Prohibition**: Em dashes (`—`), en dashes (`–`), and double hyphens (`--`) are strictly forbidden across question stems, reading passage stimuli, option text, and pedagogical explanations.
+- **Single Hyphen Rule**: Use only standard single hyphens (`-`) where compound adjectives or numerical ranges are grammatically necessary (e.g., `pre-clinical`, `15-20 minutes`, `Option A - incorrect`).
+- **Reviewer Enforcement**: The presence of an em dash triggers an immediate penalty in Pillar 1 (*UCAT Authenticity & Tone*).
+
+---
+
+## 7. Conversational Mentor Explanation Architecture
+
+Rather than cold, clinical answer keys, all explanations adhere to a warm, conversational tutor persona:
+
+### 7.1 Emulating a 1-on-1 Clinical Mentor
+- **Intuitive Entry Point**: Explanations begin with the core intuition so students grasp the big picture before diving into mathematical or formal syllogistic proofs.
+- **Dual-Section Structure**:
+  1. **Mentor Walkthrough & Winning Strategy**: A step-by-step breakdown proving why the correct key is incontrovertible, accompanied by encouraging, constructive commentary.
+  2. **Trap Breakdown (Why Other Options Fail)**: A dedicated analysis of each incorrect choice (Options A, B, C, D), explicitly stating why an applicant might be tempted by it and the exact cognitive trap that disqualifies it.
+
+---
+
+## 8. Reading Stimulus Calibration & Question Style Mix
+
+### 8.1 Passage-Linked vs Independent Direct Questions
+- **Passage-Linked Items (`passage_required == "Yes"`)**: Accompanied by a 250-400 word academic or clinical reading passage with high information density, paragraph structure, and medical terminology.
+- **Independent Direct Questions (`passage_required == "No"`)**: `stimulus_text` is kept strictly empty (`""`). The question stem must pose the entire calculation, scenario, or logical premise directly, avoiding unnecessary narrative filler.
+
+### 8.2 Single Choice vs Multi-Choice Format
+- **Single Choice (Standard)**: Exactly 4 options (A-D) with exactly one correct key (`correct_answer_id: "B"`).
+- **Multi-Choice (Specialized)**: 4 to 5 options (A-E) where the stem explicitly specifies the requirement (e.g., *"Which TWO of the following...", "Select all that apply"*), paired with an array of correct keys (`correct_answer_ids: ["A", "C"]`).
+

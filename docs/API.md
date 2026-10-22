@@ -135,8 +135,8 @@ Events are formatted as Server-Sent Events lines: `data: {JSON_PAYLOAD}\n\n`
 
 #### Event Types
 - `workflow_start`: Workflow begins execution.
-- `agent_start`: Specific agent initiates task (`Question Generator`, `Question Reviewer`, `Question Re-Generator`, `Image Generator`).
-- `agent_complete`: Agent finished step; contains draft/review data and `latest_usage` & `cumulative_usage`.
+- `agent_start`: Specific agent initiates task (`Question Writer`, `Quality Reviewer`, `Question Improver`, `Diagram & Chart Maker`).
+- `agent_complete`: Agent finished step; contains draft/review payload and `latest_usage` & `cumulative_usage`. On the Fused Generator step, includes the candidate draft, the 100-point self-critique rubric, and bypass status.
 - `workflow_complete`: Workflow verified score $> 90$ and staged or saved question.
 - `workflow_rejected`: Strict Quality Gate tripped (score $\le 90$ after 3 attempts). Question discarded from DB.
 - `workflow_error`: System error during workflow.
@@ -190,7 +190,8 @@ Retrieves saved questions from PostgreSQL with optional filtering, full-text sea
         {"id": "D", "text": "MRI volumetric changes are superior to fluid biomarkers in early detection."}
       ],
       "correct_answer_id": "C",
-      "explanation": "Option C is directly supported by paragraph 3...",
+      "correct_answer_ids": ["C"],
+      "explanation": "Step 1: In dilution problems, the initial solute mass remains constant...\nWhy distractors fail:\n- Option A: Calculation trap...\n- Option B: Extreme quantifier fallacy...",
       "image_url": null,
       "image_svg": null,
       "image_description": null,

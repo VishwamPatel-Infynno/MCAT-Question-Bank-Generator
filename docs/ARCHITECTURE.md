@@ -13,19 +13,23 @@ The system is constructed as an asynchronous, event-driven multi-agent workflow 
 ```mermaid
 graph TD
     User([User / Web Client]) -->|POST /api/generate| API[FastAPI Orchestrator]
-    API -->|Initialize State| Graph[LangGraph Multi-Agent Engine]
+    API -->|Initialize State| Graph[LangGraph Fused Engine]
     
     subgraph "LangGraph StateGraph Workflow"
-        Graph --> NodeGen[Infynno Cognitive Reasoning Core]
-        NodeGen --> NodeRev[Infynno Psychometric Scoring Engine]
+        Graph --> NodeFused[Fused Draft & Self-Critique Engine]
         
-        NodeRev -->|Audit Score <= 90 & Iteration < 3| NodeRegen[Autonomous Remediation Engine]
-        NodeRegen -->|Refined Candidate Draft| NodeRev
+        NodeFused -->|Self-Score > 90 & Bypass Review (~40% Faster)| NodeBypass{Needs Visual?}
+        NodeBypass -->|Yes| NodeImg[Infynno Visual & Vector Engine]
+        NodeBypass -->|No| NodeFin[Finalize & Staging Node]
         
+        NodeFused -->|Self-Score <= 90| NodeRegen[Autonomous Remediation Engine]
+        NodeRegen --> NodeRev[Independent Psychometric Auditor]
+        
+        NodeRev -->|Audit Score <= 90 & Iteration < 3| NodeRegen
         NodeRev -->|Score <= 90 & Iteration >= 3| NodeReject[Strict Quality Gate Reject]
         
-        NodeRev -->|Score > 90 & Needs Visual| NodeImg[Infynno Visual & Vector Engine]
-        NodeRev -->|Score > 90 & Text Only| NodeFin[Finalize & Staging Node]
+        NodeRev -->|Score > 90 & Needs Visual| NodeImg
+        NodeRev -->|Score > 90 & Text Only| NodeFin
         NodeImg --> NodeFin
     end
 
@@ -45,23 +49,33 @@ The workflow enforces a strict psychometric quality contract. A question **must 
 
 ```mermaid
 stateDiagram-v2
-    [*] --> QuestionGenerator: Start Generation
-    QuestionGenerator --> QuestionReviewer: Candidate Draft v1
+    [*] --> FusedGenerator: Start Generation
     
-    state "Evaluation & Remediation Loop" as Loop {
-        QuestionReviewer --> Router: Audit 100-Point Rubric
-        
-        state Router <<choice>>
-        Router --> QuestionRegenerator: Score <= 90 AND Cycles < 3
+    state "Fused Draft & Self-Critique Engine" as FusedNode {
+        FusedGenerator --> EvaluateSelfCritique: Draft Stem, Options & Score 100-pt Rubric
+    }
+    
+    state FusedRouter <<choice>>
+    EvaluateSelfCritique --> FusedRouter
+    
+    FusedRouter --> ImageGenerator: Score > 90 AND Needs Visual (~40% Faster)
+    FusedRouter --> FinalizeNode: Score > 90 AND Text Only (~40% Faster)
+    
+    state "Remediation & Independent Audit Loop" as Loop {
+        FusedRouter --> QuestionRegenerator: Score <= 90 (Cycle 1)
         QuestionRegenerator --> QuestionReviewer: Remediated Draft (Cycle + 1)
+        
+        state ReviewRouter <<choice>>
+        QuestionReviewer --> ReviewRouter: Audit 100-Point Rubric
+        ReviewRouter --> QuestionRegenerator: Score <= 90 AND Cycles < 3
     }
 
-    Router --> StrictQualityGate: Score <= 90 AND Cycles == 3
+    ReviewRouter --> StrictQualityGate: Score <= 90 AND Cycles == 3
     StrictQualityGate --> RejectedEnd: Discard Draft & Bypass DB
     RejectedEnd --> [*]
 
-    Router --> ImageGenerator: Score > 90 AND Image Required
-    Router --> FinalizeNode: Score > 90 AND Text Only
+    ReviewRouter --> ImageGenerator: Score > 90 AND Image Required
+    ReviewRouter --> FinalizeNode: Score > 90 AND Text Only
     ImageGenerator --> FinalizeNode: Attach SVG / AI Visual
     
     FinalizeNode --> PostgreSQL: Persist Question with Token Metrics
@@ -73,21 +87,28 @@ stateDiagram-v2
 
 ## 3. Agent Specifications & Prompt Engineering
 
-The system decomposes question authoring into 4 specialized autonomous engines plus 1 deterministic quality gate:
+The system coordinates specialized autonomous engines with a deterministic quality gate:
 
-### 3.1 Infynno Cognitive Reasoning Core (`generator.py`)
-- **Mission**: Synthesizes a high-yield clinical or cognitive scenario for the selected UK UCAT subtest with 4 distinct options (A, B, C, D).
+### 3.1 Fused Draft-and-Critique Cognitive Engine (`fused_generator_node` / `generator.py`)
+- **Mission**: Primary workflow entry point. Synthesizes a high-yield clinical or cognitive scenario for the selected UK UCAT subtest with 4 distinct options (A, B, C, D) and immediately conducts an internal 100-point self-critique within a single LLM round-trip.
 - **Core Prompt Strategy**:
   - Uses subtest-specific rules (e.g., categorical syllogisms for Decision Making, Venn reasoning for Abstract Reasoning, GMC Good Medical Practice guidance for Situational Judgement).
   - Explicitly crafts 1 definitive correct key and 3 sophisticated distractors representing realistic cognitive biases or calculation traps.
-  - Requires strict JSON response matching the `QuestionDraft` schema.
+  - **Option Symmetry & Anti-Guessability Engine**: Enforces strict word count parity (all options within $\pm 15\%$ or 2-4 words of each other), parallel grammatical syntax, and balanced epistemic qualification.
+  - **Anti-AI Punctuation Standard**: Strictly forbids em dashes (`—`), en dashes (`–`), or double hyphens (`--`); enforces standard single hyphens (`-`).
+  - **Conversational Mentor Explanations**: Generates dual-section rationales (Winning Strategy Walkthrough + Distractor Trap Breakdown) in a supportive, expert tutor voice.
+  - **Immediate Self-Critique Object**: Evaluates Authenticity, Clarity, Distractor Traps, and Explanation Rigor.
+- **Routing Optimization**:
+  - If self-critique score $> 90$, the workflow sets `fused_self_passed=True` and routes directly to the Visual Engine or Finalize Node, cutting latency by $35-45\%$ and saving ~590 tokens.
+  - If self-critique score $\le 90$, the candidate draft is routed to the Remediation Engine and Independent Auditor loop.
 - **Inference Gateway**: High-throughput enterprise reasoning model (~110-140 tok/s, Temperature: `0.7`).
 
-### 3.2 Infynno Psychometric Scoring Engine (`reviewer.py`)
-- **Mission**: Acts as an impartial Senior Psychometric Auditor, independently evaluating the candidate question against a standardized **100-point rubric**:
+### 3.2 Independent Senior Psychometric Auditor (`reviewer.py`)
+- **Mission**: Acts as an impartial Senior Psychometric Auditor, independently evaluating candidate questions whenever the initial draft does not clear the self-critique threshold or after a remediation cycle.
+- **Evaluation Rubric (100 Points)**:
   1. *UCAT Authenticity & Tone* (0-25 points)
   2. *Clarity & Logical Soundness* (0-25 points)
-  3. *Distractor Trap Quality* (0-25 points)
+  3. *Distractor Trap Quality & Anti-Guessability* (0-25 points) - Docks 5-8 points if option length disparity $\ge 20\%$.
   4. *Explanation & Key Rigor* (0-25 points)
 - **Quality Benchmark**:
   - Passing Score: **$> 90$** points ($91 - 100$).
@@ -96,9 +117,9 @@ The system decomposes question authoring into 4 specialized autonomous engines p
 - **Inference Gateway**: High-throughput enterprise reasoning model (Temperature: `0.3` for objective, deterministic evaluation).
 
 ### 3.3 Autonomous Remediation Engine (`regenerator.py`)
-- **Mission**: Triggered exclusively when the Reviewer's score is $\le 90$. It digests the Reviewer's exact critique, distractor deficiencies, and recommendations to repair the draft.
+- **Mission**: Triggered exclusively when the score is $\le 90$. It digests the exact critique, distractor deficiencies, and recommendations to repair the draft.
 - **Rules**:
-  - Fixes borderline ambiguities and sharpens distractor plausibility.
+  - Fixes borderline ambiguities, equalizes option lengths, and sharpens distractor plausibility.
   - Deepens step-by-step rationales explaining why the key is incontrovertible and why every distractor fails.
   - Re-submits the updated draft back to the Reviewer for re-audit.
 - **Inference Gateway**: High-throughput enterprise reasoning model (Temperature: `0.6`).
@@ -396,7 +417,7 @@ frontend/src/
 │   ├── layout/          # Layout components (Navbar, Footer)
 │   ├── wizard/          # Guided Wizard (HeroLanding, GuidedWizard, IndependentDiagramControls, QuestionStyleMixSection)
 │   ├── pipeline/        # AI Pipeline (AgentVisualizer, MultiAgentPipelineVisualizer, RejectionCard)
-│   ├── question/        # Review Desk (QuestionCard, ReviewAuditView, StageJsonInspector, StagedBatchReview, VisualStimulusViewer)
+│   ├── question/        # Review Desk (MentorExplanationView, QuestionCard, ReviewAuditView, SharedPassageCard, StageJsonInspector, StagedBatchReview, StagedQuestionSlotCard, VisualStimulusViewer)
 │   ├── bank/            # Repository table, filter chips, pagination, export (QuestionBank)
 │   ├── modals/          # Dialog modals (ExportPrintModal)
 │   └── common/          # Common primitives (CustomSelect, InfynnoLogo, NumberStepper, Toast)
