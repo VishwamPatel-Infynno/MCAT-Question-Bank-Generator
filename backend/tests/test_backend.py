@@ -758,7 +758,7 @@ async def test_per_question_stage_metadata_in_events(monkeypatch):
         e
         for e in events
         if e["event_type"] == "agent_start"
-        and e["agent_name"] in ("Question Writer", "Question Generator")
+        and e["agent_name"] in ("Question Writer & Reviewer", "Question Writer", "Question Generator")
     ]
     assert len(gen_starts) == 2
     for e in gen_starts:
@@ -1098,16 +1098,25 @@ async def test_fused_workflow_bypasses_reviewer_when_self_critique_passed(monkey
     ]
     assert len(rev_starts) == 0, "Separate Quality Reviewer LLM call was not bypassed!"
 
-    # But Quality Reviewer agent_complete event IS emitted with the self-critique score
+    # Separate Quality Reviewer complete event is NOT emitted because Step 1 fused engine handles review
     rev_completes = [
         e
         for e in events
         if e["event_type"] == "agent_complete"
         and e["agent_name"] in ("Quality Reviewer", "Question Reviewer")
     ]
-    assert len(rev_completes) == 1
-    assert rev_completes[0]["data"]["score"] == 96
-    assert "Self-Critique: 96/100" in rev_completes[0]["message"]
+    assert len(rev_completes) == 0, "Separate Quality Reviewer complete should not be emitted on fused pass!"
+
+    # Step 1 Question Writer & Reviewer emitted complete event carrying the self-critique score
+    fused_completes = [
+        e
+        for e in events
+        if e["event_type"] == "agent_complete"
+        and e["agent_name"] == "Question Writer & Reviewer"
+    ]
+    assert len(fused_completes) == 1
+    assert fused_completes[0]["data"]["score"] == 96
+    assert "Score: 96/100" in fused_completes[0]["message"]
 
 
 def test_option_symmetry_and_anti_guessability_engine():

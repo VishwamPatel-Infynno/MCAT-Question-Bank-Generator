@@ -42,7 +42,7 @@ export function useQuestionGenerator() {
     setEvents([]);
     setLatestReview(null);
     setIterationCount(1);
-    setActiveAgent('Question Writer');
+    setActiveAgent('Question Writer & Reviewer');
 
     // Pre-populate per-question swarm state for all target questions
     const multiCount = payload?.interaction_type_split?.multi || 0;
@@ -54,8 +54,8 @@ export function useQuestionGenerator() {
       initialMap[i] = {
         index: i,
         stage: 'drafting',
-        agentName: 'Question Writer',
-        message: `Drafting ${isMulti ? 'Multi-Choice' : 'Single Choice'} question (${isPassage ? 'Reading Passage' : 'Short Scenario'})...`,
+        agentName: 'Question Writer & Reviewer',
+        message: `Drafting & auditing ${isMulti ? 'Multi-Choice' : 'Single Choice'} question (${isPassage ? 'Reading Passage' : 'Short Scenario'})...`,
         iteration: 1,
         score: null,
         interactionType: isMulti ? 'multi_choice' : 'single_choice',
@@ -88,14 +88,18 @@ export function useQuestionGenerator() {
               index: targetIdx,
               stage: 'drafting',
               iteration: 1,
-              agentName: 'Question Writer',
+              agentName: 'Question Writer & Reviewer',
               message: evt.message
             };
 
             let nextStage = current.stage;
             if (evt.data?.stage) {
               nextStage = evt.data.stage;
-            } else if (evt.agent_name === 'Question Writer' || evt.agent_name === 'Question Generator') {
+            } else if (
+              evt.agent_name === 'Question Writer & Reviewer' ||
+              evt.agent_name === 'Question Writer' ||
+              evt.agent_name === 'Question Generator'
+            ) {
               nextStage = 'drafting';
             } else if (evt.agent_name === 'Quality Reviewer' || evt.agent_name === 'Question Reviewer') {
               nextStage = 'reviewing';

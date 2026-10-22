@@ -21,6 +21,7 @@ import WizardStep5Review from './steps/WizardStep5Review';
 export default function GuidedWizard({
   generatorForm,
   sectionsData,
+  onGenerateQuestions,
   onLaunchGeneration
 }) {
   const [step, setStep] = useState(1);
@@ -282,7 +283,7 @@ export default function GuidedWizard({
     if (step < totalSteps) {
       setStep(prev => prev + 1);
     } else {
-      onLaunchGeneration();
+      (onGenerateQuestions || onLaunchGeneration)?.();
     }
   };
 
@@ -475,14 +476,14 @@ export default function GuidedWizard({
         <button
           type="button"
           className="workspace-action-btn-primary"
-          id={step === totalSteps ? 'btn-wizard-launch-generation' : 'btn-wizard-next-step'}
+          id={step === totalSteps ? 'btn-wizard-generate-questions' : 'btn-wizard-next-step'}
           onClick={handleNext}
           style={{ padding: '10px 22px', fontSize: '0.95rem' }}
         >
           {step === totalSteps ? (
             <>
               <Sparkles size={16} />
-              <span>🚀 Launch Generation</span>
+              <span>Generate Questions</span>
             </>
           ) : (
             <>

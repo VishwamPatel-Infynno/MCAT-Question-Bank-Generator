@@ -122,7 +122,7 @@ class TokenUsage(BaseModel):
 #### `agent_usage_breakdown` Item Schema
 ```json
 {
-  "agent": "Question Generator",
+  "agent": "Question Writer & Reviewer",
   "iteration": 1,
   "prompt_tokens": 450,
   "completion_tokens": 320,
@@ -163,9 +163,10 @@ This delivers global repository cost and token totals directly to the Question B
 Token and cost data is surfaced across 4 distinct user interfaces in the frontend across both Dark and Light themes:
 
 ### 1. Multi-Agent Pipeline Stepper (`MultiAgentPipelineVisualizer.jsx` / `AgentVisualizer.jsx`)
+- **3-Milestone Live Stepper**: Tracks live computational usage across the three specialized milestones: `Question Writer & Reviewer`, `Question Improver`, and `Diagram & Chart Maker`.
 - **Cumulative Header Badge**: Displays running totals during live generation:
   `🪙 2,850 tokens • $0.00053`
-- **Per-Agent Step Badges**: Each agent node shows its specific cycle tokens and cost:
+- **Per-Agent Step Badges**: Each agent node shows its specific cycle tokens, cost, and smart completion state:
   `450 tok • $0.00015`
 
 ### 2. Formatted Question Card (`QuestionCard.jsx`)
@@ -176,7 +177,7 @@ Token and cost data is surfaced across 4 distinct user interfaces in the fronten
 ### 3. Psychometric Review & Cost Audit Modal (`ReviewAuditView.jsx`)
 - **Summary Metric Cards**: 4-card grid showing Prompt Tokens, Completion Tokens, Total Tokens, and Accumulated Cost.
 - **Granular Breakdown Table**: Itemizes every LLM request:
-  - Agent Node (`Question Generator`, `Question Reviewer`, `Question Re-Generator`)
+  - Agent Node (`Question Writer & Reviewer`, `Question Improver`, `Diagram & Chart Maker`, or fallback `Quality Reviewer`)
   - Execution Cycle / Iteration
   - Prompt Tokens (priced @ $0.10)
   - Completion Tokens (priced @ $0.32)

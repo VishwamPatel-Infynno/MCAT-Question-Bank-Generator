@@ -407,7 +407,7 @@ export default function App() {
               <GuidedWizard
                 generatorForm={generatorForm}
                 sectionsData={sectionsData}
-                onLaunchGeneration={() => {
+                onGenerateQuestions={() => {
                   setViewMode('workspace');
                   handleGenerate();
                 }}

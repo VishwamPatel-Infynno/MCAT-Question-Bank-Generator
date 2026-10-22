@@ -60,7 +60,7 @@ backend/app/
 
 ## 2. Multi-Agent Workflow Engine
 
-The multi-agent workflow coordinates 4 autonomous agents through a strict psychometric contract:
+The multi-agent workflow coordinates a 3-step autonomous pipeline through a strict psychometric contract:
 
 ```mermaid
 graph TD

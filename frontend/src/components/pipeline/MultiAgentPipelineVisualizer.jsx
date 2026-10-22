@@ -43,13 +43,15 @@ export default function MultiAgentPipelineVisualizer({
   const progressPercent = Math.min(100, Math.round((completedCount / Math.max(1, totalBatch)) * 100));
 
   // Swarm-aware active states
-  const isGenActive = isSwarm
-    ? isGenerating && qList.some(q => !q.isComplete && q.stage === 'drafting')
-    : (activeAgent === 'Question Writer' || activeAgent === 'Question Generator');
-
-  const isRevActive = isSwarm
-    ? isGenerating && qList.some(q => !q.isComplete && q.stage === 'reviewing')
-    : (activeAgent === 'Quality Reviewer' || activeAgent === 'Question Reviewer');
+  const isWriterReviewerActive = isSwarm
+    ? isGenerating && qList.some(q => !q.isComplete && (q.stage === 'drafting' || q.stage === 'reviewing'))
+    : (
+        activeAgent === 'Question Writer & Reviewer' ||
+        activeAgent === 'Question Writer' ||
+        activeAgent === 'Question Generator' ||
+        activeAgent === 'Quality Reviewer' ||
+        activeAgent === 'Question Reviewer'
+      );
 
   const isRegenActive = isSwarm
     ? isGenerating && qList.some(q => !q.isComplete && q.stage === 'remediating')
@@ -60,13 +62,14 @@ export default function MultiAgentPipelineVisualizer({
     : (activeAgent === 'Diagram & Chart Maker' || activeAgent === 'Image Generator');
 
   // Completion states: in a swarm, a stage is fully completed only when NO question is at or before that stage
-  const hasGenCompleted = isSwarm
+  const hasWriterReviewerCompleted = isSwarm
     ? qList.length > 0 && qList.every(q => q.stage !== 'drafting' && (q.stage !== 'queued'))
-    : events.some(e => (e.agent_name === 'Question Writer' || e.agent_name === 'Question Generator') && e.event_type === 'agent_complete');
-
-  const hasRevCompleted = isSwarm
-    ? qList.length > 0 && qList.every(q => q.isComplete)
-    : events.some(e => (e.agent_name === 'Quality Reviewer' || e.agent_name === 'Question Reviewer') && e.event_type === 'agent_complete');
+    : events.some(e =>
+        (e.agent_name === 'Question Writer & Reviewer' ||
+         e.agent_name === 'Question Writer' ||
+         e.agent_name === 'Question Generator') &&
+        e.event_type === 'agent_complete'
+      );
 
   const hasRegenFired = iterationCount > 1 || events.some(e => e.agent_name === 'Question Improver' || e.agent_name === 'Question Re-Generator');
   const hasImgCompleted = events.some(e => (e.agent_name === 'Diagram & Chart Maker' || e.agent_name === 'Image Generator') && e.event_type === 'agent_complete');
@@ -75,10 +78,8 @@ export default function MultiAgentPipelineVisualizer({
   const activeMessage = liveStatusMessage
     || batchProgress?.message
     || (isGenerating
-      ? (isGenActive
-          ? (totalBatch > 1 ? `Question Writer: Fused drafting & self-critique in parallel...` : `Question Writer: Fused drafting & 100-point self-critique...`)
-          : isRevActive
-          ? `Quality Reviewer: Validating psychometric criteria and trap rigor...`
+      ? (isWriterReviewerActive
+          ? (totalBatch > 1 ? `Question Writer & Reviewer: Fused drafting & self-critique in parallel...` : `Question Writer & Reviewer: Fused drafting & 100-point self-critique...`)
           : isRegenActive
           ? `Question Improver: Refining and resolving ambiguities...`
           : isImgActive
@@ -88,48 +89,43 @@ export default function MultiAgentPipelineVisualizer({
 
   const agents = [
     {
-      id: 'generator',
+      id: 'writer_reviewer',
       stepNum: '01',
-      title: 'Question Writer',
-      subtitle: 'Fused Drafting & 100-pt Self-Critique',
-      guarantee: isSwarm ? 'Parallel Question Drafting' : 'Fused Draft & Instant Audit (~40% Faster)',
+      title: 'Question Writer & Reviewer',
+      subtitle: 'Fused Drafting & 100-pt Audit',
+      guarantee: isSwarm
+        ? 'Parallel Drafting & Instant Audit'
+        : (latestReview?.total_score ? `${latestReview.total_score}/100 Quality Score` : 'Draft & Instant Audit (~40% Faster)'),
       icon: PenTool,
       accentColor: 'var(--brand-primary)',
-      isActive: isGenActive,
-      isDone: hasGenCompleted
-    },
-    {
-      id: 'reviewer',
-      stepNum: '02',
-      title: 'Quality Reviewer',
-      subtitle: 'Exam Rigor Check',
-      guarantee: latestReview?.total_score ? `${latestReview.total_score}/100 Quality Score` : 'Strict 90+ Score Standard',
-      icon: ShieldCheck,
-      accentColor: 'var(--status-success)',
-      isActive: isRevActive,
-      isDone: hasRevCompleted
+      isActive: isWriterReviewerActive,
+      isDone: hasWriterReviewerCompleted
     },
     {
       id: 'regenerator',
-      stepNum: '03',
+      stepNum: '02',
       title: 'Question Improver',
       subtitle: 'Polish & Refine',
-      guarantee: 'Self-Fixes Ambiguities',
+      guarantee: hasRegenFired
+        ? 'Remediated & Refined'
+        : (hasWriterReviewerCompleted && !isGenerating ? 'Passed (90+ Standard)' : 'Auto-Fixes Ambiguities'),
       icon: RotateCcw,
       accentColor: 'var(--status-warning)',
       isActive: isRegenActive,
-      isDone: hasRegenFired && !isRegenActive
+      isDone: hasRegenFired ? !isRegenActive : (hasWriterReviewerCompleted && !isGenerating)
     },
     {
       id: 'image',
-      stepNum: '04',
+      stepNum: '03',
       title: 'Diagram & Chart Maker',
       subtitle: 'Visuals & Figures',
-      guarantee: 'Clear Charts & Shapes',
+      guarantee: hasImgCompleted
+        ? 'Visual Stimulus Attached'
+        : (hasWriterReviewerCompleted && !isGenerating ? 'Text-Only (No Diagram Needed)' : 'Clear Charts & Shapes'),
       icon: Sparkles,
       accentColor: 'var(--status-purple)',
       isActive: isImgActive,
-      isDone: hasImgCompleted
+      isDone: hasImgCompleted || (hasWriterReviewerCompleted && !isGenerating)
     }
   ];
 
@@ -160,7 +156,7 @@ export default function MultiAgentPipelineVisualizer({
             </span>
             <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>•</span>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-              4 Specialized AI Helpers
+              3 Specialized AI Milestones
             </span>
           </div>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', margin: '2px 0 0' }}>
@@ -242,7 +238,7 @@ export default function MultiAgentPipelineVisualizer({
         </div>
       </div>
 
-      {/* 4-Agent Stepper Grid */}
+      {/* 3-Milestone Stepper Grid */}
       <div className="pipeline-stepper">
         {agents.map((agent) => {
           const Icon = agent.icon;

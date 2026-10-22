@@ -451,7 +451,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, maxWidth: '440px' }}>
             {hasActiveFilters
               ? 'No questions match your current search or filters. Clear your filters to see more, or create brand-new questions in the wizard.'
-              : 'Your question library is currently empty. Launch the Guided Wizard to generate your first set of exam questions!'}
+              : 'Your question library is currently empty. Open the Guided Wizard to generate your first set of exam questions!'}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
             {hasActiveFilters && (

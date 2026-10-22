@@ -11,7 +11,7 @@ Built with **React 19**, **Vite 8**, **Oxlint**, and a custom dark-glass precisi
 The frontend provides an intuitive, real-time command canvas for UK UCAT question generation, AI team tracking, and question bank management:
 
 - **Question Setup Panel**: 5-step guided workflow for selecting sections (Verbal Reasoning, Decision Making, Quantitative Reasoning, Abstract Reasoning, Situational Judgement), syllabus subtopics, difficulty calibration, reading material stimuli, and cognitive distractor traps.
-- **Live AI Team with Fused Draft-and-Critique**: Animated live tracker displaying the AI team milestones (**Question Writer** with fused 100-pt self-critique for ~40% faster generation, **Quality Reviewer**, **Question Improver**, and **Diagram & Chart Maker**) with electric conduit telemetry.
+- **Live AI Team with Fused Draft-and-Critique**: Animated live tracker displaying the AI pipeline milestones (**Question Writer & Reviewer** with fused 100-pt self-critique for ~40% faster generation, **Question Improver** with smart status indicators, and **Diagram & Chart Maker**) with electric conduit telemetry.
 - **Staged Batch Review & Approval**: Interactive batch staging deck allowing educators to inspect, edit, discard, or approve multiple generated items before saving to the database.
 - **Question Quality & Cost Breakdown**: Comprehensive 100-point 4-pillar quality check with itemized token tracking and micro-dollar cost calculations.
 - **Export & Print Studio**: Professional modal for exporting PDF Exam Papers (with candidate headers and page breaks), Study Packs, CSV, and JSON bundles.
@@ -39,7 +39,7 @@ frontend/src/
 │   │   └── ExportPrintModal.jsx  # Exam Paper (PDF), Study Pack, CSV and JSON export modal
 │   ├── pipeline/
 │   │   ├── AgentVisualizer.jsx   # Live generating telemetry & compact stepper
-│   │   ├── MultiAgentPipelineVisualizer.jsx # 4-Agent architecture & conduit visualizer
+│   │   ├── MultiAgentPipelineVisualizer.jsx # 3-Milestone pipeline architecture & conduit visualizer
 │   │   └── RejectionCard.jsx     # Diagnostic display when score fails threshold
 │   ├── question/
 │   │   ├── MentorExplanationView.jsx # Warm conversational tutor explanation with trap breakdowns

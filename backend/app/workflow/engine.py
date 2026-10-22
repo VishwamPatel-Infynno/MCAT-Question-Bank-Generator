@@ -131,22 +131,9 @@ async def _run_question_review_loop(
     if state.get("fused_self_passed"):
         self_review = state.get("current_review") or {}
         score = self_review.get("total_score", 95)
-        rev_done_evt = make_event(
-            event_type="agent_complete",
-            agent_name="Quality Reviewer",
-            message=f"Quality review passed (Self-Critique: {score}/100) for Question {idx + 1}.",
-            data={
-                "review": self_review,
-                "iteration": 1,
-                "latest_usage": gen_usage,
-                "index": idx + 1,
-                "total": total_qty,
-                "stage": "reviewing",
-                "score": score,
-            },
-            run_id=item_run_id,
+        logger.info(
+            f"Question {idx + 1} passed quality standards via Fused Draft & 100-pt Audit (Self-Critique: {score}/100)."
         )
-        await event_queue.put(rev_done_evt)
         return True
 
     while True:
@@ -576,11 +563,11 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                     "stage_outcomes": {},
                 }
 
-                # Step 1: Question Writer
+                # Step 1: Question Writer & Reviewer (Fused Authoring & 100-pt Audit)
                 gen_evt = make_event(
                     event_type="agent_start",
-                    agent_name="Question Writer",
-                    message=f"Writing question draft {idx + 1}/{total_qty} ({'Single Choice' if is_item_single else 'Multi-Choice'})...",
+                    agent_name="Question Writer & Reviewer",
+                    message=f"Drafting and auditing question {idx + 1}/{total_qty} ({'Single Choice' if is_item_single else 'Multi-Choice'})...",
                     data={
                         "index": idx + 1,
                         "total": total_qty,
@@ -596,12 +583,15 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 state.update(gen_res)
 
                 gen_usage = state.get("latest_usage", {})
+                self_score = (state.get("current_review") or {}).get("total_score", 95)
                 gen_done_evt = make_event(
                     event_type="agent_complete",
-                    agent_name="Question Writer",
-                    message=f"Draft written for Question {idx + 1} ({gen_usage.get('total_tokens', 0)} tokens, ${gen_usage.get('cost_usd', 0.0):.5f}).",
+                    agent_name="Question Writer & Reviewer",
+                    message=f"Draft authored and audited for Question {idx + 1} (Score: {self_score}/100, {gen_usage.get('total_tokens', 0)} tokens, ${gen_usage.get('cost_usd', 0.0):.5f}).",
                     data={
                         "draft": state["current_draft"],
+                        "review": state.get("current_review"),
+                        "score": self_score,
                         "latest_usage": gen_usage,
                         "index": idx + 1,
                         "total": total_qty,

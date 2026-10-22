@@ -170,10 +170,11 @@ class AgentWorkflowState(TypedDict, total=False):
 
 ### 4.1 State Accumulation Pattern
 At each node execution, token consumption from the LLM response is unpacked and added to cumulative state counters:
-1. `generator_node`: Accumulates initial drafting tokens and appends `Question Generator` entry to `agent_usage_breakdown`.
-2. `reviewer_node`: Accumulates audit evaluation tokens, appends `Question Reviewer` entry, and records usage in `iterations_history`.
-3. `regenerator_node`: Accumulates remediation tokens and appends `Question Re-Generator` entry.
-4. `finalize_node`: Binds final accumulated totals and itemized breakdown directly into the `Question` schema for database persistence.
+1. `fused_generator_node`: Accumulates single-pass authoring and 100-point self-critique tokens, appending `Question Writer & Reviewer` entry to `agent_usage_breakdown`.
+2. `regenerator_node`: Accumulates remediation tokens if initial score $\le 90$ and appends `Question Improver` entry.
+3. `reviewer_node`: Accumulates independent audit tokens during remediation cycles and records usage in `iterations_history`.
+4. `image_node`: Accumulates visual stimulus synthesis tokens / compute units for `Diagram & Chart Maker`.
+5. `finalize_node`: Binds final accumulated totals and itemized breakdown directly into the `Question` schema for database persistence.
 
 ---
 
@@ -193,33 +194,35 @@ sequenceDiagram
     API-->>Client: HTTP 200 text/event-stream
     API-->>Client: event: workflow_start
 
-    API->>Graph: Execute generator_node
-    Graph-->>API: Draft v1 + TokenUsage
-    API-->>Client: event: agent_complete (Generator, latest_usage, cumulative_usage)
+    Note over API,Graph: Milestone 01: Fused Drafting & 100-pt Audit (~40% Faster)
+    API->>Graph: Execute fused_generator_node
+    Graph-->>API: Draft + 100-pt ReviewScore + TokenUsage
+    API-->>Client: event: agent_complete (Question Writer & Reviewer, score/100, latest_usage)
 
-    loop Review & Remediation Loop
-        API->>Graph: Execute reviewer_node
-        Graph-->>API: ReviewScore + TokenUsage
-        API-->>Client: event: agent_complete (Reviewer, score/100, latest_usage, cumulative_usage)
-        
-        alt Score <= 90 & Cycle < 3
-            API-->>Client: event: agent_start (Re-Generator)
+    alt Self-Score > 90 (Fused Pass: Reviewer LLM Bypassed)
+        Note over Graph: Quality Standard Met (> 90). Immediate bypass.
+    else Self-Score <= 90 (Remediation Required)
+        Note over API,Graph: Milestone 02: Question Improver Remediation Loop
+        loop Remediation & Audit Loop (up to 3 cycles)
+            API-->>Client: event: agent_start (Question Improver)
             API->>Graph: Execute regenerator_node
             Graph-->>API: Refined Draft + TokenUsage
-            API-->>Client: event: agent_complete (Re-Generator, latest_usage, cumulative_usage)
-        else Score <= 90 & Cycle == 3
-            API->>Graph: Execute reject_node
-            API-->>Client: event: workflow_rejected (Quality Gate Diagnostic)
-            Note over Client,API: Workflow Terminated. Not saved to DB.
-        else Score > 90
-            Note over Graph: Quality Benchmark Met (> 90). Proceed.
+            API-->>Client: event: agent_complete (Question Improver)
+            API->>Graph: Execute reviewer_node
+            Graph-->>API: ReviewScore + TokenUsage
+            API-->>Client: event: agent_complete (Reviewer, score/100)
+            alt Score <= 90 & Cycle == 3
+                API->>Graph: Execute reject_node
+                API-->>Client: event: workflow_rejected (Quality Gate Diagnostic)
+                Note over Client,API: Workflow Terminated. Not saved to DB.
+            end
         end
     end
 
-    opt If Visual Required
+    opt Milestone 03: If Visual Stimulus Required (AR or Diagram Option)
         API->>Graph: Execute image_node
-        Graph-->>API: SVG / Image URL
-        API-->>Client: event: agent_complete (Image Generator)
+        Graph-->>API: SVG Vector Code / AI Image URL
+        API-->>Client: event: agent_complete (Diagram & Chart Maker)
     end
 
     API->>Graph: Execute finalize_node

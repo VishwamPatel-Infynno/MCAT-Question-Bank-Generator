@@ -72,6 +72,8 @@ pnpm build
    - Data Access Layer: `backend/app/repositories/`
    - Database Entities: `backend/app/models/`
    - Frontend: Feature-based component directories (`wizard/`, `pipeline/`, `question/`, `bank/`, `layout/`, `modals/`, `common/`) with centralized hooks and constants.
+4. **3-Step AI Pipeline & Cognitive Fusion**: Milestone 01 fuses item authoring and 100-point rubric self-critique (`Question Writer & Reviewer`) into a single pass (~40% faster). Only drafts scoring $\le 90$ trigger Milestone 02 remediation (`Question Improver`), while Milestone 03 renders visual stimuli (`Diagram & Chart Maker`).
+5. **Option Symmetry & Anti-AI Standard**: Enforce $\pm 15\%$ option length parity and single hyphens (`-`) only; em dashes (`—`) and en dashes (`–`) are strictly forbidden across prompts and generation output.
 
 ---
 

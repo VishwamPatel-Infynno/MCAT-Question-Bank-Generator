@@ -25,7 +25,7 @@ export default function WizardStep5Review({
       <div className="wizard-heading-group">
         <h2 className="wizard-step-title">Everything looks ready! Review your setup</h2>
         <p className="wizard-step-subtitle">
-          Check your settings below. Click 'Edit' beside any row to adjust it, or launch generation now!
+          Check your settings below. Click 'Edit' beside any row to adjust it, or generate your questions now!
         </p>
       </div>
 
@@ -180,7 +180,7 @@ export default function WizardStep5Review({
         </div>
       </div>
 
-      {/* Launch Banner */}
+      {/* Generation Summary Banner */}
       <div style={{
         padding: '16px 20px',
         borderRadius: 'var(--radius-md)',
@@ -192,7 +192,7 @@ export default function WizardStep5Review({
       }}>
         <Sparkles size={20} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-          Clicking <strong>Launch Generation</strong> will create your questions, verify them against official UCAT rubrics (&gt; 90 quality score),
+          Clicking <strong>Generate Questions</strong> will create your questions, verify them against official UCAT rubrics (&gt; 90 quality score),
           and balance all answer choices in ~15-25 seconds.
         </div>
       </div>

@@ -5,7 +5,7 @@
 
 An enterprise autonomous AI application for generating, quality-reviewing, and creating high-quality exam questions for the official **UK UCAT** (University Clinical Aptitude Test).
 
-Engineered by **[Infynno Solutions LLP](https://infynno.com/)**, powered by a **4-Step AI Team**, **FastAPI**, **React 19**, and **PostgreSQL 16**, featuring a modern single-canvas studio, live team tracker, batch staging, and strict 90+ score quality standard.
+Engineered by **[Infynno Solutions LLP](https://infynno.com/)**, powered by a **3-Step AI Pipeline**, **FastAPI**, **React 19**, and **PostgreSQL 16**, featuring a modern single-canvas studio, live team tracker, batch staging, and strict 90+ score quality standard.
 
 ---
 
@@ -15,9 +15,9 @@ For deep-dive technical specifications, architecture diagrams, API schemas, and 
 
 | Document | Description |
 | :--- | :--- |
-| **[Client System & Workflow Guide (docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)](docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)** | **Primary Client Deliverable**: End-to-end operational walkthrough, 4-agent autonomous architecture, >90 quality gate, mentor explanations, token cost transparency, and empirical verification. |
+| **[Client System & Workflow Guide (docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)](docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)** | **Primary Client Deliverable**: End-to-end operational walkthrough, 3-step autonomous pipeline, >90 quality gate, mentor explanations, token cost transparency, and empirical verification. |
 | **[UI/UX Design System (DESIGN.md)](DESIGN.md)** | Authoritative design tokens, dual obsidian/alabaster themes, typography scale, component contracts, accessibility criteria (WCAG AA), and micro-animations. |
-| **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 4-agent specifications, Strict Quality Gate, SSE pipeline, batch routing, and PostgreSQL 16 ERD. |
+| **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 3-step pipeline specifications, Strict Quality Gate, SSE pipeline, batch routing, and PostgreSQL 16 ERD. |
 | **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation, batch generation schemas, SSE event stream contracts, filter parameters, and cURL examples. |
 | **[Token Usage & Cost Tracking](docs/TOKEN_TRACKING.md)** | High-throughput rate card ($0.10 in / $0.32 out per 1M tokens), exact mathematical cost formulas, multi-agent accumulation, and UI observability. |
 | **[Installation, Setup & Deployment](docs/SETUP_AND_CONFIG.md)** | Step-by-step setup, Docker PostgreSQL 16 guide, environment variables reference, production deployment, linters, and troubleshooting. |
@@ -59,7 +59,7 @@ graph LR
 - **Micro-Dollar Tracking**: Every request computes exact USD costs:
   $$\text{Cost (USD)} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times 0.10\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times 0.32\right)$$
 - **Granular Observability**:
-  - Live pipeline stepper with active stopwatch and collapsible SSE telemetry tray.
+  - Live 3-milestone pipeline stepper with active stopwatch, smart status indicators (*Passed (90+ Standard)*, *Text-Only (No Diagram Needed)*), and collapsible SSE telemetry tray.
   - QuestionCard badges displaying total tokens and cost.
   - Psychometric Review Audit Modal itemized table showing prompt tokens, completion tokens, and cost per agent cycle.
   - Question Bank metrics strip tracking accumulated repository-wide tokens and total expenditure.
@@ -73,7 +73,7 @@ graph LR
 ### 4. Modern Enterprise Minimalist UI (Dual Theme: Dark & Light)
 - **Linear/Vercel-Inspired Aesthetic**: Hairline borders (`rgba(255, 255, 255, 0.06)` dark / `#e8ecf2` light), quiet obsidian and alabaster surfaces, and zero multi-card clutter.
 - **Hero Landing Screen (`HeroLanding.jsx`)**: Minimalist welcome canvas presenting official UCAT subtests, instant practice presets, and target pacing badges (~14s to ~64s per question).
-- **5-Step Guided Question Wizard (`GuidedWizard.jsx`)**: Step-by-step authoring workflow with interactive **Exam Coach Tips** that dynamically react to chosen sections, topics, difficulty tiers, and cognitive traps.
+- **5-Step Guided Question Wizard (`GuidedWizard.jsx`)**: Step-by-step authoring workflow with interactive **Exam Coach Tips** and unified **Generate Questions** launch control.
 - **Dedicated Generation & Review Workspace**: Clean, distraction-free full-width canvas (`maxWidth: 1040px`) hosting live multi-agent synthesis, telemetry, and batch staging without cramped column docks.
 - **Editorial Question Presentation**: Clinical reading passages formatted in serif typography with line-height `1.68` for fatigue-free reading; circular option badges (`A`, `B`, `C`, `D`), distractor trap rationalization drawers, and inline editing.
 - **Instant Theme Switching**: Seamless toggle between Dark and Light themes with WCAG AA compliance via the `T` key shortcut.

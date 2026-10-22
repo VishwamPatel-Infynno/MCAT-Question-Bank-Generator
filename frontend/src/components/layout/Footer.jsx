@@ -48,7 +48,7 @@ export default function Footer() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <Cpu size={12} style={{ color: 'var(--brand-primary)' }} />
-            4-Step AI Pipeline
+            3-Step AI Pipeline
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <ShieldCheck size={12} style={{ color: 'var(--status-success)' }} />

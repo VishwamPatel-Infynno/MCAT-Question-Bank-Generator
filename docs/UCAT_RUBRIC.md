@@ -26,7 +26,7 @@ It does not assess curriculum science knowledge; rather, it measures **innate co
 
 ## 2. The 100-Point Psychometric Rubric
 
-Every candidate question drafted by the Question Generator Agent is audited independently by the Question Reviewer Agent against a standardized **100-point rubric** divided into 4 equal 25-point pillars:
+Every candidate question drafted by the **Question Writer & Reviewer** agent is audited against a standardized **100-point rubric** divided into 4 equal 25-point pillars (with instant self-critique scoring in Stage 1 and independent auditor re-scoring during remediation in Stage 2):
 
 ```mermaid
 pie title 100-Point Psychometric Rubric
@@ -95,7 +95,7 @@ $$\mathbf{Remediation\ Loop:\ Score} \le \mathbf{90\ points}\ (0 - 90)$$
 
 ### The Dual-Stage Evaluation Protocol
 The 100-point rubric operates across two coordinated mechanisms:
-1. **Stage 1 (Fused Draft & Self-Critique)**: The Question Generator performs an immediate, rigorous 4-pillar self-audit in the same inference round-trip as item drafting. If the self-score is $> 90$, the candidate item passes immediately without requiring a redundant second LLM call, reducing latency by $\sim 35 - 45\%$.
+1. **Stage 1 (Fused Draft & Self-Critique)**: The **Question Writer & Reviewer** performs an immediate, rigorous 4-pillar self-audit in the same inference round-trip as item drafting. If the self-score is $> 90$, the candidate item passes immediately without requiring a redundant second LLM call, reducing latency by $\sim 35 - 45\%$.
 2. **Stage 2 (Remediation & Independent Audit)**: If the draft scores $\le 90$ points, the Autonomous Remediation Engine repairs the item based on the critique, and the Independent Senior Psychometric Auditor re-scores the revised candidate.
 3. **Cycle 3 (Final Polish)**: If still $\le 90$, re-attempted once more.
 4. **Strict Quality Gate Reject**: If a draft fails to score $> 90$ by Cycle 3, the circuit breaker halts and discards the question entirely. Zero substandard questions enter the repository.

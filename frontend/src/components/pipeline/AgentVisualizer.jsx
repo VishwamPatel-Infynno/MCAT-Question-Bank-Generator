@@ -33,7 +33,12 @@ export default function AgentVisualizer({
     return () => clearInterval(interval);
   }, [isGenerating]);
 
-  const hasReviewed = events.some(e => (e.agent_name === 'Quality Reviewer' || e.agent_name === 'Question Reviewer') && e.event_type === 'agent_complete');
+  const hasReviewed = events.some(e =>
+    (e.agent_name === 'Question Writer & Reviewer' ||
+     e.agent_name === 'Quality Reviewer' ||
+     e.agent_name === 'Question Reviewer') &&
+    e.event_type === 'agent_complete'
+  );
 
   const isWorkflowComplete = !isGenerating && events.length > 0 && hasReviewed;
 

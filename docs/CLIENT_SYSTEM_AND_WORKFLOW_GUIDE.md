@@ -69,10 +69,10 @@ The interface opens with a clean, distraction-free workstation:
 - **Passage & Interaction Style**: Flexible options for shared reading stimuli (e.g., 1 clinical passage with 3 linked questions) or direct independent questions, as well as Single Choice (A-D) or Multi-Choice formats.
 - **Cognitive Trap Selection**: Specific trap targets such as *Intermediate Calculation Error*, *Keyword Trap*, or *Scope Shift*.
 
-### Step 2: Live Multi-Agent Execution & Real-Time Telemetry
-Once the user clicks **Generate** (or presses `⌘ + Enter`), the request streams via **Server-Sent Events (SSE)**. The user watches the live progress:
+### Step 2: Live 3-Milestone Execution & Real-Time Telemetry
+Once the user clicks **Generate Questions** (or presses `⌘ + Enter`), the request streams via **Server-Sent Events (SSE)**. The user watches the live progress:
 - An active stopwatch tracks elapsed execution time down to tenths of a second.
-- A live stepper highlights which agent is currently thinking (`Question Generator` → `Psychometric Auditor` → `Remediation Engine` → `Visual Engine`).
+- A live 3-milestone stepper highlights active pipeline inference: **Question Writer & Reviewer** → **Question Improver** → **Diagram & Chart Maker**, with smart status indicators (*Passed (90+ Standard)* when skipped; *Text-Only (No Diagram Needed)* when non-visual).
 - A real-time telemetry tray displays incoming tokens, token velocity (~110-140 tok/s), and running micro-dollar cost.
 
 ### Step 3: Impartial 100-Point Psychometric Audit & Strict Quality Gate
@@ -379,6 +379,6 @@ pnpm dev
 
 I designed and engineered this system to be an end-to-end, enterprise-grade solution for UCAT question generation. It replaces the uncertainties of manual writing and the flaws of generic AI with an autonomous, psychometrically audited engine that delivers publication-grade content at predictable, micro-dollar costs.
 
-Every component in this repository—from the 4-agent LangGraph workflow and the 100-point rubric to the responsive React 19 workstation and one-click PDF exam booklet generator—is fully implemented, thoroughly tested, and ready for immediate deployment.
+Every component in this repository—from the 3-step LangGraph workflow and the 100-point rubric to the responsive React 19 workstation and one-click PDF exam booklet generator—is fully implemented, thoroughly tested, and ready for immediate deployment.
 
 I welcome the opportunity to lead this project forward and partner with you to deliver the definitive UK UCAT question generation platform.

@@ -674,8 +674,14 @@ input:focus, select:focus, textarea:focus {
 
 .pipeline-stepper {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .pipeline-stepper {
+    grid-template-columns: 1fr;
+  }
 }
 
 .pipeline-step-node {

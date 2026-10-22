@@ -102,31 +102,45 @@ Events are formatted as Server-Sent Events lines: `data: {JSON_PAYLOAD}\n\n`
 ```json
 {
   "event_type": "agent_complete",
-  "agent_name": "Question Reviewer",
-  "message": "Review completed. Score: 94/100 (1,340 tokens, $0.00031)...",
+  "agent_name": "Question Writer & Reviewer",
+  "message": "Question 1 authored and audited (Score: 96/100, 770 tokens, $0.00015)...",
   "data": {
+    "draft": {
+      "stimulus_text": "A clinical audit evaluating infection protocols...",
+      "question_stem": "Which conclusion is most strongly supported by the evidence?",
+      "options": [
+        {"id": "A", "text": "Protocol adherence directly reduced catheter infections across all surgical wards."},
+        {"id": "B", "text": "Secondary bacteremia rates remained static despite hand hygiene interventions."},
+        {"id": "C", "text": "Postoperative fever frequency was uncorrelated with aseptic dressing protocols."},
+        {"id": "D", "text": "Surveillance cultures were only obtained when clinical sepsis was documented."}
+      ],
+      "correct_answer_id": "A",
+      "correct_answer_ids": ["A"],
+      "explanation": "Winning Strategy Walkthrough...\n\nWhy distractors fail:\n- Option B..."
+    },
     "review": {
       "authenticity_score": 24,
-      "clarity_score": 23,
-      "distractor_score": 23,
+      "clarity_score": 24,
+      "distractor_score": 24,
       "explanation_score": 24,
-      "total_score": 94,
-      "strengths": ["Clear syllogistic structure"],
+      "total_score": 96,
+      "strengths": ["Authentic clinical register", "Perfect option length symmetry (±15%)"],
       "weaknesses": [],
       "recommendations": [],
       "passed": true
     },
+    "score": 96,
     "latest_usage": {
-      "prompt_tokens": 820,
-      "completion_tokens": 520,
-      "total_tokens": 1340,
-      "cost_usd": 0.0002484
+      "prompt_tokens": 450,
+      "completion_tokens": 320,
+      "total_tokens": 770,
+      "cost_usd": 0.0001474
     },
     "cumulative_usage": {
-      "total_tokens": 2850,
-      "total_prompt_tokens": 1720,
-      "total_completion_tokens": 1130,
-      "total_cost_usd": 0.0005336
+      "total_tokens": 770,
+      "total_prompt_tokens": 450,
+      "total_completion_tokens": 320,
+      "total_cost_usd": 0.0001474
     }
   },
   "timestamp": "2026-10-15T12:00:00.000000"
@@ -135,8 +149,9 @@ Events are formatted as Server-Sent Events lines: `data: {JSON_PAYLOAD}\n\n`
 
 #### Event Types
 - `workflow_start`: Workflow begins execution.
-- `agent_start`: Specific agent initiates task (`Question Writer`, `Quality Reviewer`, `Question Improver`, `Diagram & Chart Maker`).
-- `agent_complete`: Agent finished step; contains draft/review payload and `latest_usage` & `cumulative_usage`. On the Fused Generator step, includes the candidate draft, the 100-point self-critique rubric, and bypass status.
+- `agent_start`: Specific pipeline agent initiates task (`Question Writer & Reviewer`, `Question Improver`, `Diagram & Chart Maker`, `Passage Writer`).
+- `agent_complete`: Agent finished milestone; contains candidate draft, 100-point rubric self-critique (`review`), score, `latest_usage`, and `cumulative_usage`. On passing runs (> 90), the candidate proceeds directly without requiring redundant separate reviewer calls.
+- `question_generated`: Emitted per question when certified and staged for review.
 - `workflow_complete`: Workflow verified score $> 90$ and staged or saved question.
 - `workflow_rejected`: Strict Quality Gate tripped (score $\le 90$ after 3 attempts). Question discarded from DB.
 - `workflow_error`: System error during workflow.

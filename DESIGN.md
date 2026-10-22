@@ -124,11 +124,13 @@ Situational Judgement   -> Rose Ruby       (#f43f5e / #e11d48)
 - **Step 2: Syllabus Subtopics**: Section-specific subtopic selector with fallback taxonomy.
 - **Step 3: Difficulty & Trap Calibration**: 3 difficulty tiers (Foundation, Standard UCAT, High Scorer / Advanced) paired with deliberate cognitive trap engineering.
 - **Step 4: Reading Material & Stimulus**: Option to generate novel clinical texts or attach shared passages.
-- **Step 5: Review & Batch Launch**: Batch size controls (1 to 10 items) and diagram generation toggle with dynamic DeepInfra cost preview.
+- **Step 5: Review & Batch Generation**: Batch size controls (1 to 10 items), diagram generation toggle with dynamic DeepInfra cost preview, and the primary **Generate Questions** action.
 
 ### 4.2 Multi-Agent Conduit Telemetry (`MultiAgentPipelineVisualizer.jsx`)
-- Four connected functional milestones (**Question Writer**, **Quality Reviewer**, **Question Improver**, **Diagram Maker**).
-- **Fused Acceleration Badging**: Step 01 features the *"Fused Drafting & 100-pt Self-Critique"* indicator with the *"~40% Faster"* efficiency tag, highlighting the single-pass authoring and audit breakthrough.
+- Three connected functional milestones (**Question Writer & Reviewer**, **Question Improver**, **Diagram & Chart Maker**).
+- **Grid Layout**: Structured via `.pipeline-stepper` as a balanced 3-column grid (`grid-template-columns: repeat(3, 1fr); gap: 10px;`) with single-column responsive stacking on viewports $\le 768\text{px}$.
+- **Fused Acceleration Badging**: Step 01 features the *"Fused Drafting & 100-pt Audit"* milestone with the *"~40% Faster"* efficiency tag, highlighting the single-pass authoring and instant audit breakthrough.
+- **Smart Conditional State Indicators**: Step 02 displays *"Passed (90+ Standard)"* when drafts exceed the strict quality threshold on the first pass; Step 03 displays *"Text-Only (No Diagram Needed)"* for questions without visual figures.
 - Conduits between nodes feature an animated electric gradient pulse (`conduit-flow-active`) during active streaming.
 - Collapsible SSE telemetry drawer displaying raw event stream timestamps, event types, token metrics, and per-step costs.
 
