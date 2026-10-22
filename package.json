@@ -2,12 +2,12 @@
   "name": "infynno-ucat-question-bank-generator-root",
   "private": true,
   "scripts": {
-    "dev": "concurrently -k -p \"[{name}]\" -n \"backend,frontend\" -c \"magenta.bold,cyan.bold\" \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+    "dev": "concurrently -k -p '[{name}]' -n 'backend,frontend' -c 'magenta.bold,cyan.bold' 'pnpm run dev:backend' 'pnpm run dev:frontend'",
     "dev:backend": "PYTHONPATH=backend ./.venv/bin/uvicorn app.main:app --port 8000 --reload",
-    "dev:frontend": "pnpm --filter infynno-ucat-question-bank-generator dev",
-    "build": "pnpm --filter infynno-ucat-question-bank-generator build",
-    "lint": "pnpm --filter infynno-ucat-question-bank-generator lint",
-    "preview": "pnpm --filter infynno-ucat-question-bank-generator preview"
+    "dev:frontend": "pnpm --dir frontend exec vite",
+    "build": "pnpm --dir frontend run build",
+    "lint": "pnpm --dir frontend run lint",
+    "preview": "pnpm --dir frontend run preview"
   },
   "devDependencies": {
     "concurrently": "^10.0.6"
