@@ -71,3 +71,5 @@ export const UCAT_SECTIONS_FALLBACK = [
     ]
   }
 ];
+
+export * from './ucatTraps';

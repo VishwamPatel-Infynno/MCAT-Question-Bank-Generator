@@ -21,7 +21,8 @@ import {
 } from 'lucide-react';
 import StageJsonInspector from './StageJsonInspector';
 import VisualStimulusViewer from './VisualStimulusViewer';
-import MentorExplanationView, { UCAT_TRAP_DEFINITIONS } from './MentorExplanationView';
+import MentorExplanationView from './MentorExplanationView';
+import { getEffectiveTrapInfo } from '../../constants/ucatTraps';
 
 export default function QuestionCard({ 
   question, 
@@ -46,25 +47,7 @@ export default function QuestionCard({
   const [editedImageDescription, setEditedImageDescription] = useState(question?.image_description || '');
   const [showStimulusField, setShowStimulusField] = useState(Boolean(question?.stimulus_text && question.stimulus_text.trim().length > 0));
 
-  const effectiveTrapInfo = useMemo(() => {
-    if (!question) return null;
-    let t = question.primary_trap;
-    if (!t || t === 'Automatic' || t === 'None') {
-      const expl = question.explanation || '';
-      for (const [k, info] of Object.entries(UCAT_TRAP_DEFINITIONS)) {
-        const pattern = new RegExp(info.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + `|${k.replace(/_/g, '\\s*')}`, 'i');
-        if (pattern.test(expl)) {
-          return { key: k, label: info.label };
-        }
-      }
-      return null;
-    }
-    const info = UCAT_TRAP_DEFINITIONS[t];
-    return {
-      key: t,
-      label: info?.label || t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-    };
-  }, [question]);
+  const effectiveTrapInfo = getEffectiveTrapInfo(question);
 
   const optionSymmetry = useMemo(() => {
     if (!question) return null;

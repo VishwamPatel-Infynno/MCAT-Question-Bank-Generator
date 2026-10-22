@@ -26,7 +26,8 @@ import VisualStimulusViewer from '../question/VisualStimulusViewer';
 import SharedPassageCard from '../question/SharedPassageCard';
 import CustomSelect from '../common/CustomSelect';
 import ExportPrintModal from '../modals/ExportPrintModal';
-import MentorExplanationView, { UCAT_TRAP_DEFINITIONS } from '../question/MentorExplanationView';
+import MentorExplanationView from '../question/MentorExplanationView';
+import { getEffectiveTrapInfo } from '../../constants/ucatTraps';
 
 const SORT_OPTIONS = [
   { id: 'newest', label: 'Newest First' },
@@ -574,20 +575,8 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
                         )}
 
                         {(() => {
-                          let t = q.primary_trap;
-                          let label = null;
-                          if (t && t !== 'Automatic' && t !== 'None') {
-                            label = UCAT_TRAP_DEFINITIONS[t]?.label || t.replace(/_/g, ' ');
-                          } else if (q.explanation) {
-                            for (const [k, info] of Object.entries(UCAT_TRAP_DEFINITIONS)) {
-                              const pattern = new RegExp(info.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + `|${k.replace(/_/g, '\\s*')}`, 'i');
-                              if (pattern.test(q.explanation)) {
-                                label = info.label;
-                                break;
-                              }
-                            }
-                          }
-                          if (!label) return null;
+                          const trapInfo = getEffectiveTrapInfo(q);
+                          if (!trapInfo?.label) return null;
                           return (
                             <span
                               className="badge badge-amber"
@@ -598,9 +587,9 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
                                 alignItems: 'center',
                                 gap: '3px'
                               }}
-                              title={`Primary Cognitive Trap: ${label}`}
+                              title={`Primary Cognitive Trap: ${trapInfo.label}`}
                             >
-                              <AlertTriangle size={10} /> Trap: {label}
+                              <AlertTriangle size={10} /> Trap: {trapInfo.label}
                             </span>
                           );
                         })()}
