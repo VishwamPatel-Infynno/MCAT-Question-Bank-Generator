@@ -52,5 +52,9 @@ class QuestionModel(Base):
     passage_questions: Mapped[int | None] = mapped_column(Integer, nullable=True)
     visual_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
+    # MCAT-specific scoring & AAMC Skill attributes
+    mcat_scaled_score: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    aamc_skill: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+
     # Multi-Stage Raw Outcome JSON
     stage_outcomes: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)

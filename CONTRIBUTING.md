@@ -1,8 +1,8 @@
-# Contributing to Infynno UCAT Question Bank Generator v2.0
+# Contributing to Infynno MCAT Question Bank Generator v2.0
 
 Engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
 
-Thank you for your interest in contributing to the **Infynno UCAT Question Bank Generator** multi-agent AI system!
+Thank you for your interest in contributing to the **Infynno MCAT Question Bank Generator** multi-agent AI system!
 
 ---
 
@@ -18,7 +18,7 @@ Thank you for your interest in contributing to the **Infynno UCAT Question Bank 
 ```bash
 docker compose up -d
 ```
-Verifies that PostgreSQL 16 is running on port `5432` with database `ucat_db`.
+Verifies that PostgreSQL 16 is running on port `5432` with database `mcat_db`.
 
 ### 3. Backend Setup
 ```bash

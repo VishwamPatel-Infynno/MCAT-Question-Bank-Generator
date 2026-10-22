@@ -1,14 +1,14 @@
 # Infynno Design System & UI Specification (DESIGN.md)
 
 > **Infynno Solutions LLP • Infinite Innovations • [infynno.com](https://infynno.com/)**  
-> **Product**: Infynno UCAT Question Bank Generator v2.0  
-> **Aesthetic Philosophy**: Linear/Vercel-inspired high-precision minimalism, dark obsidian default with alabaster light mode, serif clinical passages, and animated electric conduit telemetry.
+> **Product**: Infynno MCAT Question Bank Generator v2.0  
+> **Aesthetic Philosophy**: Linear/Vercel-inspired high-precision minimalism, dark obsidian default with alabaster light mode, scientific research passages and CARS essays, and animated electric conduit telemetry.
 
 ---
 
 ## 1. Design Philosophy & Architectural Principles
 
-The Infynno UCAT Question Studio is built for medical educators, test-prep authors, and clinical candidates who require focused, fatigue-free reading environments combined with real-time multi-agent observability.
+The Infynno MCAT Question Studio is built for pre-med educators, test-prep authors, and aspiring medical candidates who require focused, fatigue-free reading environments combined with real-time multi-agent observability and official AAMC exam alignment.
 
 1. **Precision Minimalism**: Quiet surfaces, hairline borders (`1px solid var(--border-light)`), subtle elevations, and zero card clutter.
 2. **Editorial Typographic Hierarchy**: Clinical reading passages rendered in warm, high-legibility serif type (`Newsreader`, line-height `1.68`), while UI controls and telemetry use modern sans-serif (`Plus Jakarta Sans`) and monospace (`JetBrains Mono`).
@@ -79,16 +79,15 @@ graph LR
 
 ---
 
-### 2.4 UCAT Subtest Domain Accents
+### 2.4 MCAT Section Accents
 
-Each official UK UCAT section receives a dedicated signature accent for instant identification across wizards, cards, and filters:
+Each official AAMC MCAT section receives a dedicated signature accent for instant identification across wizards, cards, and filters:
 
 ```
-Verbal Reasoning        -> Electric Blue   (#38bdf8 / #0284c7)
-Decision Making         -> Deep Indigo     (#818cf8 / #4f46e5)
-Quantitative Reasoning  -> Amber Gold      (#f59e0b / #d97706)
-Abstract Reasoning      -> Emerald Green   (#10b981 / #059669)
-Situational Judgement   -> Rose Ruby       (#f43f5e / #e11d48)
+Chemical and Physical Foundations (CP)   -> Sky Blue      (#38bdf8 / #0284c7)
+Critical Analysis & Reasoning (CARS)    -> Rose Crimson  (#f43f5e / #e11d48)
+Biological & Biochemical Foundations (BB)-> Emerald Green (#10b981 / #059669)
+Psychological, Social & Biological (PS)  -> Royal Violet  (#a855f7 / #7c3aed)
 ```
 
 ---
@@ -120,11 +119,11 @@ Situational Judgement   -> Rose Ruby       (#f43f5e / #e11d48)
 ## 4. Component Design Specifications
 
 ### 4.1 Guided Question Wizard (`GuidedWizard.jsx`)
-- **Step 1: Section & Exam Style**: Subtest selection with pacing badges (~14s to ~64s) and style mix controls.
-- **Step 2: Syllabus Subtopics**: Section-specific subtopic selector with fallback taxonomy.
-- **Step 3: Difficulty & Trap Calibration**: 3 difficulty tiers (Foundation, Standard UCAT, High Scorer / Advanced) paired with deliberate cognitive trap engineering.
-- **Step 4: Reading Material & Stimulus**: Option to generate novel clinical texts or attach shared passages.
-- **Step 5: Review & Batch Generation**: Batch size controls (1 to 10 items), diagram generation toggle with dynamic DeepInfra cost preview, and the primary **Generate Questions** action.
+- **Step 1: Section & Exam Style**: MCAT section selection (CP, CARS, BB, PS) with official pacing badges (~96s to ~101s per question) and style mix controls.
+- **Step 2: Syllabus Subtopics**: Section-specific subtopic selector spanning general chemistry, organic mechanisms, kinematics, CARS humanities, biochemistry pathways, and behavioral theories.
+- **Step 3: Difficulty & Trap Calibration**: 3 difficulty tiers (Foundational, Standard MCAT, Top Percentile) paired with deliberate AAMC cognitive trap engineering.
+- **Step 4: Reading Material & Stimulus**: Option to generate novel research study passages, experimental figures, or attach shared passage sets (500-650 words).
+- **Step 5: Review & Batch Generation**: Batch size controls (1 to 5 items), diagram generation toggle with dynamic DeepInfra cost preview, and the primary **Generate Questions** action.
 
 ### 4.2 Multi-Agent Conduit Telemetry (`MultiAgentPipelineVisualizer.jsx`)
 - Three connected functional milestones (**Question Writer & Reviewer**, **Question Improver**, **Diagram & Chart Maker**).
@@ -135,8 +134,8 @@ Situational Judgement   -> Rose Ruby       (#f43f5e / #e11d48)
 - Collapsible SSE telemetry drawer displaying raw event stream timestamps, event types, token metrics, and per-step costs.
 
 ### 4.3 Editorial Review Desk (`QuestionCard.jsx`, `StagedBatchReview.jsx`)
-- **Top Metadata Strip**: Displays section badge, difficulty chip, psychometric score pill, cumulative token/cost telemetry, and a dedicated **Primary Cognitive Trap Badge Chip** (`rgba(139, 92, 246, 0.12)` background, purple border, `Tag` icon).
-- **Option Badges**: Large circular `A`, `B`, `C`, `D` pills that highlight emerald on correct answers and crimson on incorrect distractors with clear checkmark/cross indicators.
+- **Top Metadata Strip**: Displays section badge, difficulty chip, dual score pills (AAMC Scaled Score `118-132` + 100-pt Audit Score), AAMC Skill badge (SIRS 1-4 / CARS 1-3), cumulative token/cost telemetry, and a dedicated **Primary Cognitive Trap Badge Chip** (`rgba(139, 92, 246, 0.12)` background, purple border, `Tag` icon).
+- **Option Badges**: Standard 4 circular `A`, `B`, `C`, `D` pills (plus Roman numeral combos I, II, III) that highlight emerald on correct answers and crimson on incorrect distractors with clear checkmark/cross indicators.
 - **Distractor Rationalization Drawers**: Collapsible cards detailing the exact psychometric reason why each wrong option constitutes a realistic cognitive trap.
 - **Inline Editor**: Live editable fields allowing educators to adjust stem text, key letters, or explanation proofs before committing to the question bank.
 
@@ -161,7 +160,7 @@ Renders pedagogical rationales across three distinct, beautifully styled visual 
   - Structure: Contains individual itemized sub-cards for each distractor choice (`[A]`, `[C]`, `[D]`) detailing the specific fallacy, miscalculation, or deceptive wording that disqualifies it.
 - **Card 3: Primary Cognitive Trap Spotlight (Purple / Tactical Defense)**:
   - Tokens: Background `rgba(139, 92, 246, 0.06)` (dark) / `#f5f3ff` (light), border `rgba(139, 92, 246, 0.25)` (dark) / `#ddd6fe` (light), text `--status-purple` (`#8b5cf6`), `Zap` & `ShieldCheck` icons.
-  - Content: Spotlights the dominant UCAT trap from the 11-trap taxonomy (`UCAT_TRAP_DEFINITIONS`), detailing the precise psychological **Error Mechanism** and providing an actionable **Student Defense Strategy** for test day.
+  - Content: Spotlights the dominant MCAT trap from the 11-trap taxonomy (`MCAT_TRAP_DEFINITIONS`), detailing the precise psychological **Error Mechanism** and providing an actionable **Student Defense Strategy** for test day.
 - **Top Metadata Trap Badging**:
   - `QuestionCard.jsx` and `QuestionBank.jsx` render a persistent purple badge chip in the card header: background `rgba(139, 92, 246, 0.12)`, text `#a78bfa` (dark) / `#6d28d9` (light), border `rgba(139, 92, 246, 0.3)`.
 - **Responsive Modes**: Supports `isCompact=true` for staged review decks and full expanded mode for in-depth editorial analysis.

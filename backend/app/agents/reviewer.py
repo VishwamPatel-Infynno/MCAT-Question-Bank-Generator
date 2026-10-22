@@ -5,8 +5,9 @@ from app.agents.mock_fixtures import evaluate_heuristically
 from app.agents.prompts import REVIEWER_SYSTEM_PROMPT
 from app.core.config import config
 from app.schemas.question import QuestionDraft, ReviewScore
+from app.schemas.mcat import MCAT_SECTION_LABELS
+from app.schemas.question import QuestionDraft, ReviewScore
 from app.schemas.token import TokenUsage
-from app.schemas.ucat import UCAT_SECTION_LABELS
 from app.schemas.workflow import GenerationRequest
 
 logger = logging.getLogger(__name__)
@@ -16,10 +17,11 @@ async def review_question(
     draft: QuestionDraft, req: GenerationRequest, iteration: int = 1
 ) -> tuple[ReviewScore, TokenUsage]:
     """Invokes the Question Reviewer Agent to score a candidate draft against the 100-point rubric."""
-    section_name = UCAT_SECTION_LABELS.get(req.section, req.section.value)
+    section_val = req.section.value if hasattr(req.section, "value") else str(req.section)
+    section_name = MCAT_SECTION_LABELS.get(req.section, section_val)
     options_formatted = "\n".join([f"{opt.id}: {opt.text}" for opt in draft.options])
 
-    user_prompt = f"""Review the following candidate UK UCAT Multiple Choice Question:
+    user_prompt = f"""Review the following candidate AAMC MCAT Multiple Choice Question:
 
 Metadata:
 - Subtest: {section_name}

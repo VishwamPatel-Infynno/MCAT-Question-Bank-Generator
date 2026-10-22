@@ -7,30 +7,27 @@ from app.agents.prompts import FUSED_GENERATOR_SYSTEM_PROMPT, GENERATOR_SYSTEM_P
 from app.core.config import config
 from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
 from app.schemas.token import TokenUsage
-from app.schemas.ucat import UCAT_SECTION_LABELS, UCATSection
+from app.schemas.mcat import MCAT_SECTION_LABELS, MCATSection
+from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
+from app.schemas.token import TokenUsage
 from app.schemas.workflow import GenerationRequest
 
 logger = logging.getLogger(__name__)
 
 
 def _build_generator_user_prompt(req: GenerationRequest, fused: bool = False) -> str:
-    section_name = UCAT_SECTION_LABELS.get(req.section, req.section.value)
+    section_val = req.section.value if hasattr(req.section, "value") else str(req.section)
+    section_name = MCAT_SECTION_LABELS.get(req.section, section_val)
 
-    is_multi = req.interaction_type == "multi_choice"
-    option_desc = (
-        "4 or 5 options with MULTIPLE correct keys and an explicit stem instruction (e.g. 'Which TWO...', 'Select all that apply')"
-        if is_multi
-        else "4 options (A, B, C, D) with exactly ONE correct key"
-    )
+    user_prompt = f"""Generate an official-caliber AAMC MCAT Multiple Choice Question with 4 options (A, B, C, D) and exactly ONE correct answer.
 
-    user_prompt = f"""Generate an official-caliber UK UCAT Multiple Choice Question with {option_desc}.
-
-Subtest: {section_name}
-Subtopic: {req.subtopic or "Core Syllabus Focus"}
+Section: {section_name}
+Subtopic: {req.subtopic or "Foundational Syllabus Focus"}
 Target Difficulty: {req.difficulty.value}
-Interaction Format: {"Multi-Choice (Multiple Correct Keys)" if is_multi else "Single Choice"}
-Image Required: {"Yes - formulate visual pattern requirements" if req.require_image or req.section == UCATSection.ABSTRACT_REASONING else "No"}
+Interaction Format: Single Choice (4 options: A, B, C, D)
 """
+    if req.aamc_skill:
+        user_prompt += f"\nAAMC Reasoning Skill: {req.aamc_skill}"
     if req.combination_id:
         user_prompt += f"\nCombination ID: {req.combination_id}"
     if req.content_domain:
@@ -42,26 +39,37 @@ Image Required: {"Yes - formulate visual pattern requirements" if req.require_im
     else:
         user_prompt += (
             "\nPrimary Distractor Trap: Automatic (Smart AI Choice)\n"
-            "Analyze the subtest, passage/stimulus, and question stem to intelligently choose the most realistic "
-            "and authentic cognitive distractor trap (e.g. Scope_Shift, Keyword_Trap, Extreme_Language, "
-            "Correlation_vs_Causation, Partial_Match, Half_Truth, Unwarranted_Assumption, Calculation_Trap) "
+            "Analyze the section, passage/stimulus, and question stem to intelligently choose the most realistic "
+            "AAMC cognitive distractor trap (e.g. Out_of_Scope, Distortion_Opposite, Outside_Knowledge_in_CARS, "
+            "Extreme_Language, Correlation_vs_Causation, Calculation_Formula_Trap, Half_Right_False_Premise, Scope_Shift) "
             "and populate the 'primary_trap' JSON field with your selected trap."
+        )
+
+    # Section-specific CARS warning
+    if req.section in (MCATSection.CARS, "CARS", "cars"):
+        user_prompt += (
+            "\nCRITICAL CARS RULE: Strictly test ONLY what is justified directly by the passage text. "
+            "Do NOT test or permit any outside scientific, clinical, or unmentioned real-world knowledge. "
+            "Assess Foundations of Comprehension, Reasoning Within the Text, or Reasoning Beyond the Text."
         )
 
     # Handle pre-existing shared passage (Single Passage Set) vs new passage
     if req.shared_stimulus and req.shared_stimulus.strip():
         user_prompt += f"""\nCRITICAL PASSAGE INSTRUCTION:
 You MUST formulate this question strictly and exclusively based on the following PRE-EXISTING READING PASSAGE.
-Do NOT write a new passage. Formulate your question stem, options, correct key(s), and explanation directly against this text:
+Do NOT write a new passage. Formulate your question stem, options, correct key, and explanation directly against this text:
 ---
 {req.shared_stimulus.strip()}
 ---"""
     elif req.is_passage_active:
-        user_prompt += "\nPassage Required: Yes - Provide a rigorous, substantive 250-400 word academic or clinical passage with dense data and structured paragraphs."
+        user_prompt += (
+            "\nPassage Required: Yes - Provide a rigorous, substantive 300-500 word experimental/biomedical study "
+            "(or 500-600 word humanities/social sciences essay for CARS) with clear paragraphing and empirical data descriptions."
+        )
     else:
         user_prompt += (
-            "\nPassage Required: No - Direct question ONLY. Do NOT write any reading passage, scenario, or vignette in stimulus_text. "
-            'Leave stimulus_text strictly as an empty string (""). Pose the question directly in question_stem.'
+            "\nPassage Required: No - Standalone discrete question ONLY. Do NOT write any reading passage, scenario, or vignette in stimulus_text. "
+            'Leave stimulus_text strictly as an empty string (""). Pose the complete problem directly in question_stem.'
         )
 
     if req.visual_type and req.visual_type != "None":
@@ -159,6 +167,8 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
             else data.get("stimulus_text", "").strip()
         )
 
+    aamc_skill = data.get("aamc_skill") or req.aamc_skill or ("CARS_Skill_1" if req.section in (MCATSection.CARS, "CARS", "cars") else "Skill_2")
+
     return QuestionDraft(
         stimulus_text=effective_stimulus,
         question_stem=data["question_stem"],
@@ -167,12 +177,10 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
         correct_answer_ids=keys_list,
         explanation=data["explanation"],
         primary_trap=primary_trap,
+        aamc_skill=aamc_skill,
         image_needed=(
             False
-            if (
-                req.section in (UCATSection.VERBAL_REASONING, UCATSection.SITUATIONAL_JUDGEMENT)
-                and not req.require_image
-            )
+            if (req.section in (MCATSection.CARS, "CARS", "cars") and not req.require_image)
             else data.get(
                 "image_needed",
                 req.requires_visual_stimulus,
@@ -183,27 +191,31 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
 
 
 async def generate_passage_stimulus(req: GenerationRequest) -> tuple[str, TokenUsage]:
-    """Generates a standalone, publication-caliber 250-400 word UK UCAT academic/clinical reading passage."""
-    section_name = UCAT_SECTION_LABELS.get(req.section, req.section.value)
-    domain = req.content_domain or "Clinical & Medical Sciences"
-    topic = req.subtopic or "Evidence-Based Clinical Practice & Biomedical Research"
+    """Generates a standalone, publication-caliber AAMC MCAT academic/experimental reading passage."""
+    section_val = req.section.value if hasattr(req.section, "value") else str(req.section)
+    section_name = MCAT_SECTION_LABELS.get(req.section, section_val)
+    domain = req.content_domain or ("Humanities & Social Sciences" if req.section in (MCATSection.CARS, "CARS", "cars") else "Biomedical & Physical Sciences")
+    topic = req.subtopic or "Foundational Concepts & Research Design"
 
-    prompt = f"""Generate a high-yield, authentic UK UCAT Academic Reading Passage for {section_name}.
+    is_cars = req.section in (MCATSection.CARS, "CARS", "cars")
+    target_length = "500 to 600 words" if is_cars else "320 to 450 words"
+
+    prompt = f"""Generate a high-yield, authentic AAMC MCAT Reading Passage for {section_name}.
 Content Domain: {domain}
 Topic Focus: {topic}
 Difficulty Calibration: {req.difficulty.value}
-Target Length: 280 to 380 words.
+Target Length: {target_length}.
 
-STANDARDS FOR UK UCAT PASSAGES:
-1. Dense, formal, intellectual academic register using flawless British English (e.g. randomised, paediatric, categorise).
-2. Well-structured in 3 to 4 distinct paragraphs.
-3. Contains nuanced factual claims, quantitative research figures/percentages, contrasting scientific hypotheses, and clinical or ethical considerations.
-4. Provides rich material for multiple distinct reasoning questions (e.g. direct fact retrieval, negative inferences, syllogisms, and author tone).
-5. DO NOT include questions, multiple choices, or answers in this output. Output ONLY the pure reading passage text."""
+STANDARDS FOR AAMC MCAT PASSAGES:
+1. Formal, intellectual scholarly register using precise American English scientific or academic vocabulary.
+2. Structured in 3 to 5 coherent paragraphs.
+3. {"For CARS: Dense scholarly argument in philosophy, ethics, cultural theory, or social sciences. Expresses a distinct thesis, contrasting critical viewpoints, and authorial attitude. Strictly avoid scientific jargon." if is_cars else "For Sciences: Substantive experimental or biomedical study detailing a research hypothesis, experimental methods (e.g. assays, Western blots, kinetic measurements), observed quantitative data or findings, and conclusions."}
+4. Provides rich material for multiple distinct reasoning questions evaluating AAMC skills.
+5. DO NOT include questions, choices, or answers in this output. Output ONLY the pure reading passage text."""
 
     system_prompt = (
-        "You are a Senior UCAT Lead Passage Author for the official UK medical admissions consortium. "
-        "Write authoritative, dense, high-caliber reading passages suitable for university medical and dental applicants."
+        "You are a Senior AAMC MCAT Lead Passage Author for official medical college admissions. "
+        "Write authoritative, dense, publication-grade reading passages suitable for competitive premed candidates."
     )
 
     try:
@@ -226,26 +238,46 @@ STANDARDS FOR UK UCAT PASSAGES:
         logger.warning(
             f"Passage generation LLM failed or not configured, using authentic fallback passage: {e}"
         )
-        fallback_passage = (
-            "The emergence of multidrug-resistant pathogens represents one of the most critical threats to modern global public health, "
-            "with antimicrobial resistance (AMR) directly implicated in an estimated 1.27 million deaths globally in 2019. In response, "
-            "clinical guidelines across UK NHS trusts have increasingly prioritized antimicrobial stewardship programmes (ASPs), "
-            "aiming to restrict empirical usage of broad-spectrum carbapenems and fluoroquinolones while optimizing targeted therapy. "
-            "However, implementation across secondary care environments reveals significant operational friction between protocol adherence "
-            "and clinician autonomy in acutely decompensating patients.\n\n"
-            "A prospective multi-centre audit of 820 adult acute medical admissions investigated the efficacy of rapid biomarker-guided prescribing, "
-            "specifically utilizing quantitative serum procalcitonin (PCT) assays alongside point-of-care multiplex polymerase chain reaction (PCR) platforms. "
-            "Baseline PCT concentrations below 0.25 ng/mL demonstrated a negative predictive value of 93.8% for invasive bacterial infections, "
-            "permitting early antibiotic cessation in 44% of culture-negative presentations within 36 hours. Furthermore, 30-day all-cause mortality "
-            "did not differ significantly between protocol-compliant wards (6.2%) and control cohorts receiving standard care (6.8%, p = 0.58), "
-            "suggesting that biomarker-guided de-escalation does not compromise patient survival.\n\n"
-            "Despite these objective clinical outcomes, semi-structured interviews with attending medical consultants highlighted persistent "
-            "reluctance to withdraw antimicrobial coverage in patients demonstrating persistent systemic inflammatory response syndrome (SIRS) criteria, "
-            "even when serial blood cultures and microbiological swabs yielded no identifiable pathogen at 48 hours. Clinicians frequently cited "
-            "diagnostic anxiety and institutional fear of rapid septic deterioration as paramount factors overruling algorithmic recommendations. "
-            "Consequently, while technological diagnostics offer robust diagnostic discrimination, institutional culture and risk aversion continue "
-            "to dictate empirical prescribing behaviours in acute clinical settings."
-        )
+        if is_cars:
+            fallback_passage = (
+                "The philosophical justification of aesthetic value has long struggled to reconcile subjective sensory experience "
+                "with the demand for objective critical consensus. In his Critique of Judgment, Immanuel Kant attempted to bridge this chasm "
+                "by positing the 'sensus communis' - a shared subjective capacity that enables individuals to expect universal agreement "
+                "for their aesthetic appraisals without relying on empirical concepts. To Kant, an authentic judgment of beauty must remain "
+                "disinterested, detached from both sensory gratification and practical utility. When one declares a cathedral or a sonata beautiful, "
+                "one speaks with a 'universal voice,' imputing the same contemplative satisfaction to all rational observers.\n\n"
+                "However, contemporary sociological critique, most notably articulated by Pierre Bourdieu, dismisses this Kantian autonomy as "
+                "a bourgeois illusion. Bourdieu argues that aesthetic dispositions do not reflect pure, disinterested cognition; rather, they are "
+                "socially conditioned markers of class distinction, or 'cultural capital.' The ability to appreciate abstract painting or avant-garde "
+                "composition presupposes prolonged exposure and educational privilege, subtly legitimizing social hierarchies under the guise of "
+                "natural refined taste. In this view, disinterested aesthetic contemplation serves primarily to demarcate elite status from "
+                "the necessity-driven preferences of the working classes.\n\n"
+                "Yet to reduce all aesthetic appraisal to socio-economic positioning is to ignore the transformative phenomenology of art itself. "
+                "If aesthetic appreciation were merely an arbitrary exercise in social signaling, it would fail to explain the profound emotional "
+                "resonance and cognitive disequilibrium that art frequently elicits across diverse cultural strata. Genuine aesthetic encounters "
+                "routinely disrupt habitual perception, unsettling entrenched beliefs rather than reinforcing social complacency. The enduring power "
+                "of artistic expression lies neither in absolute Kantian universality nor in reductive sociological determinism, but in its capacity "
+                "to stage an open-ended dialogue between individual subjectivity and the collective imagination."
+            )
+        else:
+            fallback_passage = (
+                "Phosphofructokinase-1 (PFK-1) functions as the primary committed and rate-limiting regulatory enzyme of glycolysis, "
+                "catalyzing the ATP-dependent phosphorylation of fructose-6-phosphate (F6P) to fructose-1,6-bisphosphate (F1,6BP). "
+                "Under physiological conditions, PFK-1 exists in an equilibrium between a low-affinity T (tense) state and a high-affinity "
+                "R (relaxed) state. To elucidate the metabolic impact of allosteric modulators on glycolytic flux during acute ischemia, "
+                "researchers isolated recombinant human hepatic PFK-1 and performed in vitro kinetic assays across varying substrate and "
+                "effector concentrations at pH 7.4.\n\n"
+                "In the presence of physiological levels of ATP (5.0 mM), PFK-1 activity was markedly inhibited, shifting the substrate saturation "
+                "curve for F6P to a sigmoidal profile with a fivefold increase in the apparent Michaelis constant (Km). This cooperative inhibition "
+                "stems from ATP binding to an allosteric regulatory site distinct from the catalytic pocket, stabilizing the low-affinity T conformation. "
+                "Conversely, addition of 2.0 μM fructose-2,6-bisphosphate (F2,6BP) completely abrogated ATP-mediated allosteric inhibition, restoring "
+                "hyperbolic Michaelis-Menten kinetics, decreasing the Km for F6P to 0.12 mM, and increasing Vmax by 40%.\n\n"
+                "Further investigation demonstrated that intracellular acidosis (pH 6.8), mirroring the microenvironment of ischemic myocardium, "
+                "potentiated ATP binding to the allosteric inhibitory site, resulting in a 75% reduction in catalytic efficiency (kcat/Km). "
+                "However, elevated AMP concentrations (0.8 mM) competitive with ATP at the allosteric site partially restored glycolytic turnover. "
+                "These findings demonstrate that cellular energy charge (AMP/ATP ratio) coupled with local proton concentration precisely regulates "
+                "glycolytic flux through coordinated conformational switching of PFK-1."
+            )
         mock_p_tokens = 380
         mock_c_tokens = 290
         mock_usage = TokenUsage(
@@ -258,7 +290,7 @@ STANDARDS FOR UK UCAT PASSAGES:
 
 
 async def generate_question(req: GenerationRequest) -> tuple[QuestionDraft, TokenUsage]:
-    """Invokes the Question Generator Agent to draft a publication-grade UCAT question."""
+    """Invokes the Question Generator Agent to draft a publication-grade AAMC MCAT question."""
     user_prompt = _build_generator_user_prompt(req, fused=False)
 
     try:

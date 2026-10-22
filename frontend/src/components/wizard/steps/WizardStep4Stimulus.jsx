@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image as ImageIcon, Shapes } from 'lucide-react';
+import { Image as ImageIcon } from 'lucide-react';
 import IndependentDiagramControls from '../IndependentDiagramControls';
 import { DEFAULT_IMAGE_MODEL, IMAGE_PRICING } from '../../../constants/config';
 
@@ -217,26 +217,6 @@ export default function WizardStep4Stimulus({
         </div>
       )}
 
-      {/* Abstract Reasoning Always Has Visuals Notice */}
-      {isAbstractReasoning && (
-        <div
-          style={{
-            padding: '10px 14px',
-            borderRadius: 'var(--radius-md)',
-            background: 'var(--brand-light)',
-            border: '1px solid var(--border-medium)',
-            fontSize: '0.8rem',
-            color: 'var(--brand-primary)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <Shapes size={16} />
-          <span>Abstract Reasoning questions always generate visual pattern diagrams for all {totalQuestions} items.</span>
-        </div>
-      )}
-
       {/* Cognitive Trap Selector */}
       <div>
         <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px', display: 'block' }}>
@@ -274,13 +254,13 @@ export default function WizardStep4Stimulus({
         <textarea
           className="input-textarea"
           rows={2}
-          placeholder="e.g. Focus on pediatric cardiology dosages, make Option B a tempting trap, or include patient refusal of consent..."
+          placeholder="e.g. Focus on enzyme kinetics with Lineweaver-Burk plots, make Option B a tempting Out of Scope trap, or test Michaelis-Menten constants..."
           value={customPrompt}
           onChange={(e) => setCustomPrompt(e.target.value)}
           style={{ width: '100%', resize: 'vertical' }}
         />
         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-          💡 Tip: Type any specific clinical topic, condition, or question style you want the AI to include!
+          💡 Tip: Type any specific MCAT biochemical pathway, equation, research design, or distractor style you want the AI to include!
         </div>
       </div>
     </div>

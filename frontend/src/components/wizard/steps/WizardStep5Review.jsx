@@ -8,12 +8,7 @@ export default function WizardStep5Review({
   selectedSubtopic,
   customPrompt,
   difficulty,
-  totalQuestions,
-  singleChoiceCount,
-  multiChoiceCount,
   passageMode,
-  passageQuestionCount,
-  passageRequired,
   totalImagesCount,
   hasPassageImage,
   activeQuestionImagesCount,
@@ -81,20 +76,20 @@ export default function WizardStep5Review({
         {/* Row 3: Difficulty & Quantity */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Difficulty & Question Count</div>
+            <div className="wizard-summary-label">Difficulty & Batch Size</div>
             <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
               <span style={{ textTransform: 'capitalize' }}>{difficulty} Difficulty</span>
               <span style={{ color: 'var(--text-muted)' }}>•</span>
-              <span>{totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'} total</span>
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>5 Questions (Fixed Batch)</span>
               <span style={{ color: 'var(--text-muted)' }}>•</span>
-              <span>({singleChoiceCount} Single Best Answer, {multiChoiceCount} Multi Statement)</span>
+              <span>4-Option Multiple Choice (A–D)</span>
             </div>
           </div>
           <button
             type="button"
             className="wizard-summary-edit-btn"
             onClick={() => setStep(3)}
-            title="Edit Difficulty & Quantity"
+            title="Edit Difficulty Tier"
           >
             <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
             Edit
@@ -104,26 +99,24 @@ export default function WizardStep5Review({
         {/* Row 4: Reading Material Structure */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Reading Passage Setup</div>
+            <div className="wizard-summary-label">Question Set Structure</div>
             <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
-              {totalQuestions > 1 ? (
-                passageMode === 'single_passage' ? (
-                  <span>
-                    Shared Reading Passage ({passageQuestionCount} questions linked to passage{totalQuestions > passageQuestionCount ? `, ${totalQuestions - passageQuestionCount} standalone items` : ''})
-                  </span>
-                ) : (
-                  <span>Independent Questions ({totalQuestions} standalone questions, no shared passage)</span>
-                )
+              {passageMode === 'single_passage' ? (
+                <span style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>
+                  Passage-Based Set: 1 Shared Passage + 5 Linked Questions
+                </span>
               ) : (
-                <span>{passageRequired === 'Yes' ? 'Reading Passage Attached (250-400 words)' : 'Direct Standalone Question (No Passage)'}</span>
+                <span style={{ color: 'var(--status-teal)', fontWeight: 600 }}>
+                  Independent Discretes: 5 Standalone Questions (No Shared Passage)
+                </span>
               )}
             </div>
           </div>
           <button
             type="button"
             className="wizard-summary-edit-btn"
-            onClick={() => setStep(totalQuestions > 1 ? 3 : 4)}
-            title="Edit Reading Material Structure"
+            onClick={() => setStep(3)}
+            title="Edit Question Set Structure"
           >
             <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
             Edit
@@ -192,8 +185,8 @@ export default function WizardStep5Review({
       }}>
         <Sparkles size={20} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-          Clicking <strong>Generate Questions</strong> will create your questions, verify them against official UCAT rubrics (&gt; 90 quality score),
-          and balance all answer choices in ~15-25 seconds.
+          Clicking <strong>Generate Questions</strong> will create your questions, verify them against official AAMC MCAT rubrics (&gt; 90 quality score &amp; scaled 118-132 scoring),
+          and calibrate all 4 choices (A-D) in ~15-25 seconds.
         </div>
       </div>
     </div>

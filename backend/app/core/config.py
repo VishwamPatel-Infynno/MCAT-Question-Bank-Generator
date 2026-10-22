@@ -11,7 +11,7 @@ class Settings(BaseSettings):
 
     # PostgreSQL Database URL
     DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", "postgresql+asyncpg://ucat_user:ucat_password@localhost:5432/ucat_db"
+        "DATABASE_URL", "postgresql+asyncpg://mcat_user:mcat_password@localhost:5432/mcat_db"
     )
 
     # Primary LLM for multi-agent reasoning: DeepSeek V4.1 Flash 1017 via DeepInfra

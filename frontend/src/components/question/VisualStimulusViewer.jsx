@@ -13,7 +13,7 @@ import {
 
 /**
  * VisualStimulusViewer:
- * Publication-grade renderer for UK UCAT visual stimulus diagrams (Vector SVG & AI FLUX Images).
+ * Publication-grade renderer for AAMC MCAT visual stimulus diagrams (Vector SVG & AI FLUX Images).
  * Supports inline display, click-to-zoom lightbox modal, pan/zoom controls, SVG source copying,
  * and inline description editing in Quick Edit mode.
  */
@@ -238,7 +238,7 @@ export default function VisualStimulusViewer({
           ) : (
             <img
               src={imageUrl}
-              alt={rawDescription || 'UK UCAT Stimulus Diagram'}
+              alt={rawDescription || 'AAMC MCAT Stimulus Diagram'}
               style={{
                 maxWidth: '100%',
                 maxHeight: '350px',

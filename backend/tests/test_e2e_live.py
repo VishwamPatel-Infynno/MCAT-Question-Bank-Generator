@@ -41,23 +41,22 @@ async def test_e2e_health_and_db_connectivity():
 
 
 @pytest.mark.asyncio
-async def test_e2e_all_five_sections_metadata():
+async def test_e2e_all_four_sections_metadata():
     """
-    E2E Test 2: Verify all 5 official UCAT subtests and curriculum subtopics.
+    E2E Test 2: Verify all 4 official MCAT sections and curriculum subtopics.
     """
     async with httpx.AsyncClient(base_url=BASE_URL, timeout=10.0) as client:
         resp = await client.get("/sections")
         assert resp.status_code == 200
         data = resp.json()
         sections = data.get("sections", [])
-        assert len(sections) == 5, f"Expected 5 sections, got {len(sections)}"
+        assert len(sections) == 4, f"Expected 4 sections, got {len(sections)}"
 
         expected_sections = {
-            "verbal_reasoning",
-            "decision_making",
-            "quantitative_reasoning",
-            "abstract_reasoning",
-            "situational_judgement",
+            "chem_phys",
+            "cars",
+            "bio_biochem",
+            "psych_soc",
         }
         actual_sections = {s["id"] for s in sections}
         assert actual_sections == expected_sections
@@ -275,9 +274,9 @@ async def test_e2e_strict_threshold_rejection_boundary():
     and produce diagnostic payload without being saved to database.
     """
     from app.agents.generator import get_mock_draft
-    from app.schemas import Difficulty, GenerationRequest, UCATSection
+    from app.schemas import Difficulty, GenerationRequest, MCATSection
 
-    req = GenerationRequest(section=UCATSection.DECISION_MAKING, difficulty=Difficulty.HARD)
+    req = GenerationRequest(section=MCATSection.CHEM_PHYS, difficulty=Difficulty.HARD)
     draft = get_mock_draft(req)
 
     failing_review = ReviewScore(

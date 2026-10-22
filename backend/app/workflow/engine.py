@@ -10,10 +10,10 @@ from app.agents.image_generator import generate_image_stimulus
 from app.core.config import config
 from app.schemas import (
     GenerationRequest,
+    MCATSection,
     OptionChoice,
     Question,
     QuestionDraft,
-    UCATSection,
     WorkflowEvent,
 )
 from app.workflow.nodes import (
@@ -95,23 +95,17 @@ def _determine_item_diagram_requirement(
     explicit_image = req_data.get("require_image", False)
     visual_type = req_data.get("visual_type", "None")
 
-    if section_val in (UCATSection.ABSTRACT_REASONING.value, "AR"):
-        return True
+    # CARS strictly has no figures, data tables or diagrams in official AAMC format
+    if section_val in (MCATSection.CARS.value, "CARS", "cars", "VR", "verbal_reasoning"):
+        return False
     if is_passage_item:
-        # Passage question items share the passage diagram; they NEVER have internal images
+        # Passage question items share the passage diagram; they never have internal images
         return False
     if req_img_indices is not None:
         # Granular question-level selection for independent/standalone items
         return (idx + 1) in req_img_indices
     if explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
         return True
-    if section_val in (
-        UCATSection.VERBAL_REASONING.value,
-        UCATSection.SITUATIONAL_JUDGEMENT.value,
-        "VR",
-        "SJT",
-    ):
-        return False
     return bool(state.get("current_draft", {}).get("image_needed", False))
 
 
@@ -240,63 +234,36 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
     Emits batch_progress and question_generated as each question finishes,
     culminating in workflow_complete with all staged questions for user confirmation.
     """
-    total_qty = min(max(req.questions_to_generate or 1, 1), 5)
+    total_qty = 5 if req.questions_to_generate != 1 else 1
     batch_id = req.batch_id or (str(uuid.uuid4()) if total_qty > 1 else None)
 
-    if req.passage_count is not None:
-        passage_count = min(max(req.passage_count, 0), total_qty)
-    elif req.passage_required and str(req.passage_required).lower() in ("yes", "true"):
-        passage_count = total_qty
-    else:
-        passage_count = 0
-
-    passage_mode = req.passage_mode or "single_passage"
-    # Single passage set activated when passage_mode == "single_passage" and passage required or passage questions requested
-    is_passage_mode_active = passage_mode == "single_passage" and (
-        str(req.passage_required).lower() in ("yes", "true")
-        or passage_count > 0
-        or req.passage_question_count is not None
+    # Resolve binary passage mode: either all 5 linked or all 5 independent
+    is_cars = req.section in (MCATSection.CARS, "cars", "CARS")
+    is_independent = (
+        not is_cars
+        and (
+            req.passage_mode == "independent"
+            or str(req.passage_required).lower() in ("no", "false", "0")
+            or (req.passage_question_count == 0 and not req.shared_stimulus)
+        )
     )
 
-    if is_passage_mode_active:
-        effective_passage_count = min(
-            req.passage_question_count if req.passage_question_count is not None else total_qty,
-            total_qty,
-        )
-        is_single_passage_set = effective_passage_count > 0
-    else:
+    if is_independent:
         effective_passage_count = 0
         is_single_passage_set = False
-
-    independent_count = total_qty - effective_passage_count
-    is_mixed_set = effective_passage_count > 0 and independent_count > 0
-
-    # Format breakdown for passage-linked questions
-    if req.passage_multi_count is not None:
-        p_multi = min(req.passage_multi_count, effective_passage_count)
-    elif req.multi_choice_count is not None:
-        p_multi = min(req.multi_choice_count, effective_passage_count)
-    elif req.interaction_type == "multi_choice":
-        p_multi = effective_passage_count
+        independent_count = total_qty
     else:
-        p_multi = 0
-    p_single = effective_passage_count - p_multi
+        effective_passage_count = total_qty
+        is_single_passage_set = True
+        independent_count = 0
 
-    # Format breakdown for independent questions
-    if req.independent_multi_count is not None:
-        ind_multi = min(req.independent_multi_count, independent_count)
-    elif req.multi_choice_count is not None:
-        rem_multi = max(0, req.multi_choice_count - p_multi)
-        ind_multi = min(rem_multi, independent_count)
-    elif req.interaction_type == "multi_choice":
-        ind_multi = independent_count
-    else:
-        ind_multi = 0
-    ind_single = independent_count - ind_multi
-
-    # Total aggregated single and multi counts across the entire batch
-    total_batch_multi = p_multi + ind_multi
-    total_batch_single = p_single + ind_single
+    is_mixed_set = False
+    p_multi = 0
+    p_single = effective_passage_count
+    ind_multi = 0
+    ind_single = independent_count
+    total_batch_multi = 0
+    total_batch_single = total_qty
 
     shared_passage_id = req.passage_id or (str(uuid.uuid4()) if is_single_passage_set else None)
     shared_passage_text = req.shared_stimulus
@@ -384,10 +351,12 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         shared_passage_image_desc: str | None = None
 
         requires_passage_image = bool(
-            req.require_passage_image
-            or (req.require_image and req.image_question_indices is None)
-            or req.visual_type in ("SVG_Diagram", "AI_FLUX_Image")
-            or (req.section == UCATSection.ABSTRACT_REASONING)
+            req.section != MCATSection.CARS
+            and (
+                req.require_passage_image
+                or (req.require_image and req.image_question_indices is None)
+                or req.visual_type in ("SVG_Diagram", "AI_FLUX_Image")
+            )
         )
 
         # Generate shared visual stimulus diagram for the passage if required
@@ -453,14 +422,12 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             yield f"data: {p_img_done_evt.model_dump_json()}\n\n"
 
         # Initial workflow start
-        if is_mixed_set:
-            start_msg = f"Starting UK UCAT Mixed Batch ({total_qty} questions: {effective_passage_count} linked to shared passage [{p_single} Single, {p_multi} Multi], {independent_count} independent [{ind_single} Single, {ind_multi} Multi])..."
-        elif is_single_passage_set:
-            start_msg = f"Starting UK UCAT Passage Set ({total_qty} questions: {p_single} Single, {p_multi} Multi-Choice) on shared passage..."
+        if is_single_passage_set:
+            start_msg = f"Starting AAMC MCAT Passage Set ({total_qty} questions) on shared reading passage..."
         elif total_qty == 1:
-            start_msg = f"Starting UK UCAT Generation Workflow for {req.section.value} ({req.difficulty.value}) using {req.model_name or config.DEFAULT_TEXT_MODEL}..."
+            start_msg = f"Starting AAMC MCAT Generation Workflow for {req.section.value} ({req.difficulty.value}) using {req.model_name or config.DEFAULT_TEXT_MODEL}..."
         else:
-            start_msg = f"Starting UK UCAT Parallel Batch Generation: {total_qty} questions ({total_batch_single} Single, {total_batch_multi} Multi-Choice) in parallel..."
+            start_msg = f"Starting AAMC MCAT Independent Discretes Batch ({total_qty} standalone questions) in parallel..."
 
         start_evt = make_event(
             event_type="workflow_start",
@@ -704,7 +671,10 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
         async def _monitor_tasks():
             try:
-                await asyncio.gather(*tasks, return_exceptions=True)
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                for idx_t, res in enumerate(results):
+                    if isinstance(res, Exception):
+                        logger.error(f"Worker task {idx_t + 1} raised unhandled exception: {res}", exc_info=res)
             finally:
                 await event_queue.put(None)
 

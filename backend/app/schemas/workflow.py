@@ -2,15 +2,19 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
-from app.schemas.ucat import Difficulty, UCATSection, normalize_section
+from app.schemas.mcat import Difficulty, MCATSection, normalize_section
 
 
 class GenerationRequest(BaseModel):
-    section: UCATSection
+    section: MCATSection
     subtopic: str | None = None
     difficulty: Difficulty = Difficulty.MEDIUM
+    aamc_skill: str | None = Field(
+        default=None,
+        description="AAMC Scientific Inquiry & Reasoning Skill (SIRS) or CARS skill classification",
+    )
     require_image: bool = False
     image_question_indices: list[int] | None = Field(
         default=None,
@@ -38,38 +42,41 @@ class GenerationRequest(BaseModel):
         description="Combination UUID4 or custom code e.g. CMB00001",
     )
     subcategory: str | None = Field(None, description="e.g. Inference")
-    content_domain: str | None = Field(None, description="e.g. Science, Healthcare")
-    question_type: str | None = Field(None, description="e.g. Passage_MCQ, True_False_Cant_Tell")
+    content_domain: str | None = Field(None, description="e.g. General_Chemistry, Biochemistry")
+    question_type: str | None = Field(None, description="e.g. Passage_Based_Set, Independent_Discrete")
     interaction_type: str | None = Field(
-        "single_choice", description="single_choice, multi_choice, drag_drop"
+        "single_choice", description="single_choice (standard 4-choice AAMC), multi_choice"
     )
-    primary_trap: str | None = Field(None, description="e.g. Keyword_Trap, Partial_Match")
+    primary_trap: str | None = Field(None, description="e.g. Out_of_Scope, Distortion_Opposite")
     passage_required: str | bool | None = Field(None, description="Yes or No")
     passage_mode: str | None = Field(
         "single_passage",
-        description="single_passage (1 shared passage with linked questions) or independent (separate scenarios)",
+        description="single_passage (all 5 linked to 1 passage) or independent (all 5 standalone discretes)",
     )
     passage_id: str | None = Field(
         None, description="Shared UUID for questions linked to the same passage"
     )
     shared_stimulus: str | None = Field(None, description="Pre-generated shared passage text")
-    passage_questions: int | None = Field(None, description="Number of passage questions e.g. 3, 4")
+    passage_questions: int | None = Field(None, description="Number of passage questions e.g. 5")
     image_required: str | bool | None = Field(None, description="Yes or No")
     visual_type: str | None = Field("None", description="e.g. None, SVG_Diagram, AI_FLUX_Image")
-    questions_to_generate: int | None = Field(
-        1, ge=1, le=5, description="Quantity to generate in batch (1-5)"
+    questions_to_generate: int = Field(
+        5,
+        ge=1,
+        le=5,
+        description="Fixed quantity to generate in MCAT batch (strictly 5 for batch runs, 1 for internal item workers)",
     )
     single_choice_count: int | None = Field(
-        None, ge=0, le=5, description="Number of single-choice items in batch"
+        5, ge=0, le=5, description="Number of single-choice items in batch (default: 5)"
     )
     multi_choice_count: int | None = Field(
-        None, ge=0, le=5, description="Number of multi-choice items in batch"
+        0, ge=0, le=5, description="Number of multi-choice items in batch (default: 0)"
     )
     passage_count: int | None = Field(
         None, ge=0, le=5, description="Number of passage-type items in batch"
     )
     passage_question_count: int | None = Field(
-        None, ge=1, le=5, description="Number of questions linked to the shared passage"
+        5, ge=0, le=5, description="Number of questions linked to the shared passage"
     )
     passage_single_count: int | None = Field(
         None, ge=0, le=5, description="Single choice count under shared passage"
@@ -78,10 +85,10 @@ class GenerationRequest(BaseModel):
         None, ge=0, le=5, description="Multi choice count under shared passage"
     )
     independent_single_count: int | None = Field(
-        None, ge=0, le=5, description="Single choice count for independent questions"
+        0, ge=0, le=5, description="Single choice count for independent questions"
     )
     independent_multi_count: int | None = Field(
-        None, ge=0, le=5, description="Multi choice count for independent questions"
+        0, ge=0, le=5, description="Multi choice count for independent questions"
     )
     auto_save: bool = Field(
         False,
@@ -91,33 +98,25 @@ class GenerationRequest(BaseModel):
     @property
     def is_passage_active(self) -> bool:
         """Determines whether a reading passage stimulus is active for this request."""
+        # CARS is strictly 100% passage-based in official MCAT
+        if self.section in (MCATSection.CARS, "CARS", "cars"):
+            return True
         if self.passage_required is not None:
             return str(self.passage_required).lower() in ("yes", "true", "1")
         if self.shared_stimulus and self.shared_stimulus.strip():
             return True
-        if self.section in (UCATSection.VERBAL_REASONING, "VR", "verbal_reasoning"):
-            return True
-        return False
+        return self.passage_mode != "independent"
 
     @property
     def requires_visual_stimulus(self) -> bool:
         """Determines whether visual image/diagram stimulus generation is required."""
+        if self.section in (MCATSection.CARS, "CARS", "cars"):
+            return False
         if self.visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
             return True
         if self.require_image or self.require_passage_image:
             return True
         if self.image_question_indices and len(self.image_question_indices) > 0:
-            return True
-        if self.section in (
-            UCATSection.VERBAL_REASONING,
-            "VR",
-            "verbal_reasoning",
-            UCATSection.SITUATIONAL_JUDGEMENT,
-            "SJT",
-            "situational_judgement",
-        ):
-            return False
-        if self.section in (UCATSection.ABSTRACT_REASONING, "AR", "abstract_reasoning"):
             return True
         return False
 
@@ -144,12 +143,110 @@ class GenerationRequest(BaseModel):
                 return Difficulty.EASY
             if lower in ["medium", "standard", "standard exam"]:
                 return Difficulty.MEDIUM
-            if lower in ["hard", "top percentile", "mastery"]:
+            if lower in ["hard", "top percentile", "mastery", "elite"]:
                 return Difficulty.HARD
             raise ValueError(
                 f"Invalid difficulty '{v}'. Difficulty must strictly be one of: easy, medium, hard."
             )
         return v
+
+    @model_validator(mode="after")
+    def resolve_binary_passage_and_fixed_count(self) -> "GenerationRequest":
+        """Enforces strictly 5 questions for batch runs and binary passage mode (all 5 linked or all 5 independent)."""
+        # Allow 1 only for internal individual worker items; all external/batch runs must strictly be 5
+        if self.questions_to_generate != 1 and self.questions_to_generate != 5:
+            raise ValueError(
+                f"MCAT question generation strictly requires exactly 5 questions per run (received {self.questions_to_generate})."
+            )
+
+        if self.questions_to_generate == 1:
+            if self.section in (MCATSection.CARS, "cars", "CARS"):
+                self.passage_mode = "single_passage"
+                self.passage_required = "Yes"
+                self.passage_question_count = 1
+                self.passage_count = 1
+                self.passage_single_count = 1
+                self.passage_multi_count = 0
+                self.single_choice_count = 1
+                self.multi_choice_count = 0
+                return self
+
+            is_independent = (
+                self.passage_mode == "independent"
+                or str(self.passage_required).lower() in ("no", "false", "0")
+                or (self.passage_question_count == 0 and not self.shared_stimulus)
+            )
+            if is_independent:
+                self.passage_mode = "independent"
+                self.passage_required = "No"
+                self.passage_question_count = 0
+                self.passage_count = 0
+                self.passage_single_count = 0
+                self.passage_multi_count = 0
+                self.independent_single_count = 1
+                self.independent_multi_count = 0
+                self.single_choice_count = 1
+                self.multi_choice_count = 0
+            else:
+                self.passage_mode = "single_passage"
+                self.passage_required = "Yes"
+                self.passage_question_count = 1
+                self.passage_count = 1
+                self.passage_single_count = 1
+                self.passage_multi_count = 0
+                self.independent_single_count = 0
+                self.independent_multi_count = 0
+                self.single_choice_count = 1
+                self.multi_choice_count = 0
+            return self
+
+        # Rule 1: CARS is ALWAYS 100% passage-based (all 5 linked)
+        if self.section in (MCATSection.CARS, "cars", "CARS"):
+            self.passage_mode = "single_passage"
+            self.passage_required = "Yes"
+            self.passage_question_count = 5
+            self.passage_count = 5
+            self.passage_single_count = 5
+            self.passage_multi_count = 0
+            self.independent_single_count = 0
+            self.independent_multi_count = 0
+            self.single_choice_count = 5
+            self.multi_choice_count = 0
+            return self
+
+        # Rule 2: Science sections - binary choice:
+        # Either Mode B: Independent Discretes (All 5 questions standalone)
+        is_independent = (
+            self.passage_mode == "independent"
+            or str(self.passage_required).lower() in ("no", "false", "0")
+            or (self.passage_question_count == 0 and not self.shared_stimulus)
+        )
+
+        if is_independent:
+            self.passage_mode = "independent"
+            self.passage_required = "No"
+            self.passage_question_count = 0
+            self.passage_count = 0
+            self.passage_single_count = 0
+            self.passage_multi_count = 0
+            self.independent_single_count = 5
+            self.independent_multi_count = 0
+            self.single_choice_count = 5
+            self.multi_choice_count = 0
+        else:
+            # Mode A: Passage-Based Set (All 5 questions linked to 1 passage)
+            self.passage_mode = "single_passage"
+            self.passage_required = "Yes"
+            self.passage_question_count = 5
+            self.passage_count = 5
+            self.passage_single_count = 5
+            self.passage_multi_count = 0
+            self.independent_single_count = 0
+            self.independent_multi_count = 0
+            self.single_choice_count = 5
+            self.multi_choice_count = 0
+
+        return self
 
 
 class WorkflowEvent(BaseModel):

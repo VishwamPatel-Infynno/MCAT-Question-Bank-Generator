@@ -1,5 +1,5 @@
 """
-UK UCAT Multi-Agent Workflow Engine Package.
+AAMC MCAT Multi-Agent Workflow Engine Package.
 """
 
 from app.workflow.engine import (
@@ -8,8 +8,8 @@ from app.workflow.engine import (
     run_workflow_stream,
 )
 from app.workflow.graph import (
-    create_ucat_graph,
-    ucat_graph,
+    create_mcat_graph,
+    mcat_graph,
 )
 from app.workflow.nodes import (
     finalize_node,
@@ -29,11 +29,12 @@ from app.workflow.state import AgentWorkflowState
 __all__ = [
     "AgentWorkflowState",
     "WorkflowRunResult",
-    "create_ucat_graph",
+    "create_mcat_graph",
     "finalize_node",
     "fused_generator_node",
     "generator_node",
     "image_node",
+    "mcat_graph",
     "regenerator_node",
     "reject_node",
     "reviewer_node",
@@ -41,5 +42,4 @@ __all__ = [
     "route_after_review",
     "run_workflow",
     "run_workflow_stream",
-    "ucat_graph",
 ]

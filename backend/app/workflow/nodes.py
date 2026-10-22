@@ -16,8 +16,8 @@ from app.agents.reviewer import review_question
 from app.core.config import config
 from app.repositories.question_repo import save_question
 from app.schemas import (
-    UCAT_SECTION_LABELS,
     GenerationRequest,
+    MCAT_SECTION_LABELS,
     OptionChoice,
     Question,
     QuestionDraft,
@@ -275,7 +275,7 @@ async def reject_node(state: AgentWorkflowState) -> dict[str, Any]:
 
     rejection_payload = {
         "section": req.section.value,
-        "section_label": UCAT_SECTION_LABELS.get(req.section, req.section.value),
+        "section_label": MCAT_SECTION_LABELS.get(req.section, req.section.value),
         "subtopic": req.subtopic or "Core Syllabus",
         "difficulty": req.difficulty.value,
         "final_score": final_score,
@@ -343,7 +343,7 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
     review = ReviewScore(**state["current_review"]) if state.get("current_review") else None
 
     options = [OptionChoice(**o) if isinstance(o, dict) else o for o in draft.options]
-    section_label = UCAT_SECTION_LABELS.get(req.section, req.section.value)
+    section_label = MCAT_SECTION_LABELS.get(req.section, req.section.value)
     symmetry = calculate_option_symmetry(options, draft.correct_answer_ids)
 
     outcomes = dict(state.get("stage_outcomes", {}))

@@ -5,8 +5,9 @@ from app.agents.mock_fixtures import improve_draft_heuristically
 from app.agents.prompts import REGENERATOR_SYSTEM_PROMPT
 from app.core.config import config
 from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
+from app.schemas.mcat import MCAT_SECTION_LABELS
+from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
 from app.schemas.token import TokenUsage
-from app.schemas.ucat import UCAT_SECTION_LABELS
 from app.schemas.workflow import GenerationRequest
 
 logger = logging.getLogger(__name__)
@@ -16,7 +17,8 @@ async def regenerate_question(
     draft: QuestionDraft, review: ReviewScore, req: GenerationRequest, iteration: int = 2
 ) -> tuple[QuestionDraft, TokenUsage]:
     """Invokes the Question Re-Generator Agent to refine a draft that scored <= 90."""
-    section_name = UCAT_SECTION_LABELS.get(req.section, req.section.value)
+    section_val = req.section.value if hasattr(req.section, "value") else str(req.section)
+    section_name = MCAT_SECTION_LABELS.get(req.section, section_val)
     options_formatted = "\n".join([f"{opt.id}: {opt.text}" for opt in draft.options])
 
     is_passage_active = req.is_passage_active
@@ -30,12 +32,12 @@ async def regenerate_question(
     )
 
     passage_instruction = (
-        "Passage Required: Yes (250-400 words)"
+        "Passage Required: Yes"
         if is_passage_active
         else 'Passage Required: No - Direct question ONLY. Do NOT generate any reading passage, vignette, or scenario. Leave stimulus_text strictly as an empty string (""). Pose the question directly in question_stem.'
     )
 
-    user_prompt = f"""The following candidate UCAT question received a score of {review.total_score}/100 and needs to be re-generated to score > 90.
+    user_prompt = f"""The following candidate MCAT question received a score of {review.total_score}/100 and needs to be re-generated to score > 90.
 
 Section: {section_name}
 Subtopic: {req.subtopic or "General"}
@@ -67,7 +69,7 @@ Actionable Recommendations:
 {recommendations_text}
 ---------------------------------------
 
-Please re-generate and refine this question to resolve all weaknesses and produce a publication-grade UCAT question. Output valid JSON only."""
+Please re-generate and refine this question to resolve all weaknesses and produce a publication-grade AAMC MCAT question. Output valid JSON only."""
 
     try:
         raw_output, usage = await call_llm(

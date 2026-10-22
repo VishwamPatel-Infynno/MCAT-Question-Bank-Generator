@@ -40,7 +40,7 @@ export default function Footer() {
           </a>
           <span style={{ color: 'var(--border-medium)' }}>|</span>
           <span style={{ color: 'var(--text-muted)' }}>
-            AI-powered question bank generator for UK UCAT medical exams.
+            AI-powered question bank generator for AAMC MCAT medical admissions.
           </span>
         </div>
 

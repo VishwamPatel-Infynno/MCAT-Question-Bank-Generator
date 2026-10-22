@@ -12,7 +12,7 @@ import {
   TRAP_PATTERN_STR,
   resolveTrapInfo,
   detectTrapFromText
-} from '../../constants/ucatTraps';
+} from '../../constants/mcatTraps';
 
 
 /**
@@ -134,7 +134,7 @@ function extractDistractorLines(rawText) {
 /**
  * MentorExplanationView
  *
- * Dedicated educational view for UK UCAT questions:
+ * Dedicated educational view for AAMC MCAT questions:
  * 1. Card 1: Why Option [Key] is Correct (Evidence, proof & intuition)
  * 2. Card 2: Why Other Options are Incorrect (Itemized distractor rows with cognitive trap chips)
  * 3. Card 3: Primary Cognitive Trap Spotlight (Smart AI or assigned trap with student defense strategy)
@@ -500,7 +500,7 @@ export default function MentorExplanationView({
         }}
       >
         <Lightbulb size={12} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
-        <span>Tip: Always note why distractors fail to build subconscious anti-trap intuition under strict UCAT exam timing.</span>
+        <span>Tip: Always note why distractors fail to build subconscious anti-trap intuition under strict MCAT exam timing.</span>
       </div>
     </div>
   );

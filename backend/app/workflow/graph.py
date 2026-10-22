@@ -1,5 +1,5 @@
 """
-UK UCAT Multi-Agent LangGraph Workflow.
+AAMC MCAT Multi-Agent LangGraph Workflow.
 
 Assembles and compiles the StateGraph connecting the Fused Generator, Reviewer,
 Regenerator, Diagram Generator, Quality Gate Reject, and Finalize nodes.
@@ -35,8 +35,8 @@ from app.workflow.routes import (
 from app.workflow.state import AgentWorkflowState
 
 
-def create_ucat_graph() -> StateGraph:
-    """Builds and compiles the multi-agent LangGraph workflow with Fused Generator."""
+def create_mcat_graph() -> StateGraph:
+    """Builds and compiles the multi-agent LangGraph workflow for official AAMC MCAT."""
     workflow = StateGraph(AgentWorkflowState)
 
     # Agent Nodes
@@ -81,12 +81,12 @@ def create_ucat_graph() -> StateGraph:
 
 
 # Global compiled graph singleton
-ucat_graph = create_ucat_graph()
+mcat_graph = create_mcat_graph()
 
 __all__ = [
     "AgentWorkflowState",
     "WorkflowRunResult",
-    "create_ucat_graph",
+    "create_mcat_graph",
     "finalize_node",
     "fused_generator_node",
     "generate_image_stimulus",
@@ -94,6 +94,7 @@ __all__ = [
     "generate_question_with_self_critique",
     "generator_node",
     "image_node",
+    "mcat_graph",
     "regenerate_question",
     "regenerator_node",
     "reject_node",
@@ -103,5 +104,4 @@ __all__ = [
     "route_after_review",
     "run_workflow",
     "run_workflow_stream",
-    "ucat_graph",
 ]

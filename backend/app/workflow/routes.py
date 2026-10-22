@@ -1,7 +1,7 @@
 import logging
 
 from app.core.config import config
-from app.schemas import GenerationRequest, UCATSection
+from app.schemas import GenerationRequest, MCATSection
 from app.workflow.state import AgentWorkflowState
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ def route_after_fused_generation(state: AgentWorkflowState) -> str:
     req_raw = state["request"]
     req = req_raw if isinstance(req_raw, GenerationRequest) else GenerationRequest(**req_raw)
     requires_image = req.requires_visual_stimulus or (
-        req.section not in (UCATSection.VERBAL_REASONING, UCATSection.SITUATIONAL_JUDGEMENT)
+        req.section != MCATSection.CARS
         and bool(state.get("current_draft", {}).get("image_needed", False))
     )
 
@@ -56,7 +56,7 @@ def route_after_review(state: AgentWorkflowState) -> str:
     req_raw = state["request"]
     req = req_raw if isinstance(req_raw, GenerationRequest) else GenerationRequest(**req_raw)
     requires_image = req.requires_visual_stimulus or (
-        req.section not in (UCATSection.VERBAL_REASONING, UCATSection.SITUATIONAL_JUDGEMENT)
+        req.section != MCATSection.CARS
         and bool(state.get("current_draft", {}).get("image_needed", False))
     )
 

@@ -1,6 +1,6 @@
-# Infynno UCAT Question Bank Generator - Frontend
+# Infynno MCAT Question Bank Generator - Frontend
 
-Modern, high-performance web workstation for **Infynno UCAT Question Bank Generator**, engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
+Modern, high-performance web workstation for **Infynno MCAT Question Bank Generator**, engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
 
 Built with **React 19**, **Vite 8**, **Oxlint**, and a custom dark-glass precision design system.
 
@@ -8,9 +8,9 @@ Built with **React 19**, **Vite 8**, **Oxlint**, and a custom dark-glass precisi
 
 ## 🎨 Architectural Overview
 
-The frontend provides an intuitive, real-time command canvas for UK UCAT question generation, AI team tracking, and question bank management:
+The frontend provides an intuitive, real-time command canvas for AAMC MCAT question generation, AI team tracking, and question bank management:
 
-- **Question Setup Panel**: 5-step guided workflow for selecting sections (Verbal Reasoning, Decision Making, Quantitative Reasoning, Abstract Reasoning, Situational Judgement), syllabus subtopics, difficulty calibration, reading material stimuli, and cognitive distractor traps.
+- **Question Setup Panel**: 5-step guided workflow for selecting official AAMC sections (Chemical and Physical Foundations, Critical Analysis and Reasoning Skills [CARS], Biological and Biochemical Foundations, Psychological, Social, and Biological Foundations), syllabus subtopics, difficulty calibration, reading material stimuli, and cognitive distractor traps.
 - **Live AI Team with Fused Draft-and-Critique**: Animated live tracker displaying the AI pipeline milestones (**Question Writer & Reviewer** with fused 100-pt self-critique for ~40% faster generation, **Question Improver** with smart status indicators, and **Diagram & Chart Maker**) with electric conduit telemetry.
 - **Staged Batch Review & Approval**: Interactive batch staging deck allowing educators to inspect, edit, discard, or approve multiple generated items before saving to the database.
 - **Question Quality & Cost Breakdown**: Comprehensive 100-point 4-pillar quality check with itemized token tracking and micro-dollar cost calculations.
@@ -59,7 +59,7 @@ frontend/src/
 │       └── steps/                # Subcomponents for wizard steps 1 through 5
 ├── constants/
 │   ├── config.js                 # Pricing models, image parameters, token rates
-│   └── ucat.js                   # UCAT subtests, pacing specs, icons, and fallback topics
+│   └── mcat.js                   # MCAT sections, pacing specs, icons, and fallback topics
 ├── hooks/
 │   ├── index.js                  # Barrel export for custom hooks
 │   ├── useGeneratorForm.js       # Form state & validation logic

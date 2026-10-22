@@ -27,7 +27,7 @@ import SharedPassageCard from '../question/SharedPassageCard';
 import CustomSelect from '../common/CustomSelect';
 import ExportPrintModal from '../modals/ExportPrintModal';
 import MentorExplanationView from '../question/MentorExplanationView';
-import { getEffectiveTrapInfo } from '../../constants/ucatTraps';
+import { getEffectiveTrapInfo } from '../../constants/mcatTraps';
 
 const SORT_OPTIONS = [
   { id: 'newest', label: 'Newest First' },
@@ -36,13 +36,12 @@ const SORT_OPTIONS = [
   { id: 'difficulty', label: 'Difficulty Level' }
 ];
 
-const SUBTEST_FILTER_OPTIONS = [
-  { id: '', label: 'All Subtests' },
-  { id: 'verbal_reasoning', label: 'Verbal' },
-  { id: 'decision_making', label: 'Decision' },
-  { id: 'quantitative_reasoning', label: 'Quantitative' },
-  { id: 'abstract_reasoning', label: 'Abstract' },
-  { id: 'situational_judgement', label: 'SJT' }
+const SECTION_FILTER_OPTIONS = [
+  { id: '', label: 'All Sections' },
+  { id: 'chem_phys', label: 'Chem / Phys' },
+  { id: 'cars', label: 'CARS' },
+  { id: 'bio_biochem', label: 'Bio / Biochem' },
+  { id: 'psych_soc', label: 'Psych / Soc' }
 ];
 
 const DIFFICULTY_FILTER_OPTIONS = [
@@ -344,7 +343,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
             paddingBottom: '2px'
           }}
         >
-          {SUBTEST_FILTER_OPTIONS.map(sec => {
+          {SECTION_FILTER_OPTIONS.map(sec => {
             const isActive = sectionFilter === sec.id;
             return (
               <button
@@ -547,6 +546,36 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
                         <span className="badge badge-emerald" style={{ fontSize: '0.65rem', fontWeight: 600 }}>
                           <Award size={10} /> {q.final_score}/100
                         </span>
+
+                        {q.mcat_scaled_score && (
+                          <span
+                            className="badge"
+                            style={{
+                              fontSize: '0.65rem',
+                              fontWeight: 700,
+                              background: 'rgba(2, 132, 199, 0.12)',
+                              color: '#0284c7',
+                              border: '1px solid rgba(2, 132, 199, 0.28)'
+                            }}
+                          >
+                            MCAT {q.mcat_scaled_score}
+                          </span>
+                        )}
+
+                        {q.aamc_skill && (
+                          <span
+                            className="badge"
+                            style={{
+                              fontSize: '0.625rem',
+                              fontWeight: 600,
+                              background: 'rgba(124, 58, 237, 0.1)',
+                              color: '#8b5cf6',
+                              border: '1px solid rgba(124, 58, 237, 0.25)'
+                            }}
+                          >
+                            {q.aamc_skill.replace(/_/g, ' ')}
+                          </span>
+                        )}
 
                         {(q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url || q.stage_outcomes?.passage_visual_stimulus?.image_svg) && (
                           <span className="badge badge-purple" style={{ fontSize: '0.65rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>

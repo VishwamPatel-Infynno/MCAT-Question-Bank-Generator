@@ -1,11 +1,11 @@
-# Infynno UCAT Question Bank Generator v2.0
+# Infynno MCAT Question Bank Generator v2.0
 > **An Infynno Solutions LLP Product • [Infinite Innovations](https://infynno.com/)**
 
 [![CI Pipeline](https://github.com/VishwamPatel-Infynno/UK-UCAT-Question-Bank-Generator/actions/workflows/ci.yml/badge.svg)](https://github.com/VishwamPatel-Infynno/UK-UCAT-Question-Bank-Generator/actions/workflows/ci.yml)
 
-An enterprise autonomous AI application for generating, quality-reviewing, and creating high-quality exam questions for the official **UK UCAT** (University Clinical Aptitude Test).
+An enterprise autonomous AI application for generating, quality-reviewing, and creating high-quality exam questions for the official **AAMC MCAT** (Medical College Admission Test).
 
-Engineered by **[Infynno Solutions LLP](https://infynno.com/)**, powered by a **3-Step AI Pipeline**, **FastAPI**, **React 19**, and **PostgreSQL 16**, featuring a modern single-canvas studio, live team tracker, batch staging, and strict 90+ score quality standard.
+Engineered by **[Infynno Solutions LLP](https://infynno.com/)**, powered by a **3-Step AI Pipeline**, **FastAPI**, **React 19**, and **PostgreSQL 16**, featuring a modern single-canvas studio, live team tracker, batch staging, AAMC SIRS reasoning skills, calibrated scaled scoring (118–132 per section / 472–528 composite), and strict 90+ score quality standard.
 
 ---
 
@@ -21,7 +21,7 @@ For deep-dive technical specifications, architecture diagrams, API schemas, and 
 | **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation, batch generation schemas, SSE event stream contracts, filter parameters, and cURL examples. |
 | **[Token Usage & Cost Tracking](docs/TOKEN_TRACKING.md)** | High-throughput rate card ($0.098 in / $0.294 out per 1M tokens), exact mathematical cost formulas, multi-agent accumulation, and UI observability. |
 | **[Installation, Setup & Deployment](docs/SETUP_AND_CONFIG.md)** | Step-by-step setup, Docker PostgreSQL 16 guide, environment variables reference, production deployment, linters, and troubleshooting. |
-| **[UCAT Psychometric Rubric & Standards](docs/UCAT_RUBRIC.md)** | Official 5 subtests pacing, 100-point 4-pillar evaluation rubric, $> 90$ quality benchmark, and cognitive distractor trap engineering. |
+| **[MCAT Psychometric Rubric & Standards](docs/MCAT_RUBRIC.md)** | Official 4 AAMC sections pacing (~96s to ~101s), 100-point 4-pillar evaluation rubric, $> 90$ quality benchmark, calibrated scaled score (118-132), and cognitive distractor trap engineering. |
 | **[Backend Developer Guide](backend/README.md)** | Layer separation, modular workflow engine (`engine.py`, `nodes.py`, `routes.py`), repositories, testing, and seeding scripts. |
 | **[Frontend Workstation Guide](frontend/README.md)** | Modern React 19 architecture, component directory, hooks, scripts, and local development instructions. |
 
@@ -49,11 +49,13 @@ graph LR
   - **Card 1: Why Option [Key] is Correct** (Emerald / Success styling): Establishes the core intuition and step-by-step deductive or mathematical proof confirming why the correct key is incontrovertible.
   - **Card 2: Why Other Options are Incorrect** (Amber / Warning styling): Features individual itemized sub-cards for every incorrect distractor, dissecting the exact flaw, tempting misconception, and disqualifying factor.
   - **Card 3: Primary Cognitive Trap Spotlight** (Purple / Violet styling): Highlights the dominant cognitive failure mode, explaining the precise psychological error mechanism and providing a student defense strategy to neutralize the trap under real exam conditions.
-- **Automatic (Smart AI Choice) Cognitive Trap Engine**: Supports 11 curated UCAT trap categories (`Scope_Shift`, `Keyword_Trap`, `Extreme_Language`, `Correlation_vs_Causation`, `Partial_Match`, `Half_Truth`, `Unwarranted_Assumption`, `Calculation_Trap`, `Out_of_Scope`, `False_Dichotomy`, `Over_generalisation`) alongside a default `"Automatic"` mode. In Smart AI mode, the generator agent analyzes the scenario, options, and distractors to intelligently select the most fitting trap, which is tracked in `primary_trap`, saved to PostgreSQL, and displayed as a top-strip purple badge chip on candidate cards and repository views.
-- **Independent Psychometric Auditor (`reviewer.py`)**: Independently audits candidate items whenever the initial draft scores $\le 90$ or after remediation across 4 equal 25-point pillars (*Authenticity*, *Clarity*, *Distractor Traps*, *Explanation Rigor*).
+- **Automatic (Smart AI Choice) Cognitive Trap Engine**: Supports 8 curated AAMC MCAT cognitive trap categories (`Out_of_Scope`, `Distortion_Opposite`, `Outside_Knowledge_in_CARS`, `Extreme_Language`, `Correlation_vs_Causation`, `Calculation_Formula_Trap`, `Half_Right_False_Premise`, `Scope_Shift`) alongside a default `"Automatic"` mode. In Smart AI mode, the generator agent analyzes the scientific research study or CARS passage, options, and distractors to intelligently select the most fitting trap, which is tracked in `primary_trap`, saved to PostgreSQL, and displayed as a top-strip purple badge chip on candidate cards and repository views.
+- **AAMC Scaled Score Calibration Engine**: Automatically calibrates internal 100-point psychometric audit scores into official AAMC scaled scores (`118–132` section scale, `472–528` composite scale) and percentile ranks (`99th+ Percentile (Elite)` down to `50th Percentile`).
+- **AAMC Scientific Inquiry & Reasoning Skills (SIRS)**: Integrates official AAMC SIRS skills (Skill 1: Knowledge of Scientific Concepts, Skill 2: Scientific Reasoning and Problem-solving, Skill 3: Reasoning About Design and Execution of Research, Skill 4: Data-based and Statistical Reasoning) and CARS Reasoning Skills (Foundations of Comprehension, Reasoning Within the Text, Reasoning Beyond the Text).
+- **Independent Psychometric Auditor (`reviewer.py`)**: Independently audits candidate items whenever the initial draft scores $\le 90$ or after remediation across 4 equal 25-point pillars (*Authenticity & Tone*, *Clarity & Scientific Logic*, *Distractor Traps*, *Explanation & Key Accuracy*).
 - **Remediation Engine Agent (`regenerator.py`)**: Automatically triggered when score $\le 90$. Digests the exact weaknesses and recommendations to repair borderline distractors and expand step-by-step proofs up to 3 iterations.
 - **Strict Quality Gate**: If a question fails to score $> 90$ after reaching maximum attempts (`MAX_REGENERATION_ATTEMPTS = 3`), the workflow halts immediately. Bypasses image generation and discards the candidate to protect repository integrity.
-- **Stimulus & Diagram Agent (`image_generator.py`)**: Renders clean programmatic SVG vector diagrams for geometric patterns, Venn syllogisms, and charts, with fallback support for AI visual generators.
+- **Stimulus & Diagram Agent (`image_generator.py`)**: Renders clean programmatic SVG vector diagrams for metabolic pathways, reaction mechanisms, optics, and experimental charts, with fallback support for AI visual generators (strictly disabled for CARS).
 
 ### 2. High-Throughput Autonomous Inference & Precision Cost Accounting
 - **Inference Engine**: DeepSeek-V4.1-Flash-1017 High-Throughput Reasoning Engine (via DeepInfra)
@@ -76,17 +78,17 @@ graph LR
 
 ### 4. Modern Enterprise Minimalist UI (Dual Theme: Dark & Light)
 - **Linear/Vercel-Inspired Aesthetic**: Hairline borders (`rgba(255, 255, 255, 0.06)` dark / `#e8ecf2` light), quiet obsidian and alabaster surfaces, and zero multi-card clutter.
-- **Hero Landing Screen (`HeroLanding.jsx`)**: Minimalist welcome canvas presenting official UCAT subtests, instant practice presets, and target pacing badges (~14s to ~64s per question).
+- **Hero Landing Screen (`HeroLanding.jsx`)**: Minimalist welcome canvas presenting official AAMC MCAT sections, instant practice presets, and target pacing badges (~96s to ~101s per question).
 - **5-Step Guided Question Wizard (`GuidedWizard.jsx`)**: Step-by-step authoring workflow with interactive **Exam Coach Tips** and unified **Generate Questions** launch control.
 - **Dedicated Generation & Review Workspace**: Clean, distraction-free full-width canvas (`maxWidth: 1040px`) hosting live multi-agent synthesis, telemetry, and batch staging without cramped column docks.
-- **Editorial Question Presentation**: Clinical reading passages formatted in serif typography with line-height `1.68` for fatigue-free reading; circular option badges (`A`, `B`, `C`, `D`), top metadata strip with purple primary trap badge chips, 3-card structured mentor explanations (*Why Correct*, *Why Other Options Incorrect* with itemized distractor cards, and *Primary Cognitive Trap Spotlight*), and inline editing.
+- **Editorial Question Presentation**: Scientific research passages and CARS essays formatted in serif typography with line-height `1.68` for fatigue-free reading; circular option badges (`A`, `B`, `C`, `D`), top metadata strip with purple primary trap badge chips, AAMC Scaled Score and SIRS badges, 3-card structured mentor explanations (*Why Correct*, *Why Other Options Incorrect* with itemized distractor cards, and *Primary Cognitive Trap Spotlight*), and inline editing.
 - **Instant Theme Switching**: Seamless toggle between Dark and Light themes with WCAG AA compliance via the `T` key shortcut.
 - **Full Keyboard Navigation**: `⌘ + Enter` (Generate), `T` (Theme), `/` (Search Bank), `A` (Approve), `D` (Discard), `Escape` (Close Modals).
 
 ### 5. Professional Export & Print Studio (`ExportPrintModal.jsx`)
-- **Official Exam Booklet (PDF / Print)**: Generates classroom and mock test papers with candidate metadata headers, section pacing guides (~14s to ~64s per item), and `.page-break` rules preventing awkward splits across pages.
-- **Comprehensive Study Pack**: Pairs every reading stimulus with its question stem, correct key, and complete step-by-step cognitive proof rationales.
-- **Direct Data Exports**: Download the entire repository or filtered subsets as standardized CSV files or normalized JSON bundles.
+- **Official Exam Booklet (PDF / Print)**: Generates classroom and mock test papers with candidate metadata headers, section pacing guides (~96s to ~101s per item), and `.page-break` rules preventing awkward splits across pages.
+- **Comprehensive Study Pack**: Pairs every research or CARS stimulus with its question stem, correct key, and complete step-by-step cognitive proof rationales.
+- **Direct Data Exports**: Download the entire repository or filtered subsets as standardized CSV files (`mcat_question_bank.csv`) or normalized JSON bundles (`mcat_question_bank.json`).
 
 ---
 
@@ -162,7 +164,7 @@ Question Bank Generator/
 │   ├── API.md                   # Complete REST & SSE API specification
 │   ├── TOKEN_TRACKING.md        # Inference pricing & mathematical cost engine
 │   ├── SETUP_AND_CONFIG.md      # Installation, deployment & troubleshooting
-│   └── UCAT_RUBRIC.md           # 100-point psychometric rubric & authoring standards
+│   └── MCAT_RUBRIC.md           # 100-point psychometric rubric & authoring standards
 ├── backend/
 │   ├── README.md                # Dedicated backend developer guide
 │   ├── requirements.txt         # Python dependencies
@@ -190,7 +192,7 @@ Question Bank Generator/
 │       │   ├── passage_repo.py  # Shared stimulus reading passage queries
 │       │   └── __init__.py
 │       ├── schemas/             # Domain Pydantic V2 schemas
-│       │   ├── ucat.py          # UCAT sections & subtopic taxonomy
+│       │   ├── mcat.py          # Official AAMC MCAT sections & subtopic taxonomy
 │       │   ├── token.py         # TokenUsage & TokenCostAccumulator schemas
 │       │   ├── question.py      # QuestionOption, QuestionDraft, Question
 │       │   ├── workflow.py      # GenerationRequest, ReviewScore, WorkflowEvent
@@ -229,7 +231,7 @@ Question Bank Generator/
         ├── App.jsx              # Main application shell with dedicated Review Workspace
         ├── index.css            # Modern Enterprise Minimalist design system (Dual Theme)
         ├── constants/           # Centralized application constants
-        │   ├── ucat.js          # Subtest icons, pacing targets & fallback taxonomy
+        │   ├── mcat.js          # MCAT sections, pacing targets, and skills
         │   └── config.js        # Model options & pricing constants
         ├── hooks/               # Custom stateful React hooks
         │   ├── index.js                 # Barrel export for custom hooks
@@ -254,4 +256,4 @@ Question Bank Generator/
 ---
 
 ## 📄 License & Attribution
-Proprietary - Infynno UCAT Question Bank Generator is engineered and maintained by **[Infynno Solutions LLP](https://infynno.com/)**. All rights reserved.
+Proprietary - Infynno MCAT Question Bank Generator is engineered and maintained by **[Infynno Solutions LLP](https://infynno.com/)**. All rights reserved.

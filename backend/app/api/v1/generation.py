@@ -12,7 +12,7 @@ router = APIRouter(tags=["Multi-Agent Generation"])
 
 
 @router.post("/generate")
-async def generate_ucat_question(req: GenerationRequest):
+async def generate_mcat_question(req: GenerationRequest):
     """
     Triggers the multi-agent workflow (Generator -> Reviewer -> Re-Generator -> Image Generator)
     and streams live progress events via Server-Sent Events (SSE).

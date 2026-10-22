@@ -6,10 +6,10 @@ import {
   Layers,
   ShieldCheck,
   Database,
-  Compass,
-  Shapes,
-  BrainCircuit,
-  Scale
+  FlaskConical,
+  Dna,
+  Brain,
+  Gauge
 } from 'lucide-react';
 import InfynnoLogo from '../common/InfynnoLogo';
 
@@ -20,47 +20,60 @@ export default function HeroLanding({
 }) {
   const PRESETS = [
     {
-      label: 'Verbal Reasoning',
-      tag: 'Passage Comprehension',
-      icon: BookOpen,
+      label: 'Chem / Phys Foundations',
+      tag: '5-Question Passage Set',
+      icon: FlaskConical,
       config: {
-        section: 'verbal_reasoning',
+        section: 'chem_phys',
         difficulty: 'medium',
-        totalQuestions: 2,
-        passageCount: 1,
+        totalQuestions: 5,
+        singleChoiceCount: 5,
+        passageMode: 'single_passage',
+        passageQuestionCount: 5,
         passageRequired: 'Yes'
       }
     },
     {
-      label: 'Abstract Reasoning',
-      tag: 'Visual Geometry',
-      icon: Shapes,
+      label: 'Critical Analysis (CARS)',
+      tag: '5-Question Passage Set',
+      icon: BookOpen,
       config: {
-        section: 'abstract_reasoning',
+        section: 'cars',
+        difficulty: 'medium',
+        totalQuestions: 5,
+        singleChoiceCount: 5,
+        passageCount: 1,
+        passageMode: 'single_passage',
+        passageQuestionCount: 5,
+        passageRequired: 'Yes'
+      }
+    },
+    {
+      label: 'Bio / Biochem Foundations',
+      tag: '5-Question Passage Set',
+      icon: Dna,
+      config: {
+        section: 'bio_biochem',
         difficulty: 'hard',
-        totalQuestions: 1,
-        requireImage: true,
-        visual_type: 'AI_FLUX_Image'
+        totalQuestions: 5,
+        singleChoiceCount: 5,
+        passageMode: 'single_passage',
+        passageQuestionCount: 5,
+        passageRequired: 'Yes'
       }
     },
     {
-      label: 'Decision Making',
-      tag: 'Logic & Syllogisms',
-      icon: BrainCircuit,
+      label: 'Psych / Soc Foundations',
+      tag: '5 Independent Discretes',
+      icon: Brain,
       config: {
-        section: 'decision_making',
+        section: 'psych_soc',
         difficulty: 'medium',
-        totalQuestions: 1
-      }
-    },
-    {
-      label: 'Situational Judgement',
-      tag: 'Medical Ethics',
-      icon: Scale,
-      config: {
-        section: 'situational_judgement',
-        difficulty: 'medium',
-        totalQuestions: 1
+        totalQuestions: 5,
+        singleChoiceCount: 5,
+        passageMode: 'independent',
+        passageQuestionCount: 0,
+        passageRequired: 'No'
       }
     }
   ];
@@ -86,18 +99,18 @@ export default function HeroLanding({
         {/* Corporate Badge */}
         <div className="hero-badge-pill">
           <Sparkles size={14} />
-          <span>Infynno Solutions • Smart UCAT Exam Studio</span>
+          <span>Infynno Solutions • Smart AAMC MCAT Exam Studio</span>
         </div>
 
         {/* Hero Title */}
         <h1 className="hero-title">
-          <span className="infynno-text-gradient">Infynno UCAT</span> Question Bank Generator
+          <span className="infynno-text-gradient">Infynno MCAT</span> Question Bank Generator
         </h1>
 
         {/* Tagline */}
         <p className="hero-tagline">
-          Create realistic UK UCAT exam questions in seconds. Powered by intelligent AI agents that draft,
-          review, and polish high-scoring practice items to official exam standards.
+          Create publication-grade AAMC MCAT exam questions in seconds. Powered by multi-agent psychometric AI
+          that drafts, reviews, and calibrates high-scoring practice items to official medical college admissions standards.
         </p>
 
         {/* Centered CTA Buttons */}
@@ -129,9 +142,9 @@ export default function HeroLanding({
             <div className="hero-feature-icon">
               <Layers size={18} />
             </div>
-            <div className="hero-feature-title">5 Official Exam Sections</div>
+            <div className="hero-feature-title">4 Official MCAT Sections</div>
             <div className="hero-feature-desc">
-              Practice Verbal, Decision Making, Quantitative, Abstract & Situational Judgement with realistic timing.
+              Practice Chem/Phys, CARS, Bio/Biochem & Psych/Soc calibrated to authentic AAMC pacing (~96s & ~101s).
             </div>
           </div>
 
@@ -139,19 +152,19 @@ export default function HeroLanding({
             <div className="hero-feature-icon">
               <ShieldCheck size={18} />
             </div>
-            <div className="hero-feature-title">AI Quality Review</div>
+            <div className="hero-feature-title">AAMC Psychometric Audit</div>
             <div className="hero-feature-desc">
-              Every question is automatically evaluated by a reviewer agent for clarity, accuracy, and fairness.
+              Every question is scored across scientific soundness, distractor plausibility, and step-by-step proof.
             </div>
           </div>
 
           <div className="hero-feature-card">
             <div className="hero-feature-icon">
-              <Compass size={18} />
+              <Gauge size={18} />
             </div>
-            <div className="hero-feature-title">Smart Answer Choices</div>
+            <div className="hero-feature-title">Calibrated Scaled Scoring</div>
             <div className="hero-feature-desc">
-              No obvious giveaways. Wrong answers look realistic to test true understanding and spot tricky traps.
+              Get instant section scaled scores (118-132) and composite percentile estimates (472-528 scale).
             </div>
           </div>
 
@@ -161,7 +174,7 @@ export default function HeroLanding({
             </div>
             <div className="hero-feature-title">Save, Review & Export</div>
             <div className="hero-feature-desc">
-              Organize questions in your searchable library, approve drafts, and export anytime to CSV or JSON.
+              Curate items in your searchable repository, approve candidate drafts, and export to CSV or JSON.
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-# UK UCAT Question Studio - REST & SSE API Reference
+# Infynno MCAT Question Bank Generator - REST & SSE API Reference
 
 Engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
 
@@ -34,7 +34,7 @@ This document provides a comprehensive reference for all REST endpoints and Serv
 | `GET` | `/api/export` | Exports repository in JSON or CSV format |
 | `GET` | `/api/health` | Service health, database connectivity, active models, and pricing |
 | `GET` | `/api/config` | Retrieves active model configuration and runtime status |
-| `GET` | `/api/sections` | Returns official UK UCAT subtests and categorized syllabus topics |
+| `GET` | `/api/sections` | Returns official AAMC MCAT sections and categorized syllabus topics |
 
 ---
 
@@ -269,7 +269,7 @@ All questions generated or retrieved comply with the 3-part explanation and cogn
    - `Why Other Options are Incorrect`: Bulleted analysis for each incorrect option dissecting the exact cognitive flaw and tempting misconception.
    - `Primary Cognitive Trap Spotlight`: Dedicated breakdown of the primary trap with explicit `Trap`, `Error Mechanism`, and `Student Defense Strategy` attributes.
 2. **Primary Trap Resolution**:
-   - When requests specify `primary_trap: "Automatic"` (the recommended default), the generator agent intelligently identifies and populates `primary_trap` from the 11 official UCAT trap types based on the drafted distractors.
+   - When requests specify `primary_trap: "Automatic"` (the recommended default), the generator agent intelligently identifies and populates `primary_trap` from the 11 official MCAT trap types based on the drafted distractors.
    - When requests supply an explicit trap (e.g. `"Keyword_Trap"`), the generator specifically engineers that trap into the draft.
    - For legacy questions where `primary_trap` is `null`, the backend workflow nodes and frontend `MentorExplanationView.jsx` employ automatic regex matching against the explanation text to extract and badge the active trap without breaking legacy layouts.
 
@@ -453,34 +453,61 @@ curl -X GET http://localhost:8000/api/config
 
 ---
 
-### 3.10 List UCAT Sections & Subtopics
+### 3.10 List MCAT Sections & Subtopics
 `GET /api/sections`
 
-Returns the official 5 UK UCAT subtests with their syllabus topics.
+Returns the official 4 AAMC MCAT sections with their syllabus topics.
 
 #### Response (`200 OK`)
 ```json
 {
   "sections": [
     {
-      "id": "verbal_reasoning",
-      "label": "Verbal Reasoning",
+      "id": "chem_phys",
+      "label": "Chemical and Physical Foundations of Biological Systems",
       "subtopics": [
-        "Critical Reading & Inferences",
-        "Direct Fact Retrieval",
-        "Author Tone & Argumentation",
-        "Comparative Evaluation"
+        "Thermodynamics & Kinetics",
+        "Enzyme Kinetics & Catalysis",
+        "Fluids & Circulation Physics",
+        "Electrochemistry & Circuits",
+        "Optics & Sound Waves",
+        "Atomic Structure & Periodic Trends",
+        "Acid-Base Chemistry & Buffers"
       ]
     },
     {
-      "id": "decision_making",
-      "label": "Decision Making",
+      "id": "cars",
+      "label": "Critical Analysis and Reasoning Skills",
       "subtopics": [
-        "Logical Syllogisms",
-        "Venn Diagrams & Set Logic",
-        "Probabilistic Reasoning",
-        "Argument Evaluation",
-        "Recognising Assumptions"
+        "Foundations of Comprehension",
+        "Reasoning Within the Text",
+        "Reasoning Beyond the Text",
+        "Author Tone & Rhetorical Devices",
+        "Philosophical Argument Analysis"
+      ]
+    },
+    {
+      "id": "bio_biochem",
+      "label": "Biological and Biochemical Foundations of Living Systems",
+      "subtopics": [
+        "Metabolic Pathways & Regulation",
+        "Molecular Genetics & DNA Tech",
+        "Cell Biology & Membrane Transport",
+        "Organ Systems Physiology",
+        "Microbiology & Immunology",
+        "Amino Acids, Peptides & Proteins"
+      ]
+    },
+    {
+      "id": "psych_soc",
+      "label": "Psychological, Social, and Biological Foundations of Behavior",
+      "subtopics": [
+        "Sensory Processing & Perception",
+        "Cognitive Psychology & Memory",
+        "Sociological Theories & Stratification",
+        "Demographic Disparities & Healthcare",
+        "Behavioral Neurobiology",
+        "Social Interaction & Group Dynamics"
       ]
     }
   ]

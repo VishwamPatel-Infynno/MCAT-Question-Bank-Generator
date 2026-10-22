@@ -71,7 +71,7 @@ export function useQuestionBank() {
   const handleCopy = useCallback((q, e) => {
     if (e) e.stopPropagation();
     const formatted =
-      `[UK UCAT - ${q.section_label || q.section}] (${q.difficulty})\n` +
+      `[AAMC MCAT - ${q.section_label || q.section}] (${q.difficulty})\n` +
       `${q.stimulus_text ? q.stimulus_text + '\n\n' : ''}` +
       `Question: ${q.question_stem}\n\n` +
       q.options.map((o) => `${o.id}: ${o.text}`).join('\n') +

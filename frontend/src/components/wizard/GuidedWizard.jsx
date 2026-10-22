@@ -4,12 +4,11 @@ import {
   ArrowRight,
   Sparkles
 } from 'lucide-react';
-import { PACING_INFO } from '../../constants/ucat';
+import { PACING_INFO } from '../../constants/mcat';
 import {
   SECTION_METADATA,
   CONTENT_DOMAINS,
   DIFFICULTY_TIERS,
-  SINGLE_ANSWER_FORMATS,
   COGNITIVE_TRAPS
 } from './wizardConstants';
 import WizardStep1Section from './steps/WizardStep1Section';
@@ -31,39 +30,20 @@ export default function GuidedWizard({
   const update = generatorForm?.updateField || (() => {});
   const updateFields = generatorForm?.updateFields || (() => {});
 
-  const selectedSection = form.selectedSection || 'verbal_reasoning';
+  const selectedSection = form.selectedSection || 'chem_phys';
   const selectedSubtopic = form.selectedSubtopic || '';
   const setSelectedSubtopic = (v) => update('selectedSubtopic', v);
   const difficulty = form.difficulty || 'medium';
   const setDifficulty = (v) => update('difficulty', v);
-  const totalQuestions = form.totalQuestions ?? 1;
-  const setTotalQuestions = (v) => update('totalQuestions', v);
-  const singleChoiceCount = form.singleChoiceCount ?? 1;
-  const setSingleChoiceCount = (v) => update('singleChoiceCount', v);
-  const multiChoiceCount = form.multiChoiceCount ?? 0;
-  const setMultiChoiceCount = (v) => update('multiChoiceCount', v);
-  const passageCount = form.passageCount ?? 0;
+  const totalQuestions = 5;
   const setPassageCount = (v) => update('passageCount', v);
   const passageMode = form.passageMode || 'single_passage';
   const setPassageMode = (v) => update('passageMode', v);
-  const passageQuestionCount = form.passageQuestionCount ?? 2;
-  const setPassageQuestionCount = (v) => update('passageQuestionCount', v);
-  const passageSingleCount = form.passageSingleCount ?? 1;
-  const setPassageSingleCount = (v) => update('passageSingleCount', v);
-  const passageMultiCount = form.passageMultiCount ?? 1;
-  const setPassageMultiCount = (v) => update('passageMultiCount', v);
-  const independentSingleCount = form.independentSingleCount ?? 2;
-  const setIndependentSingleCount = (v) => update('independentSingleCount', v);
-  const independentMultiCount = form.independentMultiCount ?? 1;
-  const setIndependentMultiCount = (v) => update('independentMultiCount', v);
-  const interactionType = form.interactionType || 'single_choice';
-  const setInteractionType = (v) => update('interactionType', v);
-  const passageRequired = form.passageRequired || 'No';
+  const passageRequired = form.passageRequired || (passageMode === 'independent' ? 'No' : 'Yes');
   const setPassageRequired = (v) => update('passageRequired', v);
   const primaryTrap = form.primaryTrap || 'Automatic';
   const setPrimaryTrap = (v) => update('primaryTrap', v);
   const imageMode = form.imageMode || 'none';
-  const setImageMode = generatorForm?.setImageMode;
   const setImageCount = generatorForm?.setImageCount;
   const setSingleImageCount = generatorForm?.setSingleImageCount;
   const setMultiImageCount = generatorForm?.setMultiImageCount;
@@ -73,41 +53,32 @@ export default function GuidedWizard({
   const customPrompt = form.customPrompt || '';
   const setCustomPrompt = (v) => update('customPrompt', v);
 
-  const isPassageSet = totalQuestions > 1 ? (passageMode === 'single_passage') : (passageRequired === 'Yes');
-  const isAbstractReasoning = selectedSection === 'abstract_reasoning';
-  const sectionMeta = SECTION_METADATA[selectedSection] || SECTION_METADATA.verbal_reasoning;
-  const pacing = PACING_INFO[selectedSection] || PACING_INFO.verbal_reasoning;
+  const isPassageSet = passageMode === 'single_passage';
+  const isAbstractReasoning = false;
+  const sectionMeta = SECTION_METADATA[selectedSection] || SECTION_METADATA.chem_phys;
+  const pacing = PACING_INFO[selectedSection] || PACING_INFO.chem_phys;
 
   // Number of passage questions vs independent questions
-  const numPassageQs = totalQuestions > 1
-    ? (passageMode === 'single_passage' ? Math.min(passageQuestionCount, totalQuestions) : 0)
-    : (passageRequired === 'Yes' ? 1 : 0);
-  const numIndependentQs = Math.max(0, totalQuestions - numPassageQs);
+  const numPassageQs = passageMode === 'single_passage' ? 5 : 0;
+  const numIndependentQs = passageMode === 'single_passage' ? 0 : 5;
 
-  const independentIndices = Array.from({ length: totalQuestions }, (_, i) => i + 1).slice(numPassageQs);
+  const independentIndices = Array.from({ length: 5 }, (_, i) => i + 1).slice(numPassageQs);
 
-  const indSingleTotal = totalQuestions > 1
-    ? (passageMode === 'single_passage' ? Math.max(0, independentSingleCount) : singleChoiceCount)
-    : (interactionType === 'single_choice' ? 1 : 0);
-  const indMultiTotal = totalQuestions > 1
-    ? (passageMode === 'single_passage' ? Math.max(0, independentMultiCount) : multiChoiceCount)
-    : (interactionType === 'multi_choice' ? 1 : 0);
+  const indSingleTotal = passageMode === 'independent' ? 5 : 0;
+  const indMultiTotal = 0;
 
   const indSingleIndices = independentIndices.slice(0, indSingleTotal);
-  const indMultiIndices = independentIndices.slice(indSingleTotal, indSingleTotal + indMultiTotal);
+  const indMultiIndices = [];
 
   const activeSingleImageIndices = (imageQuestionIndices || []).filter(i => indSingleIndices.includes(i));
-  const activeMultiImageIndices = (imageQuestionIndices || []).filter(i => indMultiIndices.includes(i));
   const activeSingleImageCount = activeSingleImageIndices.length;
-  const activeMultiImageCount = activeMultiImageIndices.length;
+  const activeMultiImageCount = 0;
 
-  const activeQuestionImagesCount = isAbstractReasoning
-    ? totalQuestions
-    : (imageMode === 'all'
-      ? independentIndices.length
-      : activeSingleImageCount + activeMultiImageCount);
-  const hasPassageImage = !isAbstractReasoning && isPassageSet && Boolean(requirePassageImage);
-  const totalImagesCount = isAbstractReasoning ? totalQuestions : (activeQuestionImagesCount + (hasPassageImage ? 1 : 0));
+  const activeQuestionImagesCount = imageMode === 'all'
+    ? independentIndices.length
+    : activeSingleImageCount;
+  const hasPassageImage = isPassageSet && Boolean(requirePassageImage);
+  const totalImagesCount = activeQuestionImagesCount + (hasPassageImage ? 1 : 0);
 
   // Subtopics for current section
   const availableSubtopics = useMemo(() => {
@@ -115,11 +86,13 @@ export default function GuidedWizard({
     return secObj?.subtopics && secObj.subtopics.length > 0
       ? secObj.subtopics
       : [
-          'Critical Reading & Inferences',
-          'Syllogisms & Logic Puzzles',
-          'Percentages, Ratios & Geometry',
-          'Set A vs Set B Patterns',
-          'Appropriateness & Integrity'
+          'Thermodynamics & Kinetics',
+          'Enzymatic Catalysis & Inhibition',
+          'Circuits & Electromagnetism',
+          'Fluids & Gas Laws',
+          'Genetics & Molecular Biology',
+          'Cognitive & Behavioral Foundations',
+          'Foundations of Comprehension'
         ];
   }, [sectionsData, selectedSection]);
 
@@ -132,151 +105,64 @@ export default function GuidedWizard({
 
   // Section Selection handler
   const handleSelectSection = (sectionId) => {
-    const isAR = sectionId === 'abstract_reasoning';
-    const isVR = sectionId === 'verbal_reasoning';
-    updateFields({
-      selectedSection: sectionId,
-      ...(isAR && { requireImage: true, visual_type: 'AI_FLUX_Image' }),
-      ...(!isAR && { requireImage: false, visual_type: 'None' }),
-      ...(isVR && { passageRequired: 'Yes', passageCount: 1 }),
-      ...(!isVR && { passageRequired: 'No', passageCount: 0 })
-    });
-    if (isAR && setImageMode) {
-      setImageMode('all');
-    }
-  };
-
-  // Stepper & Allocation Handlers matching GeneratorPanel exactly
-  const handleTotalChange = (newTotal) => {
-    const clamped = Math.max(1, Math.min(5, newTotal));
-    setTotalQuestions(clamped);
-    if (clamped === 1) {
-      setSingleChoiceCount(interactionType === 'multi_choice' ? 0 : 1);
-      setMultiChoiceCount(interactionType === 'multi_choice' ? 1 : 0);
-      setPassageCount(passageRequired === 'Yes' ? 1 : 0);
+    const isCars = sectionId === 'cars';
+    if (isCars) {
+      updateFields({
+        selectedSection: sectionId,
+        passageMode: 'single_passage',
+        passageRequired: 'Yes',
+        passageQuestionCount: 5,
+        passageCount: 1,
+        passageSingleCount: 5,
+        passageMultiCount: 0,
+        singleChoiceCount: 5,
+        multiChoiceCount: 0,
+        independentSingleCount: 0,
+        independentMultiCount: 0,
+        totalQuestions: 5,
+        requireImage: false,
+        visual_type: 'None'
+      });
     } else {
-      if (passageMode === 'single_passage') {
-        const clampedPassage = Math.max(1, Math.min(clamped, passageQuestionCount));
-        setPassageQuestionCount(clampedPassage);
-        const pMulti = Math.min(passageMultiCount, clampedPassage);
-        const pSingle = clampedPassage - pMulti;
-        setPassageMultiCount(pMulti);
-        setPassageSingleCount(pSingle);
-        const indTotal = clamped - clampedPassage;
-        let indMulti = 0;
-        let indSingle = 0;
-        if (indTotal > 0) {
-          indMulti = Math.min(independentMultiCount, indTotal);
-          indSingle = indTotal - indMulti;
-          setIndependentMultiCount(indMulti);
-          setIndependentSingleCount(indSingle);
-        }
-        setSingleChoiceCount(pSingle + indSingle);
-        setMultiChoiceCount(pMulti + indMulti);
-        setPassageCount(clampedPassage);
-      } else {
-        const curMulti = Math.min(multiChoiceCount, clamped);
-        setMultiChoiceCount(curMulti);
-        setSingleChoiceCount(clamped - curMulti);
-        setPassageCount(Math.min(passageCount, clamped));
-      }
+      updateFields({
+        selectedSection: sectionId,
+        totalQuestions: 5,
+        singleChoiceCount: 5,
+        multiChoiceCount: 0
+      });
     }
   };
 
   const handlePassageModeChange = (mode) => {
-    setPassageMode(mode);
     if (mode === 'single_passage') {
-      setPassageRequired('Yes');
-      setPassageCount(passageQuestionCount);
+      updateFields({
+        passageMode: 'single_passage',
+        passageRequired: 'Yes',
+        passageQuestionCount: 5,
+        passageCount: 1,
+        passageSingleCount: 5,
+        passageMultiCount: 0,
+        singleChoiceCount: 5,
+        multiChoiceCount: 0,
+        independentSingleCount: 0,
+        independentMultiCount: 0,
+        totalQuestions: 5
+      });
     } else {
-      setPassageRequired('No');
-      setPassageCount(0);
+      updateFields({
+        passageMode: 'independent',
+        passageRequired: 'No',
+        passageQuestionCount: 0,
+        passageCount: 0,
+        passageSingleCount: 0,
+        passageMultiCount: 0,
+        singleChoiceCount: 5,
+        multiChoiceCount: 0,
+        independentSingleCount: 5,
+        independentMultiCount: 0,
+        totalQuestions: 5
+      });
     }
-  };
-
-  const handlePassageQuestionCountChange = (newVal) => {
-    const val = Math.max(1, Math.min(totalQuestions, newVal));
-    setPassageQuestionCount(val);
-    const pMulti = Math.min(passageMultiCount, val);
-    const pSingle = val - pMulti;
-    setPassageMultiCount(pMulti);
-    setPassageSingleCount(pSingle);
-
-    const indTotal = totalQuestions - val;
-    let indMulti = 0;
-    let indSingle = 0;
-    if (indTotal > 0) {
-      indMulti = Math.min(independentMultiCount, indTotal);
-      indSingle = indTotal - indMulti;
-      setIndependentMultiCount(indMulti);
-      setIndependentSingleCount(indSingle);
-    }
-    setSingleChoiceCount(pSingle + indSingle);
-    setMultiChoiceCount(pMulti + indMulti);
-    setPassageCount(val);
-  };
-
-  const handlePassageSingleChange = (newVal) => {
-    const val = Math.max(0, Math.min(passageQuestionCount, newVal));
-    const pMulti = passageQuestionCount - val;
-    setPassageSingleCount(val);
-    setPassageMultiCount(pMulti);
-    const indTotal = totalQuestions - passageQuestionCount;
-    const indSingle = indTotal > 0 ? independentSingleCount : 0;
-    const indMulti = indTotal > 0 ? independentMultiCount : 0;
-    setSingleChoiceCount(val + indSingle);
-    setMultiChoiceCount(pMulti + indMulti);
-  };
-
-  const handlePassageMultiChange = (newVal) => {
-    const val = Math.max(0, Math.min(passageQuestionCount, newVal));
-    const pSingle = passageQuestionCount - val;
-    setPassageMultiCount(val);
-    setPassageSingleCount(pSingle);
-    const indTotal = totalQuestions - passageQuestionCount;
-    const indSingle = indTotal > 0 ? independentSingleCount : 0;
-    const indMulti = indTotal > 0 ? independentMultiCount : 0;
-    setSingleChoiceCount(pSingle + indSingle);
-    setMultiChoiceCount(val + indMulti);
-  };
-
-  const handleIndependentSingleChange = (newVal) => {
-    const indTotal = totalQuestions - passageQuestionCount;
-    if (indTotal <= 0) return;
-    const val = Math.max(0, Math.min(indTotal, newVal));
-    const indMulti = indTotal - val;
-    setIndependentSingleCount(val);
-    setIndependentMultiCount(indMulti);
-    setSingleChoiceCount(passageSingleCount + val);
-    setMultiChoiceCount(passageMultiCount + indMulti);
-  };
-
-  const handleIndependentMultiChange = (newVal) => {
-    const indTotal = totalQuestions - passageQuestionCount;
-    if (indTotal <= 0) return;
-    const val = Math.max(0, Math.min(indTotal, newVal));
-    const indSingle = indTotal - val;
-    setIndependentMultiCount(val);
-    setIndependentSingleCount(indSingle);
-    setSingleChoiceCount(passageSingleCount + indSingle);
-    setMultiChoiceCount(passageMultiCount + val);
-  };
-
-  const handleSingleCountChange = (newVal) => {
-    const val = Math.max(0, Math.min(totalQuestions, newVal));
-    setSingleChoiceCount(val);
-    setMultiChoiceCount(totalQuestions - val);
-  };
-
-  const handleMultiCountChange = (newVal) => {
-    const val = Math.max(0, Math.min(totalQuestions, newVal));
-    setMultiChoiceCount(val);
-    setSingleChoiceCount(totalQuestions - val);
-  };
-
-  const handlePassageCountChange = (newVal) => {
-    const val = Math.max(0, Math.min(totalQuestions, newVal));
-    setPassageCount(val);
   };
 
   const handleNext = () => {
@@ -358,34 +244,12 @@ export default function GuidedWizard({
 
         {step === 3 && (
           <WizardStep3Difficulty
+            selectedSection={selectedSection}
             difficulty={difficulty}
             setDifficulty={setDifficulty}
             DIFFICULTY_TIERS={DIFFICULTY_TIERS}
-            totalQuestions={totalQuestions}
-            handleTotalChange={handleTotalChange}
-            SINGLE_ANSWER_FORMATS={SINGLE_ANSWER_FORMATS}
-            interactionType={interactionType}
-            setInteractionType={setInteractionType}
-            setSingleChoiceCount={setSingleChoiceCount}
-            setMultiChoiceCount={setMultiChoiceCount}
             passageMode={passageMode}
             handlePassageModeChange={handlePassageModeChange}
-            passageQuestionCount={passageQuestionCount}
-            handlePassageQuestionCountChange={handlePassageQuestionCountChange}
-            passageSingleCount={passageSingleCount}
-            handlePassageSingleChange={handlePassageSingleChange}
-            passageMultiCount={passageMultiCount}
-            handlePassageMultiChange={handlePassageMultiChange}
-            independentSingleCount={independentSingleCount}
-            handleIndependentSingleChange={handleIndependentSingleChange}
-            independentMultiCount={independentMultiCount}
-            handleIndependentMultiChange={handleIndependentMultiChange}
-            singleChoiceCount={singleChoiceCount}
-            handleSingleCountChange={handleSingleCountChange}
-            multiChoiceCount={multiChoiceCount}
-            handleMultiCountChange={handleMultiCountChange}
-            passageCount={passageCount}
-            handlePassageCountChange={handlePassageCountChange}
           />
         )}
 
@@ -429,12 +293,7 @@ export default function GuidedWizard({
             selectedSubtopic={selectedSubtopic}
             customPrompt={customPrompt}
             difficulty={difficulty}
-            totalQuestions={totalQuestions}
-            singleChoiceCount={singleChoiceCount}
-            multiChoiceCount={multiChoiceCount}
             passageMode={passageMode}
-            passageQuestionCount={passageQuestionCount}
-            passageRequired={passageRequired}
             totalImagesCount={totalImagesCount}
             hasPassageImage={hasPassageImage}
             activeQuestionImagesCount={activeQuestionImagesCount}

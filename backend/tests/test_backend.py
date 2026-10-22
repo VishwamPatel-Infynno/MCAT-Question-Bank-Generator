@@ -11,11 +11,11 @@ from app.repositories.question_repo import delete_question, get_questions, save_
 from app.schemas import (
     Difficulty,
     GenerationRequest,
+    MCATSection,
     OptionChoice,
     Question,
     QuestionDraft,
     ReviewScore,
-    UCATSection,
 )
 from app.workflow.graph import (
     finalize_node,
@@ -37,7 +37,7 @@ async def test_schemas_validation():
         OptionChoice(id="D", text="Option D"),
     ]
     draft = QuestionDraft(
-        stimulus_text="Sample UCAT reading passage.",
+        stimulus_text="Sample MCAT reading passage.",
         question_stem="Which option follows?",
         options=opts,
         correct_answer_id="B",
@@ -49,7 +49,7 @@ async def test_schemas_validation():
 
     # Test batch limit <= 5 constraint
     valid_batch_req = GenerationRequest(
-        section=UCATSection.VERBAL_REASONING,
+        section=MCATSection.CHEM_PHYS,
         questions_to_generate=5,
         single_choice_count=3,
         multi_choice_count=2,
@@ -60,19 +60,20 @@ async def test_schemas_validation():
 
     with pytest.raises(ValidationError):
         GenerationRequest(
-            section=UCATSection.VERBAL_REASONING,
+            section=MCATSection.CHEM_PHYS,
             questions_to_generate=6,
         )
 
 
 @pytest.mark.asyncio
-async def test_all_ucat_sections_mock():
-    for sec in UCATSection:
+async def test_all_mcat_sections_mock():
+    for sec in MCATSection:
         req = GenerationRequest(
             section=sec,
             subtopic="Core Syllabus",
             difficulty=Difficulty.MEDIUM,
-            require_image=(sec == UCATSection.ABSTRACT_REASONING),
+            passage_required="Yes" if sec == MCATSection.CARS else "No",
+            require_image=(sec == MCATSection.CHEM_PHYS),
         )
         draft = get_mock_draft(req)
         assert len(draft.options) == 4
@@ -82,7 +83,7 @@ async def test_all_ucat_sections_mock():
 
 @pytest.mark.asyncio
 async def test_reviewer_heuristic_and_loop_routing():
-    req = GenerationRequest(section=UCATSection.VERBAL_REASONING, difficulty=Difficulty.MEDIUM)
+    req = GenerationRequest(section=MCATSection.CHEM_PHYS, difficulty=Difficulty.MEDIUM)
     draft = get_mock_draft(req)
 
     # Iteration 1 score should be <= 90 to test re-generation loop
@@ -120,7 +121,9 @@ async def test_strict_rejection_routing_when_score_le_90():
     from app.core.config import config
     from app.workflow.graph import reject_node
 
-    req = GenerationRequest(section=UCATSection.DECISION_MAKING, difficulty=Difficulty.HARD)
+    req = GenerationRequest(
+        section=MCATSection.CARS, difficulty=Difficulty.HARD, passage_required="Yes"
+    )
     draft = get_mock_draft(req)
 
     # Reviewer score of 82 (<= 90) at maximum iteration attempt (3)
@@ -161,7 +164,9 @@ async def test_strict_ai_image_generator(monkeypatch):
     1. Returns error and NO SVG when API key is missing.
     2. Returns pure AI-generated image (image_url) and NO SVG when model succeeds.
     """
-    req_ar = GenerationRequest(section=UCATSection.ABSTRACT_REASONING, difficulty=Difficulty.HARD)
+    req_ar = GenerationRequest(
+        section=MCATSection.CHEM_PHYS, difficulty=Difficulty.HARD, require_image=True
+    )
     draft_ar = get_mock_draft(req_ar)
 
     # 1. Missing API key -> strict error, never fall back to SVG
@@ -245,7 +250,9 @@ async def test_image_node_workflow_accumulation(monkeypatch):
 
     monkeypatch.setattr(graph, "generate_image_stimulus", mock_gen_img)
 
-    req = GenerationRequest(section=UCATSection.ABSTRACT_REASONING, difficulty=Difficulty.MEDIUM)
+    req = GenerationRequest(
+        section=MCATSection.CHEM_PHYS, difficulty=Difficulty.MEDIUM, require_image=True
+    )
     draft = get_mock_draft(req)
     state = {
         "request": req.model_dump(),
@@ -270,7 +277,7 @@ async def test_image_node_workflow_accumulation(monkeypatch):
 async def test_visual_stimulus_persistence_in_finalize_node():
     """Verifies that finalize_node preserves image_svg, image_url, and image_description in final_question and stage_outcomes."""
     req = GenerationRequest(
-        section=UCATSection.QUANTITATIVE_REASONING,
+        section=MCATSection.CHEM_PHYS,
         difficulty=Difficulty.MEDIUM,
         visual_type="svg_diagram",
     )
@@ -370,7 +377,7 @@ async def test_token_and_cost_calculation():
 async def test_workflow_token_accumulation(monkeypatch):
     monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
     monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
-    req = GenerationRequest(section=UCATSection.VERBAL_REASONING, difficulty=Difficulty.MEDIUM)
+    req = GenerationRequest(section=MCATSection.BIO_BIOCHEM, difficulty=Difficulty.MEDIUM)
     init_state = {
         "request": req.model_dump(),
         "iteration_count": 1,
@@ -443,7 +450,7 @@ async def test_admin_approval_and_persistence_endpoints():
 
     # 1. Test finalize_node with auto_save=False (Default for Admin Review)
     req = GenerationRequest(
-        section=UCATSection.VERBAL_REASONING, difficulty=Difficulty.MEDIUM, auto_save=False
+        section=MCATSection.PSYCH_SOC, difficulty=Difficulty.MEDIUM, auto_save=False
     )
     draft_data = {
         "stimulus_text": "Clinical patient trial data on neuroprotective agents.",
@@ -559,7 +566,7 @@ async def test_multichoice_and_passage_support():
 
     # 1. Test multi-choice GenerationRequest with passage and trap
     req = GenerationRequest(
-        section=UCATSection.VERBAL_REASONING,
+        section=MCATSection.CARS,
         difficulty=Difficulty.HARD,
         interaction_type="multi_choice",
         passage_required="Yes",
@@ -627,14 +634,11 @@ async def test_batch_generation_and_staging_flow(monkeypatch):
     monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
     monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
 
-    # Request batch of 3 questions: 2 Single, 1 Multi, 1 Passage
+    # Request batch of 5 questions
     req = GenerationRequest(
-        section=UCATSection.DECISION_MAKING,
+        section=MCATSection.BIO_BIOCHEM,
         difficulty=Difficulty.MEDIUM,
-        questions_to_generate=3,
-        single_choice_count=2,
-        multi_choice_count=1,
-        passage_count=1,
+        questions_to_generate=5,
     )
 
     events = []
@@ -647,25 +651,25 @@ async def test_batch_generation_and_staging_flow(monkeypatch):
     event_types = [e["event_type"] for e in events]
     assert "workflow_start" in event_types
     assert "batch_progress" in event_types
-    assert event_types.count("question_generated") == 3
+    assert event_types.count("question_generated") == 5
     assert "workflow_complete" in event_types
 
-    # Verify workflow_complete contains all 3 staged questions
+    # Verify workflow_complete contains all 5 staged questions
     complete_evt = next(e for e in events if e["event_type"] == "workflow_complete")
     staged_qs = complete_evt["data"]["questions"]
-    assert len(staged_qs) == 3
+    assert len(staged_qs) == 5
 
     # Check that candidates are NOT automatically saved to DB
     for q_data in staged_qs:
         in_db = await get_question_by_id(q_data["id"])
         assert in_db is None  # Not saved until user confirms!
 
-    # Test user selecting 2 of the 3 questions to save (Confirmation Simulation)
+    # Test user selecting 2 of the 5 questions to save (Confirmation Simulation)
     chosen_to_approve = [Question(**staged_qs[0]), Question(**staged_qs[1])]
     saved_count = await save_questions_batch(chosen_to_approve)
     assert saved_count == 2
 
-    # Verify the 2 approved are now in DB, and unapproved is not
+    # Verify the 2 approved are now in DB, and unapproved are not
     assert await get_question_by_id(staged_qs[0]["id"]) is not None
     assert await get_question_by_id(staged_qs[1]["id"]) is not None
     assert await get_question_by_id(staged_qs[2]["id"]) is None
@@ -677,11 +681,11 @@ async def test_batch_generation_and_staging_flow(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_section_image_guard_routing():
-    # 1. Verbal Reasoning: score 95 > 90, image_needed=True in draft, require_image=False
-    # Should route to finalize, bypassing image_generator
-    vr_state = {
+    # 1. CARS: score 95 > 90, image_needed=True in draft, require_image=False
+    # Should route to finalize, strictly bypassing image_generator (CARS has no images)
+    cars_state = {
         "request": {
-            "section": "verbal_reasoning",
+            "section": "cars",
             "require_image": False,
             "visual_type": "None",
         },
@@ -689,25 +693,25 @@ async def test_section_image_guard_routing():
         "current_draft": {"image_needed": True},
         "iteration_count": 1,
     }
-    assert route_after_review(vr_state) == "finalize"
+    assert route_after_review(cars_state) == "finalize"
 
-    # 2. Situational Judgement: score 94 > 90, require_image=False
-    sjt_state = {
+    # 2. CARS with require_image=False routes to finalize
+    cars_no_img_state = {
         "request": {
-            "section": "situational_judgement",
+            "section": "critical_analysis_and_reasoning_skills",
             "require_image": False,
             "visual_type": "None",
         },
         "current_review": {"total_score": 94},
-        "current_draft": {"image_needed": True},
+        "current_draft": {"image_needed": False},
         "iteration_count": 1,
     }
-    assert route_after_review(sjt_state) == "finalize"
+    assert route_after_review(cars_no_img_state) == "finalize"
 
-    # 3. Verbal Reasoning with explicit require_image=True
-    vr_explicit_state = {
+    # 3. Chem/Phys with explicit require_image=True routes to image_generator
+    cp_explicit_state = {
         "request": {
-            "section": "verbal_reasoning",
+            "section": "chem_phys",
             "require_image": True,
             "visual_type": "None",
         },
@@ -715,20 +719,20 @@ async def test_section_image_guard_routing():
         "current_draft": {"image_needed": True},
         "iteration_count": 1,
     }
-    assert route_after_review(vr_explicit_state) == "image_generator"
+    assert route_after_review(cp_explicit_state) == "image_generator"
 
-    # 4. Abstract Reasoning: score 95 > 90, should route to image_generator
-    ar_state = {
+    # 4. Chem/Phys with image_needed=True routes to image_generator
+    cp_needed_state = {
         "request": {
-            "section": "abstract_reasoning",
+            "section": "chem_phys",
             "require_image": False,
             "visual_type": "None",
         },
         "current_review": {"total_score": 95},
-        "current_draft": {"image_needed": False},
+        "current_draft": {"image_needed": True},
         "iteration_count": 1,
     }
-    assert route_after_review(ar_state) == "image_generator"
+    assert route_after_review(cp_needed_state) == "image_generator"
 
 
 @pytest.mark.asyncio
@@ -742,9 +746,9 @@ async def test_per_question_stage_metadata_in_events(monkeypatch):
     monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
 
     req = GenerationRequest(
-        section=UCATSection.DECISION_MAKING,
+        section=MCATSection.CHEM_PHYS,
         difficulty=Difficulty.MEDIUM,
-        questions_to_generate=2,
+        questions_to_generate=5,
     )
 
     events = []
@@ -761,10 +765,10 @@ async def test_per_question_stage_metadata_in_events(monkeypatch):
         and e["agent_name"]
         in ("Question Writer & Reviewer", "Question Writer", "Question Generator")
     ]
-    assert len(gen_starts) == 2
+    assert len(gen_starts) == 5
     for e in gen_starts:
-        assert e["data"]["index"] in (1, 2)
-        assert e["data"]["total"] == 2
+        assert e["data"]["index"] in (1, 2, 3, 4, 5)
+        assert e["data"]["total"] == 5
         assert e["data"]["stage"] == "drafting"
 
     rev_starts = [
@@ -773,20 +777,20 @@ async def test_per_question_stage_metadata_in_events(monkeypatch):
         if e["event_type"] == "agent_start"
         and e["agent_name"] in ("Quality Reviewer", "Question Reviewer")
     ]
-    assert len(rev_starts) >= 2
+    assert len(rev_starts) >= 5
     for e in rev_starts:
-        assert e["data"]["index"] in (1, 2)
-        assert e["data"]["total"] == 2
+        assert e["data"]["index"] in (1, 2, 3, 4, 5)
+        assert e["data"]["total"] == 5
         assert e["data"]["stage"] == "reviewing"
         assert e["data"]["iteration"] >= 1
 
     q_gens = [e for e in events if e["event_type"] == "question_generated"]
-    assert len(q_gens) == 2
+    assert len(q_gens) == 5
     for e in q_gens:
-        assert e["data"]["index"] in (1, 2)
-        assert e["data"]["total"] == 2
+        assert e["data"]["index"] in (1, 2, 3, 4, 5)
+        assert e["data"]["total"] == 5
         assert e["data"]["stage"] == "completed"
-        assert e["data"]["question"]["index"] in (1, 2)
+        assert e["data"]["question"]["index"] in (1, 2, 3, 4, 5)
 
 
 @pytest.mark.asyncio
@@ -796,11 +800,9 @@ async def test_single_passage_multi_question_set(monkeypatch):
     monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
 
     req = GenerationRequest(
-        section=UCATSection.VERBAL_REASONING,
+        section=MCATSection.CARS,
         difficulty=Difficulty.MEDIUM,
-        questions_to_generate=3,
-        single_choice_count=2,
-        multi_choice_count=1,
+        questions_to_generate=5,
         passage_required="Yes",
         passage_mode="single_passage",
     )
@@ -835,96 +837,75 @@ async def test_single_passage_multi_question_set(monkeypatch):
     assert len(complete_events) == 1
     data = complete_events[0]["data"]
     questions = data["questions"]
-    assert len(questions) == 3
+    assert len(questions) == 5
 
     # Verify all questions share the exact same passage_id and stimulus_text
     single_count = 0
-    multi_count = 0
     for q in questions:
         assert q["passage_id"] == shared_passage_id
         assert q["stimulus_text"] == shared_passage_text
         assert q["final_score"] > 90
-        if q["interaction_type"] == "multi_choice":
-            multi_count += 1
-        elif q["interaction_type"] == "single_choice":
+        if q["interaction_type"] == "single_choice":
             single_count += 1
 
-    assert single_count == 2
-    assert multi_count == 1
+    assert single_count == 5
 
 
 @pytest.mark.asyncio
-async def test_mixed_passage_and_independent_batch(monkeypatch):
-    """Verifies hybrid batch with 2 questions on a shared passage and 3 independent questions (Single & Multi-choice)."""
+async def test_binary_passage_and_independent_batches(monkeypatch):
+    """Verifies clean binary passage mode: either all 5 linked to 1 passage or all 5 independent discretes."""
     monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
     monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
 
-    req = GenerationRequest(
-        section=UCATSection.VERBAL_REASONING,
+    # Mode A: 5 Questions all linked to 1 shared passage
+    req_passage = GenerationRequest(
+        section=MCATSection.BIO_BIOCHEM,
         difficulty=Difficulty.MEDIUM,
         questions_to_generate=5,
         passage_mode="single_passage",
-        passage_question_count=2,
-        passage_single_count=1,
-        passage_multi_count=1,
-        independent_single_count=2,
-        independent_multi_count=1,
+        passage_required="Yes",
     )
 
-    events = []
-    async for chunk in run_workflow_stream(req):
+    events_a = []
+    async for chunk in run_workflow_stream(req_passage):
         line = chunk.strip()
         if line.startswith("data: "):
-            events.append(json.loads(line[6:]))
+            events_a.append(json.loads(line[6:]))
 
-    # Verify workflow_start metadata
-    start_events = [e for e in events if e["event_type"] == "workflow_start"]
-    assert len(start_events) == 1
-    start_data = start_events[0]["data"]
-    assert start_data["is_mixed_set"] is True
-    assert start_data["passage_question_count"] == 2
-    assert start_data["independent_question_count"] == 3
-    assert start_data["passage_single_count"] == 1
-    assert start_data["passage_multi_count"] == 1
-    assert start_data["independent_single_count"] == 2
-    assert start_data["independent_multi_count"] == 1
+    complete_a = next(e for e in events_a if e["event_type"] == "workflow_complete")
+    assert complete_a["data"]["is_mixed_set"] is False
+    qs_a = complete_a["data"]["questions"]
+    assert len(qs_a) == 5
+    shared_pid = complete_a["data"]["passage_id"]
+    assert shared_pid is not None
+    for q in qs_a:
+        assert q["passage_id"] == shared_pid
+        assert q["passage_required"] == "Yes"
+        assert len(q["stimulus_text"]) > 50
 
-    # Verify workflow_complete
-    complete_events = [e for e in events if e["event_type"] == "workflow_complete"]
-    assert len(complete_events) == 1
-    comp_data = complete_events[0]["data"]
-    assert comp_data["is_mixed_set"] is True
-    questions = comp_data["questions"]
-    assert len(questions) == 5
+    # Mode B: 5 Independent Discretes (No shared passage)
+    req_indep = GenerationRequest(
+        section=MCATSection.CHEM_PHYS,
+        difficulty=Difficulty.MEDIUM,
+        questions_to_generate=5,
+        passage_mode="independent",
+        passage_required="No",
+    )
 
-    shared_passage_id = comp_data["passage_id"]
-    shared_passage_text = comp_data["shared_passage"]
-    assert shared_passage_id is not None
-    assert shared_passage_text is not None
+    events_b = []
+    async for chunk in run_workflow_stream(req_indep):
+        line = chunk.strip()
+        if line.startswith("data: "):
+            events_b.append(json.loads(line[6:]))
 
-    # First 2 questions belong to the shared passage
-    p_questions = questions[:2]
-    for q in p_questions:
-        assert q["passage_id"] == shared_passage_id
-        assert q["stimulus_text"] == shared_passage_text
-        assert q["final_score"] > 90
-
-    p_singles = sum(1 for q in p_questions if q["interaction_type"] == "single_choice")
-    p_multis = sum(1 for q in p_questions if q["interaction_type"] == "multi_choice")
-    assert p_singles == 1
-    assert p_multis == 1
-
-    # Remaining 3 questions are independent
-    ind_questions = questions[2:]
-    for q in ind_questions:
+    complete_b = next(e for e in events_b if e["event_type"] == "workflow_complete")
+    assert complete_b["data"]["is_mixed_set"] is False
+    qs_b = complete_b["data"]["questions"]
+    assert len(qs_b) == 5
+    for q in qs_b:
         assert q.get("passage_id") is None
-        assert q.get("stimulus_text") != shared_passage_text
-        assert q["final_score"] > 90
-
-    ind_singles = sum(1 for q in ind_questions if q["interaction_type"] == "single_choice")
-    ind_multis = sum(1 for q in ind_questions if q["interaction_type"] == "multi_choice")
-    assert ind_singles == 2
-    assert ind_multis == 1
+        assert q["passage_required"] == "No"
+        assert q["stimulus_text"] == ""
 
 
 @pytest.mark.asyncio
@@ -941,7 +922,7 @@ async def test_generate_question_with_self_critique_structure(monkeypatch):
     monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
 
     req = GenerationRequest(
-        section=UCATSection.DECISION_MAKING,
+        section=MCATSection.PSYCH_SOC,
         difficulty=Difficulty.MEDIUM,
     )
     draft, review, usage = await generate_question_with_self_critique(req)
@@ -1002,7 +983,9 @@ async def test_fused_generator_node_passing_and_routing():
     from app.workflow.graph import route_after_fused_generation
 
     # 1. Failing/unverified self-critique (score <= 90) -> routes to reviewer
-    req = GenerationRequest(section=UCATSection.VERBAL_REASONING, difficulty=Difficulty.MEDIUM)
+    req = GenerationRequest(
+        section=MCATSection.CARS, difficulty=Difficulty.MEDIUM, passage_required="Yes"
+    )
     failing_state = {
         "request": req.model_dump(),
         "fused_self_passed": False,
@@ -1010,7 +993,7 @@ async def test_fused_generator_node_passing_and_routing():
     }
     assert route_after_fused_generation(failing_state) == "reviewer"
 
-    # 2. Passing self-critique (score > 90) for Verbal Reasoning (textual, no image) -> routes to finalize
+    # 2. Passing self-critique (score > 90) for CARS (textual, no image) -> routes to finalize
     passing_vr_state = {
         "request": req.model_dump(),
         "fused_self_passed": True,
@@ -1019,8 +1002,10 @@ async def test_fused_generator_node_passing_and_routing():
     }
     assert route_after_fused_generation(passing_vr_state) == "finalize"
 
-    # 3. Passing self-critique for Abstract Reasoning -> routes to image_generator
-    req_ar = GenerationRequest(section=UCATSection.ABSTRACT_REASONING, difficulty=Difficulty.HARD)
+    # 3. Passing self-critique for Chem/Phys with image -> routes to image_generator
+    req_ar = GenerationRequest(
+        section=MCATSection.CHEM_PHYS, difficulty=Difficulty.HARD, require_image=True
+    )
     passing_ar_state = {
         "request": req_ar.model_dump(),
         "fused_self_passed": True,
@@ -1079,7 +1064,7 @@ async def test_fused_workflow_bypasses_reviewer_when_self_critique_passed(monkey
     monkeypatch.setattr(graph_mod, "generate_question_with_self_critique", mock_fused_gen)
 
     req = GenerationRequest(
-        section=UCATSection.VERBAL_REASONING,
+        section=MCATSection.BIO_BIOCHEM,
         difficulty=Difficulty.MEDIUM,
         questions_to_generate=1,
     )
@@ -1246,12 +1231,12 @@ async def test_independent_question_direct_no_stimulus(monkeypatch):
 
     # 1. Verify user prompt instructions
     req_no_passage = GenerationRequest(
-        section=UCATSection.QUANTITATIVE_REASONING,
+        section=MCATSection.CHEM_PHYS,
         difficulty=Difficulty.MEDIUM,
         passage_required="No",
     )
     prompt_str = _build_generator_user_prompt(req_no_passage)
-    assert "Passage Required: No - Direct question ONLY" in prompt_str
+    assert "Passage Required: No - Standalone discrete question ONLY" in prompt_str
     assert "Leave stimulus_text strictly as an empty string" in prompt_str
 
     # 2. Verify _parse_question_draft_data enforces empty stimulus when passage_required='No'
@@ -1275,7 +1260,7 @@ async def test_independent_question_direct_no_stimulus(monkeypatch):
 
     # When passage_required is 'Yes', stimulus_text is preserved
     req_yes_passage = GenerationRequest(
-        section=UCATSection.VERBAL_REASONING,
+        section=MCATSection.BIO_BIOCHEM,
         difficulty=Difficulty.MEDIUM,
         passage_required="Yes",
     )
@@ -1283,9 +1268,12 @@ async def test_independent_question_direct_no_stimulus(monkeypatch):
     assert draft_yes.stimulus_text == "Unexpected lingering vignette text that LLM might return."
 
     # 3. Verify get_mock_draft outputs empty stimulus for all subtests when passage_required='No'
-    for sec in UCATSection:
+    for sec in MCATSection:
         r = GenerationRequest(section=sec, difficulty=Difficulty.MEDIUM, passage_required="No")
         md = get_mock_draft(r)
+        if sec == MCATSection.CARS:
+            # CARS is strictly 100% passage-based in official MCAT
+            continue
         assert md.stimulus_text == "", (
             f"Mock draft for {sec} with passage_required='No' must have empty stimulus_text"
         )
@@ -1293,26 +1281,26 @@ async def test_independent_question_direct_no_stimulus(monkeypatch):
 
     # Multi-choice direct question mock
     r_mc = GenerationRequest(
-        section=UCATSection.VERBAL_REASONING,
+        section=MCATSection.BIO_BIOCHEM,
         difficulty=Difficulty.HARD,
         interaction_type="multi_choice",
         passage_required="No",
     )
     md_mc = get_mock_draft(r_mc)
     assert md_mc.stimulus_text == ""
-    assert "Which TWO" in md_mc.question_stem
+    assert "Which" in md_mc.question_stem
 
-    # 4. End-to-end workflow SSE stream: Verify mixed batch (1 passage + 1 independent)
+    # 4. End-to-end workflow SSE stream: Verify independent discrete batch (5 questions)
     import json
 
     monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
     monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
     batch_req = GenerationRequest(
-        section=UCATSection.DECISION_MAKING,
+        section=MCATSection.CHEM_PHYS,
         difficulty=Difficulty.MEDIUM,
-        questions_to_generate=2,
-        passage_mode="single_passage",
-        passage_question_count=1,
+        questions_to_generate=5,
+        passage_mode="independent",
+        passage_required="No",
     )
     events = []
     async for chunk in run_workflow_stream(batch_req):
@@ -1320,23 +1308,19 @@ async def test_independent_question_direct_no_stimulus(monkeypatch):
         if line.startswith("data: "):
             events.append(json.loads(line[6:]))
 
-    # Check worker progress message for independent question item (index 2)
+    # Check worker progress message for independent question items
     batch_progress_events = [e for e in events if e.get("event_type") == "batch_progress"]
-    assert len(batch_progress_events) == 2
-    assert "linked" in batch_progress_events[0]["message"]
-    assert "direct question" in batch_progress_events[1]["message"]
-    assert "standalone scenario" not in batch_progress_events[1]["message"]
+    assert len(batch_progress_events) == 5
+    for b_evt in batch_progress_events:
+        assert "independent" in b_evt["message"].lower() or "direct question" in b_evt["message"].lower()
 
     # Verify final staged questions
     complete_evt = next(e for e in events if e.get("event_type") == "workflow_complete")
     staged = complete_evt["data"]["questions"]
-    assert len(staged) == 2
-    # Item 1 is passage linked
-    assert staged[0]["passage_required"] == "Yes"
-    assert len(staged[0]["stimulus_text"]) > 50
-    # Item 2 is direct independent
-    assert staged[1]["passage_required"] == "No"
-    assert staged[1]["stimulus_text"] == ""
+    assert len(staged) == 5
+    for q in staged:
+        assert q["passage_required"] == "No"
+        assert q["stimulus_text"] == ""
 
 
 @pytest.mark.asyncio
@@ -1362,9 +1346,9 @@ async def test_passage_set_with_passage_level_visual_stimulus(monkeypatch):
     monkeypatch.setattr(graph, "generate_image_stimulus", mock_passage_img)
 
     req = GenerationRequest(
-        section=UCATSection.DECISION_MAKING,
+        section=MCATSection.CHEM_PHYS,
         difficulty=Difficulty.MEDIUM,
-        questions_to_generate=2,
+        questions_to_generate=5,
         passage_mode="single_passage",
         passage_required="Yes",
         require_image=True,
@@ -1400,7 +1384,7 @@ async def test_passage_set_with_passage_level_visual_stimulus(monkeypatch):
 
     # 3. Questions have passage_visual_stimulus in outcomes and do NOT run question-wise image generation
     questions = complete_evt["data"]["questions"]
-    assert len(questions) == 2
+    assert len(questions) == 5
     for q in questions:
         assert (
             q["stage_outcomes"]["passage_visual_stimulus"]["note"]
@@ -1414,7 +1398,7 @@ async def test_smart_ai_trap_and_explanation_breakdown(monkeypatch):
     import app.agents.regenerator as regen_mod
     import app.agents.reviewer as rev_mod
     from app.agents.mock_fixtures import get_mock_draft
-    from app.schemas.ucat import Difficulty, UCATSection
+    from app.schemas.mcat import Difficulty, MCATSection
     from app.schemas.workflow import GenerationRequest
     from app.workflow.graph import run_workflow
 
@@ -1427,10 +1411,10 @@ async def test_smart_ai_trap_and_explanation_breakdown(monkeypatch):
 
     # 1. Automatic Smart AI Trap Choice resolution on draft
     req_auto = GenerationRequest(
-        section=UCATSection.VERBAL_REASONING,
+        section=MCATSection.CARS,
         difficulty=Difficulty.HARD,
         primary_trap="Automatic",
-        passage_required="No",
+        passage_required="Yes",
     )
     draft_auto = get_mock_draft(req_auto)
     assert draft_auto.primary_trap is not None
@@ -1446,14 +1430,14 @@ async def test_smart_ai_trap_and_explanation_breakdown(monkeypatch):
 
     # 3. Explicit trap selection is preserved
     req_explicit = GenerationRequest(
-        section=UCATSection.QUANTITATIVE_REASONING,
+        section=MCATSection.CHEM_PHYS,
         difficulty=Difficulty.MEDIUM,
-        primary_trap="Calculation_Trap",
+        primary_trap="Calculation_Formula_Trap",
         passage_required="No",
     )
     res_explicit = await run_workflow(req_explicit)
     assert res_explicit.question is not None
-    assert res_explicit.question.primary_trap == "Calculation_Trap"
+    assert res_explicit.question.primary_trap == "Calculation_Formula_Trap"
 
 
 def test_safe_json_loads_and_resilient_parsing():
@@ -1521,7 +1505,7 @@ def test_safe_json_loads_and_resilient_parsing():
 
     # 4. Parse draft data with dict options
     req = GenerationRequest(
-        section=UCATSection.DECISION_MAKING,
+        section=MCATSection.PSYCH_SOC,
         difficulty=Difficulty.MEDIUM,
         passage_required="No",
     )

@@ -1,4 +1,4 @@
-/* Infynno UCAT Question Bank Generator - Precision Design System | Infynno Solutions LLP */
+/* Infynno MCAT Question Bank Generator - Precision Design System | Infynno Solutions LLP */
 
 /* --- DARK THEME (DEFAULT) --- */
 :root, [data-theme="dark"] {
@@ -36,6 +36,12 @@
   --brand-light: rgba(56, 189, 248, 0.08);
   --brand-glow: 0 0 0 2px rgba(56, 189, 248, 0.25);
   --brand-indigo: #818cf8;
+
+  /* Official AAMC MCAT Section Signature Accents */
+  --mcat-chem-phys: #0284c7;
+  --mcat-cars: #e11d48;
+  --mcat-bio-biochem: #059669;
+  --mcat-psych-soc: #7c3aed;
 
   /* Infynno Solutions LLP Brand Identity */
   --infynno-violet: #4F30B9;

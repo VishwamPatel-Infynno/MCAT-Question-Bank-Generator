@@ -2,7 +2,7 @@
 
 Engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
 
-This document details the software architecture, multi-agent design patterns, state management, database schema, and frontend systems powering the **UK UCAT Question Studio v2.0**.
+This document details the software architecture, multi-agent design patterns, state management, database schema, and frontend systems powering the **Infynno MCAT Question Bank Generator v2.0**.
 
 ---
 
@@ -90,7 +90,7 @@ stateDiagram-v2
 The system coordinates specialized autonomous engines with a deterministic quality gate:
 
 ### 3.1 Fused Draft-and-Critique Cognitive Engine (`fused_generator_node` / `generator.py`)
-- **Mission**: Primary workflow entry point. Synthesizes a high-yield clinical or cognitive scenario for the selected UK UCAT subtest with 4 distinct options (A, B, C, D) and immediately conducts an internal 100-point self-critique within a single LLM round-trip.
+- **Mission**: Primary workflow entry point. Synthesizes a high-yield clinical or scientific scenario for the selected AAMC MCAT section with 4 distinct options (A, B, C, D) and immediately conducts an internal 100-point self-critique within a single LLM round-trip.
 - **Core Prompt Strategy**:
   - Uses subtest-specific rules (e.g., categorical syllogisms for Decision Making, Venn reasoning for Abstract Reasoning, GMC Good Medical Practice guidance for Situational Judgement).
   - Explicitly crafts 1 definitive correct key and 3 sophisticated distractors representing realistic cognitive biases or calculation traps.
@@ -100,7 +100,7 @@ The system coordinates specialized autonomous engines with a deterministic quali
     1. *Why Option [Key] is Correct*: Establishes core intuition and step-by-step mathematical or deductive proof.
     2. *Why Other Options are Incorrect*: Itemized distractor cards dissecting why each wrong choice fails and why students are tempted.
     3. *Primary Cognitive Trap Spotlight*: Dedicated spotlight with exact Trap classification, Error Mechanism, and actionable Student Defense Strategy.
-  - **Automatic (Smart AI Choice) Cognitive Trap Engine**: When `primary_trap` is `"Automatic"`, the generator evaluates the drafted item and dynamically selects the best-fit trap from the 11 official UCAT trap types (`Scope_Shift`, `Keyword_Trap`, `Extreme_Language`, `Correlation_vs_Causation`, `Partial_Match`, `Half_Truth`, `Unwarranted_Assumption`, `Calculation_Trap`, `Out_of_Scope`, `False_Dichotomy`, `Over_generalisation`). The chosen trap is recorded in `draft.primary_trap` and persisted across the workflow.
+  - **Automatic (Smart AI Choice) Cognitive Trap Engine**: When `primary_trap` is `"Automatic"`, the generator evaluates the drafted item and dynamically selects the best-fit trap from the 11 official MCAT trap types (`Scope_Shift`, `Keyword_Trap`, `Extreme_Language`, `Correlation_vs_Causation`, `Partial_Match`, `Half_Truth`, `Unwarranted_Assumption`, `Calculation_Trap`, `Out_of_Scope`, `False_Dichotomy`, `Over_generalisation`). The chosen trap is recorded in `draft.primary_trap` and persisted across the workflow.
   - **Fallback Trap Detection**: If `primary_trap` is omitted or unpopulated, `generator.py` and `nodes.py` run regex taxonomy matching against the explanation text to extract and assign the trap automatically.
   - **Immediate Self-Critique Object**: Evaluates Authenticity, Clarity, Distractor Traps, and Explanation Rigor.
 - **Routing Optimization**:
@@ -111,7 +111,7 @@ The system coordinates specialized autonomous engines with a deterministic quali
 ### 3.2 Independent Senior Psychometric Auditor (`reviewer.py`)
 - **Mission**: Acts as an impartial Senior Psychometric Auditor, independently evaluating candidate questions whenever the initial draft does not clear the self-critique threshold or after a remediation cycle.
 - **Evaluation Rubric (100 Points)**:
-  1. *UCAT Authenticity & Tone* (0-25 points)
+  1. *MCAT Authenticity & Scientific Rigor* (0-25 points)
   2. *Clarity & Logical Soundness* (0-25 points)
   3. *Distractor Trap Quality & Anti-Guessability* (0-25 points) - Docks 5-8 points if option length disparity $\ge 20\%$.
   4. *Explanation & Key Rigor* (0-25 points)
@@ -251,7 +251,7 @@ erDiagram
 
     PASSAGES {
         VARCHAR(64) id PK "Unique UUID4 passage identifier"
-        VARCHAR(64) section "UCAT section enum"
+        VARCHAR(64) section "MCAT section enum"
         VARCHAR(128) subtopic "Categorized syllabus topic"
         TEXT passage_text "Shared clinical or academic reading passage"
         TEXT visual_stimulus_svg "Programmatic SVG diagram"
@@ -263,7 +263,7 @@ erDiagram
 
     BATCHES {
         VARCHAR(64) id PK "Unique UUID4 batch identifier"
-        VARCHAR(64) section "UCAT section enum"
+        VARCHAR(64) section "MCAT section enum"
         VARCHAR(128) subtopic "Categorized syllabus topic"
         VARCHAR(32) difficulty "easy | medium | hard"
         INTEGER total_questions "Total items requested in batch"
@@ -275,7 +275,7 @@ erDiagram
         VARCHAR(64) id PK "Unique UUID4 identifier"
         VARCHAR(64) passage_id FK "Optional reference to PASSAGES"
         VARCHAR(64) batch_id FK "Optional reference to BATCHES"
-        VARCHAR(64) section "UCAT section enum"
+        VARCHAR(64) section "MCAT section enum"
         VARCHAR(128) section_label "Human-readable subtest name"
         VARCHAR(128) subtopic "Categorized syllabus topic"
         VARCHAR(32) difficulty "easy | medium | hard"
@@ -360,7 +360,7 @@ The explanation subsystem provides structured, multi-tier cognitive deconstructi
 graph TD
     Raw[Raw Explanation Text + Options] --> Parser[parseExplanationStructure Engine]
     TrapProp[primary_trap Prop] --> Resolver{Trap Defined?}
-    Resolver -->|Yes| Taxonomy[UCAT_TRAP_DEFINITIONS Taxonomy]
+    Resolver -->|Yes| Taxonomy[MCAT_TRAP_DEFINITIONS Taxonomy]
     Resolver -->|No / Null| AutoDetect[Regex Taxonomy Matcher]
     AutoDetect --> Taxonomy
     
@@ -375,8 +375,8 @@ graph TD
    - The parser isolates the three distinct semantic cards, eliminating ambiguous text blocks and stripping redundant legacy headings.
 2. **Itemized Distractor Parsing**:
    - Detects individual distractor entries (e.g. `Option A: ...`, `Option B: ...`) and matches them with active option choices to render distinct, styled sub-cards with option letter badges and specific counter-evidence.
-3. **The 11-Trap Taxonomy Dictionary (`UCAT_TRAP_DEFINITIONS`)**:
-   - Stores standardized titles, clinical descriptions, error mechanisms, and student defense tips for all 11 UCAT traps:
+3. **The 11-Trap Taxonomy Dictionary (`MCAT_TRAP_DEFINITIONS`)**:
+   - Stores standardized titles, clinical descriptions, error mechanisms, and student defense tips for all 11 MCAT traps:
      `Scope_Shift`, `Keyword_Trap`, `Extreme_Language`, `Correlation_vs_Causation`, `Partial_Match`, `Half_Truth`, `Unwarranted_Assumption`, `Calculation_Trap`, `Out_of_Scope`, `False_Dichotomy`, `Over_generalisation`.
 4. **Top Metadata Trap Badging**:
    - Both `QuestionCard.jsx` (review workspace) and `QuestionBank.jsx` (repository table) display a dedicated purple badge chip in the header strip alongside subtest, difficulty, quality score, and token telemetry, enabling instant psychometric identification.
@@ -405,7 +405,7 @@ backend/app/
 │   ├── batch_repo.py    # Staged batch run queries & persistence
 │   └── passage_repo.py  # Shared stimulus reading passage queries
 ├── schemas/             # Pydantic Domain Transfer Schemas
-│   ├── ucat.py          # UCAT sections & subtopic taxonomy
+│   ├── mcat.py          # MCAT sections & subtopic taxonomy
 │   ├── token.py         # TokenUsage & TokenCostAccumulator schemas
 │   ├── question.py      # QuestionOption, QuestionDraft, Question
 │   └── workflow.py      # GenerationRequest, ReviewScore, WorkflowEvent
@@ -440,7 +440,7 @@ backend/app/
 ```
 frontend/src/
 ├── constants/           # Centralized application constants
-│   ├── ucat.js          # Subtest icons, pacing targets & fallback taxonomy
+│   ├── mcat.js          # MCAT sections, pacing targets, icons & fallback taxonomy
 │   └── config.js        # Model options & pricing constants
 ├── hooks/               # Custom stateful React hooks
 │   ├── index.js         # Barrel export for custom hooks

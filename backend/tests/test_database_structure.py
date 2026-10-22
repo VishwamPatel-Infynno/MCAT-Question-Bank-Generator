@@ -28,7 +28,7 @@ async def test_passage_auto_sync_and_retrieval():
 
     passage_uuid = f"test-passage-{uuid.uuid4()}"
     stimulus = (
-        "This is a detailed UCAT stimulus text about cognitive biomechanics and memory retrieval."
+        "This is a detailed MCAT stimulus text about cognitive biomechanics and memory retrieval."
     )
 
     q = Question(

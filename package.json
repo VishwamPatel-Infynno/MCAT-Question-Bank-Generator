@@ -1,5 +1,5 @@
 {
-  "name": "infynno-ucat-question-bank-generator-root",
+  "name": "infynno-mcat-question-bank-generator-root",
   "private": true,
   "scripts": {
     "dev": "concurrently -k -p '[{name}]' -n 'backend,frontend' -c 'magenta.bold,cyan.bold' 'pnpm run dev:backend' 'pnpm run dev:frontend'",

@@ -1,21 +1,21 @@
 import { useState, useCallback } from 'react';
 
 export const DEFAULT_GENERATOR_FORM = {
-  selectedSection: 'verbal_reasoning',
+  selectedSection: 'chem_phys',
   selectedSubtopic: '',
   difficulty: 'medium',
-  totalQuestions: 1,
-  singleChoiceCount: 1,
+  totalQuestions: 5,
+  singleChoiceCount: 5,
   multiChoiceCount: 0,
-  passageCount: 0,
+  passageCount: 1,
   passageMode: 'single_passage', // 'single_passage' | 'independent'
-  passageQuestionCount: 2,
-  passageSingleCount: 1,
-  passageMultiCount: 1,
-  independentSingleCount: 2,
-  independentMultiCount: 1,
+  passageQuestionCount: 5,
+  passageSingleCount: 5,
+  passageMultiCount: 0,
+  independentSingleCount: 0,
+  independentMultiCount: 0,
   interactionType: 'single_choice',
-  passageRequired: 'No',
+  passageRequired: 'Yes',
   primaryTrap: 'Automatic',
   requireImage: false,
   imageMode: 'none', // 'none' | 'all' | 'specific'

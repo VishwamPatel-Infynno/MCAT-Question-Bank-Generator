@@ -82,7 +82,7 @@ export default function Navbar({
           }}
           className="brand-refresh-link"
           title="Refresh application and return to home"
-          aria-label="Infynno UCAT Question Bank Generator home - click to reload application"
+          aria-label="Infynno MCAT Question Bank Generator home - click to reload application"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -101,7 +101,7 @@ export default function Navbar({
               transition: 'color var(--transition-fast)'
             }}
           >
-            Infynno UCAT Question Bank Generator
+            Infynno MCAT Question Bank Generator
           </h1>
         </a>
       </div>

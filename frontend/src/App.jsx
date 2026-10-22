@@ -16,7 +16,7 @@ import { useQuestionGenerator } from './hooks/useQuestionGenerator';
 import { useTheme } from './hooks/useTheme';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useGeneratorForm } from './hooks/useGeneratorForm';
-import { UCAT_SECTIONS_FALLBACK } from './constants/ucat';
+import { MCAT_SECTIONS_FALLBACK } from './constants/mcat';
 import { fetchSections, fetchHealth, approveQuestion, batchApproveQuestions } from './services/api';
 
 // Dynamic code-split chunk imports for optimal bundle size
@@ -122,10 +122,10 @@ export default function App() {
       })
       .catch((err) => {
         console.error('Failed to fetch sections:', err);
-        setSectionsData(UCAT_SECTIONS_FALLBACK);
+        setSectionsData(MCAT_SECTIONS_FALLBACK);
         updateFields({
-          selectedSection: UCAT_SECTIONS_FALLBACK[0].id,
-          selectedSubtopic: UCAT_SECTIONS_FALLBACK[0].subtopics?.[0] || ''
+          selectedSection: MCAT_SECTIONS_FALLBACK[0].id,
+          selectedSubtopic: MCAT_SECTIONS_FALLBACK[0].subtopics?.[0] || ''
         });
       });
   }, [updateFields]);
@@ -352,7 +352,7 @@ export default function App() {
     showToast({
       type: 'info',
       title: 'Preset Applied',
-      message: `${cfg.totalQuestions || 5} questions set for ${cfg.section ? cfg.section.replace(/_/g, ' ') : 'UCAT'}.`
+      message: `${cfg.totalQuestions || 5} questions set for ${cfg.section ? cfg.section.replace(/_/g, ' ') : 'MCAT'}.`
     });
   }, [generatorForm, showToast]);
 
@@ -482,7 +482,7 @@ export default function App() {
                   />
                 ) : isGenerating ? (
                   <QuestionDraftingSkeleton
-                    sectionLabel={sectionsData?.find(s => s.id === generatorForm.formData.section)?.label || 'UCAT Question'}
+                    sectionLabel={sectionsData?.find(s => s.id === generatorForm.formData.section)?.label || 'MCAT Question'}
                     difficulty={generatorForm.formData.difficulty || 'Medium'}
                     interactionType={generatorForm.formData.interactionType || 'single_choice'}
                     isPassage={generatorForm.formData.passageRequired === 'Yes'}

@@ -15,11 +15,15 @@ import {
 import { fetchQuestions } from '../../services/api';
 
 const PACING_SECONDS = {
-  verbal_reasoning: 28,
-  decision_making: 64,
-  quantitative_reasoning: 41,
-  abstract_reasoning: 14,
-  situational_judgement: 23
+  chem_phys: 96,
+  cars: 101,
+  bio_biochem: 96,
+  psych_soc: 96,
+  verbal_reasoning: 96,
+  decision_making: 96,
+  quantitative_reasoning: 96,
+  abstract_reasoning: 96,
+  situational_judgement: 96
 };
 
 function formatExamTime(questions) {
@@ -153,7 +157,7 @@ export default function ExportPrintModal({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ucat_exam_${exportQuestions.length}_questions.csv`;
+    a.download = `mcat_exam_${exportQuestions.length}_questions.csv`;
     a.click();
     URL.revokeObjectURL(url);
     if (onShowToast) {
@@ -195,7 +199,7 @@ export default function ExportPrintModal({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ucat_exam_${exportQuestions.length}_questions.json`;
+    a.download = `mcat_exam_${exportQuestions.length}_questions.json`;
     a.click();
     URL.revokeObjectURL(url);
     if (onShowToast) {
@@ -299,7 +303,7 @@ export default function ExportPrintModal({
       <div class="answer-key-section">
         <div class="answer-key-header">
           <h2>Official Answer Key &amp; Diagnostic Rationales</h2>
-          <p>UK UCAT Practice Standards &bull; Full Psychometric Breakdown</p>
+          <p>AAMC MCAT Examination Standards &bull; Full Psychometric Breakdown</p>
         </div>
 
         <table class="key-table">
@@ -332,7 +336,7 @@ export default function ExportPrintModal({
       <html lang="en">
       <head>
         <meta charset="utf-8">
-        <title>Infynno UCAT Practice Paper (${exportQuestions.length} Questions)</title>
+        <title>Infynno MCAT Practice Paper (${exportQuestions.length} Questions)</title>
         <style>
           @page {
             size: A4 portrait;
@@ -592,7 +596,7 @@ export default function ExportPrintModal({
         <div class="exam-header">
           <div class="header-top">
             <div>
-              <h1 class="brand-title">Infynno UCAT Practice Examination</h1>
+              <h1 class="brand-title">Infynno MCAT Practice Examination</h1>
               <p class="brand-subtitle">${paperMode === 'student' ? 'Student Exam Paper (Practice Mode)' : 'Complete Study Pack with Diagnostic Rationales'}</p>
             </div>
             <div class="marks-box">
@@ -670,7 +674,7 @@ export default function ExportPrintModal({
             </div>
             <div>
               <h2 className="modal-title">Export &amp; Print Studio</h2>
-              <p className="modal-subtitle">Generate official UCAT test papers, printable PDF study packs, CSV tables, or JSON datasets</p>
+              <p className="modal-subtitle">Generate official AAMC MCAT test papers, printable PDF study packs, CSV tables, or JSON datasets</p>
             </div>
           </div>
           <button 
@@ -817,7 +821,7 @@ export default function ExportPrintModal({
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div>
                       <h3 style={{ margin: '0 0 2px 0', fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
-                        Infynno UCAT Practice Examination
+                        Infynno MCAT Practice Examination
                       </h3>
                       <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b', fontWeight: 500 }}>
                         {paperMode === 'student' ? 'Student Exam Paper (Practice Mode - Unsolved)' : 'Complete Study Pack with Diagnostic Rationales'}
@@ -947,7 +951,7 @@ export default function ExportPrintModal({
           {format === 'csv' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ padding: '10px 14px', background: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                Exports a structured CSV table containing all 19 UCAT schema fields (stems, visual stimuli with image endpoints, options A-E, correct keys, trap defenses, and quality scores) compatible with Excel, Google Sheets, and psychometric databases.
+                Exports a structured CSV table containing all AAMC MCAT schema fields (stems, passages, research stimuli, options A-D, correct keys, trap defenses, SIRS skills, scaled scores, and quality audits) compatible with Excel, Google Sheets, and psychometric databases.
               </div>
 
               <div 

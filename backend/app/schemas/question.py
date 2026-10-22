@@ -4,6 +4,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from app.schemas.mcat import calculate_mcat_scaled_score
+
 
 class OptionChoice(BaseModel):
     id: str  # A, B, C, D
@@ -17,7 +19,7 @@ class ReviewScore(BaseModel):
     )
     evaluated_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     authenticity_score: int = Field(
-        ..., ge=0, le=25, description="UCAT authentic tone and style (0-25)"
+        ..., ge=0, le=25, description="AAMC MCAT authentic scientific tone and style (0-25)"
     )
     clarity_score: int = Field(
         ..., ge=0, le=25, description="Stem clarity and logical tightness (0-25)"
@@ -37,17 +39,17 @@ class ReviewScore(BaseModel):
 
 class QuestionDraft(BaseModel):
     stimulus_text: str = Field(
-        "", description="Reading passage, clinical case context, or syllogism scenario"
+        "", description="Reading passage, clinical case context, or research scenario"
     )
     question_stem: str = Field(..., description="The direct question or prompt to solve")
     options: list[OptionChoice] = Field(
-        ..., min_length=4, max_length=5, description="4 or 5 choices (A, B, C, D, [E])"
+        ..., min_length=4, max_length=5, description="4 choices (A, B, C, D)"
     )
     correct_answer_id: str = Field(
         ..., description="Key option id e.g. 'A', or comma-joined keys e.g. 'A, C'"
     )
     correct_answer_ids: list[str] = Field(
-        default_factory=list, description="List of correct keys e.g. ['A', 'C']"
+        default_factory=list, description="List of correct keys e.g. ['A']"
     )
     explanation: str = Field(
         ..., description="Comprehensive step-by-step cognitive and pedagogical rationale"
@@ -57,7 +59,10 @@ class QuestionDraft(BaseModel):
         None, description="Visual description, chart type, or SVG geometry description"
     )
     primary_trap: str | None = Field(
-        None, description="Primary cognitive distractor trap used (e.g. Scope_Shift, Keyword_Trap)"
+        None, description="Primary cognitive distractor trap used (e.g. Scope_Shift, Out_of_Scope)"
+    )
+    aamc_skill: str | None = Field(
+        None, description="AAMC Scientific Inquiry & Reasoning Skill (SIRS) or CARS skill classification"
     )
 
     def model_post_init(self, __context: Any) -> None:
@@ -95,6 +100,15 @@ class Question(BaseModel):
     image_description: str | None = None
     final_score: int = 95
     review_rubric: ReviewScore | None = None
+    mcat_scaled_score: int | None = Field(
+        None, description="Calibrated MCAT section scaled score (118-132)"
+    )
+    mcat_percentile: str | None = Field(
+        None, description="Calibrated percentile rank e.g. '96th Percentile (Top Tier)'"
+    )
+    aamc_skill: str | None = Field(
+        None, description="AAMC SIRS or CARS skill classification"
+    )
 
     def model_post_init(self, __context: Any) -> None:
         if not self.correct_answer_ids and self.correct_answer_id:
@@ -103,6 +117,12 @@ class Question(BaseModel):
             ]
         elif self.correct_answer_ids and not self.correct_answer_id:
             self.correct_answer_id = ", ".join(self.correct_answer_ids)
+
+        if not self.mcat_scaled_score:
+            scaled_info = calculate_mcat_scaled_score(self.final_score, self.difficulty)
+            self.mcat_scaled_score = scaled_info["section_score"]
+            if not self.mcat_percentile:
+                self.mcat_percentile = scaled_info["percentile"]
 
     iteration_count: int = 1
     iterations_history: list[dict[str, Any]] = Field(default_factory=list)

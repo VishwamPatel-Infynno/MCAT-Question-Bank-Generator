@@ -644,7 +644,7 @@ export default function StagedBatchReview({
         </div>
       </div>
 
-      {/* FEATURED SHARED READING PASSAGE (UCAT Single Passage Multi-Question Stimulus) */}
+      {/* FEATURED SHARED READING PASSAGE (AAMC MCAT Passage-Based Stimulus) */}
       {isPassageSet && sharedStimulusText && effectivePassageCount > 0 && (
         <SharedPassageCard
           passageText={sharedStimulusText}

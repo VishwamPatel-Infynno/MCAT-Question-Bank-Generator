@@ -22,7 +22,7 @@ import {
 import StageJsonInspector from './StageJsonInspector';
 import VisualStimulusViewer from './VisualStimulusViewer';
 import MentorExplanationView from './MentorExplanationView';
-import { getEffectiveTrapInfo } from '../../constants/ucatTraps';
+import { getEffectiveTrapInfo } from '../../constants/mcatTraps';
 
 export default function QuestionCard({ 
   question, 
@@ -131,7 +131,7 @@ export default function QuestionCard({
 
   const review = question.review_rubric;
   const pillars = [
-    { label: 'Real UCAT Style & Tone', score: review?.authenticity_score ?? 24, max: 25, color: 'var(--brand-primary)' },
+    { label: 'AAMC MCAT Style & Scientific Tone', score: review?.authenticity_score ?? 24, max: 25, color: 'var(--brand-primary)' },
     { label: 'Clarity & Logic', score: review?.clarity_score ?? 24, max: 25, color: 'var(--brand-indigo)' },
     { label: 'Wrong Answer Quality', score: review?.distractor_score ?? 23, max: 25, color: 'var(--status-warning)' },
     { label: 'Explanation & Key Accuracy', score: review?.explanation_score ?? 24, max: 25, color: 'var(--status-success)' },
@@ -239,6 +239,42 @@ export default function QuestionCard({
           <span className="badge badge-emerald" style={{ fontSize: '0.675rem', fontWeight: 600 }}>
             <Award size={11} /> {question.final_score}/100 Quality
           </span>
+
+          {/* Calibrated MCAT Scaled Score */}
+          {question.mcat_scaled_score && (
+            <span
+              className="badge"
+              style={{
+                fontSize: '0.675rem',
+                fontWeight: 700,
+                background: 'rgba(2, 132, 199, 0.12)',
+                color: '#0284c7',
+                border: '1px solid rgba(2, 132, 199, 0.28)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+              title={`Calibrated Section Score: ${question.mcat_scaled_score} / 132 (${question.mcat_percentile || 'Competitive'})`}
+            >
+              🎯 MCAT {question.mcat_scaled_score}
+            </span>
+          )}
+
+          {/* AAMC Reasoning Skill Badge */}
+          {question.aamc_skill && (
+            <span
+              className="badge"
+              style={{
+                fontSize: '0.675rem',
+                fontWeight: 600,
+                background: 'rgba(124, 58, 237, 0.1)',
+                color: '#8b5cf6',
+                border: '1px solid rgba(124, 58, 237, 0.25)'
+              }}
+            >
+              {question.aamc_skill.replace(/_/g, ' ')}
+            </span>
+          )}
 
           {question.id && (
             <span

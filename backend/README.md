@@ -1,7 +1,7 @@
-# Infynno UCAT Question Bank Generator - Backend
+# Infynno MCAT Question Bank Generator - Backend
 
 > **An Infynno Solutions LLP Product • [Infinite Innovations](https://infynno.com/)**  
-> High-throughput asynchronous backend service powering the UK UCAT Question Studio v2.0.
+> High-throughput asynchronous backend service powering the AAMC MCAT Question Studio v2.0.
 
 Built with **Python 3.11+**, **FastAPI**, **LangGraph**, **LiteLLM**, **SQLAlchemy 2.0 (Async)**, and **PostgreSQL 16**.
 
@@ -45,7 +45,7 @@ backend/app/
 │   ├── passage.py       # PassageModel for multi-item shared reading stimuli
 │   └── batch.py         # BatchModel for multi-question generation runs
 ├── schemas/             # Domain Transfer Layer (Pydantic V2)
-│   ├── ucat.py          # UCAT sections & subtopic taxonomy
+│   ├── mcat.py          # MCAT sections & subtopic taxonomy
 │   ├── token.py         # TokenUsage & TokenCostAccumulator schemas
 │   ├── question.py      # QuestionOption, QuestionDraft, Question
 │   └── workflow.py      # GenerationRequest, ReviewScore, WorkflowEvent
@@ -171,7 +171,7 @@ ruff check --fix backend
 
 ## 6. Database Seeding Script
 
-To populate the Question Bank with realistic UK UCAT practice questions across all 5 subtests:
+To populate the Question Bank with realistic AAMC MCAT practice questions across all 4 sections:
 
 ```bash
 source .venv/bin/activate

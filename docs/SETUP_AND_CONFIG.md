@@ -2,7 +2,7 @@
 
 Engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
 
-This guide provides complete instructions for provisioning, configuring, and operating the **UK UCAT Question Studio v2.0** in both local development and production environments.
+This guide provides complete instructions for provisioning, configuring, and operating the **Infynno MCAT Question Bank Generator v2.0** in both local development and production environments.
 
 ---
 
@@ -137,7 +137,7 @@ ruff check backend
 ```
 
 This verifies:
-- Pydantic schema validation across all 5 official UK UCAT subtests.
+- Pydantic schema validation across all 4 official AAMC MCAT sections.
 - Reviewer 100-point rubric evaluation and remediation routing logic.
 - Strict Quality Gate halt and rejection payload generation when score $\le 90$.
 - Programmatic SVG vector diagram rendering and XML validation.
@@ -165,7 +165,7 @@ pnpm build
 
 ### 5.3 Database Seeding & Mock Practice Questions
 
-To instantly populate the database with authentic, high-quality UCAT practice questions across all 5 subtests (complete with rubrics and evolution histories):
+To instantly populate the database with authentic, high-quality MCAT practice questions across all 4 sections (complete with rubrics and evolution histories):
 
 ```bash
 source .venv/bin/activate

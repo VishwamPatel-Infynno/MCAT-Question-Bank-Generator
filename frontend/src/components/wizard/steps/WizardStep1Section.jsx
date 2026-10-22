@@ -12,13 +12,13 @@ export default function WizardStep1Section({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div className="wizard-heading-group">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-          <h2 className="wizard-step-title">Which UCAT section would you like to practice?</h2>
+          <h2 className="wizard-step-title">Which AAMC MCAT section would you like to practice?</h2>
           <span className="badge-minimal">
-            ⏱️ {pacing.target || '~28s / Q'} Target Speed
+            ⏱️ {pacing.target || '~96s / Q'} Target Speed
           </span>
         </div>
         <p className="wizard-step-subtitle">
-          Select one of the five official exam sections below. Each section activates tailored questions, timing guidelines, and scoring criteria.
+          Select one of the four official exam sections below. Each section activates tailored scientific disciplines, official pacing guidelines, and scoring criteria.
         </p>
       </div>
 

@@ -1,4 +1,4 @@
-"""Option Balancer & Anti-Guessability Engine for UK UCAT Questions.
+"""Option Balancer & Anti-Guessability Engine for AAMC MCAT Questions.
 
 Enforces psychometric parity across options:
 1. Calculates option word-count symmetry and detects length disparities.
@@ -33,7 +33,7 @@ def calculate_option_symmetry(
     """
     Computes psychometric symmetry and anti-guessability metrics across question choices.
 
-    A high-caliber UCAT question requires options of roughly equal word count
+    A high-caliber MCAT question requires options of roughly equal word count
     (disparity ratio <= 1.25), preventing candidates from guessing based on option length.
     """
     if not options:
@@ -237,7 +237,7 @@ def balance_and_shuffle_options(
 
     # Check if options are purely numerical
     if _are_options_purely_numeric(options_copy):
-        # Order numerically ascending (official UCAT QR convention)
+        # Order numerically ascending (official MCAT convention)
         options_copy.sort(key=lambda o: _extract_numeric_value(o.text))
     else:
         # Textual choices: shuffle to break generator letter bias

@@ -2,7 +2,7 @@ import React from 'react';
 import { Sparkles, Layers } from 'lucide-react';
 
 export default function QuestionDraftingSkeleton({
-  sectionLabel = 'UCAT Subtest',
+  sectionLabel = 'MCAT Section',
   difficulty = 'Medium',
   interactionType = 'single_choice',
   isPassage = false,
@@ -81,7 +81,7 @@ export default function QuestionDraftingSkeleton({
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
           <Sparkles size={13} color="var(--brand-primary)" />
-          <span>Synthesizing Authentic UCAT Item</span>
+          <span>Synthesizing Authentic AAMC MCAT Item</span>
         </div>
       </div>
 

@@ -60,6 +60,8 @@ def _model_to_schema(m: QuestionModel) -> Question:
         passage_id=getattr(m, "passage_id", None),
         passage_mode=getattr(m, "passage_mode", None),
         visual_type=m.visual_type or "None",
+        mcat_scaled_score=getattr(m, "mcat_scaled_score", None),
+        aamc_skill=getattr(m, "aamc_skill", None),
         stage_outcomes=m.stage_outcomes or {},
     )
 
@@ -107,6 +109,8 @@ def _schema_to_model(q: Question) -> QuestionModel:
         passage_id=q.passage_id,
         passage_mode=q.passage_mode,
         visual_type=q.visual_type,
+        mcat_scaled_score=q.mcat_scaled_score,
+        aamc_skill=q.aamc_skill,
         stage_outcomes=q.stage_outcomes,
     )
 

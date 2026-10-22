@@ -142,7 +142,7 @@ async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
         data = [q.model_dump() for q in questions]
         return JSONResponse(
             content=data,
-            headers={"Content-Disposition": "attachment; filename=ucat_question_bank.json"},
+            headers={"Content-Disposition": "attachment; filename=mcat_question_bank.json"},
         )
     else:
         output = io.StringIO()
@@ -156,6 +156,8 @@ async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
                 "Section",
                 "Subcategory",
                 "Difficulty",
+                "MCAT_Scaled_Score",
+                "AAMC_Skill",
                 "Content_Domain",
                 "Question_Type",
                 "Interaction_Type",
@@ -198,6 +200,8 @@ async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
                     q.section_label,
                     q.subtopic,
                     q.difficulty,
+                    q.mcat_scaled_score or "",
+                    q.aamc_skill or "",
                     q.content_domain or "",
                     q.question_type or "",
                     q.interaction_type or "single_choice",
@@ -224,5 +228,5 @@ async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
         return Response(
             content=csv_data,
             media_type="text/csv",
-            headers={"Content-Disposition": "attachment; filename=ucat_question_bank.csv"},
+            headers={"Content-Disposition": "attachment; filename=mcat_question_bank.csv"},
         )

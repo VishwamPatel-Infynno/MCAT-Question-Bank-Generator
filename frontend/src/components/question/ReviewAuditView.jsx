@@ -8,7 +8,7 @@ export default function ReviewAuditView({ question, onClose }) {
   const history = question.iterations_history || [];
 
   const pillars = [
-    { label: 'Real UCAT Style & Tone', score: review?.authenticity_score ?? 24, max: 25, color: 'var(--brand-primary)' },
+    { label: 'AAMC MCAT Style & Scientific Tone', score: review?.authenticity_score ?? 24, max: 25, color: 'var(--brand-primary)' },
     { label: 'Clarity & Logic', score: review?.clarity_score ?? 24, max: 25, color: 'var(--brand-indigo)' },
     { label: 'Wrong Answer Quality', score: review?.distractor_score ?? 23, max: 25, color: 'var(--status-warning)' },
     { label: 'Explanation & Key Accuracy', score: review?.explanation_score ?? 24, max: 25, color: 'var(--status-success)' },

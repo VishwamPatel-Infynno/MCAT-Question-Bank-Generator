@@ -4,7 +4,14 @@ from fastapi import APIRouter
 
 from app.core.config import config
 from app.db.session import check_db_health
-from app.schemas.ucat import UCAT_SECTION_LABELS, UCAT_SUBTOPICS, UCATSection
+from app.schemas.mcat import (
+    AAMC_REASONING_SKILLS,
+    MCAT_PACING,
+    MCAT_SECTION_CODES,
+    MCAT_SECTION_LABELS,
+    MCAT_SUBTOPICS,
+    MCATSection,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -13,10 +20,11 @@ router = APIRouter(tags=["Health & Metadata"])
 
 @router.get("/health")
 async def health_check():
-    """Health check reporting database status and active pricing."""
+    """Health check reporting database status, exam standard, and active pricing."""
     db_status = await check_db_health()
     return {
         "status": "healthy",
+        "exam": "AAMC MCAT",
         "database": "connected" if db_status.get("connected") else "disconnected",
         "database_connected": db_status.get("connected", False),
         "database_status": db_status.get(
@@ -39,14 +47,23 @@ async def health_check():
 
 
 _CACHED_SECTIONS_PAYLOAD = {
+    "exam": "MCAT",
+    "exam_full_name": "Medical College Admission Test (AAMC)",
     "sections": [
-        {"id": sec.value, "label": UCAT_SECTION_LABELS[sec], "subtopics": UCAT_SUBTOPICS[sec]}
-        for sec in UCATSection
-    ]
+        {
+            "id": sec.value,
+            "code": MCAT_SECTION_CODES[sec],
+            "label": MCAT_SECTION_LABELS[sec],
+            "pacing": MCAT_PACING[sec],
+            "subtopics": MCAT_SUBTOPICS[sec],
+        }
+        for sec in MCATSection
+    ],
+    "aamc_skills": AAMC_REASONING_SKILLS,
 }
 
 
 @router.get("/sections")
 async def get_sections():
-    """Returns official UK UCAT sections and their categorized subtopics (in-memory pre-cached)."""
+    """Returns official AAMC MCAT sections and their categorized subtopics (in-memory pre-cached)."""
     return _CACHED_SECTIONS_PAYLOAD
