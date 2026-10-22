@@ -15,16 +15,21 @@ CORE STANDARDS FOR UK UCAT QUESTIONS:
 5. Mentor-Style Conversational Explanation (CRITICAL):
    - Tone & Register: Write in a warm, encouraging, conversational mentor style, as if an expert senior clinical tutor is sitting beside the student explaining the solution one-on-one.
    - Clarity & Intuition: Start with the core intuition so any candidate immediately grasps the big picture without confusion or doubt. Explain why the reasoning works in clear, engaging, accessible language without academic stuffiness.
-   - Dual-Section Structure:
-     * Walkthrough & Winning Strategy: Walk through the solution step-by-step with supportive commentary, proving why the correct key is incontrovertible.
-     * Trap Breakdown (Why Other Options Fail): For each incorrect option, explain conversationally why an applicant might be tempted by it and the exact cognitive trap or flaw that disqualifies it.
-6. Absolute Precision: Use British English conventions (e.g., categorise, paediatric, licence).
-7. Anti-Guessability & Option Symmetry (CRITICAL):
+   - Structured Per-Option Breakdown:
+     * Why Option [Key] is Correct: Walk through the solution step-by-step with supportive commentary, citing concrete textual quotes or mathematical proof showing why the correct key is incontrovertible.
+     * Why Other Options are Incorrect (Distractor & Trap Breakdown): For EACH incorrect choice, itemize explicitly:
+       - Option [Letter] is INCORRECT ([Trap Name]): Conversational explanation of why a candidate might be tempted by it, the exact cognitive trap or flaw (e.g. Keyword Trap, Scope Shift, Extreme Language, Partial Match, Correlation vs Causation, Half-Truth, Unwarranted Assumption, Calculation Trap), and why it is disqualified.
+6. Cognitive Distractor Trap Selection (CRITICAL):
+   - Every question must engineer a primary cognitive trap into its distractors.
+   - If a specific primary trap was requested in the prompt, weave it directly into the key distractors and return its name in "primary_trap".
+   - If Automatic (Smart AI Choice) was requested or no trap was specified, analyze the subtest and question type to choose the best, most realistic cognitive trap (e.g. Scope_Shift, Keyword_Trap, Extreme_Language, Correlation_vs_Causation, Partial_Match, Half_Truth, Unwarranted_Assumption, Calculation_Trap) and return its name in "primary_trap".
+7. Absolute Precision: Use British English conventions (e.g., categorise, paediatric, licence).
+8. Anti-Guessability & Option Symmetry (CRITICAL):
    - Length & Word Count Symmetry: All options (the correct answer and all distractors) MUST have approximately equal length and word count (within ±15% or within 2-4 words of each other). NEVER make the correct option noticeably longer, more detailed, or more qualified than the distractors ("longest option = right answer" is an unacceptable flaw).
    - Grammatical & Syntactical Parallelism: Every option must begin with the same part of speech (e.g. all imperative verbs, all gerunds, all noun phrases, all full sentences) and follow identical grammatical cadence.
    - Uniform Hedging & Qualifiers: Do NOT use hedging language ("may", "tends to", "in certain conditions", "often") exclusively in the correct answer while using absolute words ("always", "never", "only", "completely") in distractors. All choices must maintain an equivalent level of epistemic qualification.
    - Sophisticated Distractor Traps: Every distractor must look entirely plausible to an unprepared candidate, sound academically rigorous, and mirror common cognitive errors (e.g. partial matches, inverted causality, calculation intermediate slips). No obviously absurd, simplistic, or throwaway choices that can be eliminated through superficial test-wiseness.
-8. Anti-AI Punctuation & Dash Standard (CRITICAL):
+9. Anti-AI Punctuation & Dash Standard (CRITICAL):
    - Strictly NEVER use double dashes, en dashes, or em dashes ("—", "–", or "--") anywhere in question stems, reading passage text, answer choices, or pedagogical explanations.
    - Use only standard single hyphens ("-") where hyphenation or numerical ranges are strictly required (e.g. "pre-clinical", "15-20 minutes", "Option A - incorrect"). Punctuation with em dashes or double dashes is an immediate quality flaw that makes questions look artificially AI-generated.
 
@@ -48,7 +53,8 @@ Respond ONLY with a valid JSON object matching this exact structure:
   ],
   "correct_answer_id": "B",
   "correct_answer_ids": ["B"],
-  "explanation": "Step 1: ... Step 2: ... Why distractors fail: ...",
+  "primary_trap": "Scope_Shift",
+  "explanation": "Why Option B is Correct:\n[Step-by-step proof and evidence proving why B is right]\n\nWhy Other Options are Incorrect (Distractor & Trap Breakdown):\n- Option A is INCORRECT (Extreme Language Trap): [Flaw explanation]\n- Option C is INCORRECT (Scope Shift Trap): [Flaw explanation]\n- Option D is INCORRECT (Keyword Trap): [Flaw explanation]",
   "image_needed": false,
   "image_prompt_or_type": null
 }
@@ -109,7 +115,7 @@ RULES FOR REGENERATION:
 3. Ensure the stimulus text and question stem are crystal clear, completely unambiguous, and written in British English.
 4. For multi-choice questions, preserve the multi-key format and explicit instruction in the stem.
 5. If a long passage was requested, maintain rich passage depth (250-400 words). If Passage Required was "No", keep "stimulus_text" strictly empty ("") and preserve direct question stem format.
-6. Expand and enrich the explanation: write in a supportive, conversational mentor voice that walks through the winning strategy step-by-step and unpacks why each distractor trap was tempting and how to avoid it.
+6. Expand and enrich the explanation: write in a supportive, conversational mentor voice that proves why the correct option is incontrovertibly right, and itemizes why each distractor trap was tempting and how to avoid it.
 7. Maintain valid options count (4 choices A-D, or 5 choices A-E for multi-choice).
 8. Strict Option Symmetry & Anti-Guessability:
    - Equalize the length and word count of all options to within ±15% (or within 2-4 words of each other).
@@ -132,7 +138,8 @@ Respond ONLY with a valid JSON object matching this exact structure:
   ],
   "correct_answer_id": "A",
   "correct_answer_ids": ["A"],
-  "explanation": "Greatly enhanced step-by-step explanation addressing reviewer feedback...",
+  "primary_trap": "Scope_Shift",
+  "explanation": "Why Option A is Correct:\n[Direct proof and incontrovertible rationale]\n\nWhy Other Options are Incorrect (Distractor & Trap Breakdown):\n- Option B is INCORRECT (Extreme Language Trap): ...\n- Option C is INCORRECT (Keyword Trap): ...\n- Option D is INCORRECT (Partial Match Trap): ...",
   "image_needed": false,
   "image_prompt_or_type": null
 }"""
@@ -156,22 +163,27 @@ CORE STANDARDS FOR UK UCAT QUESTIONS:
    - For Single Choice: Exactly 4 options labeled 'A', 'B', 'C', 'D' with exactly ONE correct answer.
    - For Multi-Choice: 4 or 5 options labeled 'A', 'B', 'C', 'D' (and 'E' if appropriate). The stem MUST explicitly state the requirement (e.g. "Which TWO of the following...", "Select all that apply").
 2. Uncompromising Authenticity: Match the tone, pacing, vocabulary density, and intellectual register of actual UCAT test items.
-3. Realistic Distractor Traps: Every incorrect option must be a plausible cognitive trap reflecting a common reasoning fallacy (e.g. Keyword Trap, Partial Match, Extreme Language, Correlation vs Causation, Scope Shift, Half-Truth).
+3. Realistic Distractor Traps: Every incorrect option must be a plausible cognitive trap reflecting a common reasoning fallacy (e.g. Keyword Trap, Partial Match, Extreme Language, Correlation vs Causation, Scope Shift, Half-Truth, Unwarranted Assumption, Calculation Trap).
 4. Passage Calibration:
    - When Passage Required is "Yes": Generate a rich, publication-caliber 250-400 word academic or clinical passage with rigorous data density and clear paragraphing.
    - When Passage Required is "No" (Direct Independent Questions): Strictly do NOT generate any reading passage, scenario, or vignette. Leave "stimulus_text" strictly empty (""). The question stem MUST directly state the entire question, premises, calculations, or problem prompt directly within "question_stem".
 5. Mentor-Style Conversational Explanation (CRITICAL):
    - Tone & Register: Write in a warm, encouraging, conversational mentor style, as if an expert senior clinical tutor is sitting beside the student explaining the solution one-on-one.
    - Clarity & Intuition: Start with the core intuition so any candidate immediately grasps the big picture without confusion or doubt. Explain why the reasoning works in clear, engaging, accessible language without academic stuffiness.
-   - Dual-Section Structure:
-     * Walkthrough & Winning Strategy: Walk through the solution step-by-step with supportive commentary, proving why the correct key is incontrovertible.
-     * Trap Breakdown (Why Other Options Fail): For each incorrect option, explain conversationally why an applicant might be tempted by it and the exact cognitive trap or flaw that disqualifies it.
-6. Absolute Precision: Use British English conventions (e.g., categorise, paediatric, licence).
-7. Anti-Guessability & Option Symmetry (CRITICAL):
+   - Structured Per-Option Breakdown:
+     * Why Option [Key] is Correct: Walk through the solution step-by-step with supportive commentary, citing concrete textual quotes or mathematical proof showing why the correct key is incontrovertible.
+     * Why Other Options are Incorrect (Distractor & Trap Breakdown): For EACH incorrect choice, itemize explicitly:
+       - Option [Letter] is INCORRECT ([Trap Name]): Conversational explanation of why a candidate might be tempted by it, the exact cognitive trap or flaw (e.g. Keyword Trap, Scope Shift, Extreme Language, Partial Match, Correlation vs Causation, Half-Truth, Unwarranted Assumption, Calculation Trap), and why it is disqualified.
+6. Cognitive Distractor Trap Selection (CRITICAL):
+   - Every question must engineer a primary cognitive trap into its distractors.
+   - If a specific primary trap was requested in the prompt, weave it directly into the key distractors and return its name in "primary_trap".
+   - If Automatic (Smart AI Choice) was requested or no trap was specified, analyze the subtest and question type to choose the best, most realistic cognitive trap (e.g. Scope_Shift, Keyword_Trap, Extreme_Language, Correlation_vs_Causation, Partial_Match, Half_Truth, Unwarranted_Assumption, Calculation_Trap) and return its name in "primary_trap".
+7. Absolute Precision: Use British English conventions (e.g., categorise, paediatric, licence).
+8. Anti-Guessability & Option Symmetry (CRITICAL):
    - Length & Word Count Symmetry: All options (correct key and distractors) MUST have approximately equal length and word count (within ±15% or within 2-4 words of each other). NEVER make the correct option noticeably longer or more detailed than the distractors.
    - Grammatical & Syntactical Parallelism: Every option must begin with the same part of speech and follow parallel syntactic cadence.
    - Uniform Qualifiers: Avoid giving away the correct answer through cautious/hedging language while distractors use absolute terms ("always/never").
-8. Anti-AI Punctuation & Dash Standard (CRITICAL):
+9. Anti-AI Punctuation & Dash Standard (CRITICAL):
    - Strictly NEVER use double dashes, en dashes, or em dashes ("—", "–", or "--") in question stems, passage text, options, or explanations. Use standard single hyphens ("-") only.
 
 THE 100-POINT UCAT SELF-CRITIQUE RUBRIC:
@@ -195,7 +207,8 @@ Respond ONLY with a valid JSON object matching this exact structure:
   ],
   "correct_answer_id": "B",
   "correct_answer_ids": ["B"],
-  "explanation": "Step 1: ... Step 2: ... Why distractors fail: ...",
+  "primary_trap": "Scope_Shift",
+  "explanation": "Why Option B is Correct:\n[Step-by-step proof and evidence proving why B is right]\n\nWhy Other Options are Incorrect (Distractor & Trap Breakdown):\n- Option A is INCORRECT (Extreme Language Trap): [Flaw explanation]\n- Option C is INCORRECT (Scope Shift Trap): [Flaw explanation]\n- Option D is INCORRECT (Keyword Trap): [Flaw explanation]",
   "image_needed": false,
   "image_prompt_or_type": null,
   "self_critique": {

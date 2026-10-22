@@ -88,7 +88,7 @@ Accept: text/event-stream
 | `interaction_type` | `string` | No | `"single_choice"` | `single_choice`, `multi_choice`, `drag_drop` |
 | `passage_required` | `string \| boolean` | No | `null` | `"Yes"`, `"No"`, or boolean flag |
 | `passage_questions` | `integer` | No | `null` | Target question count per passage (e.g. 3, 4) |
-| `primary_trap` | `string` | No | `null` | Primary cognitive distractor trap (e.g. `Keyword_Trap`, `Partial_Match`) |
+| `primary_trap` | `string` | No | `"Automatic"` | Cognitive trap selection: `"Automatic"` (Smart AI choice) or explicit key (`Scope_Shift`, `Keyword_Trap`, `Extreme_Language`, `Correlation_vs_Causation`, `Partial_Match`, `Half_Truth`, `Unwarranted_Assumption`, `Calculation_Trap`, `Out_of_Scope`, `False_Dichotomy`, `Over_generalisation`) |
 | `combination_id` | `string` | No | Auto UUID4 | Unique matrix combination code (e.g. `CMB00001`) |
 | `run_id` | `string` | No | Auto UUID4 | Execution run UUID4 |
 | `batch_id` | `string` | No | `null` | Optional batch identifier grouping questions |
@@ -106,8 +106,8 @@ Events are formatted as Server-Sent Events lines: `data: {JSON_PAYLOAD}\n\n`
   "message": "Question 1 authored and audited (Score: 96/100, 770 tokens, $0.00015)...",
   "data": {
     "draft": {
-      "stimulus_text": "A clinical audit evaluating infection protocols...",
-      "question_stem": "Which conclusion is most strongly supported by the evidence?",
+      "stimulus_text": "A clinical audit evaluating infection protocols across three acute NHS surgical wards demonstrated that universal catheter bundles reduced catheter-associated urinary tract infections from 8.4 to 2.1 per 1,000 catheter-days over twelve months.",
+      "question_stem": "Which conclusion is most strongly supported by the evidence in the passage?",
       "options": [
         {"id": "A", "text": "Protocol adherence directly reduced catheter infections across all surgical wards."},
         {"id": "B", "text": "Secondary bacteremia rates remained static despite hand hygiene interventions."},
@@ -116,7 +116,8 @@ Events are formatted as Server-Sent Events lines: `data: {JSON_PAYLOAD}\n\n`
       ],
       "correct_answer_id": "A",
       "correct_answer_ids": ["A"],
-      "explanation": "Winning Strategy Walkthrough...\n\nWhy distractors fail:\n- Option B..."
+      "primary_trap": "Keyword_Trap",
+      "explanation": "Why Option A is Correct:\nProtocol adherence directly reduced catheter infections as evidenced in paragraph 2 where infection rates dropped from 8.4 to 2.1 per 1,000 catheter-days following universal bundle compliance.\n\nWhy Other Options are Incorrect:\n- Option B: Incorrect. Secondary bacteremia rates fell by 45%, contradicting the assertion that they remained static.\n- Option C: Incorrect. Postoperative fever was strongly correlated (p < 0.01) with dressing integrity.\n- Option D: Incorrect. Surveillance cultures were drawn routinely on day 3 for all patients regardless of sepsis symptoms.\n\nPrimary Cognitive Trap Spotlight:\n- Trap: Keyword Trap\n- Error Mechanism: Candidates recognise familiar vocabulary ('surveillance cultures', 'secondary bacteremia') lifted verbatim from the passage and overlook the contradictory quantifier or inverted clinical outcome.\n- Student Defense Strategy: Always verify whether the passage validates the directional relationship between keywords rather than selecting based on keyword familiarity alone."
     },
     "review": {
       "authenticity_score": 24,
@@ -206,7 +207,8 @@ Retrieves saved questions from PostgreSQL with optional filtering, full-text sea
       ],
       "correct_answer_id": "C",
       "correct_answer_ids": ["C"],
-      "explanation": "Step 1: In dilution problems, the initial solute mass remains constant...\nWhy distractors fail:\n- Option A: Calculation trap...\n- Option B: Extreme quantifier fallacy...",
+      "primary_trap": "Calculation_Trap",
+      "explanation": "Why Option C is Correct:\nEarly clinical intervention demonstrated a statistically significant (p = 0.004) 32% reduction in cognitive symptom progression over 18 months, confirming Option C.\n\nWhy Other Options are Incorrect:\n- Option A: Incorrect. The trial documented elevation 2 years prior to symptoms, not 5 years.\n- Option B: Incorrect (Extreme Language). Only 68% of amyloid-positive cohorts exhibited tau pathology, not all.\n- Option D: Incorrect. Fluid biomarker sensitivity was 94% compared to 81% for MRI volumetric assessments.\n\nPrimary Cognitive Trap Spotlight:\n- Trap: Calculation Trap\n- Error Mechanism: Students often confuse absolute risk reduction percentages with relative risk ratios or miscalculate timeframe windows.\n- Student Defense Strategy: Explicitly cross-tabulate baseline time horizons and percentage denominators before selecting.",
       "image_url": null,
       "image_svg": null,
       "image_description": null,
@@ -258,6 +260,18 @@ Retrieves saved questions from PostgreSQL with optional filtering, full-text sea
 ```bash
 curl -X GET "http://localhost:8000/api/questions?section=verbal_reasoning&difficulty=medium"
 ```
+
+#### 3.2.1 Explanation Structure & Smart AI Trap Resolution
+All questions generated or retrieved comply with the 3-part explanation and cognitive trap architecture:
+
+1. **3-Part Structured Explanation**:
+   - `Why Option [Key] is Correct`: Clear, evidence-backed proof citing specific data or clinical principles from the stimulus.
+   - `Why Other Options are Incorrect`: Bulleted analysis for each incorrect option dissecting the exact cognitive flaw and tempting misconception.
+   - `Primary Cognitive Trap Spotlight`: Dedicated breakdown of the primary trap with explicit `Trap`, `Error Mechanism`, and `Student Defense Strategy` attributes.
+2. **Primary Trap Resolution**:
+   - When requests specify `primary_trap: "Automatic"` (the recommended default), the generator agent intelligently identifies and populates `primary_trap` from the 11 official UCAT trap types based on the drafted distractors.
+   - When requests supply an explicit trap (e.g. `"Keyword_Trap"`), the generator specifically engineers that trap into the draft.
+   - For legacy questions where `primary_trap` is `null`, the backend workflow nodes and frontend `MentorExplanationView.jsx` employ automatic regex matching against the explanation text to extract and badge the active trap without breaking legacy layouts.
 
 ---
 

@@ -135,6 +135,7 @@ Situational Judgement   -> Rose Ruby       (#f43f5e / #e11d48)
 - Collapsible SSE telemetry drawer displaying raw event stream timestamps, event types, token metrics, and per-step costs.
 
 ### 4.3 Editorial Review Desk (`QuestionCard.jsx`, `StagedBatchReview.jsx`)
+- **Top Metadata Strip**: Displays section badge, difficulty chip, psychometric score pill, cumulative token/cost telemetry, and a dedicated **Primary Cognitive Trap Badge Chip** (`rgba(139, 92, 246, 0.12)` background, purple border, `Tag` icon).
 - **Option Badges**: Large circular `A`, `B`, `C`, `D` pills that highlight emerald on correct answers and crimson on incorrect distractors with clear checkmark/cross indicators.
 - **Distractor Rationalization Drawers**: Collapsible cards detailing the exact psychometric reason why each wrong option constitutes a realistic cognitive trap.
 - **Inline Editor**: Live editable fields allowing educators to adjust stem text, key letters, or explanation proofs before committing to the question bank.
@@ -151,10 +152,19 @@ Situational Judgement   -> Rose Ruby       (#f43f5e / #e11d48)
   4. **JSON Bundle**: Full relational representation including evolution histories and token metrics.
 
 ### 4.6 Conversational Mentor Explanation View (`MentorExplanationView.jsx`)
-- **Brand Indicator**: Violet badge with `GraduationCap` icon (`rgba(99, 102, 241, 0.12)`) designating senior tutor guidance.
-- **Walkthrough Container**: Surface-elevated panel rendered in high-legibility sans-serif with subtle border (`1px solid var(--border-light)`), presenting the core intuitive strategy and numbered steps (`Step 1`, `Step 2`).
-- **Distractor Trap Alert**: Styled amber warning box (`background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.22)`) featuring an `AlertTriangle` icon, unpacking why incorrect options (A, B, C, D) are tempting cognitive traps.
-- **Compact & Full Modes**: Supports responsive rendering in compact cards (within staged question review decks) as well as expanded full-width editorial desks.
+Renders pedagogical rationales across three distinct, beautifully styled visual cards:
+- **Card 1: Why Option [Key] is Correct (Emerald / Success)**:
+  - Tokens: Background `rgba(16, 185, 129, 0.06)` (dark) / `#ecfdf5` (light), border `rgba(16, 185, 129, 0.22)` (dark) / `#a7f3d0` (light), text `--status-success` (`#10b981`), `CheckCircle2` icon.
+  - Purpose: Sets the core intuition and step-by-step mathematical or deductive proof demonstrating why the correct key is incontrovertible.
+- **Card 2: Why Other Options are Incorrect (Amber / Warning)**:
+  - Tokens: Background `rgba(245, 158, 11, 0.06)` (dark) / `#fffbeb` (light), border `rgba(245, 158, 11, 0.22)` (dark) / `#fde68a` (light), text `--status-warning` (`#f59e0b`), `AlertTriangle` icon.
+  - Structure: Contains individual itemized sub-cards for each distractor choice (`[A]`, `[C]`, `[D]`) detailing the specific fallacy, miscalculation, or deceptive wording that disqualifies it.
+- **Card 3: Primary Cognitive Trap Spotlight (Purple / Tactical Defense)**:
+  - Tokens: Background `rgba(139, 92, 246, 0.06)` (dark) / `#f5f3ff` (light), border `rgba(139, 92, 246, 0.25)` (dark) / `#ddd6fe` (light), text `--status-purple` (`#8b5cf6`), `Zap` & `ShieldCheck` icons.
+  - Content: Spotlights the dominant UCAT trap from the 11-trap taxonomy (`UCAT_TRAP_DEFINITIONS`), detailing the precise psychological **Error Mechanism** and providing an actionable **Student Defense Strategy** for test day.
+- **Top Metadata Trap Badging**:
+  - `QuestionCard.jsx` and `QuestionBank.jsx` render a persistent purple badge chip in the card header: background `rgba(139, 92, 246, 0.12)`, text `#a78bfa` (dark) / `#6d28d9` (light), border `rgba(139, 92, 246, 0.3)`.
+- **Responsive Modes**: Supports `isCompact=true` for staged review decks and full expanded mode for in-depth editorial analysis.
 
 ---
 

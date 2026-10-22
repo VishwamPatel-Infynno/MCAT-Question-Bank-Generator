@@ -1,11 +1,13 @@
 """Isolated mock drafts and heuristic evaluation fixtures for offline testing and graceful fallback."""
 
+import re
+
 from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
 from app.schemas.ucat import UCATSection
 from app.schemas.workflow import GenerationRequest
 
 
-def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
+def _build_raw_mock_draft(req: GenerationRequest) -> QuestionDraft:
     """Provides high-caliber, authentic fallback UCAT questions across all 5 subtests."""
     is_direct_independent = (
         req.passage_required is not None
@@ -476,6 +478,38 @@ def improve_draft_heuristically(
         correct_answer_id=draft.correct_answer_id,
         correct_answer_ids=draft.correct_answer_ids,
         explanation=enhanced_explanation,
+        primary_trap=draft.primary_trap,
         image_needed=draft.image_needed,
         image_prompt_or_type=draft.image_prompt_or_type,
     )
+
+
+def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
+    """Provides high-caliber, authentic fallback UCAT questions with resolved primary_trap."""
+    draft = _build_raw_mock_draft(req)
+
+    # Determine or auto-detect primary trap
+    if not draft.primary_trap or draft.primary_trap == "Automatic":
+        if req.primary_trap and req.primary_trap != "Automatic":
+            draft.primary_trap = req.primary_trap
+        else:
+            expl = draft.explanation or ""
+            taxonomies = [
+                ("Scope_Shift", r"Scope\s*Shift"),
+                ("Keyword_Trap", r"Keyword\s*(?:Match\s*)?Trap"),
+                ("Extreme_Language", r"Extreme\s*(?:Language|Quantifier|Word)"),
+                ("Correlation_vs_Causation", r"Correlation\s*(?:vs\.?|and)\s*Causation"),
+                ("Partial_Match", r"Partial\s*Match"),
+                ("Half_Truth", r"Half-?Truth"),
+                ("Unwarranted_Assumption", r"Unwarranted\s*Assumption"),
+                ("Calculation_Trap", r"Calculation\s*(?:Trap|Error)"),
+                ("Out_of_Scope", r"Out\s*of\s*Scope"),
+            ]
+            detected = None
+            for trap_key, pattern in taxonomies:
+                if re.search(pattern, expl, re.IGNORECASE):
+                    detected = trap_key
+                    break
+            draft.primary_trap = detected or "Scope_Shift"
+
+    return draft

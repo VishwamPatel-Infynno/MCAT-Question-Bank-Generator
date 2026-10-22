@@ -358,6 +358,8 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
             "status": "bypassed",
             "reason": f"No visual stimulus needed (image_required='{req.image_required or 'No'}', visual_type='{req.visual_type or 'None'}').",
         }
+    effective_trap = getattr(draft, "primary_trap", None) or (req.primary_trap if req.primary_trap != "Automatic" else None) or "Scope_Shift"
+
     outcomes["final_payload"] = {
         "id": draft.question_stem[:12],  # placeholder until final_q created below
         "run_id": req.run_id,
@@ -368,7 +370,7 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
         "content_domain": req.content_domain,
         "question_type": req.question_type,
         "interaction_type": req.interaction_type or "single_choice",
-        "primary_trap": req.primary_trap,
+        "primary_trap": effective_trap,
         "passage_required": str(req.passage_required) if req.passage_required is not None else None,
         "passage_mode": req.passage_mode or "single_passage",
         "passage_id": req.passage_id,
@@ -414,7 +416,7 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
         content_domain=req.content_domain,
         question_type=req.question_type,
         interaction_type=req.interaction_type or "single_choice",
-        primary_trap=req.primary_trap,
+        primary_trap=effective_trap,
         passage_required=str(req.passage_required) if req.passage_required is not None else None,
         passage_mode=req.passage_mode or "single_passage",
         passage_id=req.passage_id,

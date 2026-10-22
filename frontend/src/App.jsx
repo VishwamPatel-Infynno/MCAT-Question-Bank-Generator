@@ -191,7 +191,7 @@ export default function App() {
       independent_multi_count: (totalQuestions > 1 && passageMode === 'single_passage') ? independentMultiCount : undefined,
       interaction_type: interactionType,
       passage_required: passageRequired,
-      primary_trap: primaryTrap !== 'Automatic' ? primaryTrap : undefined,
+      primary_trap: primaryTrap || 'Automatic',
       require_image: hasAnyImage,
       visual_type: hasAnyImage ? 'AI_FLUX_Image' : 'None',
       image_question_indices: isAbstractReasoning ? undefined : (imageMode !== 'none' ? effectiveImageIndices : []),

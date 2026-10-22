@@ -102,27 +102,25 @@ The 100-point rubric operates across two coordinated mechanisms:
 
 ---
 
-## 4. Distractor Engineering Principles
+## 4. Distractor Engineering Principles & Cognitive Trap Taxonomy
 
-When generating distractors for UCAT multiple-choice items, the system applies the following taxonomy of psychological traps:
+When generating distractors for UCAT multiple-choice items, the system applies an authoritative taxonomy of 11 psychological traps. Each question explicitly engineers one primary cognitive trap, accompanied by detailed error mechanisms and student defense strategies:
 
-### 4.1 The "Partial Premise" Trap (Verbal & Decision Making)
-- *Mechanism*: Uses verbatim terminology from the stimulus passage, but links two concepts that the passage discussed separately without establishing causality.
-- *Candidate Bias*: Recognition heuristic (candidates mistake familiar keywords for truth).
+### 4.1 Authoritative 11-Trap Cognitive Taxonomy Reference Table
 
-### 4.2 The "Extreme Quantifier" Trap (Verbal & Decision Making)
-- *Mechanism*: Converts a nuanced probabilistic premise ("many patients benefit") into an absolute claim ("all patients benefit" or "only patients under 40 benefit").
-- *Candidate Bias*: Overgeneralisation.
-
-### 4.3 The "Intermediate Calculation" Trap (Quantitative Reasoning)
-- *Mechanism*: Matches the numerical output of Step 1 or Step 2 in a 3-step calculation (e.g., daily dose before dividing by 3 infusions; or total cost before applying 20% VAT rebate).
-- *Candidate Bias*: Premature closure under strict 41-second pacing.
-
-### 4.4 The "Inverted Ratio / Directional" Trap (Quantitative Reasoning)
-- *Mechanism*: Inverts the numerator and denominator or calculates $\frac{A - B}{B}$ instead of $\frac{B - A}{A}$.
-
-### 4.5 The "Sub-Pattern Distractor" (Abstract Reasoning)
-- *Mechanism*: Satisfies the primary pattern rule of Set A (e.g., even number of circles) but violates the secondary conditional rule (e.g., shapes must alternate in shading).
+| Trap Key | Display Label | Error Mechanism | Student Defense Strategy |
+| :--- | :--- | :--- | :--- |
+| `Scope_Shift` | Scope Shift | Broadens or narrows the stimulus timeframe, population, or geographic context beyond the author's stated boundary. | Check whether findings from a specific cohort or timeframe are being misapplied to a wider or different demographic. |
+| `Keyword_Trap` | Keyword Trap | Uses identical verbatim phrasing from the text but alters the grammatical subject, object, or directional causality. | Never pick an option solely because words match the text; verify that the relational logic between keywords is conserved. |
+| `Extreme_Language` | Extreme Language | Employs absolute qualifiers (*always*, *never*, *all*, *completely*, *only*) when the text warrants only probabilistic or qualified claims. | Treat words like *always*, *never*, and *solely* as immediate red flags requiring airtight justification in the passage. |
+| `Correlation_vs_Causation` | Correlation vs Causation | Treats statistical association, co-occurrence, or temporal sequence as direct biological or mechanical causation. | Distinguish between observational co-occurrence and proven causative mechanisms. |
+| `Partial_Match` | Partial Match | Presents a statement that is 80% accurate based on the premise but introduces a subtle, fatal factual distortion in its concluding clause. | Verify every clause of an option rather than stopping after confirming the first half. |
+| `Half_Truth` | Half Truth | Combines a genuinely true factual premise with an invalid inference or unsubstantiated conclusion. | Confirm that the concluding inference is logically forced by the premise, not just plausibly related. |
+| `Unwarranted_Assumption` | Unwarranted Assumption | Relies on plausible external real-world clinical knowledge not provided or supported by the stimulus text. | Base answers strictly on the four corners of the provided text; do not import outside medical general knowledge. |
+| `Calculation_Trap` | Calculation Trap | Mirrors an intermediate mathematical result (Step 1 of 3) or incorporates an inverted ratio / unit conversion oversight. | Execute multi-step calculations to final completion; check units and denominator definitions before matching answers. |
+| `Out_of_Scope` | Out of Scope | Introduces topics, variables, or outcomes that appear clinically relevant but are entirely unaddressed by the author. | Discard choices that wander outside the boundaries of the specific research questions investigated in the stimulus. |
+| `False_Dichotomy` | False Dichotomy | Artificially constrains a scenario to two mutually exclusive extremes when intermediate or alternative outcomes exist. | Identify whether unstated middle-ground alternatives exist that invalidate the either/or premise. |
+| `Over_generalisation` | Over-generalisation | Extrapolates a narrow finding (e.g. in vitro cell cultures or single hospital pilot) into universal clinical dogma. | Verify whether conclusions exceed the demographic scale or statistical power of the initial study sample. |
 
 ---
 
@@ -158,13 +156,19 @@ To ensure human authorial authenticity and eliminate synthetic AI artifacts:
 
 ## 7. Conversational Mentor Explanation Architecture
 
-Rather than cold, clinical answer keys, all explanations adhere to a warm, conversational tutor persona:
+Rather than cold, clinical answer keys, all explanations adhere to a 3-part structured mentor persona:
 
-### 7.1 Emulating a 1-on-1 Clinical Mentor
-- **Intuitive Entry Point**: Explanations begin with the core intuition so students grasp the big picture before diving into mathematical or formal syllogistic proofs.
-- **Dual-Section Structure**:
-  1. **Mentor Walkthrough & Winning Strategy**: A step-by-step breakdown proving why the correct key is incontrovertible, accompanied by encouraging, constructive commentary.
-  2. **Trap Breakdown (Why Other Options Fail)**: A dedicated analysis of each incorrect choice (Options A, B, C, D), explicitly stating why an applicant might be tempted by it and the exact cognitive trap that disqualifies it.
+### 7.1 The 3-Part Structured Pedagogical Layout
+1. **Card 1: Why Option [Key] is Correct** (Emerald / Success styling):
+   - Establishes core intuition and step-by-step mathematical or deductive proof.
+   - Proves why the key is incontrovertible, citing direct textual or arithmetic evidence.
+2. **Card 2: Why Other Options are Incorrect** (Amber / Warning styling):
+   - Features dedicated itemized sub-cards for each incorrect choice (e.g. Option A, Option B, Option D).
+   - Explains the specific trap, tempting misconception, and disqualifying counter-evidence for each distractor.
+3. **Card 3: Primary Cognitive Trap Spotlight** (Purple / Tactical Defense styling):
+   - Spotlights the dominant cognitive failure mode engineered into the item.
+   - Specifies the precise psychological **Error Mechanism** explaining how students get trapped.
+   - Provides an actionable **Student Defense Strategy** for recognizing and neutralizing the trap under timed exam pressure.
 
 ---
 

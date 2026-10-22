@@ -96,7 +96,12 @@ The system coordinates specialized autonomous engines with a deterministic quali
   - Explicitly crafts 1 definitive correct key and 3 sophisticated distractors representing realistic cognitive biases or calculation traps.
   - **Option Symmetry & Anti-Guessability Engine**: Enforces strict word count parity (all options within $\pm 15\%$ or 2-4 words of each other), parallel grammatical syntax, and balanced epistemic qualification.
   - **Anti-AI Punctuation Standard**: Strictly forbids em dashes (`—`), en dashes (`–`), or double hyphens (`--`); enforces standard single hyphens (`-`).
-  - **Conversational Mentor Explanations**: Generates dual-section rationales (Winning Strategy Walkthrough + Distractor Trap Breakdown) in a supportive, expert tutor voice.
+  - **3-Part Structured Mentor Explanations**: Generates a rigorous 3-card explanation layout:
+    1. *Why Option [Key] is Correct*: Establishes core intuition and step-by-step mathematical or deductive proof.
+    2. *Why Other Options are Incorrect*: Itemized distractor cards dissecting why each wrong choice fails and why students are tempted.
+    3. *Primary Cognitive Trap Spotlight*: Dedicated spotlight with exact Trap classification, Error Mechanism, and actionable Student Defense Strategy.
+  - **Automatic (Smart AI Choice) Cognitive Trap Engine**: When `primary_trap` is `"Automatic"`, the generator evaluates the drafted item and dynamically selects the best-fit trap from the 11 official UCAT trap types (`Scope_Shift`, `Keyword_Trap`, `Extreme_Language`, `Correlation_vs_Causation`, `Partial_Match`, `Half_Truth`, `Unwarranted_Assumption`, `Calculation_Trap`, `Out_of_Scope`, `False_Dichotomy`, `Over_generalisation`). The chosen trap is recorded in `draft.primary_trap` and persisted across the workflow.
+  - **Fallback Trap Detection**: If `primary_trap` is omitted or unpopulated, `generator.py` and `nodes.py` run regex taxonomy matching against the explanation text to extract and assign the trap automatically.
   - **Immediate Self-Critique Object**: Evaluates Authenticity, Clarity, Distractor Traps, and Explanation Rigor.
 - **Routing Optimization**:
   - If self-critique score $> 90$, the workflow sets `fused_self_passed=True` and routes directly to the Visual Engine or Finalize Node, cutting latency by $35-45\%$ and saving ~590 tokens.
@@ -346,6 +351,35 @@ graph TD
    - Converts relational questions into standardized comma-separated columns (`id`, `section`, `subtopic`, `difficulty`, `stem`, `option_a` through `option_d`, `key`, `explanation`, `score`).
 4. **JSON Relational Bundle**:
    - Serializes question items including full 4-pillar review rubrics, per-agent token tracking telemetry, and evolution histories.
+
+### 7.2 Pedagogical Explanation & Cognitive Trap Engine Architecture
+
+The explanation subsystem provides structured, multi-tier cognitive deconstruction rather than monolithic markdown text blocks:
+
+```mermaid
+graph TD
+    Raw[Raw Explanation Text + Options] --> Parser[parseExplanationStructure Engine]
+    TrapProp[primary_trap Prop] --> Resolver{Trap Defined?}
+    Resolver -->|Yes| Taxonomy[UCAT_TRAP_DEFINITIONS Taxonomy]
+    Resolver -->|No / Null| AutoDetect[Regex Taxonomy Matcher]
+    AutoDetect --> Taxonomy
+    
+    Parser --> Card1["Card 1: Why Option [Key] is Correct<br>(Emerald / CheckCircle2 / Proof)"]
+    Parser --> Card2["Card 2: Why Other Options are Incorrect<br>(Amber / AlertTriangle / Itemized Distractors)"]
+    Parser --> Card3["Card 3: Primary Cognitive Trap Spotlight<br>(Purple / Zap / Mechanism & Defense Strategy)"]
+    Taxonomy --> Card3
+```
+
+1. **Component Contract (`MentorExplanationView.jsx`)**:
+   - Accepts `explanation` (string), `isCompact` (boolean), `options` (array of `{id, text}`), `correctAnswerId` (string), and `primaryTrap` (string).
+   - The parser isolates the three distinct semantic cards, eliminating ambiguous text blocks and stripping redundant legacy headings.
+2. **Itemized Distractor Parsing**:
+   - Detects individual distractor entries (e.g. `Option A: ...`, `Option B: ...`) and matches them with active option choices to render distinct, styled sub-cards with option letter badges and specific counter-evidence.
+3. **The 11-Trap Taxonomy Dictionary (`UCAT_TRAP_DEFINITIONS`)**:
+   - Stores standardized titles, clinical descriptions, error mechanisms, and student defense tips for all 11 UCAT traps:
+     `Scope_Shift`, `Keyword_Trap`, `Extreme_Language`, `Correlation_vs_Causation`, `Partial_Match`, `Half_Truth`, `Unwarranted_Assumption`, `Calculation_Trap`, `Out_of_Scope`, `False_Dichotomy`, `Over_generalisation`.
+4. **Top Metadata Trap Badging**:
+   - Both `QuestionCard.jsx` (review workspace) and `QuestionBank.jsx` (repository table) display a dedicated purple badge chip in the header strip alongside subtest, difficulty, quality score, and token telemetry, enabling instant psychometric identification.
 
 ---
 

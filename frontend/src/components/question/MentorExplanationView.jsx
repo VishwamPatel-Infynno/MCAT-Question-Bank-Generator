@@ -1,80 +1,339 @@
 import React, { useMemo } from 'react';
-import { GraduationCap, CheckCircle2, AlertTriangle, Lightbulb } from 'lucide-react';
+import {
+  GraduationCap,
+  CheckCircle2,
+  AlertTriangle,
+  Lightbulb,
+  Target,
+  Sparkles
+} from 'lucide-react';
 
 /**
- * Parses and renders question explanations in a warm, friendly, conversational mentor tone.
- * Separates the core winning strategy / step-by-step logic from the distractor trap breakdown.
+ * Standard UK UCAT Cognitive Trap Taxonomy & Student Advice Reference.
  */
-export default function MentorExplanationView({ explanation = '', isCompact = false }) {
+export const UCAT_TRAP_DEFINITIONS = {
+  Scope_Shift: {
+    label: 'Scope Shift Trap',
+    advice: 'Subtly expands or narrows the author’s premise beyond what the passage strictly proves. Never assume unmentioned generalizations.'
+  },
+  Keyword_Trap: {
+    label: 'Keyword Match Trap',
+    advice: 'Recycles exact words from the text to lure speed-readers, while twisting or inverting the actual logical relationship.'
+  },
+  Extreme_Language: {
+    label: 'Extreme Language Trap',
+    advice: 'Introduces unhedged absolutes like "always", "never", "only", or "invariably". In official UCAT, absolute statements are rarely supported.'
+  },
+  Correlation_vs_Causation: {
+    label: 'Correlation vs. Causation',
+    advice: 'Mistakes two correlated variables for a causal link. Association in observational data does not prove a cause-and-effect mechanism.'
+  },
+  Partial_Match: {
+    label: 'Partial Match Trap',
+    advice: 'Starts with an accurate statement from the text but injects a false or unverified clause at the end. Check every clause thoroughly.'
+  },
+  Half_Truth: {
+    label: 'Half-Truth Trap',
+    advice: 'Contains an element of truth from the scenario but conflates conditions or overlooks crucial exclusionary criteria.'
+  },
+  Unwarranted_Assumption: {
+    label: 'Unwarranted Assumption',
+    advice: 'Relies on plausible real-world clinical knowledge not provided in the scenario. Judge solely on the explicit evidence given.'
+  },
+  Calculation_Trap: {
+    label: 'Calculation Trap',
+    advice: 'Mirrors common intermediate math slips (omitted unit conversion, inverted ratio, or off-by-one errors). Check dimensional units.'
+  },
+  Out_of_Scope: {
+    label: 'Out of Scope Trap',
+    advice: 'Introduces plausible-sounding medical claims that are completely absent from the stimulus.'
+  },
+  False_Dichotomy: {
+    label: 'False Dichotomy Trap',
+    advice: 'Presents an artificial either-or choice when the scenario allows intermediate or multiple alternative outcomes.'
+  },
+  Over_generalisation: {
+    label: 'Over-generalisation Trap',
+    advice: 'Takes a finding specific to a narrow clinical subgroup and improperly applies it to all patients or general populations.'
+  }
+};
+
+/**
+ * Known UCAT cognitive trap keywords to match in inline explanations.
+ */
+const TRAP_PATTERN_STR = '\\b(?:Keyword Trap|Keyword Match(?: Trap)?|Partial Match(?: Trap)?|Extreme Language(?: Trap)?|Extreme Quantifier(?: Trap)?|Extreme Word(?: Trap)?|Correlation vs\\.? Causation|Correlation and Causation|Scope Shift(?: Trap)?|Half-?Truth(?: Trap)?|Unwarranted Assumption(?: Trap)?|Opposite/Contradiction|Out of Scope(?: Trap)?|Calculation (?:Trap|Error)|Over-generalisation(?: Trap)?|Over-generalization(?: Trap)?|False Dichotomy(?: Trap)?|Contradicted by (?:Protocol|Data|Premise))\\b';
+
+/**
+ * Resolves a normalized trap key to user-friendly label and advice.
+ */
+function resolveTrapInfo(trapKeyOrName) {
+  if (!trapKeyOrName) return null;
+  const clean = String(trapKeyOrName).trim();
+  if (clean === 'Automatic' || clean === 'None') return null;
+
+  // Direct lookup
+  if (UCAT_TRAP_DEFINITIONS[clean]) {
+    return { key: clean, ...UCAT_TRAP_DEFINITIONS[clean] };
+  }
+
+  // Look up by matching label or partial key
+  for (const [k, info] of Object.entries(UCAT_TRAP_DEFINITIONS)) {
+    const normKey = k.toLowerCase().replace(/_/g, ' ');
+    const normClean = clean.toLowerCase().replace(/_/g, ' ');
+    if (normKey === normClean || info.label.toLowerCase() === normClean || normClean.includes(normKey)) {
+      return { key: k, ...info };
+    }
+  }
+
+  // Fallback to formatted string
+  return {
+    key: clean,
+    label: clean.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    advice: 'Watch out for subtle cognitive distortions and unwarranted inferential leaps under tight exam timing.'
+  };
+}
+
+/**
+ * Detects the most prominent trap mentioned in explanation text.
+ */
+function detectTrapFromText(text) {
+  if (!text) return null;
+  for (const [k, info] of Object.entries(UCAT_TRAP_DEFINITIONS)) {
+    const pattern = new RegExp(info.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + `|${k.replace(/_/g, '\\s*')}`, 'i');
+    if (pattern.test(text)) {
+      return { key: k, ...info };
+    }
+  }
+  return null;
+}
+
+/**
+ * Lightweight inline markdown & trap highlighter.
+ */
+function renderFormattedText(text, { highlightTraps = false } = {}) {
+  if (!text) return null;
+
+  const pattern = highlightTraps
+    ? `(${TRAP_PATTERN_STR}|\\*\\*[^*]+\\*\\*|\\*[^*]+\\*)`
+    : '(\\*\\*[^*]+\\*\\*|\\*[^*]+\\*)';
+
+  const tokenRegex = new RegExp(pattern, 'gi');
+  const parts = text.split(tokenRegex);
+
+  return parts.map((part, i) => {
+    if (!part) return null;
+
+    if (highlightTraps && new RegExp(`^${TRAP_PATTERN_STR}$`, 'i').test(part)) {
+      return (
+        <span
+          key={i}
+          style={{
+            background: 'rgba(245, 158, 11, 0.16)',
+            color: 'var(--status-warning)',
+            border: '1px solid var(--status-warning-border, rgba(245, 158, 11, 0.3))',
+            borderRadius: '3px',
+            padding: '1px 6px',
+            fontWeight: 700,
+            fontSize: '0.74rem',
+            margin: '0 2px',
+            display: 'inline-block',
+            lineHeight: 1.35,
+            verticalAlign: 'baseline'
+          }}
+        >
+          {part}
+        </span>
+      );
+    }
+
+    if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+      return (
+        <strong key={i} style={{ color: 'var(--text-primary)', fontWeight: 700 }}>
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+
+    if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
+      return <em key={i}>{part.slice(1, -1)}</em>;
+    }
+
+    return part;
+  });
+}
+
+/**
+ * Extracts individual distractor items from text block.
+ */
+function extractDistractorLines(rawText) {
+  if (!rawText) return [];
+
+  const OPTION_PREFIX_REGEX = /^(?:[-•*]\s*)?((?:Options?|Choices?|Distractors?|Statements?)\s+[A-E](?:\s*(?:and|&|,)\s*(?:(?:Options?|Choices?|Distractors?|Statements?)\s+)?[A-E])*(?:\s*(?:\([^)\n]{2,40}\)|\[[^\]\n]{2,40}\]))?)(?:\s*[:\-–—;,]\s*|\s+)(.*)/is;
+  const SOLO_OPTION_REGEX = /^(?:[-•*]\s*)?((?:Options?|Choices?|Distractors?|Statements?)\s+[A-E](?:\s*(?:and|&|,)\s*(?:(?:Options?|Choices?|Distractors?|Statements?)\s+)?[A-E])*(?:\s*(?:\([^)\n]{2,40}\)|\[[^\]\n]{2,40}\]))?)\s*$/i;
+
+  // Split either by newlines or by option item boundary
+  const chunks = rawText
+    .split(/(?:\r?\n+)|(?<=[.!?])\s+(?=(?:[-•*]\s*)?(?:Options?|Choices?|Distractors?|Statements?)\s+[A-E]\b)/i)
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  const items = [];
+
+  for (const chunk of chunks) {
+    const match = chunk.match(OPTION_PREFIX_REGEX);
+    const solo = !match ? chunk.match(SOLO_OPTION_REGEX) : null;
+
+    if (match || solo) {
+      const rawLabel = (match ? match[1] : solo[1]).trim();
+      let body = match ? match[2].trim() : '';
+
+      // Check if body begins with "is INCORRECT" or similar qualifier
+      let trapChip = null;
+
+      // Extract bracketed or parenthesized trap like "(Extreme Language Trap)"
+      const trapInParens = body.match(/\(([^)\n]*(?:Trap|Error|Language|Assumption|Scope|Correlation|Truth|Match)[^)\n]*)\)/i) ||
+                           rawLabel.match(/\(([^)\n]*(?:Trap|Error|Language|Assumption|Scope|Correlation|Truth|Match)[^)\n]*)\)/i);
+      if (trapInParens) {
+        trapChip = trapInParens[1].trim();
+        // Remove from body to avoid repeating
+        body = body.replace(trapInParens[0], '').trim();
+      }
+
+      // Clean label
+      const cleanLabel = rawLabel
+        .replace(/\s*\[DISTRACTOR\]/i, '')
+        .replace(/\s*\([^)]*\)/, '')
+        .trim();
+
+      items.push({
+        label: cleanLabel,
+        trap: trapChip,
+        body
+      });
+    } else {
+      // Freeform distractor line
+      items.push({
+        label: null,
+        trap: null,
+        body: chunk
+      });
+    }
+  }
+
+  return items;
+}
+
+/**
+ * MentorExplanationView
+ *
+ * Dedicated educational view for UK UCAT questions:
+ * 1. Card 1: Why Option [Key] is Correct (Evidence, proof & intuition)
+ * 2. Card 2: Why Other Options are Incorrect (Itemized distractor rows with cognitive trap chips)
+ * 3. Card 3: Primary Cognitive Trap Spotlight (Smart AI or assigned trap with student defense strategy)
+ */
+export default function MentorExplanationView({
+  explanation = '',
+  isCompact = false,
+  _options = [],
+  correctAnswerId = '',
+  primaryTrap = null
+}) {
   const parsed = useMemo(() => {
     if (!explanation) {
       return {
-        walkthrough: 'No explanation currently available.',
+        correctExplanation: 'No explanation currently available.',
         steps: null,
-        distractors: null,
+        distractors: [],
+        resolvedTrap: null
       };
     }
 
     const text = String(explanation).trim();
 
-    // Regular expression to match common distractor header markers
-    const distractorHeaderRegex = /(?:why\s+distractors\s+fail|why\s+other\s+options\s+are\s+traps|why\s+other\s+choices\s+fail|why\s+incorrect\s+options\s+fail|distractor\s+breakdown|common\s+traps|why\s+distractors\s+are\s+incorrect):?/i;
+    // 1. Resolve Primary Trap: from prop or detect from explanation
+    let resolvedTrap = resolveTrapInfo(primaryTrap);
+    if (!resolvedTrap) {
+      resolvedTrap = detectTrapFromText(text);
+    }
+
+    // 2. Split on distractor header markers
+    const distractorHeaderRegex = /(?:(?:why\s+other\s+options\s+are\s+incorrect(?:\s*\(distractor\s*&\s*trap\s*breakdown\))?|why\s+distractors\s+fail|why\s+other\s+options\s+(?:are\s+traps|fail|are\s+wrong|are\s+incorrect)|why\s+other\s+choices\s+fail|why\s+incorrect\s+options\s+fail|(?:explicit\s+)?distractor\s+(?:breakdown|analysis|notes|traps)|common\s+traps|trap\s+breakdown|why\s+distractors\s+are\s+incorrect)(?:\s*(?:[•·\-–—:|/]|&|\+)\s*[^\n\r]*)?):?/i;
     const match = text.match(distractorHeaderRegex);
 
     if (match && match.index !== undefined) {
-      const walkthroughRaw = text.substring(0, match.index).trim();
+      const correctRaw = text.substring(0, match.index).trim();
       const distractorsRaw = text.substring(match.index + match[0].length).trim();
 
-      // Clean up leading mentor markers if present in walkthrough
-      const cleanedWalkthrough = walkthroughRaw
-        .replace(/^(?:how\s+to\s+think\s+about\s+this\s*(?:\(mentor\s+walkthrough\))?|winning\s+strategy|mentor\s+walkthrough):?/i, '')
+      // Clean up headers from correct section
+      const cleanedCorrect = correctRaw
+        .replace(/^(?:why\s+options?\s+[A-E](?:\s*,\s*[A-E])*\s+is\s+correct|correct\s+answer(?:\s+analysis)?|how\s+to\s+think\s+about\s+this|pedagogical\s+evaluation):?/i, '')
         .trim();
 
-      // Check if walkthrough contains numbered steps like "Step 1: ... Step 2: ..."
+      // Check for step-by-step
       let steps = null;
-      if (/Step\s+\d+:?/i.test(cleanedWalkthrough)) {
-        const rawSteps = cleanedWalkthrough.split(/(?=(?:Step\s+\d+:?))/i);
+      if (/(?:\*\*|\b)Step\s+\d+:?\*?\*?/i.test(cleanedCorrect)) {
+        const rawSteps = cleanedCorrect.split(/(?=(?:(?:\*\*|\b)Step\s+\d+:?\*?\*?))/i);
         const filtered = rawSteps.map(s => s.trim()).filter(Boolean);
-        if (filtered.length > 1) {
-          steps = filtered;
-        }
+        if (filtered.length > 1) steps = filtered;
       }
 
-      // Split distractors into individual bullet items by newline OR by Option A/B/C/D boundary
-      const distractorLines = distractorsRaw
-        .split(/(?:\r?\n+)|(?<=[.!?])\s+(?=(?:-\s*)?Option\s+[A-E]\b)/i)
-        .map(line => line.trim())
-        .filter(Boolean);
+      const distractorItems = extractDistractorLines(distractorsRaw);
 
       return {
-        walkthrough: cleanedWalkthrough || walkthroughRaw,
+        correctExplanation: cleanedCorrect || correctRaw,
         steps,
-        distractors: distractorLines.length > 0 ? distractorLines : [distractorsRaw],
+        distractors: distractorItems,
+        resolvedTrap
       };
     }
 
-    // Fallback: If no explicit distractor marker, check for steps and clean any heading
-    const cleanedUnified = text
-      .replace(/^(?:how\s+to\s+think\s+about\s+this\s*(?:\(mentor\s+walkthrough\))?|winning\s+strategy|mentor\s+walkthrough):?/i, '')
-      .trim();
+    // Fallback: If no explicit distractor marker, check if text has option bullet lines (e.g. - Key A is CORRECT, - Distractor B is INCORRECT)
+    const lines = text.split(/\r?\n+/).map(l => l.trim()).filter(Boolean);
+    const correctLines = [];
+    const distractorLines = [];
 
-    let steps = null;
-    if (/Step\s+\d+:?/i.test(cleanedUnified)) {
-      const rawSteps = cleanedUnified.split(/(?=(?:Step\s+\d+:?))/i);
-      const filtered = rawSteps.map(s => s.trim()).filter(Boolean);
-      if (filtered.length > 1) {
-        steps = filtered;
+    let inDistractorSection = false;
+    for (const line of lines) {
+      if (/(?:INCORRECT|DISTRACTOR|Wrong|Trap)/i.test(line) && /(?:[-•*]\s*)?(?:Options?|Choices?|Distractors?|Statements?)\s+[A-E]\b/i.test(line)) {
+        inDistractorSection = true;
+      }
+      if (inDistractorSection || /(?:INCORRECT|DISTRACTOR)/i.test(line)) {
+        distractorLines.push(line);
+      } else {
+        correctLines.push(line);
       }
     }
 
+    if (distractorLines.length > 0) {
+      const correctText = correctLines
+        .join('\n')
+        .replace(/^(?:why\s+options?\s+[A-E](?:\s*,\s*[A-E])*\s+is\s+correct|correct\s+answer(?:\s+analysis)?|pedagogical\s+evaluation|analysis\s+of\s+options):?/i, '')
+        .trim();
+
+      return {
+        correctExplanation: correctText || text,
+        steps: null,
+        distractors: extractDistractorLines(distractorLines.join('\n')),
+        resolvedTrap
+      };
+    }
+
+    // Unified single text fallback
+    const cleanedUnified = text
+      .replace(/^(?:why\s+options?\s+[A-E](?:\s*,\s*[A-E])*\s+is\s+correct|correct\s+answer|how\s+to\s+think\s+about\s+this):?/i, '')
+      .trim();
+
     return {
-      walkthrough: cleanedUnified || text,
-      steps,
-      distractors: null,
+      correctExplanation: cleanedUnified || text,
+      steps: null,
+      distractors: [],
+      resolvedTrap
     };
-  }, [explanation]);
+  }, [explanation, primaryTrap]);
 
   if (!explanation) return null;
+
+  const keyLabel = correctAnswerId ? `Option ${correctAnswerId}` : 'Correct Key';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: isCompact ? '10px' : '14px' }}>
@@ -102,25 +361,29 @@ export default function MentorExplanationView({ explanation = '', isCompact = fa
             </div>
             {!isCompact && (
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                Mentor Walkthrough &bull; Conversational Step-by-Step Coaching
+                Itemized Option Analysis &bull; Cognitive Trap Breakdown
               </div>
             )}
           </div>
         </div>
 
-        <span
-          className="badge badge-indigo"
-          style={{ fontSize: '0.68rem', padding: '2px 8px', letterSpacing: '0.02em', fontWeight: 600 }}
-        >
-          Mentor Note
-        </span>
+        {parsed.resolvedTrap && (
+          <span
+            className="badge badge-amber"
+            style={{ fontSize: '0.68rem', padding: '2px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
+            title={parsed.resolvedTrap.advice}
+          >
+            <AlertTriangle size={11} />
+            Trap: {parsed.resolvedTrap.label}
+          </span>
+        )}
       </div>
 
-      {/* Card 1: Winning Strategy & Core Solution Walkthrough */}
+      {/* CARD 1: Why Option [Key] is Correct */}
       <div
         style={{
-          background: 'rgba(16, 185, 129, 0.05)',
-          border: '1px solid rgba(16, 185, 129, 0.25)',
+          background: 'var(--status-success-bg, rgba(16, 185, 129, 0.05))',
+          border: '1px solid var(--status-success-border, rgba(16, 185, 129, 0.25))',
           borderRadius: 'var(--radius-sm)',
           padding: isCompact ? '10px 12px' : '14px 16px',
           display: 'flex',
@@ -130,19 +393,22 @@ export default function MentorExplanationView({ explanation = '', isCompact = fa
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 700, color: 'var(--status-success)' }}>
           <CheckCircle2 size={14} />
-          <span>The Winning Strategy (How to Solve This)</span>
+          <span>Why {keyLabel} is Correct</span>
         </div>
 
         {parsed.steps && parsed.steps.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {parsed.steps.map((st, idx) => {
-              const stepMatch = st.match(/^(Step\s+\d+:?)\s*(.*)/i);
+              const stepMatch = st.match(/^(?:\*\*)?(Step\s+\d+|[1-9]\d*\.)(?::|\s*-)?(?:\*\*)?\s*(.*)/is);
               if (stepMatch) {
+                const label = stepMatch[1].replace(/:$/, '').trim();
+                const stepBody = stepMatch[2].trim();
                 return (
                   <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: isCompact ? '0.8rem' : '0.86rem' }}>
                     <span
                       style={{
-                        background: 'rgba(16, 185, 129, 0.15)',
+                        background: 'rgba(16, 185, 129, 0.14)',
+                        border: '1px solid var(--status-success-border, rgba(16, 185, 129, 0.25))',
                         color: 'var(--status-success)',
                         padding: '1px 6px',
                         borderRadius: '3px',
@@ -153,17 +419,17 @@ export default function MentorExplanationView({ explanation = '', isCompact = fa
                         lineHeight: 1.45
                       }}
                     >
-                      {stepMatch[1].replace(/:$/, '')}
+                      {label}
                     </span>
                     <span style={{ color: 'var(--text-primary)', flex: 1, lineHeight: 1.55 }}>
-                      {stepMatch[2]}
+                      {renderFormattedText(stepBody)}
                     </span>
                   </div>
                 );
               }
               return (
                 <div key={idx} style={{ color: 'var(--text-primary)', lineHeight: 1.55, fontSize: isCompact ? '0.8rem' : '0.86rem' }}>
-                  {st}
+                  {renderFormattedText(st)}
                 </div>
               );
             })}
@@ -177,65 +443,138 @@ export default function MentorExplanationView({ explanation = '', isCompact = fa
               whiteSpace: 'pre-line'
             }}
           >
-            {parsed.walkthrough}
+            {renderFormattedText(parsed.correctExplanation)}
           </div>
         )}
       </div>
 
-      {/* Card 2: Distractor Traps & Why Other Options Fail */}
+      {/* CARD 2: Why Other Options are Incorrect (Distractor & Trap Breakdown) */}
       {parsed.distractors && parsed.distractors.length > 0 && (
         <div
           style={{
-            background: 'rgba(245, 158, 11, 0.05)',
-            border: '1px solid rgba(245, 158, 11, 0.22)',
+            background: 'var(--status-warning-bg, rgba(245, 158, 11, 0.05))',
+            border: '1px solid var(--status-warning-border, rgba(245, 158, 11, 0.22))',
             borderRadius: 'var(--radius-sm)',
             padding: isCompact ? '10px 12px' : '14px 16px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '8px'
+            gap: '10px'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 700, color: '#d97706' }}>
-            <AlertTriangle size={14} />
-            <span>Common Traps &bull; Why Other Options Are Wrong</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 700, color: 'var(--status-warning)' }}>
+              <AlertTriangle size={14} />
+              <span>Why Other Options are Incorrect (Distractor & Trap Breakdown)</span>
+            </div>
+            <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>
+              {parsed.distractors.length} distractors evaluated
+            </span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: isCompact ? '0.78rem' : '0.84rem', lineHeight: 1.55 }}>
-            {parsed.distractors.map((line, idx) => {
-              // Highlight Option labels like "Option A", "Option B"
-              const optionMatch = line.match(/^(?:-\s*)?(Option\s+[A-E][^:,]*)(?:[:,\s-]+)\s*(.*)/i);
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: isCompact ? '0.78rem' : '0.84rem' }}>
+            {parsed.distractors.map((item, idx) => (
+              <div
+                key={idx}
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '8px',
+                  background: 'var(--bg-surface-elevated, rgba(255,255,255,0.03))',
+                  border: '1px solid var(--border-light, rgba(255,255,255,0.06))',
+                  borderRadius: 'var(--radius-xs)',
+                  padding: '8px 10px',
+                  lineHeight: 1.5
+                }}
+              >
+                {/* Option Badge */}
+                {item.label && (
+                  <span
+                    style={{
+                      background: 'rgba(245, 158, 11, 0.14)',
+                      border: '1px solid var(--status-warning-border, rgba(245, 158, 11, 0.22))',
+                      color: 'var(--status-warning)',
+                      padding: '1px 6px',
+                      borderRadius: '3px',
+                      fontWeight: 700,
+                      fontSize: '0.74rem',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                )}
 
-              if (optionMatch) {
-                const label = optionMatch[1].trim();
-                const body = optionMatch[2].trim();
+                {/* Specific Trap Chip */}
+                {item.trap && (
+                  <span
+                    style={{
+                      background: 'rgba(139, 92, 246, 0.14)',
+                      border: '1px solid rgba(139, 92, 246, 0.3)',
+                      color: 'var(--status-purple, #8b5cf6)',
+                      padding: '1px 6px',
+                      borderRadius: '3px',
+                      fontWeight: 700,
+                      fontSize: '0.72rem',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
+                    }}
+                  >
+                    {item.trap}
+                  </span>
+                )}
 
-                return (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', lineHeight: 1.45 }}>
-                    <span
-                      style={{
-                        background: 'rgba(245, 158, 11, 0.15)',
-                        color: '#b45309',
-                        padding: '1px 6px',
-                        borderRadius: '3px',
-                        fontWeight: 700,
-                        fontSize: '0.74rem',
-                        whiteSpace: 'nowrap',
-                        flexShrink: 0
-                      }}
-                    >
-                      {label}
-                    </span>
-                    <span style={{ color: 'var(--text-secondary)', flex: 1, lineHeight: 1.55 }}>{body}</span>
-                  </div>
-                );
-              }
-
-              return (
-                <div key={idx} style={{ color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                  {line}
+                {/* Flaw description */}
+                <div style={{ color: 'var(--text-secondary)', flex: 1 }}>
+                  {renderFormattedText(item.body, { highlightTraps: true })}
                 </div>
-              );
-            })}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* CARD 3: Primary Cognitive Trap Spotlight */}
+      {parsed.resolvedTrap && (
+        <div
+          style={{
+            background: 'rgba(139, 92, 246, 0.05)',
+            border: '1px solid rgba(139, 92, 246, 0.25)',
+            borderRadius: 'var(--radius-sm)',
+            padding: isCompact ? '10px 12px' : '12px 14px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 700, color: 'var(--status-purple, #8b5cf6)' }}>
+              <Target size={14} />
+              <span>Primary Cognitive Trap Spotlight &bull; {parsed.resolvedTrap.label}</span>
+            </div>
+
+            <span
+              style={{
+                fontSize: '0.65rem',
+                background: 'rgba(139, 92, 246, 0.14)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                color: 'var(--status-purple, #8b5cf6)',
+                padding: '1px 6px',
+                borderRadius: '3px',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px'
+              }}
+            >
+              <Sparkles size={9} />
+              Smart Trap Profile
+            </span>
+          </div>
+
+          <div style={{ fontSize: isCompact ? '0.76rem' : '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+            <strong style={{ color: 'var(--text-primary)' }}>Anti-Trap Strategy: </strong>
+            {parsed.resolvedTrap.advice}
           </div>
         </div>
       )}
@@ -253,7 +592,7 @@ export default function MentorExplanationView({ explanation = '', isCompact = fa
         }}
       >
         <Lightbulb size={12} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
-        <span>Tip: Always note why distractors fail to build anti-trap intuition under strict UCAT exam timing.</span>
+        <span>Tip: Always note why distractors fail to build subconscious anti-trap intuition under strict UCAT exam timing.</span>
       </div>
     </div>
   );

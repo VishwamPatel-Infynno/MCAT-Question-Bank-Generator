@@ -56,6 +56,9 @@ class QuestionDraft(BaseModel):
     image_prompt_or_type: str | None = Field(
         None, description="Visual description, chart type, or SVG geometry description"
     )
+    primary_trap: str | None = Field(
+        None, description="Primary cognitive distractor trap used (e.g. Scope_Shift, Keyword_Trap)"
+    )
 
     def model_post_init(self, __context: Any) -> None:
         # Synchronize correct_answer_id and correct_answer_ids

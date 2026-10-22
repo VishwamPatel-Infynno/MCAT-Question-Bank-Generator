@@ -67,7 +67,7 @@ The interface opens with a clean, distraction-free workstation:
 - **Target Subtopic**: Granular syllabus filtering (e.g., *Clinical Pharmacology*, *Categorical Syllogisms*, *Pediatric Ethics*).
 - **Difficulty Calibration**: Easy, Medium, or Hard cognitive complexity.
 - **Passage & Interaction Style**: Flexible options for shared reading stimuli (e.g., 1 clinical passage with 3 linked questions) or direct independent questions, as well as Single Choice (A-D) or Multi-Choice formats.
-- **Cognitive Trap Selection**: Specific trap targets such as *Intermediate Calculation Error*, *Keyword Trap*, or *Scope Shift*.
+- **Cognitive Trap Selection**: Select from 11 curated UCAT trap categories (e.g., *Calculation Trap*, *Keyword Trap*, *Scope Shift*) or utilize the default **Automatic (Smart AI Choice)** mode, where the generator agent assesses the clinical vignette and options to engineer the most psychometrically appropriate trap.
 
 ### Step 2: Live 3-Milestone Execution & Real-Time Telemetry
 Once the user clicks **Generate Questions** (or presses `⌘ + Enter`), the request streams via **Server-Sent Events (SSE)**. The user watches the live progress:
@@ -87,8 +87,12 @@ If the candidate scores **> 90 points**, it passes immediately. If it scores **�
 ### Step 4: Staged Batch Review Desk
 Passing questions arrive at an editorial staging desk:
 - **Passage & Stem Inspection**: Clean typography with serif styling and comfortable line height (`1.68`) for reading fatigue prevention.
+- **Top Metadata Trap Badging**: An electric purple badge chip in the header strip clearly flags the primary cognitive trap (e.g. `Calculation Trap`, `Keyword Trap`) alongside section, difficulty, and psychometric score.
 - **Symmetric Option Display**: Answer choices labeled A, B, C, and D with highlighted correct keys.
-- **Conversational Mentor Explanation**: An interactive view separating the core step-by-step winning strategy from the distractor trap analysis.
+- **3-Part Structured Mentor Explanation**: An interactive view presenting:
+  1. *Why Option [Key] is Correct* (Emerald proof card)
+  2. *Why Other Options are Incorrect* (Amber warning card with itemized distractor cards)
+  3. *Primary Cognitive Trap Spotlight* (Purple spotlight card detailing Error Mechanism and Student Defense Strategy)
 - **Editorial Controls**: Administrators can edit stems, options, or explanations directly inline, inspect raw JSON schemas, or discard items before committing.
 
 ### Step 5: Persistent Repository & Hybrid Full-Text Search
@@ -181,31 +185,59 @@ stateDiagram-v2
 
 In standard question banks, explanations are dry and academic: *"The answer is B because equation 2 yields 4.2."* That does not help a student who is panicked during timed practice.
 
-I engineered the **Mentor Explanation View** ([`MentorExplanationView.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/question/MentorExplanationView.jsx)) to emulate a friendly, expert clinical tutor sitting beside the student:
+I engineered the **Mentor Explanation View** ([`MentorExplanationView.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/question/MentorExplanationView.jsx)) to emulate a friendly, expert clinical tutor sitting beside the student across three distinct pedagogical cards:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│ 🎓 Mentor Walkthrough & Winning Strategy                               │
+│ CARD 1: Why Option B is Correct (Emerald / Success)                    │
 │                                                                        │
-│ "Here is the core intuition: in dilution problems, the total amount    │
-│ of active solute remains constant even while volume expands. Let's     │
-│ break this down in two quick steps:"                                   │
+│ In dilution calculations, the total active solute mass remains         │
+│ conserved when additional volume is introduced:                        │
 │                                                                        │
-│ • Step 1: Calculate the initial solute mass (250 mL × 0.04 = 10 g).    │
-│ • Step 2: Determine final concentration after adding 750 mL diluent.   │
+│ • Step 1: Initial solute mass = 250 mL × 0.04 g/mL = 10 g active API.  │
+│ • Step 2: Final combined volume = 250 mL + 750 mL = 1,000 mL.          │
+│ • Step 3: Final concentration = 10 g / 1,000 mL = 0.010 g/mL (1.0%).   │
 │                                                                        │
-│ Therefore, Option B is incontrovertible.                               │
-├────────────────────────────────────────────────────────────────────────┤
-│ ⚠️ Trap Breakdown (Why Other Options Fail)                             │
+│ Therefore, Option B is mathematically incontrovertible.                │
+└────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ CARD 2: Why Other Options are Incorrect (Amber / Distractor Analysis)  │
 │                                                                        │
-│ • Option A (0.02 g/mL): Tempting slip where the student divides by the │
-│   added volume (750 mL) instead of the total final volume (1000 mL).   │
-│ • Option C (0.015 g/mL): Intermediate rounding trap from Step 1.       │
-│ • Option D (0.005 g/mL): Unit conversion error (milligrams vs grams).  │
+│ ┌────────────────────────────────────────────────────────────────────┐ │
+│ │ [A] 0.020 g/mL (2.0%)                                              │ │
+│ │ Incorrect. Divides 10 g solute by added volume (750 mL) instead    │ │
+│ │ of total final mixture volume (1,000 mL).                          │ │
+│ └────────────────────────────────────────────────────────────────────┘ │
+│ ┌────────────────────────────────────────────────────────────────────┐ │
+│ │ [C] 0.015 g/mL (1.5%)                                              │ │
+│ │ Incorrect. Premature intermediate rounding of dilution ratio before │ │
+│ │ multiplying by stock concentration.                                │ │
+│ └────────────────────────────────────────────────────────────────────┘ │
+│ ┌────────────────────────────────────────────────────────────────────┐ │
+│ │ [D] 0.005 g/mL (0.5%)                                              │ │
+│ │ Incorrect. Factor-of-two arithmetic slip subtracting initial volume │ │
+│ │ from diluent rather than compounding.                              │ │
+│ └────────────────────────────────────────────────────────────────────┘ │
+└────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ CARD 3: Primary Cognitive Trap Spotlight (Purple / Tactical Defense)   │
+│                                                                        │
+│ ⚡ Dominant Trap: Calculation Trap (Intermediate Diluent Slip)          │
+│                                                                        │
+│ 🔍 Error Mechanism:                                                    │
+│ Candidates working under the tight 41-second Quantitative Reasoning   │
+│ pacing frequently divide by the added volume (750 mL) rather than the │
+│ total resulting volume (1,000 mL), prematurely selecting Option A.    │
+│                                                                        │
+│ 🛡️ Student Defense Strategy:                                           │
+│ Always write out the formula C1 × V1 = C2 × V2, and explicitly verify │
+│ that V2 represents the sum (V1 + V_added) before calculating C2.      │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-By explicitly dissecting the exact psychological trap behind each incorrect choice, students learn to recognize the cognitive tricks used by exam writers, dramatically boosting their real test scores.
+By explicitly dissecting the exact psychological trap behind each incorrect choice alongside concrete defense strategies, students learn to recognize the cognitive tricks used by exam writers, dramatically boosting their real test scores.
 
 ---
 
@@ -379,6 +411,6 @@ pnpm dev
 
 I designed and engineered this system to be an end-to-end, enterprise-grade solution for UCAT question generation. It replaces the uncertainties of manual writing and the flaws of generic AI with an autonomous, psychometrically audited engine that delivers publication-grade content at predictable, micro-dollar costs.
 
-Every component in this repository—from the 3-step LangGraph workflow and the 100-point rubric to the responsive React 19 workstation and one-click PDF exam booklet generator—is fully implemented, thoroughly tested, and ready for immediate deployment.
+Every component in this repository - from the 3-step LangGraph workflow and the 100-point rubric to the responsive React 19 workstation and one-click PDF exam booklet generator - is fully implemented, thoroughly tested, and ready for immediate deployment.
 
 I welcome the opportunity to lead this project forward and partner with you to deliver the definitive UK UCAT question generation platform.

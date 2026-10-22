@@ -1404,3 +1404,50 @@ async def test_passage_set_with_passage_level_visual_stimulus(monkeypatch):
             q["stage_outcomes"]["passage_visual_stimulus"]["note"]
             == "Visual stimulus belongs to shared reading passage"
         )
+
+
+@pytest.mark.asyncio
+async def test_smart_ai_trap_and_explanation_breakdown(monkeypatch):
+    import app.agents.generator as gen_mod
+    import app.agents.reviewer as rev_mod
+    from app.agents.mock_fixtures import get_mock_draft
+    from app.schemas.ucat import Difficulty, UCATSection
+    from app.schemas.workflow import GenerationRequest
+    from app.workflow.graph import run_workflow
+
+    async def mock_fail_call_llm(*args, **kwargs):
+        raise RuntimeError("Fast fallback to mock draft in unit test")
+
+    monkeypatch.setattr(gen_mod, "call_llm", mock_fail_call_llm)
+    monkeypatch.setattr(rev_mod, "call_llm", mock_fail_call_llm)
+
+    # 1. Automatic Smart AI Trap Choice resolution on draft
+    req_auto = GenerationRequest(
+        section=UCATSection.VERBAL_REASONING,
+        difficulty=Difficulty.HARD,
+        primary_trap="Automatic",
+        passage_required="No",
+    )
+    draft_auto = get_mock_draft(req_auto)
+    assert draft_auto.primary_trap is not None
+    assert draft_auto.primary_trap != "Automatic"
+    assert "Winning Strategy" not in draft_auto.explanation
+
+    # 2. End-to-end workflow assigns Smart AI primary trap to final Question
+    res = await run_workflow(req_auto)
+    assert res.question is not None
+    assert res.question.primary_trap is not None
+    assert res.question.primary_trap != "Automatic"
+    assert "Winning Strategy" not in res.question.explanation
+
+    # 3. Explicit trap selection is preserved
+    req_explicit = GenerationRequest(
+        section=UCATSection.QUANTITATIVE_REASONING,
+        difficulty=Difficulty.MEDIUM,
+        primary_trap="Calculation_Trap",
+        passage_required="No",
+    )
+    res_explicit = await run_workflow(req_explicit)
+    assert res_explicit.question is not None
+    assert res_explicit.question.primary_trap == "Calculation_Trap"
+

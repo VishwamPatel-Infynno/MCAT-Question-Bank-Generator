@@ -39,6 +39,14 @@ Image Required: {"Yes - formulate visual pattern requirements" if req.require_im
         user_prompt += f"\nQuestion Type Format: {req.question_type}"
     if req.primary_trap and req.primary_trap != "Automatic":
         user_prompt += f"\nPrimary Distractor Trap to Emphasize: {req.primary_trap}"
+    else:
+        user_prompt += (
+            "\nPrimary Distractor Trap: Automatic (Smart AI Choice)\n"
+            "Analyze the subtest, passage/stimulus, and question stem to intelligently choose the most realistic "
+            "and authentic cognitive distractor trap (e.g. Scope_Shift, Keyword_Trap, Extreme_Language, "
+            "Correlation_vs_Causation, Partial_Match, Half_Truth, Unwarranted_Assumption, Calculation_Trap) "
+            "and populate the 'primary_trap' JSON field with your selected trap."
+        )
 
     # Handle pre-existing shared passage (Single Passage Set) vs new passage
     if req.shared_stimulus and req.shared_stimulus.strip():
@@ -99,6 +107,32 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
 
     correct_id_str = ", ".join(keys_list)
 
+    # Determine primary trap: model selection, request override, or auto-detect from explanation
+    primary_trap = data.get("primary_trap")
+    if not primary_trap or primary_trap == "Automatic":
+        if req.primary_trap and req.primary_trap != "Automatic":
+            primary_trap = req.primary_trap
+        else:
+            expl = data.get("explanation", "")
+            detected = None
+            taxonomies = [
+                ("Scope_Shift", r"Scope\s*Shift"),
+                ("Keyword_Trap", r"Keyword\s*(?:Match\s*)?Trap"),
+                ("Extreme_Language", r"Extreme\s*(?:Language|Quantifier|Word)"),
+                ("Correlation_vs_Causation", r"Correlation\s*(?:vs\.?|and)\s*Causation"),
+                ("Partial_Match", r"Partial\s*Match"),
+                ("Half_Truth", r"Half-?Truth"),
+                ("Unwarranted_Assumption", r"Unwarranted\s*Assumption"),
+                ("Calculation_Trap", r"Calculation\s*(?:Trap|Error)"),
+                ("Out_of_Scope", r"Out\s*of\s*Scope"),
+            ]
+            import re
+            for trap_key, pattern in taxonomies:
+                if re.search(pattern, expl, re.IGNORECASE):
+                    detected = trap_key
+                    break
+            primary_trap = detected or "Scope_Shift"
+
     # Enforce reading passage vs direct independent question
     if not req.is_passage_active:
         effective_stimulus = ""
@@ -116,6 +150,7 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
         correct_answer_id=correct_id_str,
         correct_answer_ids=keys_list,
         explanation=data["explanation"],
+        primary_trap=primary_trap,
         image_needed=(
             False
             if (

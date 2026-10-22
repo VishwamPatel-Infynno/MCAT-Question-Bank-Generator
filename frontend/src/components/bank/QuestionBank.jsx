@@ -17,7 +17,8 @@ import {
   FileDown,
   ArrowUpDown,
   Image as ImageIcon,
-  RotateCcw
+  RotateCcw,
+  AlertTriangle
 } from 'lucide-react';
 import { batchDeleteQuestions } from '../../services/api';
 import { useQuestionBank } from '../../hooks/useQuestionBank';
@@ -25,7 +26,7 @@ import VisualStimulusViewer from '../question/VisualStimulusViewer';
 import SharedPassageCard from '../question/SharedPassageCard';
 import CustomSelect from '../common/CustomSelect';
 import ExportPrintModal from '../modals/ExportPrintModal';
-import MentorExplanationView from '../question/MentorExplanationView';
+import MentorExplanationView, { UCAT_TRAP_DEFINITIONS } from '../question/MentorExplanationView';
 
 const SORT_OPTIONS = [
   { id: 'newest', label: 'Newest First' },
@@ -572,11 +573,37 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
                           </span>
                         )}
 
-                        {q.primary_trap && q.primary_trap !== 'Automatic' && (
-                          <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
-                            • Trap: {q.primary_trap.replace(/_/g, ' ')}
-                          </span>
-                        )}
+                        {(() => {
+                          let t = q.primary_trap;
+                          let label = null;
+                          if (t && t !== 'Automatic' && t !== 'None') {
+                            label = UCAT_TRAP_DEFINITIONS[t]?.label || t.replace(/_/g, ' ');
+                          } else if (q.explanation) {
+                            for (const [k, info] of Object.entries(UCAT_TRAP_DEFINITIONS)) {
+                              const pattern = new RegExp(info.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + `|${k.replace(/_/g, '\\s*')}`, 'i');
+                              if (pattern.test(q.explanation)) {
+                                label = info.label;
+                                break;
+                              }
+                            }
+                          }
+                          if (!label) return null;
+                          return (
+                            <span
+                              className="badge badge-amber"
+                              style={{
+                                fontSize: '0.62rem',
+                                padding: '1px 6px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px'
+                              }}
+                              title={`Primary Cognitive Trap: ${label}`}
+                            >
+                              <AlertTriangle size={10} /> Trap: {label}
+                            </span>
+                          );
+                        })()}
 
 
                       </div>
@@ -711,7 +738,13 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
                           border: '1px solid var(--border-subtle)',
                         }}
                       >
-                        <MentorExplanationView explanation={q.explanation} isCompact={true} />
+                        <MentorExplanationView
+                          explanation={q.explanation}
+                          isCompact={true}
+                          options={q.options}
+                          correctAnswerId={q.correct_answer_id}
+                          primaryTrap={q.primary_trap}
+                        />
                       </div>
                     )}
                   </div>

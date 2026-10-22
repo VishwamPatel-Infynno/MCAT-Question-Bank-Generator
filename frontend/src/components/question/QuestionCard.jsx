@@ -16,11 +16,12 @@ import {
   Code2,
   ShieldCheck,
   Scale,
-  Image as ImageIcon
+  Image as ImageIcon,
+  AlertTriangle
 } from 'lucide-react';
 import StageJsonInspector from './StageJsonInspector';
 import VisualStimulusViewer from './VisualStimulusViewer';
-import MentorExplanationView from './MentorExplanationView';
+import MentorExplanationView, { UCAT_TRAP_DEFINITIONS } from './MentorExplanationView';
 
 export default function QuestionCard({ 
   question, 
@@ -44,6 +45,26 @@ export default function QuestionCard({
   const [editedExplanation, setEditedExplanation] = useState(question?.explanation || '');
   const [editedImageDescription, setEditedImageDescription] = useState(question?.image_description || '');
   const [showStimulusField, setShowStimulusField] = useState(Boolean(question?.stimulus_text && question.stimulus_text.trim().length > 0));
+
+  const effectiveTrapInfo = useMemo(() => {
+    if (!question) return null;
+    let t = question.primary_trap;
+    if (!t || t === 'Automatic' || t === 'None') {
+      const expl = question.explanation || '';
+      for (const [k, info] of Object.entries(UCAT_TRAP_DEFINITIONS)) {
+        const pattern = new RegExp(info.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + `|${k.replace(/_/g, '\\s*')}`, 'i');
+        if (pattern.test(expl)) {
+          return { key: k, label: info.label };
+        }
+      }
+      return null;
+    }
+    const info = UCAT_TRAP_DEFINITIONS[t];
+    return {
+      key: t,
+      label: info?.label || t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+    };
+  }, [question]);
 
   const optionSymmetry = useMemo(() => {
     if (!question) return null;
@@ -210,9 +231,19 @@ export default function QuestionCard({
             </span>
           )}
 
-          {question.primary_trap && question.primary_trap !== 'Automatic' && (
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              • Trap: {question.primary_trap.replace(/_/g, ' ')}
+          {effectiveTrapInfo && (
+            <span
+              className="badge badge-amber"
+              style={{
+                fontSize: '0.675rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontWeight: 600
+              }}
+              title={`Primary Cognitive Trap: ${effectiveTrapInfo.label}`}
+            >
+              <AlertTriangle size={11} /> Trap: {effectiveTrapInfo.label}
             </span>
           )}
 
@@ -564,7 +595,12 @@ export default function QuestionCard({
                   />
                 </>
               ) : (
-                <MentorExplanationView explanation={question.explanation} />
+                <MentorExplanationView
+                  explanation={question.explanation}
+                  options={question.options}
+                  correctAnswerId={question.correct_answer_id}
+                  primaryTrap={question.primary_trap || effectiveTrapInfo?.key}
+                />
               )}
             </div>
           )}
