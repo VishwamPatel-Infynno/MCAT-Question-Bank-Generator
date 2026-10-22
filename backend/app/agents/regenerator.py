@@ -4,7 +4,6 @@ from app.agents.base import calculate_token_cost, call_llm, safe_json_loads
 from app.agents.mock_fixtures import improve_draft_heuristically
 from app.agents.prompts import REGENERATOR_SYSTEM_PROMPT
 from app.core.config import config
-from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
 from app.schemas.mcat import MCAT_SECTION_LABELS
 from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
 from app.schemas.token import TokenUsage

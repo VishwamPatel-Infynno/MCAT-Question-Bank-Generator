@@ -355,8 +355,12 @@ async def test_deepinfra_model_configuration():
 
 
 @pytest.mark.asyncio
-async def test_token_and_cost_calculation():
+async def test_token_and_cost_calculation(monkeypatch):
     from app.agents.base import calculate_token_cost
+    from app.core.config import config
+
+    monkeypatch.setattr(config, "COST_PER_MILLION_INPUT_TOKENS", 0.098)
+    monkeypatch.setattr(config, "COST_PER_MILLION_OUTPUT_TOKENS", 0.294)
 
     # 1,000 prompt tokens @ $0.098/1M = $0.000098
     # 1,000 completion tokens @ $0.294/1M = $0.000294
@@ -1539,6 +1543,7 @@ async def test_max_tokens_settings_and_config_endpoint():
 async def test_call_llm_effective_max_tokens(monkeypatch):
     """Verify call_llm uses config.DEFAULT_MAX_TOKENS by default and respects explicit overrides."""
     from unittest.mock import MagicMock
+
     import litellm
     from app.agents.base import call_llm
     from app.core.config import config

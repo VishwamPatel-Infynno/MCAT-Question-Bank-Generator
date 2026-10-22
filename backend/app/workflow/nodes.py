@@ -16,8 +16,8 @@ from app.agents.reviewer import review_question
 from app.core.config import config
 from app.repositories.question_repo import save_question
 from app.schemas import (
-    GenerationRequest,
     MCAT_SECTION_LABELS,
+    GenerationRequest,
     OptionChoice,
     Question,
     QuestionDraft,

@@ -85,10 +85,10 @@ jobs:
       - name: Run Pytest Test Suite
         env:
           DATABASE_URL: postgresql+asyncpg://ucat_user:ucat_password@localhost:5432/ucat_db
-          DEFAULT_TEXT_MODEL: deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo
-          DEFAULT_IMAGE_MODEL: black-forest-labs/FLUX-1-schnell
-          COST_PER_MILLION_INPUT_TOKENS: 0.10
-          COST_PER_MILLION_OUTPUT_TOKENS: 0.32
+          DEFAULT_TEXT_MODEL: deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017
+          DEFAULT_IMAGE_MODEL: black-forest-labs/FLUX-2-klein-4b
+          COST_PER_MILLION_INPUT_TOKENS: 0.098
+          COST_PER_MILLION_OUTPUT_TOKENS: 0.294
           PASSING_SCORE_THRESHOLD: 90
         run: |
           PYTHONPATH=backend pytest backend/tests/test_backend.py backend/tests/test_database_structure.py -v --tb=short

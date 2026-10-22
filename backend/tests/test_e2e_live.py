@@ -85,7 +85,7 @@ async def test_e2e_config_endpoint():
 async def test_e2e_live_generation_sse_stream():
     """
     E2E Test 4: Full Multi-Agent Pipeline Execution via Server-Sent Events (SSE).
-    Generates a live question using Meta Llama 3.3-70B Instruct Turbo on DeepInfra.
+    Generates a live question using DeepSeek V4.1 Flash 1017 on DeepInfra.
     Verifies event chronology, 100-pt psychometric rubric scoring (> 90),
     exact token tracking, and automatic PostgreSQL 16 persistence.
     """

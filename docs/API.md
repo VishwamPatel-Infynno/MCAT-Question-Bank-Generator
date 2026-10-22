@@ -396,7 +396,7 @@ Reports backend status, PostgreSQL database connection, database version, active
   "database": "connected",
   "database_connected": true,
   "database_status": "ready",
-  "default_text_model": "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo",
+  "default_text_model": "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
   "default_image_model": "deepinfra/black-forest-labs/FLUX-2-klein-4b",
   "has_deepinfra_key": true,
   "has_gemini_key": false,

@@ -108,7 +108,7 @@ Open **[http://localhost:5173](http://localhost:5173)** in your browser.
 
 ## 4. DeepInfra API Key Configuration
 
-To enable live AI inference using Meta Llama 3.3 70B Instruct Turbo:
+To enable live AI inference using DeepSeek V4.1 Flash 1017 on DeepInfra:
 
 1. Sign up and obtain an API key from [deepinfra.com/dash/api_keys](https://deepinfra.com/dash/api_keys).
 2. Set `DEEPINFRA_API_KEY=your_key_here` in your server `.env` file and restart the backend. API credentials are encrypted/isolated exclusively on the backend server for zero client-side credential exposure.

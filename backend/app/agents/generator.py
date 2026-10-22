@@ -5,8 +5,6 @@ from app.agents.mock_fixtures import evaluate_heuristically, get_mock_draft
 from app.agents.option_balancer import balance_and_shuffle_options
 from app.agents.prompts import FUSED_GENERATOR_SYSTEM_PROMPT, GENERATOR_SYSTEM_PROMPT
 from app.core.config import config
-from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
-from app.schemas.token import TokenUsage
 from app.schemas.mcat import MCAT_SECTION_LABELS, MCATSection
 from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
 from app.schemas.token import TokenUsage
