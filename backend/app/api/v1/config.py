@@ -22,6 +22,8 @@ async def get_settings():
         "has_groq_key": bool(config.GROQ_API_KEY),
         "max_regenerations": config.MAX_REGENERATION_ATTEMPTS,
         "passing_threshold": config.PASSING_SCORE_THRESHOLD,
+        "default_max_tokens": config.DEFAULT_MAX_TOKENS,
+        "reviewer_max_tokens": config.REVIEWER_MAX_TOKENS,
         "cost_per_million_input": config.COST_PER_MILLION_INPUT_TOKENS,
         "cost_per_million_output": config.COST_PER_MILLION_OUTPUT_TOKENS,
         "image_width": config.IMAGE_WIDTH,

@@ -1,9 +1,9 @@
-import json
 import logging
 
-from app.agents.base import calculate_token_cost, call_llm, clean_json_text
+from app.agents.base import calculate_token_cost, call_llm, safe_json_loads
 from app.agents.mock_fixtures import evaluate_heuristically
 from app.agents.prompts import REVIEWER_SYSTEM_PROMPT
+from app.core.config import config
 from app.schemas.question import QuestionDraft, ReviewScore
 from app.schemas.token import TokenUsage
 from app.schemas.ucat import UCAT_SECTION_LABELS
@@ -55,15 +55,14 @@ Evaluate this question thoroughly and return your 100-point rubric breakdown as 
             model=req.model_name,
             api_key=req.api_key,
             temperature=0.3,
-            max_tokens=1200,
+            max_tokens=config.REVIEWER_MAX_TOKENS,
         )
-        cleaned = clean_json_text(raw_output)
-        data = json.loads(cleaned)
+        data = safe_json_loads(raw_output)
 
-        auth = int(data["authenticity_score"])
-        clarity = int(data["clarity_score"])
-        distractor = int(data["distractor_score"])
-        explanation = int(data["explanation_score"])
+        auth = int(float(data.get("authenticity_score", 23)))
+        clarity = int(float(data.get("clarity_score", 23)))
+        distractor = int(float(data.get("distractor_score", 23)))
+        explanation = int(float(data.get("explanation_score", 23)))
         total = auth + clarity + distractor + explanation
 
         passed = total > 90

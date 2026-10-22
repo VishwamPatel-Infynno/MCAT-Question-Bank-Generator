@@ -1,4 +1,4 @@
-from app.agents.base import calculate_token_cost, call_llm, clean_json_text
+from app.agents.base import calculate_token_cost, call_llm, clean_json_text, safe_json_loads
 from app.agents.generator import generate_question
 from app.agents.image_generator import calculate_flux_image_cost, generate_image_stimulus
 from app.agents.mock_fixtures import (
@@ -21,4 +21,5 @@ __all__ = [
     "improve_draft_heuristically",
     "regenerate_question",
     "review_question",
+    "safe_json_loads",
 ]

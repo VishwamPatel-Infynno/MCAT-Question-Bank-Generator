@@ -14,15 +14,15 @@ class Settings(BaseSettings):
         "DATABASE_URL", "postgresql+asyncpg://ucat_user:ucat_password@localhost:5432/ucat_db"
     )
 
-    # Primary LLM for multi-agent reasoning: Meta Llama 3.3 70B Instruct Turbo via DeepInfra
+    # Primary LLM for multi-agent reasoning: DeepSeek V4.1 Flash 1017 via DeepInfra
     DEFAULT_TEXT_MODEL: str = os.getenv(
-        "DEFAULT_TEXT_MODEL", "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo"
+        "DEFAULT_TEXT_MODEL", "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017"
     )
 
     # Official DeepInfra Pricing (USD per 1,000,000 tokens)
-    COST_PER_MILLION_INPUT_TOKENS: float = float(os.getenv("COST_PER_MILLION_INPUT_TOKENS", "0.10"))
+    COST_PER_MILLION_INPUT_TOKENS: float = float(os.getenv("COST_PER_MILLION_INPUT_TOKENS", "0.098"))
     COST_PER_MILLION_OUTPUT_TOKENS: float = float(
-        os.getenv("COST_PER_MILLION_OUTPUT_TOKENS", "0.32")
+        os.getenv("COST_PER_MILLION_OUTPUT_TOKENS", "0.294")
     )
 
     # Image generation model: black-forest-labs/FLUX-2-klein-4b via DeepInfra
@@ -67,6 +67,8 @@ class Settings(BaseSettings):
     # Multi-Agent Workflow Parameters
     MAX_REGENERATION_ATTEMPTS: int = int(os.getenv("MAX_REGENERATION_ATTEMPTS", "3"))
     PASSING_SCORE_THRESHOLD: int = int(os.getenv("PASSING_SCORE_THRESHOLD", "90"))
+    DEFAULT_MAX_TOKENS: int = int(os.getenv("DEFAULT_MAX_TOKENS", "3000"))
+    REVIEWER_MAX_TOKENS: int = int(os.getenv("REVIEWER_MAX_TOKENS", "1800"))
 
     model_config = SettingsConfigDict(
         env_file=[str(Path(__file__).resolve().parent.parent.parent.parent / ".env"), ".env"],

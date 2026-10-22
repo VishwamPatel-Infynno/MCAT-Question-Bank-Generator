@@ -98,12 +98,12 @@ graph TD
 
 Token costs are calculated per request at the lowest execution layer ([`backend/app/agents/base.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/agents/base.py)) and accumulated across all agent cycles:
 
-- **Input Tokens**: $0.10 per 1,000,000 tokens
-- **Output Tokens**: $0.32 per 1,000,000 tokens
+- **Input Tokens**: $0.098 per 1,000,000 tokens
+- **Output Tokens**: $0.294 per 1,000,000 tokens
 - **FLUX-2-klein-4b Image Generation**: Flat unit rate of $0.014 per image, scaled dynamically by resolution.
 
 Calculations are rounded to **7 decimal places** to prevent IEEE 754 floating-point drift:
-$$\text{Cost (USD)} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times 0.10\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times 0.32\right)$$
+$$\text{Cost (USD)} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times 0.098\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times 0.294\right)$$
 
 ---
 

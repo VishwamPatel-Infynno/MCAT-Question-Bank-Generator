@@ -41,7 +41,7 @@ SUBTEST INSTRUCTIONS:
 - Situational Judgement: Realistic clinical junior doctor or medical student scenario evaluating ethics (GMC Good Medical Practice guidelines).
 
 OUTPUT FORMAT:
-Respond ONLY with a valid JSON object matching this exact structure:
+Respond ONLY with a valid JSON object matching this exact structure (strictly escape newlines in string properties as \n; do NOT output unescaped raw control characters):
 {
   "stimulus_text": "Academic reading passage when Passage Required is 'Yes', or strictly empty string \"\" when Passage Required is 'No'",
   "question_stem": "The direct question prompt...",
@@ -126,7 +126,7 @@ RULES FOR REGENERATION:
    - Strictly NEVER use double dashes, en dashes, or em dashes ("—", "–", or "--") in question stems, passage text, options, or rationales. Use standard single hyphens ("-") only.
 
 OUTPUT FORMAT:
-Respond ONLY with a valid JSON object matching this exact structure:
+Respond ONLY with a valid JSON object matching this exact structure (strictly escape newlines in string properties as \n; do NOT output unescaped raw control characters):
 {
   "stimulus_text": "Updated passage text if Passage Required is 'Yes', or empty string \"\" if Passage Required is 'No'",
   "question_stem": "Refined question stem...",
@@ -195,7 +195,7 @@ After drafting the item, evaluate your own work objectively:
 Be strict and honest in scoring.
 
 OUTPUT FORMAT:
-Respond ONLY with a valid JSON object matching this exact structure:
+Respond ONLY with a valid JSON object matching this exact structure (strictly escape newlines in string properties as \n; do NOT output unescaped raw control characters):
 {
   "stimulus_text": "Academic reading passage when Passage Required is 'Yes', or strictly empty string \"\" when Passage Required is 'No'",
   "question_stem": "The direct question prompt...",

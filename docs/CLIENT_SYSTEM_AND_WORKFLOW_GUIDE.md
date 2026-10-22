@@ -246,22 +246,22 @@ By explicitly dissecting the exact psychological trap behind each incorrect choi
 A major risk in AI systems is uncontrolled API spend. I designed this system with granular financial tracking built directly into the workflow engine:
 
 ### Official Rate Card
-- **Prompt (Input) Tokens**: **$0.10** per 1,000,000 tokens
-- **Completion (Output) Tokens**: **$0.32** per 1,000,000 tokens
+- **Prompt (Input) Tokens**: **$0.098** per 1,000,000 tokens
+- **Completion (Output) Tokens**: **$0.294** per 1,000,000 tokens
 
 ### Mathematical Cost Formula
 Every single API invocation computes the exact dollar cost down to the sixth decimal place:
-$$\text{Cost (USD)} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times 0.10\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times 0.32\right)$$
+$$\text{Cost (USD)} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times 0.098\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times 0.294\right)$$
 
 ### Real-World Unit Economics
 Across production test runs, here is the verified cost per generated question:
 
 | Workflow Cycle | Typical Prompt Tokens | Typical Output Tokens | Execution Cost |
 | :--- | :--- | :--- | :--- |
-| **Pass on Cycle 1** (Generator + Reviewer) | ~1,200 tokens | ~850 tokens | **$0.00039 USD** |
-| **Pass on Cycle 2** (+ 1 Remediation cycle) | ~2,600 tokens | ~1,700 tokens | **$0.00080 USD** |
-| **Pass on Cycle 3** (+ 2 Remediation cycles) | ~4,100 tokens | ~2,500 tokens | **$0.00121 USD** |
-| **With Programmatic SVG Diagram** | + ~450 tokens | + ~600 tokens | **+ $0.00024 USD** |
+| **Pass on Cycle 1** (Generator + Reviewer) | ~1,200 tokens | ~850 tokens | **$0.00037 USD** |
+| **Pass on Cycle 2** (+ 1 Remediation cycle) | ~2,600 tokens | ~1,700 tokens | **$0.00075 USD** |
+| **Pass on Cycle 3** (+ 2 Remediation cycles) | ~4,100 tokens | ~2,500 tokens | **$0.00114 USD** |
+| **With Programmatic SVG Diagram** | + ~450 tokens | + ~600 tokens | **+ $0.00022 USD** |
 
 **Bottom Line**: An institution can generate **1,000 publication-grade, audited UCAT questions for less than $1.50 to $2.50 USD in total inference cost**. Every question card and repository export displays the exact accumulated token count and cost, providing 100% financial transparency with zero billing surprises.
 

@@ -168,7 +168,7 @@ class AgentWorkflowState(TypedDict, total=False):
     total_tokens: int  # Cumulative tokens consumed
     total_prompt_tokens: int  # Cumulative input tokens
     total_completion_tokens: int  # Cumulative output tokens
-    total_cost_usd: float  # Cumulative cost in USD ($0.10 in / $0.32 out)
+    total_cost_usd: float  # Cumulative cost in USD ($0.098 in / $0.294 out)
     agent_usage_breakdown: List[Dict[str, Any]]  # Itemized usage per agent cycle
     latest_usage: Optional[Dict[str, Any]]  # Usage of the most recently executed node
 ```
@@ -294,7 +294,7 @@ erDiagram
         INTEGER total_tokens "Cumulative tokens consumed"
         INTEGER prompt_tokens "Cumulative prompt tokens"
         INTEGER completion_tokens "Cumulative completion tokens"
-        DOUBLE_PRECISION cost_usd "Total cost in USD ($0.10 in / $0.32 out)"
+        DOUBLE_PRECISION cost_usd "Total cost in USD ($0.098 in / $0.294 out)"
         JSONB token_usage_details "Per-agent itemized token breakdown"
         VARCHAR(64) combination_id "Matrix combination code (CMB00001)"
         VARCHAR(64) run_id "Execution run UUID4"

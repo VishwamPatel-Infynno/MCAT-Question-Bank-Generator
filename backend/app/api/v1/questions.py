@@ -75,7 +75,9 @@ async def get_question_image(question_id: str):
         return Response(content=q.image_svg, media_type="image/svg+xml")
 
     if not img_url:
-        raise HTTPException(status_code=404, detail="No visual stimulus image found for this question")
+        raise HTTPException(
+            status_code=404, detail="No visual stimulus image found for this question"
+        )
 
     if img_url.startswith("data:"):
         try:

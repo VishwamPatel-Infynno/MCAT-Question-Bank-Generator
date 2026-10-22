@@ -64,7 +64,7 @@ pnpm build
 
 1. **Strict Quality Threshold**: Questions scoring $\le 90$ must be regenerated up to 3 times by the Re-Generator agent. If still below 90, the workflow must halt and reject the question from the Question Bank.
 2. **Deterministic Token & Cost Math**: All costs must be computed via official DeepInfra rates:
-   - Text: $0.10 input / $0.32 output per 1M tokens.
+   - Text: $0.098 input / $0.294 output per 1M tokens.
    - Image: Flat baseline rate of $0.014 USD per image (scaled by $(\text{width}/1024) \times (\text{height}/1024)$).
 3. **Modular Layer Separation**:
    - Routing: `backend/app/api/v1/`

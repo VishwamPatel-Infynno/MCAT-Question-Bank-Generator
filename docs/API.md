@@ -11,7 +11,7 @@ This document provides a comprehensive reference for all REST endpoints and Serv
 - **Base URL**: `http://localhost:8000` (or configured deployment host)
 - **Content Type**: `application/json` (REST endpoints), `text/event-stream` (Live generation)
 - **CORS Policy & Security Headers**: Restricted to trusted origins (`http://localhost:5173`, etc.) with OWASP security headers (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`).
-- **Autonomous Inference Gateway**: Backed by high-throughput enterprise reasoning models (~110-140 tok/s) with deterministic token billing ($0.10 input / $0.32 output per 1M tokens).
+- **Autonomous Inference Gateway**: Backed by high-throughput enterprise reasoning models (~85-125 tok/s) with deterministic token billing ($0.098 input / $0.294 output per 1M tokens).
 
 ---
 
@@ -403,8 +403,8 @@ Reports backend status, PostgreSQL database connection, database version, active
   "has_openai_key": false,
   "max_regenerations": 3,
   "passing_threshold": 90,
-  "cost_per_million_input": 0.1,
-  "cost_per_million_output": 0.32,
+  "cost_per_million_input": 0.098,
+  "cost_per_million_output": 0.294,
   "image_width": 1024,
   "image_height": 1024,
   "image_iters": 0,
@@ -427,7 +427,7 @@ Enables reading active runtime engine settings, model choices, and pricing param
 #### Response (`200 OK`)
 ```json
 {
-  "default_text_model": "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo",
+  "default_text_model": "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
   "default_image_model": "deepinfra/black-forest-labs/FLUX-2-klein-4b",
   "has_deepinfra_key": true,
   "has_gemini_key": false,
@@ -436,8 +436,8 @@ Enables reading active runtime engine settings, model choices, and pricing param
   "has_groq_key": false,
   "max_regenerations": 3,
   "passing_threshold": 90,
-  "cost_per_million_input": 0.1,
-  "cost_per_million_output": 0.32,
+  "cost_per_million_input": 0.098,
+  "cost_per_million_output": 0.294,
   "image_width": 1024,
   "image_height": 1024,
   "image_iters": 0,

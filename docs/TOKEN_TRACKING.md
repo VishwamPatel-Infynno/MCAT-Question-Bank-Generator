@@ -8,17 +8,17 @@ This document details the token accounting engine, high-throughput pricing rate 
 
 ## 1. Inference Engine & Pricing Rate Card
 
-The primary LLM driving the multi-agent system is **Meta Llama 3.3 70B Instruct Turbo**, hosted on **DeepInfra**:
+The primary LLM driving the multi-agent system is **DeepSeek-V4.1-Flash-1017**, hosted on **DeepInfra**:
 
-- **Model Identifier**: `deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo`
-- **Context Window**: 128,000 tokens
-- **Inference Speed**: ~110-140 tokens/second
+- **Model Identifier**: `deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017`
+- **Context Window**: 1,024,000 tokens (1M)
+- **Inference Speed**: ~85-125 tokens/second
 
 ### Official DeepInfra Rate Card
 
 $$\begin{aligned}
-\text{Input (Prompt) Tokens} &: \text{0.10 USD per 1,000,000 tokens} \\
-\text{Output (Completion) Tokens} &: \text{0.32 USD per 1,000,000 tokens}
+\text{Input (Prompt) Tokens} &: \text{0.098 USD per 1,000,000 tokens} \\
+\text{Output (Completion) Tokens} &: \text{0.294 USD per 1,000,000 tokens}
 \end{aligned}$$
 
 ---
@@ -27,13 +27,13 @@ $$\begin{aligned}
 
 The calculation is implemented in [`backend/app/agents/base.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/agents/base.py#L35-L45) via `calculate_token_cost`:
 
-$$\text{Cost}_{\text{USD}} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times 0.10\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times 0.32\right)$$
+$$\text{Cost}_{\text{USD}} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times 0.098\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times 0.294\right)$$
 
 To preserve numerical accuracy and avoid IEEE 754 floating-point drift, calculations are rounded to **7 decimal places** (sub-micro-cent precision):
 
 ```python
 def calculate_token_cost(prompt_tokens: int, completion_tokens: int) -> float:
-    """Calculates exact USD cost based on official DeepInfra pricing ($0.10 in / $0.32 out / 1M)."""
+    """Calculates exact USD cost based on official DeepInfra pricing ($0.098 in / $0.294 out / 1M)."""
     in_cost = (prompt_tokens / 1_000_000.0) * config.COST_PER_MILLION_INPUT_TOKENS
     out_cost = (completion_tokens / 1_000_000.0) * config.COST_PER_MILLION_OUTPUT_TOKENS
     return round(in_cost + out_cost, 7)
@@ -43,14 +43,14 @@ def calculate_token_cost(prompt_tokens: int, completion_tokens: int) -> float:
 
 | Scenario | Prompt Tokens ($P$) | Completion Tokens ($C$) | Input Cost | Output Cost | Total Cost (USD) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Micro Benchmark (1k / 1k)** | 1,000 | 1,000 | $0.00010 | $0.00032 | **$0.00042** |
-| **Fused Draft & Self-Critique Pass** | 720 | 480 | $0.000072 | $0.0001536 | **$0.0002256** |
-| **Generator Pass (Draft v1)** | 450 | 320 | $0.000045 | $0.0001024 | **$0.0001474** |
-| **Independent Reviewer Audit Pass** | 380 | 210 | $0.000038 | $0.0000672 | **$0.0001052** |
-| **Re-Generator Remediation** | 510 | 390 | $0.000051 | $0.0001248 | **$0.0001758** |
-| **2-Cycle Full Question Lifecycle** | 1,720 | 1,130 | $0.000172 | $0.0003616 | **$0.0005336** |
-| **1 Million Input Tokens** | 1,000,000 | 0 | $0.10000 | $0.00000 | **$0.10000** |
-| **1 Million Output Tokens** | 0 | 1,000,000 | $0.00000 | $0.32000 | **$0.32000** |
+| **Micro Benchmark (1k / 1k)** | 1,000 | 1,000 | $0.000098 | $0.000294 | **$0.000392** |
+| **Fused Draft & Self-Critique Pass** | 720 | 480 | $0.00007056 | $0.00014112 | **$0.00021168** |
+| **Generator Pass (Draft v1)** | 450 | 320 | $0.0000441 | $0.00009408 | **$0.00013818** |
+| **Independent Reviewer Audit Pass** | 380 | 210 | $0.00003724 | $0.00006174 | **$0.00009898** |
+| **Re-Generator Remediation** | 510 | 390 | $0.00004998 | $0.00011466 | **$0.00016464** |
+| **2-Cycle Full Question Lifecycle** | 1,720 | 1,130 | $0.00016856 | $0.00033222 | **$0.00050078** |
+| **1 Million Input Tokens** | 1,000,000 | 0 | $0.09800 | $0.00000 | **$0.09800** |
+| **1 Million Output Tokens** | 0 | 1,000,000 | $0.00000 | $0.29400 | **$0.29400** |
 
 ---
 
@@ -179,8 +179,8 @@ Token and cost data is surfaced across 4 distinct user interfaces in the fronten
 - **Granular Breakdown Table**: Itemizes every LLM request:
   - Agent Node (`Question Writer & Reviewer`, `Question Improver`, `Diagram & Chart Maker`, or fallback `Quality Reviewer`)
   - Execution Cycle / Iteration
-  - Prompt Tokens (priced @ $0.10)
-  - Completion Tokens (priced @ $0.32)
+  - Prompt Tokens (priced @ $0.098)
+  - Completion Tokens (priced @ $0.294)
   - Total Tokens
   - Micro-dollar Cost ($0.000XX)
 

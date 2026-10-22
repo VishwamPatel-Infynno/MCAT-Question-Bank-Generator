@@ -31,11 +31,11 @@ async def test_e2e_health_and_db_connectivity():
         assert data["database_status"] == "ready"
 
         # Verify inference models and pricing
-        assert data["default_text_model"] == "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo"
+        assert data["default_text_model"] == "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017"
         assert "FLUX-2-klein-4b" in data["default_image_model"]
         assert data["has_deepinfra_key"] is True
-        assert data["cost_per_million_input"] == 0.1
-        assert data["cost_per_million_output"] == 0.32
+        assert data["cost_per_million_input"] == 0.098
+        assert data["cost_per_million_output"] == 0.294
         assert data["passing_threshold"] == 90
         assert data["max_regenerations"] == 3
 
@@ -76,7 +76,7 @@ async def test_e2e_config_endpoint():
         resp = await client.get("/config")
         assert resp.status_code == 200
         cfg = resp.json()
-        assert cfg["default_text_model"] == "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo"
+        assert cfg["default_text_model"] == "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017"
         assert cfg["has_deepinfra_key"] is True
         assert cfg["passing_threshold"] == 90
         assert cfg["current_image_cost_usd"] == 0.014
@@ -491,7 +491,9 @@ async def test_e2e_question_image_endpoint():
     import uuid
 
     # 1x1 transparent GIF in base64
-    dummy_b64 = "data:image/jpeg;base64," + base64.b64encode(b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00`\x00`\x00\x00\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e\x1d\x1a\x1c\x1c $.' \",#\x1c\x1c(7),01444\x1f'9=82<.342\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x1f\x00\x00\x01\x05\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xbf\x00\xff\xd9").decode("utf-8")
+    dummy_b64 = "data:image/jpeg;base64," + base64.b64encode(
+        b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00`\x00`\x00\x00\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e\x1d\x1a\x1c\x1c $.' \",#\x1c\x1c(7),01444\x1f'9=82<.342\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x1f\x00\x00\x01\x05\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xbf\x00\xff\xd9"
+    ).decode("utf-8")
     test_id = str(uuid.uuid4())
 
     img_q = {
@@ -538,7 +540,9 @@ async def test_e2e_question_image_endpoint():
         found_row = next((r for r in rows if r[0] == test_id), None)
         assert found_row is not None
         assert found_row[img_url_idx] == f"/api/questions/{test_id}/image"
-        assert found_row[img_desc_idx] == "Geometric pattern of alternating concentric shaded hexagons"
+        assert (
+            found_row[img_desc_idx] == "Geometric pattern of alternating concentric shaded hexagons"
+        )
 
         # Cleanup
         await client.delete(f"/questions/{test_id}")

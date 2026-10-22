@@ -33,15 +33,15 @@ cp .env.example .env
 | Variable | Type | Default Value | Description |
 | :--- | :--- | :--- | :--- |
 | `DATABASE_URL` | `string` | `postgresql+asyncpg://ucat_user:ucat_password@localhost:5432/ucat_db` | Async SQLAlchemy PostgreSQL connection string |
-| `DEFAULT_TEXT_MODEL` | `string` | `deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo` | Primary LiteLLM model identifier |
+| `DEFAULT_TEXT_MODEL` | `string` | `deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017` | Primary LiteLLM model identifier |
 | `DEFAULT_IMAGE_MODEL` | `string` | `deepinfra/black-forest-labs/FLUX-2-klein-4b` | Image model for visual stimuli |
 | `DEEPINFRA_API_KEY` | `string` | `""` | DeepInfra API authorization key |
 | `GEMINI_API_KEY` | `string` | `""` | Optional Google Gemini API key |
 | `OPENAI_API_KEY` | `string` | `""` | Optional OpenAI API key |
 | `MAX_REGENERATION_ATTEMPTS`| `integer`| `3` | Maximum remediation loops before Quality Gate reject |
 | `PASSING_SCORE_THRESHOLD` | `integer`| `90` | Minimum score required to pass psychometric gate |
-| `COST_PER_MILLION_INPUT_TOKENS` | `float` | `0.10` | Input token price ($0.10 / 1M tokens) |
-| `COST_PER_MILLION_OUTPUT_TOKENS`| `float` | `0.32` | Output token price ($0.32 / 1M tokens) |
+| `COST_PER_MILLION_INPUT_TOKENS` | `float` | `0.098` | Input token price ($0.098 / 1M tokens) |
+| `COST_PER_MILLION_OUTPUT_TOKENS`| `float` | `0.294` | Output token price ($0.294 / 1M tokens) |
 | `IMAGE_WIDTH` | `integer` | `1024` | Default width for FLUX diagrams |
 | `IMAGE_HEIGHT` | `integer` | `1024` | Default height for FLUX diagrams |
 | `IMAGE_ITERS` | `integer` | `0` | Inference step iterations (0 for flat-rate models) |

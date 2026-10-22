@@ -342,28 +342,28 @@ async def test_deepinfra_model_configuration():
     from app.core.config import config
 
     assert "deepinfra" in config.DEFAULT_TEXT_MODEL.lower()
-    assert "Llama-3.3-70B-Instruct-Turbo" in config.DEFAULT_TEXT_MODEL
-    assert config.COST_PER_MILLION_INPUT_TOKENS == 0.10
-    assert config.COST_PER_MILLION_OUTPUT_TOKENS == 0.32
+    assert "DeepSeek-V4.1-Flash-1017" in config.DEFAULT_TEXT_MODEL
+    assert config.COST_PER_MILLION_INPUT_TOKENS == 0.098
+    assert config.COST_PER_MILLION_OUTPUT_TOKENS == 0.294
 
 
 @pytest.mark.asyncio
 async def test_token_and_cost_calculation():
     from app.agents.base import calculate_token_cost
 
-    # 1,000 prompt tokens @ $0.10/1M = $0.0001
-    # 1,000 completion tokens @ $0.32/1M = $0.00032
-    # Total = $0.00042
+    # 1,000 prompt tokens @ $0.098/1M = $0.000098
+    # 1,000 completion tokens @ $0.294/1M = $0.000294
+    # Total = $0.000392
     cost = calculate_token_cost(prompt_tokens=1000, completion_tokens=1000)
-    assert cost == 0.00042
+    assert cost == 0.000392
 
-    # 1,000,000 input tokens = $0.10
+    # 1,000,000 input tokens = $0.098
     cost_in = calculate_token_cost(prompt_tokens=1_000_000, completion_tokens=0)
-    assert cost_in == 0.10
+    assert cost_in == 0.098
 
-    # 1,000,000 output tokens = $0.32
+    # 1,000,000 output tokens = $0.294
     cost_out = calculate_token_cost(prompt_tokens=0, completion_tokens=1_000_000)
-    assert cost_out == 0.32
+    assert cost_out == 0.294
 
 
 @pytest.mark.asyncio
@@ -415,7 +415,7 @@ async def test_deepinfra_strict_api_key_enforcement():
             await call_llm(
                 prompt="test prompt",
                 system_prompt="test system",
-                model="deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo",
+                model="deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
             )
         assert "AI Gateway API Key is required" in str(excinfo.value)
     finally:
@@ -758,7 +758,8 @@ async def test_per_question_stage_metadata_in_events(monkeypatch):
         e
         for e in events
         if e["event_type"] == "agent_start"
-        and e["agent_name"] in ("Question Writer & Reviewer", "Question Writer", "Question Generator")
+        and e["agent_name"]
+        in ("Question Writer & Reviewer", "Question Writer", "Question Generator")
     ]
     assert len(gen_starts) == 2
     for e in gen_starts:
@@ -1105,14 +1106,15 @@ async def test_fused_workflow_bypasses_reviewer_when_self_critique_passed(monkey
         if e["event_type"] == "agent_complete"
         and e["agent_name"] in ("Quality Reviewer", "Question Reviewer")
     ]
-    assert len(rev_completes) == 0, "Separate Quality Reviewer complete should not be emitted on fused pass!"
+    assert len(rev_completes) == 0, (
+        "Separate Quality Reviewer complete should not be emitted on fused pass!"
+    )
 
     # Step 1 Question Writer & Reviewer emitted complete event carrying the self-critique score
     fused_completes = [
         e
         for e in events
-        if e["event_type"] == "agent_complete"
-        and e["agent_name"] == "Question Writer & Reviewer"
+        if e["event_type"] == "agent_complete" and e["agent_name"] == "Question Writer & Reviewer"
     ]
     assert len(fused_completes) == 1
     assert fused_completes[0]["data"]["score"] == 96
@@ -1409,6 +1411,7 @@ async def test_passage_set_with_passage_level_visual_stimulus(monkeypatch):
 @pytest.mark.asyncio
 async def test_smart_ai_trap_and_explanation_breakdown(monkeypatch):
     import app.agents.generator as gen_mod
+    import app.agents.regenerator as regen_mod
     import app.agents.reviewer as rev_mod
     from app.agents.mock_fixtures import get_mock_draft
     from app.schemas.ucat import Difficulty, UCATSection
@@ -1420,6 +1423,7 @@ async def test_smart_ai_trap_and_explanation_breakdown(monkeypatch):
 
     monkeypatch.setattr(gen_mod, "call_llm", mock_fail_call_llm)
     monkeypatch.setattr(rev_mod, "call_llm", mock_fail_call_llm)
+    monkeypatch.setattr(regen_mod, "call_llm", mock_fail_call_llm)
 
     # 1. Automatic Smart AI Trap Choice resolution on draft
     req_auto = GenerationRequest(
@@ -1450,4 +1454,143 @@ async def test_smart_ai_trap_and_explanation_breakdown(monkeypatch):
     res_explicit = await run_workflow(req_explicit)
     assert res_explicit.question is not None
     assert res_explicit.question.primary_trap == "Calculation_Trap"
+
+
+def test_safe_json_loads_and_resilient_parsing():
+    from app.agents.base import safe_json_loads
+    from app.agents.generator import _parse_question_draft_data
+
+    # 1. Unescaped literal newlines in JSON strings (exact terminal error)
+    raw_with_literal_newlines = (
+        "{\n"
+        '  "stimulus_text": "Paragraph 1 has content.\nParagraph 2 has content on a new line.",\n'
+        '  "question_stem": "Which option is correct?",\n'
+        '  "options": [\n'
+        '    {"id": "A", "text": "Option A"},\n'
+        '    {"id": "B", "text": "Option B"},\n'
+        '    {"id": "C", "text": "Option C"},\n'
+        '    {"id": "D", "text": "Option D"}\n'
+        "  ],\n"
+        '  "correct_answer_id": "B",\n'
+        '  "explanation": "Why B is correct:\nLine 1 proof\nLine 2 proof"\n'
+        "}"
+    )
+    parsed = safe_json_loads(raw_with_literal_newlines)
+    assert "Paragraph 2" in parsed["stimulus_text"]
+    assert "Line 2 proof" in parsed["explanation"]
+
+    # 2. Markdown fence wrapped in conversational prose
+    raw_with_fence = (
+        "Here is the requested question:\n"
+        "```json\n"
+        "{\n"
+        '  "stimulus_text": "Sample stimulus",\n'
+        '  "question_stem": "Sample stem",\n'
+        '  "options": [\n'
+        '    {"id": "A", "text": "Option A"},\n'
+        '    {"id": "B", "text": "Option B"},\n'
+        '    {"id": "C", "text": "Option C"},\n'
+        '    {"id": "D", "text": "Option D"}\n'
+        "  ],\n"
+        '  "correct_answer_id": "A",\n'
+        '  "explanation": "Rationale"\n'
+        "}\n"
+        "```\n"
+        "I hope this satisfies the psychometric standard."
+    )
+    parsed2 = safe_json_loads(raw_with_fence)
+    assert parsed2["correct_answer_id"] == "A"
+
+    # 3. Trailing comma in JSON
+    raw_trailing_comma = (
+        "{\n"
+        '  "stimulus_text": "",\n'
+        '  "question_stem": "Stem",\n'
+        '  "options": [\n'
+        '    {"id": "A", "text": "A"},\n'
+        '    {"id": "B", "text": "B"},\n'
+        '    {"id": "C", "text": "C"},\n'
+        '    {"id": "D", "text": "D"},\n'
+        "  ],\n"
+        '  "correct_answer_id": "A",\n'
+        '  "explanation": "Exp",\n'
+        "}"
+    )
+    parsed3 = safe_json_loads(raw_trailing_comma)
+    assert len(parsed3["options"]) == 4
+
+    # 4. Parse draft data with dict options
+    req = GenerationRequest(
+        section=UCATSection.DECISION_MAKING,
+        difficulty=Difficulty.MEDIUM,
+        passage_required="No",
+    )
+    dict_options_data = {
+        "stimulus_text": "",
+        "question_stem": "Stem",
+        "options": {"A": "Choice A", "B": "Choice B", "C": "Choice C", "D": "Choice D"},
+        "correct_answer_id": "C",
+        "explanation": "Option C is correct",
+    }
+    draft = _parse_question_draft_data(dict_options_data, req)
+    assert len(draft.options) == 4
+    assert draft.correct_answer_id == "C"
+
+
+@pytest.mark.asyncio
+async def test_max_tokens_settings_and_config_endpoint():
+    """Verify that DEFAULT_MAX_TOKENS and REVIEWER_MAX_TOKENS are properly set in config and returned by /config."""
+    from app.api.v1.config import get_settings
+    from app.core.config import config
+
+    assert config.DEFAULT_MAX_TOKENS == 3000
+    assert config.REVIEWER_MAX_TOKENS == 1800
+
+    settings_data = await get_settings()
+    assert settings_data["default_max_tokens"] == 3000
+    assert settings_data["reviewer_max_tokens"] == 1800
+
+
+@pytest.mark.asyncio
+async def test_call_llm_effective_max_tokens(monkeypatch):
+    """Verify call_llm uses config.DEFAULT_MAX_TOKENS by default and respects explicit overrides."""
+    from unittest.mock import MagicMock
+    import litellm
+    from app.agents.base import call_llm
+    from app.core.config import config
+
+    captured_kwargs = []
+
+    async def mock_acompletion(**kwargs):
+        captured_kwargs.append(kwargs)
+        mock_resp = MagicMock()
+        mock_choice = MagicMock()
+        mock_choice.message.content = '{"result": "ok"}'
+        mock_resp.choices = [mock_choice]
+        mock_resp.usage = MagicMock(prompt_tokens=10, completion_tokens=20, total_tokens=30)
+        return mock_resp
+
+    monkeypatch.setattr(litellm, "acompletion", mock_acompletion)
+
+    # 1. Default invocation (max_tokens=None) should use config.DEFAULT_MAX_TOKENS (3000)
+    await call_llm(
+        prompt="test prompt",
+        system_prompt="test system",
+        model="deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
+        api_key="mock_key",
+    )
+    assert len(captured_kwargs) == 1
+    assert captured_kwargs[0]["max_tokens"] == config.DEFAULT_MAX_TOKENS
+    assert captured_kwargs[0]["max_tokens"] == 3000
+
+    # 2. Explicit invocation with custom max_tokens (e.g. config.REVIEWER_MAX_TOKENS = 1800)
+    await call_llm(
+        prompt="test prompt 2",
+        system_prompt="test system 2",
+        model="deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
+        api_key="mock_key",
+        max_tokens=config.REVIEWER_MAX_TOKENS,
+    )
+    assert len(captured_kwargs) == 2
+    assert captured_kwargs[1]["max_tokens"] == 1800
 

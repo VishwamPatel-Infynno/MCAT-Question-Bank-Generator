@@ -1,10 +1,10 @@
-import json
 import logging
 
-from app.agents.base import calculate_token_cost, call_llm, clean_json_text
+from app.agents.base import calculate_token_cost, call_llm, safe_json_loads
 from app.agents.mock_fixtures import evaluate_heuristically, get_mock_draft
 from app.agents.option_balancer import balance_and_shuffle_options
 from app.agents.prompts import FUSED_GENERATOR_SYSTEM_PROMPT, GENERATOR_SYSTEM_PROMPT
+from app.core.config import config
 from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
 from app.schemas.token import TokenUsage
 from app.schemas.ucat import UCAT_SECTION_LABELS, UCATSection
@@ -92,7 +92,22 @@ Do NOT write a new passage. Formulate your question stem, options, correct key(s
 
 def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDraft:
     # Validate options (4 or 5 allowed)
-    options = [OptionChoice(id=opt["id"].upper(), text=opt["text"]) for opt in data["options"]]
+    raw_options = data.get("options", [])
+    if isinstance(raw_options, dict):
+        options = [OptionChoice(id=str(k).upper(), text=str(v)) for k, v in raw_options.items()]
+    elif isinstance(raw_options, list):
+        options = [
+            OptionChoice(
+                id=str(opt.get("id", chr(65 + i))).upper(),
+                text=str(opt.get("text", "")),
+            )
+            if isinstance(opt, dict)
+            else OptionChoice(id=chr(65 + i), text=str(opt))
+            for i, opt in enumerate(raw_options)
+        ]
+    else:
+        options = []
+
     if len(options) not in (4, 5):
         raise ValueError(f"Expected 4 or 5 options, got {len(options)}")
 
@@ -127,6 +142,7 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
                 ("Out_of_Scope", r"Out\s*of\s*Scope"),
             ]
             import re
+
             for trap_key, pattern in taxonomies:
                 if re.search(pattern, expl, re.IGNORECASE):
                     detected = trap_key
@@ -197,7 +213,7 @@ STANDARDS FOR UK UCAT PASSAGES:
             model=req.model_name,
             api_key=req.api_key,
             temperature=0.7,
-            max_tokens=2000,
+            max_tokens=config.DEFAULT_MAX_TOKENS,
         )
         cleaned = raw_output.strip()
         # Clean any accidental markdown or quotes
@@ -252,10 +268,9 @@ async def generate_question(req: GenerationRequest) -> tuple[QuestionDraft, Toke
             model=req.model_name,
             api_key=req.api_key,
             temperature=0.7,
-            max_tokens=2000,
+            max_tokens=config.DEFAULT_MAX_TOKENS,
         )
-        cleaned = clean_json_text(raw_output)
-        data = json.loads(cleaned)
+        data = safe_json_loads(raw_output)
         draft = _parse_question_draft_data(data, req)
         draft, _ = balance_and_shuffle_options(draft)
         return draft, usage
@@ -294,10 +309,9 @@ async def generate_question_with_self_critique(
             model=req.model_name,
             api_key=req.api_key,
             temperature=0.7,
-            max_tokens=2000,
+            max_tokens=config.DEFAULT_MAX_TOKENS,
         )
-        cleaned = clean_json_text(raw_output)
-        data = json.loads(cleaned)
+        data = safe_json_loads(raw_output)
 
         draft = _parse_question_draft_data(data, req)
         draft, _ = balance_and_shuffle_options(draft)
@@ -306,10 +320,10 @@ async def generate_question_with_self_critique(
         critique = data.get("self_critique")
         if isinstance(critique, dict):
             try:
-                auth = int(critique.get("authenticity_score", 0))
-                clarity = int(critique.get("clarity_score", 0))
-                distractor = int(critique.get("distractor_score", 0))
-                explanation = int(critique.get("explanation_score", 0))
+                auth = int(float(critique.get("authenticity_score", 0)))
+                clarity = int(float(critique.get("clarity_score", 0)))
+                distractor = int(float(critique.get("distractor_score", 0)))
+                explanation = int(float(critique.get("explanation_score", 0)))
                 total = auth + clarity + distractor + explanation
                 self_review = ReviewScore(
                     authenticity_score=auth,

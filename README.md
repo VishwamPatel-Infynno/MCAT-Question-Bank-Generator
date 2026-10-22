@@ -19,7 +19,7 @@ For deep-dive technical specifications, architecture diagrams, API schemas, and 
 | **[UI/UX Design System (DESIGN.md)](DESIGN.md)** | Authoritative design tokens, dual obsidian/alabaster themes, typography scale, component contracts, accessibility criteria (WCAG AA), and micro-animations. |
 | **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 3-step pipeline specifications, Strict Quality Gate, SSE pipeline, batch routing, and PostgreSQL 16 ERD. |
 | **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation, batch generation schemas, SSE event stream contracts, filter parameters, and cURL examples. |
-| **[Token Usage & Cost Tracking](docs/TOKEN_TRACKING.md)** | High-throughput rate card ($0.10 in / $0.32 out per 1M tokens), exact mathematical cost formulas, multi-agent accumulation, and UI observability. |
+| **[Token Usage & Cost Tracking](docs/TOKEN_TRACKING.md)** | High-throughput rate card ($0.098 in / $0.294 out per 1M tokens), exact mathematical cost formulas, multi-agent accumulation, and UI observability. |
 | **[Installation, Setup & Deployment](docs/SETUP_AND_CONFIG.md)** | Step-by-step setup, Docker PostgreSQL 16 guide, environment variables reference, production deployment, linters, and troubleshooting. |
 | **[UCAT Psychometric Rubric & Standards](docs/UCAT_RUBRIC.md)** | Official 5 subtests pacing, 100-point 4-pillar evaluation rubric, $> 90$ quality benchmark, and cognitive distractor trap engineering. |
 | **[Backend Developer Guide](backend/README.md)** | Layer separation, modular workflow engine (`engine.py`, `nodes.py`, `routes.py`), repositories, testing, and seeding scripts. |
@@ -56,12 +56,12 @@ graph LR
 - **Stimulus & Diagram Agent (`image_generator.py`)**: Renders clean programmatic SVG vector diagrams for geometric patterns, Venn syllogisms, and charts, with fallback support for AI visual generators.
 
 ### 2. High-Throughput Autonomous Inference & Precision Cost Accounting
-- **Inference Engine**: Autonomous Psychometric Engine v2.0 (High-Throughput Enterprise Gateway)
+- **Inference Engine**: DeepSeek-V4.1-Flash-1017 High-Throughput Reasoning Engine (via DeepInfra)
 - **Official Rate Card**:
-  - **Input (Prompt) Tokens**: **$0.10** per 1,000,000 tokens
-  - **Output (Completion) Tokens**: **$0.32** per 1,000,000 tokens
+  - **Input (Prompt) Tokens**: **$0.098** per 1,000,000 tokens
+  - **Output (Completion) Tokens**: **$0.294** per 1,000,000 tokens
 - **Micro-Dollar Tracking**: Every request computes exact USD costs:
-  $$\text{Cost (USD)} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times 0.10\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times 0.32\right)$$
+  $$\text{Cost (USD)} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times 0.098\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times 0.294\right)$$
 - **Granular Observability**:
   - Live 3-milestone pipeline stepper with active stopwatch, smart status indicators (*Passed (90+ Standard)*, *Text-Only (No Diagram Needed)*), and collapsible SSE telemetry tray.
   - QuestionCard badges displaying total tokens and cost.

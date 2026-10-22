@@ -358,7 +358,11 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
             "status": "bypassed",
             "reason": f"No visual stimulus needed (image_required='{req.image_required or 'No'}', visual_type='{req.visual_type or 'None'}').",
         }
-    effective_trap = getattr(draft, "primary_trap", None) or (req.primary_trap if req.primary_trap != "Automatic" else None) or "Scope_Shift"
+    effective_trap = (
+        getattr(draft, "primary_trap", None)
+        or (req.primary_trap if req.primary_trap != "Automatic" else None)
+        or "Scope_Shift"
+    )
 
     outcomes["final_payload"] = {
         "id": draft.question_stem[:12],  # placeholder until final_q created below

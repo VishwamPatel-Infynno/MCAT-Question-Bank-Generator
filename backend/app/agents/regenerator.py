@@ -1,9 +1,9 @@
-import json
 import logging
 
-from app.agents.base import calculate_token_cost, call_llm, clean_json_text
+from app.agents.base import calculate_token_cost, call_llm, safe_json_loads
 from app.agents.mock_fixtures import improve_draft_heuristically
 from app.agents.prompts import REGENERATOR_SYSTEM_PROMPT
+from app.core.config import config
 from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
 from app.schemas.token import TokenUsage
 from app.schemas.ucat import UCAT_SECTION_LABELS
@@ -76,12 +76,26 @@ Please re-generate and refine this question to resolve all weaknesses and produc
             model=req.model_name,
             api_key=req.api_key,
             temperature=0.6,
-            max_tokens=2000,
+            max_tokens=config.DEFAULT_MAX_TOKENS,
         )
-        cleaned = clean_json_text(raw_output)
-        data = json.loads(cleaned)
+        data = safe_json_loads(raw_output)
 
-        options = [OptionChoice(id=opt["id"].upper(), text=opt["text"]) for opt in data["options"]]
+        raw_options = data.get("options", [])
+        if isinstance(raw_options, dict):
+            options = [OptionChoice(id=str(k).upper(), text=str(v)) for k, v in raw_options.items()]
+        elif isinstance(raw_options, list):
+            options = [
+                OptionChoice(
+                    id=str(opt.get("id", chr(65 + i))).upper(),
+                    text=str(opt.get("text", "")),
+                )
+                if isinstance(opt, dict)
+                else OptionChoice(id=chr(65 + i), text=str(opt))
+                for i, opt in enumerate(raw_options)
+            ]
+        else:
+            options = []
+
         if len(options) not in (4, 5):
             raise ValueError(f"Expected 4 or 5 options, got {len(options)}")
 
