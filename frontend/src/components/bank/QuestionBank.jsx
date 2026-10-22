@@ -475,7 +475,7 @@ export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigate
                 style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
               >
                 <Sparkles size={13} />
-                <span>✨ Create Questions in Wizard</span>
+                <span>Create Questions in Wizard</span>
               </button>
             )}
           </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
-import { Sparkles, Home, Database } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import {
   Navbar,
   AgentVisualizer,
@@ -416,45 +416,6 @@ export default function App() {
 
             {viewMode === 'workspace' && (
               <div style={{ maxWidth: '1040px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {/* Generation & Review Action Bar */}
-                <div className="workspace-action-bar" id="workspace-action-bar">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <button
-                      type="button"
-                      className="workspace-action-btn-primary"
-                      id="btn-workspace-new-wizard"
-                      onClick={() => setViewMode('wizard')}
-                      title="Launch Guided 5-Step Question Wizard"
-                    >
-                      <Sparkles size={16} />
-                      <span>✨ New Question Wizard</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      className="workspace-action-btn-secondary"
-                      id="btn-workspace-home"
-                      onClick={() => setViewMode('hero')}
-                      title="Return to Home"
-                    >
-                      <Home size={15} />
-                      <span>Home</span>
-                    </button>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <button
-                      type="button"
-                      className="workspace-action-btn-secondary"
-                      onClick={() => setActiveTab('bank')}
-                      title="Open Question Bank"
-                    >
-                      <Database size={15} />
-                      <span>Question Bank</span>
-                    </button>
-                  </div>
-                </div>
-
                 {/* Multi-Agent Command Rail */}
                 <AgentVisualizer
                   activeAgent={activeAgent}
@@ -567,10 +528,11 @@ export default function App() {
                     <button
                       type="button"
                       className="btn-primary"
-                      style={{ padding: '10px 22px', fontSize: '0.9rem', fontWeight: 600 }}
+                      style={{ padding: '10px 22px', fontSize: '0.9rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '8px' }}
                       onClick={() => setViewMode('wizard')}
                     >
-                      ✨ Open Question Wizard
+                      <Sparkles size={16} />
+                      <span>Open Question Wizard</span>
                     </button>
                   </div>
                 )}

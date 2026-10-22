@@ -1,9 +1,10 @@
+import base64
 import csv
 import io
 import logging
 
 from fastapi import APIRouter, HTTPException, Query, Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from app.repositories.question_repo import (
@@ -60,6 +61,33 @@ async def get_single_question(question_id: str):
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
     return q.model_dump()
+
+
+@router.get("/questions/{question_id}/image")
+async def get_question_image(question_id: str):
+    """Serves the visual stimulus image (AI FLUX image or Vector SVG diagram) for a question."""
+    q = await get_question_by_id(question_id)
+    if not q:
+        raise HTTPException(status_code=404, detail="Question not found")
+
+    img_url = q.image_url
+    if not img_url and q.image_svg:
+        return Response(content=q.image_svg, media_type="image/svg+xml")
+
+    if not img_url:
+        raise HTTPException(status_code=404, detail="No visual stimulus image found for this question")
+
+    if img_url.startswith("data:"):
+        try:
+            header, encoded = img_url.split(",", 1)
+            media_type = header.split(";")[0].replace("data:", "") or "image/jpeg"
+            image_bytes = base64.b64decode(encoded)
+            return Response(content=image_bytes, media_type=media_type)
+        except Exception as e:
+            logger.error(f"Failed to decode base64 image: {e}")
+            raise HTTPException(status_code=500, detail="Invalid base64 image encoding")
+
+    return RedirectResponse(url=img_url)
 
 
 @router.post("/questions")
@@ -132,6 +160,8 @@ async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
                 "Primary_Trap",
                 "Passage_Required",
                 "Visual_Type",
+                "Image_URL",
+                "Image_Description",
                 "Stimulus",
                 "Question Stem",
                 "Option A",
@@ -148,6 +178,15 @@ async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
         )
         for q in questions:
             opts = {opt.id: opt.text for opt in q.options}
+            if q.image_url:
+                if q.image_url.startswith("data:"):
+                    img_val = f"/api/questions/{q.id}/image"
+                else:
+                    img_val = q.image_url
+            elif q.image_svg:
+                img_val = f"/api/questions/{q.id}/image"
+            else:
+                img_val = ""
             writer.writerow(
                 [
                     q.id,
@@ -163,6 +202,8 @@ async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
                     q.primary_trap or "",
                     q.passage_required or "",
                     q.visual_type or "None",
+                    img_val,
+                    q.image_description or "",
                     q.stimulus_text or "",
                     q.question_stem,
                     opts.get("A", ""),

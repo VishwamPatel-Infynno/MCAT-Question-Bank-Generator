@@ -1449,18 +1449,6 @@ input:focus, select:focus, textarea:focus {
   text-decoration: underline;
 }
 
-/* Generation & Review Workspace Action Bar */
-.workspace-action-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 18px;
-  border-radius: var(--radius-md);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  margin-bottom: 20px;
-  box-shadow: var(--shadow-sm);
-}
 
 .workspace-action-btn-primary {
   display: inline-flex;
@@ -1483,25 +1471,6 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 4px 14px rgba(79, 48, 185, 0.4);
 }
 
-.workspace-action-btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-surface-elevated);
-  border: 1px solid var(--border-light);
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.workspace-action-btn-secondary:hover {
-  background: var(--bg-surface-hover);
-  color: var(--text-primary);
-}
 
 /* ==========================================================================
    Print & PDF Export Utility Styles
@@ -1515,8 +1484,7 @@ input:focus, select:focus, textarea:focus {
   .navbar,
   .footer,
   .toast-container,
-  .modal-backdrop,
-  .workspace-action-bar {
+  .modal-backdrop {
     display: none !important;
   }
 

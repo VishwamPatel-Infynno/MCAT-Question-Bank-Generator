@@ -88,6 +88,9 @@ export default function ExportPrintModal({
       'Difficulty',
       'Stimulus / Passage',
       'Question Stem',
+      'Visual Type',
+      'Image URL',
+      'Image Description',
       'Option A',
       'Option B',
       'Option C',
@@ -111,6 +114,12 @@ export default function ExportPrintModal({
         opts[opt.id?.toUpperCase()] = opt.text || '';
       });
 
+      const imgUrl = q.image_url 
+        ? (q.image_url.startsWith('data:') ? `/api/questions/${q.id}/image` : q.image_url)
+        : (q.image_svg ? `/api/questions/${q.id}/image` : '');
+      const imgDesc = q.image_description || q.stage_outcomes?.visual_stimulus?.description || '';
+      const visualType = q.visual_type || (imgUrl || q.image_svg ? 'Visual' : 'None');
+
       return [
         idx + 1,
         escapeCsv(q.id),
@@ -118,7 +127,10 @@ export default function ExportPrintModal({
         escapeCsv(q.subtopic || ''),
         escapeCsv(q.difficulty || ''),
         escapeCsv(q.stimulus_text || ''),
-        escapeCsv(q.stem || ''),
+        escapeCsv(q.question_stem || q.stem || ''),
+        escapeCsv(visualType),
+        escapeCsv(imgUrl),
+        escapeCsv(imgDesc),
         escapeCsv(opts['A'] || ''),
         escapeCsv(opts['B'] || ''),
         escapeCsv(opts['C'] || ''),
@@ -240,6 +252,7 @@ export default function ExportPrintModal({
       const qNum = idx + 1;
       const svgDiagram = q.image_svg || q.stage_outcomes?.visual_stimulus?.image_svg || '';
       const imgUrl = q.image_url || q.stage_outcomes?.visual_stimulus?.image_url || '';
+      const imgDesc = q.image_description || q.stage_outcomes?.visual_stimulus?.description || '';
 
       const optionsHtml = (q.options || []).map(opt => `
         <div class="option-row">
@@ -266,14 +279,16 @@ export default function ExportPrintModal({
           ${svgDiagram ? `
             <div class="diagram-box">
               ${svgDiagram}
+              ${imgDesc ? `<div class="diagram-caption">${imgDesc}</div>` : ''}
             </div>
           ` : imgUrl ? `
             <div class="diagram-box">
-              <img src="${imgUrl}" alt="Stimulus Diagram" style="max-height: 260px; max-width: 100%; object-fit: contain;" />
+              <img src="${imgUrl}" alt="Stimulus Diagram" />
+              ${imgDesc ? `<div class="diagram-caption">${imgDesc}</div>` : ''}
             </div>
           ` : ''}
 
-          <div class="question-stem">${q.stem || ''}</div>
+          <div class="question-stem">${q.question_stem || q.stem || ''}</div>
           <div class="options-grid">${optionsHtml}</div>
         </div>
       `;
@@ -457,15 +472,26 @@ export default function ExportPrintModal({
           .diagram-box {
             margin: 12px auto;
             text-align: center;
-            padding: 8px;
+            padding: 10px;
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 6px;
-            max-width: 480px;
+            max-width: 500px;
+            page-break-inside: avoid;
           }
-          .diagram-box svg {
-            max-height: 220px;
-            width: auto;
+          .diagram-box svg, .diagram-box img {
+            max-height: 280px;
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+            display: inline-block;
+          }
+          .diagram-caption {
+            font-size: 11px;
+            font-style: italic;
+            color: #64748b;
+            margin-top: 6px;
+            line-height: 1.35;
           }
           .question-stem {
             font-size: 13.5px;
@@ -595,10 +621,19 @@ export default function ExportPrintModal({
 
         <script>
           window.addEventListener('load', () => {
-            setTimeout(() => {
-              window.focus();
-              window.print();
-            }, 300);
+            const imgs = Array.from(document.images);
+            Promise.all(imgs.map(img => {
+              if (img.complete) return Promise.resolve();
+              return new Promise(resolve => {
+                img.onload = resolve;
+                img.onerror = resolve;
+              });
+            })).then(() => {
+              setTimeout(() => {
+                window.focus();
+                window.print();
+              }, 250);
+            });
           });
         </script>
       </body>
@@ -807,6 +842,8 @@ export default function ExportPrintModal({
                   {exportQuestions.map((q, idx) => {
                     const qNum = idx + 1;
                     const svgDiagram = q.image_svg || q.stage_outcomes?.visual_stimulus?.image_svg || '';
+                    const imgUrl = q.image_url || q.stage_outcomes?.visual_stimulus?.image_url || '';
+                    const imgDesc = q.image_description || q.stage_outcomes?.visual_stimulus?.description || '';
 
                     return (
                       <div key={q.id || idx} style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
@@ -825,15 +862,36 @@ export default function ExportPrintModal({
                           </div>
                         )}
 
-                        {svgDiagram && (
+                        {svgDiagram ? (
                           <div 
-                            style={{ margin: '8px auto', textAlign: 'center', padding: '6px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', maxWidth: '320px' }}
-                            dangerouslySetInnerHTML={{ __html: svgDiagram }}
-                          />
-                        )}
+                            style={{ margin: '8px auto', textAlign: 'center', padding: '8px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', maxWidth: '380px' }}
+                          >
+                            <div dangerouslySetInnerHTML={{ __html: svgDiagram }} />
+                            {imgDesc && (
+                              <div style={{ fontSize: '0.72rem', fontStyle: 'italic', color: '#64748b', marginTop: '6px' }}>
+                                {imgDesc}
+                              </div>
+                            )}
+                          </div>
+                        ) : imgUrl ? (
+                          <div 
+                            style={{ margin: '8px auto', textAlign: 'center', padding: '8px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', maxWidth: '380px' }}
+                          >
+                            <img 
+                              src={imgUrl} 
+                              alt="Stimulus Diagram" 
+                              style={{ maxHeight: '220px', maxWidth: '100%', objectFit: 'contain', borderRadius: '2px', display: 'inline-block' }} 
+                            />
+                            {imgDesc && (
+                              <div style={{ fontSize: '0.72rem', fontStyle: 'italic', color: '#64748b', marginTop: '6px' }}>
+                                {imgDesc}
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
 
                         <div style={{ fontWeight: 600, fontSize: '0.84rem', color: '#0f172a', marginBottom: '8px' }}>
-                          {q.stem}
+                          {q.question_stem || q.stem || ''}
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -881,7 +939,7 @@ export default function ExportPrintModal({
           {format === 'csv' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ padding: '10px 14px', background: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                Exports a structured CSV table containing all 16 UCAT schema fields (stems, options A-E, correct keys, trap defenses, and quality scores) compatible with Excel, Google Sheets, and psychometric databases.
+                Exports a structured CSV table containing all 19 UCAT schema fields (stems, visual stimuli with image endpoints, options A-E, correct keys, trap defenses, and quality scores) compatible with Excel, Google Sheets, and psychometric databases.
               </div>
 
               <div 

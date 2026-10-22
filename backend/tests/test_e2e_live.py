@@ -79,7 +79,7 @@ async def test_e2e_config_endpoint():
         assert cfg["default_text_model"] == "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo"
         assert cfg["has_deepinfra_key"] is True
         assert cfg["passing_threshold"] == 90
-        assert cfg["current_image_cost_usd"] == 0.002
+        assert cfg["current_image_cost_usd"] == 0.014
 
 
 @pytest.mark.asyncio
@@ -263,6 +263,8 @@ async def test_e2e_export_json_and_csv():
         assert "Section" in header
         assert "Difficulty" in header
         assert "Final Score" in header
+        assert "Image_URL" in header
+        assert "Image_Description" in header
 
 
 @pytest.mark.asyncio
@@ -477,3 +479,66 @@ async def test_e2e_uuid_architecture():
 
             # Clean up approved test question
             await client.delete(f"/questions/{final_question['id']}")
+
+
+@pytest.mark.asyncio
+async def test_e2e_question_image_endpoint():
+    """
+    E2E Test 10: Verify /questions/{id}/image binary image serving endpoint
+    and CSV export Image_URL formatting for Base64 and SVG visual stimuli.
+    """
+    import base64
+    import uuid
+
+    # 1x1 transparent GIF in base64
+    dummy_b64 = "data:image/jpeg;base64," + base64.b64encode(b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00`\x00`\x00\x00\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e\x1d\x1a\x1c\x1c $.' \",#\x1c\x1c(7),01444\x1f'9=82<.342\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x1f\x00\x00\x01\x05\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xbf\x00\xff\xd9").decode("utf-8")
+    test_id = str(uuid.uuid4())
+
+    img_q = {
+        "id": test_id,
+        "section": "abstract_reasoning",
+        "section_label": "Abstract Reasoning",
+        "subtopic": "Set A vs Set B",
+        "difficulty": "hard",
+        "visual_type": "AI_FLUX_Image",
+        "image_url": dummy_b64,
+        "image_description": "Geometric pattern of alternating concentric shaded hexagons",
+        "question_stem": "Which set does the test shape belong to?",
+        "options": [
+            {"id": "A", "text": "Set A"},
+            {"id": "B", "text": "Set B"},
+            {"id": "C", "text": "Neither"},
+        ],
+        "correct_answer_id": "A",
+        "correct_answer_ids": ["A"],
+        "explanation": "Set A shapes maintain consistent hexagonal symmetries.",
+        "final_score": 96,
+    }
+
+    async with httpx.AsyncClient(base_url=BASE_URL, timeout=10.0) as client:
+        # Save question with visual stimulus
+        save_res = await client.post("/questions", json=img_q)
+        assert save_res.status_code == 200
+
+        # Query /questions/{id}/image
+        img_res = await client.get(f"/questions/{test_id}/image")
+        assert img_res.status_code == 200
+        assert "image/jpeg" in img_res.headers.get("content-type", "")
+        assert len(img_res.content) > 20
+
+        # Query CSV export and verify Image_URL points to safe endpoint URL
+        csv_res = await client.get("/export?format=csv")
+        assert csv_res.status_code == 200
+        reader = csv.reader(io.StringIO(csv_res.text))
+        rows = list(reader)
+        header = rows[0]
+        img_url_idx = header.index("Image_URL")
+        img_desc_idx = header.index("Image_Description")
+
+        found_row = next((r for r in rows if r[0] == test_id), None)
+        assert found_row is not None
+        assert found_row[img_url_idx] == f"/api/questions/{test_id}/image"
+        assert found_row[img_desc_idx] == "Geometric pattern of alternating concentric shaded hexagons"
+
+        # Cleanup
+        await client.delete(f"/questions/{test_id}")
