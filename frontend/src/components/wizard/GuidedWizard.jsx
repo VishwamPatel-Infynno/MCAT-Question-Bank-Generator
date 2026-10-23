@@ -27,12 +27,12 @@ export default function GuidedWizard({
   const totalSteps = 5;
 
   const form = generatorForm?.formData || {};
-  const update = generatorForm?.updateField || (() => {});
-  const updateFields = generatorForm?.updateFields || (() => {});
+  const update = generatorForm?.updateField;
+  const updateFields = generatorForm?.updateFields;
 
   const selectedSection = form.selectedSection || 'chem_phys';
   const selectedSubtopic = form.selectedSubtopic || '';
-  const setSelectedSubtopic = (v) => update('selectedSubtopic', v);
+  const setSelectedSubtopic = useCallback((v) => update('selectedSubtopic', v), [update]);
   const difficulty = form.difficulty || 'medium';
   const setDifficulty = (v) => update('difficulty', v);
   const totalQuestions = 5;
@@ -96,12 +96,11 @@ export default function GuidedWizard({
         ];
   }, [sectionsData, selectedSection]);
 
-  // Ensure selectedSubtopic is valid when section changes
   useEffect(() => {
     if (availableSubtopics.length > 0 && !availableSubtopics.includes(selectedSubtopic)) {
       setSelectedSubtopic(availableSubtopics[0]);
     }
-  }, [availableSubtopics, selectedSubtopic]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [availableSubtopics, selectedSubtopic, setSelectedSubtopic]);
 
   // Section Selection handler
   const handleSelectSection = (sectionId) => {
@@ -165,13 +164,13 @@ export default function GuidedWizard({
     }
   };
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (step < totalSteps) {
       setStep(prev => prev + 1);
     } else {
       (onGenerateQuestions || onLaunchGeneration)?.();
     }
-  };
+  }, [step, totalSteps, onGenerateQuestions, onLaunchGeneration]);
 
   const handleBack = () => {
     if (step > 1) {
@@ -185,7 +184,7 @@ export default function GuidedWizard({
       e.preventDefault();
       handleNext();
     }
-  }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [handleNext]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);

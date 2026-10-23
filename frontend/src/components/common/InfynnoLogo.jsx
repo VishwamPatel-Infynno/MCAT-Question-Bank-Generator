@@ -4,11 +4,13 @@ import React from 'react';
  * Infynno Solutions LLP Official Vector Logo
  * Features the signature gradient #4F30B9 -> #335ACF -> #1E7ADF
  */
+const EMPTY_OBJECT = Object.freeze({});
+
 export default function InfynnoLogo({
   width = 34,
   height = 22,
   className = '',
-  style = {},
+  style = EMPTY_OBJECT,
   showText = false,
   textColor = 'var(--text-primary)'
 }) {

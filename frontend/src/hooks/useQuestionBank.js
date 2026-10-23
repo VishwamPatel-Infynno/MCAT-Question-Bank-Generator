@@ -23,6 +23,7 @@ export function useQuestionBank() {
 
   // Fetch questions with inflight cancellation via AbortController
   useEffect(() => {
+    void refreshTrigger;
     const controller = new AbortController();
 
     fetchQuestions(

@@ -17,13 +17,16 @@ import QuestionCard from './QuestionCard';
 import SharedPassageCard from './SharedPassageCard';
 import StagedQuestionSlotCard from './StagedQuestionSlotCard';
 
+const EMPTY_ARRAY = [];
+const EMPTY_OBJECT = Object.freeze({});
+
 export default function StagedBatchReview({
-  stagedQuestions = [],
+  stagedQuestions = EMPTY_ARRAY,
   targetTotal = 1,
   savedQuestionIds = null,
   isGenerating = false,
   batchProgress = null,
-  perQuestionState = {},
+  perQuestionState = EMPTY_OBJECT,
   onApproveSelected,
   onApproveAll,
   onDiscardQuestion,
@@ -735,8 +738,8 @@ export default function StagedBatchReview({
               paddingBottom: '4px'
             }}
           >
-            {Array.from({ length: effectiveTotal }).map((_, idx) => {
-              const slotNumber = idx + 1;
+            {Array.from({ length: effectiveTotal }, (_, i) => i + 1).map((slotNumber) => {
+              const idx = slotNumber - 1;
               const qState = perQuestionState[slotNumber];
               const q = stagedQuestions.find(item => item.index === slotNumber || item.batch_index === slotNumber)
                 || qState?.question
@@ -751,7 +754,7 @@ export default function StagedBatchReview({
                 // Pending/generating pill
                 return (
                   <div
-                    key={`pill-placeholder-${idx}`}
+                    key={`pill-placeholder-slot-${slotNumber}`}
                     style={{
                       display: 'flex',
                       alignItems: 'center',

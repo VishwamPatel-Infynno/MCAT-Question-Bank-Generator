@@ -137,7 +137,7 @@ export default function RejectionCard({ rejectionData, onRetry }) {
             </div>
             <ul style={{ paddingLeft: '18px', fontSize: '0.825rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {review.weaknesses && review.weaknesses.length > 0 ? (
-                review.weaknesses.map((w, i) => <li key={i}>{w}</li>)
+                review.weaknesses.map((w) => <li key={w}>{w}</li>)
               ) : (
                 <li>Score fell below the passing threshold of 90 points.</li>
               )}

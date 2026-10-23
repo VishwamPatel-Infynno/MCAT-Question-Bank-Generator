@@ -116,9 +116,7 @@ class GenerationRequest(BaseModel):
             return True
         if self.require_image or self.require_passage_image:
             return True
-        if self.image_question_indices and len(self.image_question_indices) > 0:
-            return True
-        return False
+        return bool(self.image_question_indices)
 
     @field_validator("combination_id", mode="before")
     @classmethod

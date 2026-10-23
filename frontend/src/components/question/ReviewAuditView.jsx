@@ -137,9 +137,9 @@ export default function ReviewAuditView({ question, onClose }) {
             Four-Pillar Quality Breakdown
           </h4>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            {pillars.map((p, i) => (
+            {pillars.map((p) => (
               <div
-                key={i}
+                key={p.label}
                 style={{
                   background: 'var(--bg-canvas)',
                   padding: '14px 18px',
@@ -183,7 +183,7 @@ export default function ReviewAuditView({ question, onClose }) {
               </div>
               <ul style={{ paddingLeft: '18px', fontSize: '0.825rem', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {review.strengths?.length > 0 ? (
-                  review.strengths.map((s, idx) => <li key={idx}>{s}</li>)
+                  review.strengths.map((s) => <li key={s}>{s}</li>)
                 ) : (
                   <li>Consistent authentic formatting adhered to.</li>
                 )}
@@ -204,7 +204,7 @@ export default function ReviewAuditView({ question, onClose }) {
               </div>
               <ul style={{ paddingLeft: '18px', fontSize: '0.825rem', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {review.recommendations?.length > 0 ? (
-                  review.recommendations.map((r, idx) => <li key={idx}>{r}</li>)
+                  review.recommendations.map((r) => <li key={r}>{r}</li>)
                 ) : (
                   <li>Draft met passing threshold and approved for Question Bank.</li>
                 )}
@@ -222,7 +222,7 @@ export default function ReviewAuditView({ question, onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {history.map((h, idx) => (
                 <div
-                  key={idx}
+                  key={h.iteration || `history-${idx}`}
                   style={{
                     padding: '12px 16px',
                     background: 'var(--bg-canvas)',

@@ -1,18 +1,18 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: ucat_postgres
+    container_name: mcat_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ucat_db
-      POSTGRES_USER: ucat_user
-      POSTGRES_PASSWORD: ucat_password
+      POSTGRES_DB: mcat_db
+      POSTGRES_USER: mcat_user
+      POSTGRES_PASSWORD: mcat_password
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ucat_user -d ucat_db"]
+      test: ["CMD-SHELL", "pg_isready -U mcat_user -d mcat_db"]
       interval: 5s
       timeout: 5s
       retries: 5

@@ -162,18 +162,13 @@ export default function App() {
       customPrompt
     } = generatorForm.formData;
 
-    const isMixedSet = totalQuestions > 1 && passageMode === 'single_passage' && passageQuestionCount < totalQuestions;
-    const isAbstractReasoning = selectedSection === 'abstract_reasoning';
-
     let effectiveImageIndices = [];
-    if (isAbstractReasoning) {
-      effectiveImageIndices = Array.from({ length: totalQuestions }, (_, i) => i + 1);
-    } else if (imageMode === 'all') {
+    if (imageMode === 'all') {
       effectiveImageIndices = Array.from({ length: totalQuestions }, (_, i) => i + 1);
     } else if (imageMode === 'specific') {
       effectiveImageIndices = (imageQuestionIndices || []).filter(idx => idx <= totalQuestions);
     }
-    const hasAnyImage = isAbstractReasoning || effectiveImageIndices.length > 0 || requirePassageImage || requireImage;
+    const hasAnyImage = effectiveImageIndices.length > 0 || requirePassageImage || requireImage;
 
     const payload = {
       section: selectedSection,
@@ -194,8 +189,8 @@ export default function App() {
       primary_trap: primaryTrap || 'Automatic',
       require_image: hasAnyImage,
       visual_type: hasAnyImage ? 'AI_FLUX_Image' : 'None',
-      image_question_indices: isAbstractReasoning ? undefined : (imageMode !== 'none' ? effectiveImageIndices : []),
-      require_passage_image: isAbstractReasoning ? true : Boolean(requirePassageImage),
+      image_question_indices: imageMode !== 'none' ? effectiveImageIndices : [],
+      require_passage_image: Boolean(requirePassageImage),
       custom_prompt: customPrompt.trim() || undefined
     };
     startGeneration(payload);

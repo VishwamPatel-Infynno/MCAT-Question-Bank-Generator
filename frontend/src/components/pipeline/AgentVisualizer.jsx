@@ -6,14 +6,17 @@ import {
 } from 'lucide-react';
 import MultiAgentPipelineVisualizer from './MultiAgentPipelineVisualizer';
 
+const EMPTY_ARRAY = [];
+const EMPTY_OBJECT = Object.freeze({});
+
 export default function AgentVisualizer({
   activeAgent,
   iterationCount,
-  events = [],
+  events = EMPTY_ARRAY,
   latestReview,
   isGenerating,
   batchProgress,
-  perQuestionState = {},
+  perQuestionState = EMPTY_OBJECT,
   onCancel
 }) {
   const [showTelemetry, setShowTelemetry] = useState(false);
@@ -146,7 +149,7 @@ export default function AgentVisualizer({
             }}
           >
             {events.map((ev, i) => (
-              <div key={i} style={{ color: ev.event_type === 'error' ? 'var(--status-danger)' : 'var(--text-muted)', marginBottom: '3px' }}>
+              <div key={ev.id || `${ev.event_type}-${ev.timestamp || i}-${i}`} style={{ color: ev.event_type === 'error' ? 'var(--status-danger)' : 'var(--text-muted)', marginBottom: '3px' }}>
                 <span style={{ color: 'var(--brand-primary)' }}>[{ev.agent_name || 'Workflow'}]</span> {ev.message}
               </div>
             ))}

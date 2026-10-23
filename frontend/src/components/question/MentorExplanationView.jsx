@@ -30,11 +30,12 @@ function renderFormattedText(text, { highlightTraps = false } = {}) {
 
   return parts.map((part, i) => {
     if (!part) return null;
+    const itemKey = `fmt-${i}-${part.slice(0, 10)}`;
 
     if (highlightTraps && new RegExp(`^${TRAP_PATTERN_STR}$`, 'i').test(part)) {
       return (
         <span
-          key={i}
+          key={itemKey}
           style={{
             background: 'rgba(245, 158, 11, 0.16)',
             color: 'var(--status-warning)',
@@ -56,14 +57,14 @@ function renderFormattedText(text, { highlightTraps = false } = {}) {
 
     if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
       return (
-        <strong key={i} style={{ color: 'var(--text-primary)', fontWeight: 700 }}>
+        <strong key={itemKey} style={{ color: 'var(--text-primary)', fontWeight: 700 }}>
           {part.slice(2, -2)}
         </strong>
       );
     }
 
     if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
-      return <em key={i}>{part.slice(1, -1)}</em>;
+      return <em key={itemKey}>{part.slice(1, -1)}</em>;
     }
 
     return part;
@@ -139,10 +140,12 @@ function extractDistractorLines(rawText) {
  * 2. Card 2: Why Other Options are Incorrect (Itemized distractor rows with cognitive trap chips)
  * 3. Card 3: Primary Cognitive Trap Spotlight (Smart AI or assigned trap with student defense strategy)
  */
+const EMPTY_ARRAY = [];
+
 export default function MentorExplanationView({
   explanation = '',
   isCompact = false,
-  _options = [],
+  _options = EMPTY_ARRAY,
   correctAnswerId = '',
   primaryTrap = null
 }) {
@@ -308,11 +311,12 @@ export default function MentorExplanationView({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {parsed.steps.map((st, idx) => {
               const stepMatch = st.match(/^(?:\*\*)?(Step\s+\d+|[1-9]\d*\.)(?::|\s*-)?(?:\*\*)?\s*(.*)/is);
+              const stepKey = `step-${idx}-${st.slice(0, 10)}`;
               if (stepMatch) {
                 const label = stepMatch[1].replace(/:$/, '').trim();
                 const stepBody = stepMatch[2].trim();
                 return (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: isCompact ? '0.8rem' : '0.86rem' }}>
+                  <div key={stepKey} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: isCompact ? '0.8rem' : '0.86rem' }}>
                     <span
                       style={{
                         background: 'rgba(16, 185, 129, 0.14)',
@@ -336,7 +340,7 @@ export default function MentorExplanationView({
                 );
               }
               return (
-                <div key={idx} style={{ color: 'var(--text-primary)', lineHeight: 1.55, fontSize: isCompact ? '0.8rem' : '0.86rem' }}>
+                <div key={stepKey} style={{ color: 'var(--text-primary)', lineHeight: 1.55, fontSize: isCompact ? '0.8rem' : '0.86rem' }}>
                   {renderFormattedText(st)}
                 </div>
               );
@@ -382,7 +386,7 @@ export default function MentorExplanationView({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: isCompact ? '0.78rem' : '0.84rem' }}>
             {parsed.distractors.map((item, idx) => (
               <div
-                key={idx}
+                key={item.label ? `dist-${item.label}` : `dist-${idx}-${item.text?.slice(0, 10)}`}
                 style={{
                   display: 'flex',
                   alignItems: 'flex-start',

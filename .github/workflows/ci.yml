@@ -56,9 +56,9 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: ucat_user
-          POSTGRES_PASSWORD: ucat_password
-          POSTGRES_DB: ucat_db
+          POSTGRES_USER: mcat_user
+          POSTGRES_PASSWORD: mcat_password
+          POSTGRES_DB: mcat_db
         ports:
           - 5432:5432
         options: >-
@@ -84,7 +84,7 @@ jobs:
 
       - name: Run Pytest Test Suite
         env:
-          DATABASE_URL: postgresql+asyncpg://ucat_user:ucat_password@localhost:5432/ucat_db
+          DATABASE_URL: postgresql+asyncpg://mcat_user:mcat_password@localhost:5432/mcat_db
           DEFAULT_TEXT_MODEL: deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017
           DEFAULT_IMAGE_MODEL: black-forest-labs/FLUX-2-klein-4b
           COST_PER_MILLION_INPUT_TOKENS: 0.098

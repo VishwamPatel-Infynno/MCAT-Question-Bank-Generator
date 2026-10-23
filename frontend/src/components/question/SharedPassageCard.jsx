@@ -16,6 +16,8 @@ import VisualStimulusViewer from './VisualStimulusViewer';
  * - High-legibility editorial serif passage typography.
  * - Embedded VisualStimulusViewer with fullscreen preview support.
  */
+const EMPTY_OBJECT = Object.freeze({});
+
 export default function SharedPassageCard({
   title,
   passageText = '',
@@ -25,7 +27,7 @@ export default function SharedPassageCard({
   diagramQuestion = null,
   collapsible = true,
   defaultCollapsed = false,
-  style = {}
+  style = EMPTY_OBJECT
 }) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 

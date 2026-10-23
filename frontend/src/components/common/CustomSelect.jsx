@@ -21,11 +21,14 @@ import { ChevronDown, Check, Search } from 'lucide-react';
  * - menuStyle?: React.CSSProperties
  * - align?: 'left' | 'right'
  */
+const EMPTY_ARRAY = [];
+const EMPTY_OBJECT = Object.freeze({});
+
 export default function CustomSelect({
   id,
   value,
   onChange,
-  options = [],
+  options = EMPTY_ARRAY,
   placeholder = 'Select option...',
   label,
   icon,
@@ -33,8 +36,8 @@ export default function CustomSelect({
   disabled = false,
   searchable = undefined,
   size = 'md',
-  style = {},
-  menuStyle = {},
+  style = EMPTY_OBJECT,
+  menuStyle = EMPTY_OBJECT,
   align = 'left'
 }) {
   const generatedId = useId();

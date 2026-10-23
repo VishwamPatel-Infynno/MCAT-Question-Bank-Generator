@@ -394,7 +394,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             gen_img_fn = generate_image_stimulus
             graph_mod = sys.modules.get("app.workflow.graph")
             if graph_mod and hasattr(graph_mod, "generate_image_stimulus"):
-                gen_img_fn = getattr(graph_mod, "generate_image_stimulus")
+                gen_img_fn = graph_mod.generate_image_stimulus
 
             (
                 shared_passage_image_url,

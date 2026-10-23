@@ -130,7 +130,7 @@ Ensure PostgreSQL 16 is running on port `5432`:
 docker compose up -d
 ```
 The database connection string in `.env` defaults to:
-`DATABASE_URL=postgresql+asyncpg://ucat_user:ucat_password@localhost:5432/ucat_db`
+`DATABASE_URL=postgresql+asyncpg://mcat_user:mcat_password@localhost:5432/mcat_db`
 
 ### Step 3: Run FastAPI Application
 ```bash

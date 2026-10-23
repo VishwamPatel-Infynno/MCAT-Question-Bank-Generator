@@ -249,7 +249,7 @@ def balance_and_shuffle_options(
     old_to_new: dict[str, str] = {}
     new_options: list[OptionChoice] = []
 
-    for new_id, opt in zip(alphabet, options_copy):
+    for new_id, opt in zip(alphabet, options_copy, strict=False):
         old_id = opt.id.upper()
         old_to_new[old_id] = new_id
         new_options.append(OptionChoice(id=new_id, text=opt.text))

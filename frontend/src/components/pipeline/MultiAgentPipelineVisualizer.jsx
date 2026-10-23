@@ -7,14 +7,17 @@ import {
   Terminal
 } from 'lucide-react';
 
+const EMPTY_ARRAY = [];
+const EMPTY_OBJECT = Object.freeze({});
+
 export default function MultiAgentPipelineVisualizer({
   activeAgent = null,
   iterationCount = 1,
-  events = [],
+  events = EMPTY_ARRAY,
   isGenerating = false,
   latestReview = null,
   totalBatch = 1,
-  perQuestionState = {},
+  perQuestionState = EMPTY_OBJECT,
   liveStatusMessage = null,
   batchProgress = null
 }) {
@@ -315,7 +318,7 @@ export default function MultiAgentPipelineVisualizer({
           </div>
           {events.map((ev, i) => (
             <div
-              key={i}
+              key={ev.id || `${ev.event_type}-${ev.timestamp || i}-${i}`}
               style={{
                 color: ev.event_type === 'error' ? 'var(--status-danger)' : 'var(--text-secondary)',
                 marginBottom: '3px',

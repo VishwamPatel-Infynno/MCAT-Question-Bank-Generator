@@ -54,11 +54,11 @@ Accept: text/event-stream
 #### Request Body
 ```json
 {
-  "section": "verbal_reasoning",
-  "subtopic": "Critical Reading & Inferences",
+  "section": "chem_phys",
+  "subtopic": "Thermodynamics & Reaction Kinetics",
   "difficulty": "medium",
   "require_image": false,
-  "custom_prompt": "Focus on NHS junior doctor triage ethics in a busy A&E department.",
+  "custom_prompt": "Focus on Michaelis-Menten kinetics and competitive enzyme inhibition.",
   "questions_to_generate": 1,
   "single_choice_count": 1,
   "multi_choice_count": 0,
@@ -66,7 +66,7 @@ Accept: text/event-stream
   "interaction_type": "single_choice",
   "passage_required": "Yes",
   "passage_questions": 4,
-  "primary_trap": "Keyword_Trap",
+  "primary_trap": "Calculation_Formula_Trap",
   "combination_id": "CMB00001",
   "run_id": "d81f668e-c768-45b7-9fb6-ba1ee2bdbba3",
   "batch_id": null,
@@ -76,7 +76,7 @@ Accept: text/event-stream
 
 | Field | Type | Required | Default | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `section` | `string` | **Yes** | - | `verbal_reasoning`, `decision_making`, `quantitative_reasoning`, `abstract_reasoning`, `situational_judgement` |
+| `section` | `string` | **Yes** | - | `chem_phys`, `cars`, `bio_biochem`, `psych_soc` |
 | `subtopic` | `string` | No | `null` | Categorized syllabus topic |
 | `difficulty` | `string` | No | `"medium"` | `easy`, `medium`, `hard` |
 | `require_image` | `boolean` | No | `false` | Force visual stimulus generation |
@@ -180,7 +180,7 @@ Retrieves saved questions from PostgreSQL with optional filtering, full-text sea
 #### Query Parameters
 | Parameter | Type | Required | Description |
 | :--- | :--- | :--- | :--- |
-| `section` | `string` | No | Filter by subtest enum (e.g. `verbal_reasoning`) |
+| `section` | `string` | No | Filter by section enum (e.g. `chem_phys`, `cars`, `bio_biochem`, `psych_soc`) |
 | `difficulty` | `string` | No | Filter by difficulty (`easy`, `medium`, `hard`) |
 | `search` | `string` | No | Substring match in question stem, stimulus, or subtopic |
 | `combination_id` | `string` | No | Filter by combination UUID or custom code |
@@ -193,9 +193,9 @@ Retrieves saved questions from PostgreSQL with optional filtering, full-text sea
   "questions": [
     {
       "id": "e3b0c442-98fc-1c14-9afb-4c8996fb9242",
-      "section": "verbal_reasoning",
-      "section_label": "Verbal Reasoning",
-      "subtopic": "Critical Reading & Inferences",
+      "section": "chem_phys",
+      "section_label": "Chemical and Physical Foundations of Biological Systems",
+      "subtopic": "Thermodynamics & Reaction Kinetics",
       "difficulty": "medium",
       "stimulus_text": "Recent clinical trials investigating neurodegenerative markers...",
       "question_stem": "Which of the following statements must be true according to the passage?",
@@ -258,7 +258,7 @@ Retrieves saved questions from PostgreSQL with optional filtering, full-text sea
 
 #### cURL Example
 ```bash
-curl -X GET "http://localhost:8000/api/questions?section=verbal_reasoning&difficulty=medium"
+curl -X GET "http://localhost:8000/api/questions?section=chem_phys&difficulty=medium"
 ```
 
 #### 3.2.1 Explanation Structure & Smart AI Trap Resolution
@@ -269,8 +269,8 @@ All questions generated or retrieved comply with the 3-part explanation and cogn
    - `Why Other Options are Incorrect`: Bulleted analysis for each incorrect option dissecting the exact cognitive flaw and tempting misconception.
    - `Primary Cognitive Trap Spotlight`: Dedicated breakdown of the primary trap with explicit `Trap`, `Error Mechanism`, and `Student Defense Strategy` attributes.
 2. **Primary Trap Resolution**:
-   - When requests specify `primary_trap: "Automatic"` (the recommended default), the generator agent intelligently identifies and populates `primary_trap` from the 11 official MCAT trap types based on the drafted distractors.
-   - When requests supply an explicit trap (e.g. `"Keyword_Trap"`), the generator specifically engineers that trap into the draft.
+   - When requests specify `primary_trap: "Automatic"` (the recommended default), the generator agent intelligently identifies and populates `primary_trap` from the official MCAT trap types based on the drafted distractors.
+   - When requests supply an explicit trap (e.g. `"Calculation_Formula_Trap"`), the generator specifically engineers that trap into the draft.
    - For legacy questions where `primary_trap` is `null`, the backend workflow nodes and frontend `MentorExplanationView.jsx` employ automatic regex matching against the explanation text to extract and badge the active trap without breaking legacy layouts.
 
 ---
@@ -290,7 +290,7 @@ Accepts a full candidate `Question` schema object.
   "message": "Question successfully approved and saved to Question Bank",
   "question": {
     "id": "e3b0c442-98fc-1c14-9afb-4c8996fb9242",
-    "section": "verbal_reasoning",
+    "section": "chem_phys",
     "final_score": 95,
     "saved_at": "2026-10-14T12:00:00"
   }

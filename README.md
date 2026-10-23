@@ -98,7 +98,7 @@ graph LR
 ```bash
 docker compose up -d
 ```
-*Spins up PostgreSQL 16 on `localhost:5432` with database `ucat_db`.*
+*Spins up PostgreSQL 16 on `localhost:5432` with database `mcat_db`.*
 
 ### 2. Backend Setup
 ```bash

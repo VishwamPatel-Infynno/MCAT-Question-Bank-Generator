@@ -32,7 +32,7 @@ cp .env.example .env
 
 | Variable | Type | Default Value | Description |
 | :--- | :--- | :--- | :--- |
-| `DATABASE_URL` | `string` | `postgresql+asyncpg://ucat_user:ucat_password@localhost:5432/ucat_db` | Async SQLAlchemy PostgreSQL connection string |
+| `DATABASE_URL` | `string` | `postgresql+asyncpg://mcat_user:mcat_password@localhost:5432/mcat_db` | Async SQLAlchemy PostgreSQL connection string |
 | `DEFAULT_TEXT_MODEL` | `string` | `deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017` | Primary LiteLLM model identifier |
 | `DEFAULT_IMAGE_MODEL` | `string` | `deepinfra/black-forest-labs/FLUX-2-klein-4b` | Image model for visual stimuli |
 | `DEEPINFRA_API_KEY` | `string` | `""` | DeepInfra API authorization key |
@@ -61,10 +61,10 @@ docker compose up -d
 
 Verify that the database container is healthy:
 ```bash
-docker ps --filter "name=ucat_postgres"
+docker ps --filter "name=mcat_postgres"
 ```
 
-*Expected output: Container `ucat_postgres` running on `0.0.0.0:5432->5432/tcp`.*
+*Expected output: Container `mcat_postgres` running on `0.0.0.0:5432->5432/tcp`.*
 
 ### Step 2: Backend Setup & Launch
 
@@ -210,7 +210,7 @@ DATABASE_URL=postgresql+asyncpg://<USER>:<PASSWORD>@<HOST>:<PORT>/<DATABASE>?ssl
 ## 7. Troubleshooting & FAQ
 
 ### Database connection error (`connection refused` on port 5432)
-- **Check Docker status**: Run `docker ps` to verify container `ucat_postgres` is running.
+- **Check Docker status**: Run `docker ps` to verify container `mcat_postgres` is running.
 - **Port Conflict**: If local PostgreSQL is already running on port 5432, stop local postgres (`brew services stop postgresql` or `sudo systemctl stop postgresql`) or edit `docker-compose.yml` to bind to port `5433:5432` and update `DATABASE_URL` accordingly.
 
 ### `ValueError: DeepInfra API Key is required`

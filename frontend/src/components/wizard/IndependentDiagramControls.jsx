@@ -2,6 +2,8 @@ import React from 'react';
 import NumberStepper from '../common/NumberStepper';
 import { DEFAULT_IMAGE_MODEL, IMAGE_PRICING } from '../../constants/config';
 
+const EMPTY_ARRAY = [];
+
 export default function IndependentDiagramControls({
   isAbstractReasoning = false,
   numIndependentQs = 0,
@@ -9,8 +11,8 @@ export default function IndependentDiagramControls({
   activeQuestionImagesCount = 0,
   indSingleTotal = 0,
   indMultiTotal = 0,
-  indSingleIndices = [],
-  indMultiIndices = [],
+  indSingleIndices = EMPTY_ARRAY,
+  indMultiIndices = EMPTY_ARRAY,
   activeSingleImageCount = 0,
   activeMultiImageCount = 0,
   setSingleImageCount,

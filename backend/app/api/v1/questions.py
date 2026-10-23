@@ -87,7 +87,7 @@ async def get_question_image(question_id: str):
             return Response(content=image_bytes, media_type=media_type)
         except Exception as e:
             logger.error(f"Failed to decode base64 image: {e}")
-            raise HTTPException(status_code=500, detail="Invalid base64 image encoding")
+            raise HTTPException(status_code=500, detail="Invalid base64 image encoding") from e
 
     return RedirectResponse(url=img_url)
 

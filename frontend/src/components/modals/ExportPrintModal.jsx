@@ -14,22 +14,19 @@ import {
 } from 'lucide-react';
 import { fetchQuestions } from '../../services/api';
 
+const EMPTY_ARRAY = [];
+
 const PACING_SECONDS = {
   chem_phys: 96,
   cars: 101,
   bio_biochem: 96,
-  psych_soc: 96,
-  verbal_reasoning: 96,
-  decision_making: 96,
-  quantitative_reasoning: 96,
-  abstract_reasoning: 96,
-  situational_judgement: 96
+  psych_soc: 96
 };
 
 function formatExamTime(questions) {
   if (!questions || questions.length === 0) return '0 mins';
   const totalSeconds = questions.reduce((acc, q) => {
-    const sec = PACING_SECONDS[q.section] || 35;
+    const sec = PACING_SECONDS[q.section] || 96;
     return acc + sec;
   }, 0);
   const minutes = Math.ceil(totalSeconds / 60);
@@ -39,9 +36,9 @@ function formatExamTime(questions) {
 export default function ExportPrintModal({
   isOpen,
   onClose,
-  allQuestions = [],
-  selectedIds = [],
-  filteredQuestions = [],
+  allQuestions = EMPTY_ARRAY,
+  selectedIds = EMPTY_ARRAY,
+  filteredQuestions = EMPTY_ARRAY,
   hasActiveFilters = false,
   onShowToast
 }) {

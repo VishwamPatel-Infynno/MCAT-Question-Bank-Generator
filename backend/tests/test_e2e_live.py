@@ -90,8 +90,8 @@ async def test_e2e_live_generation_sse_stream():
     exact token tracking, and automatic PostgreSQL 16 persistence.
     """
     payload = {
-        "section": "verbal_reasoning",
-        "subtopic": "Critical Reading & Inferences",
+        "section": "cars",
+        "subtopic": "Foundations of Comprehension",
         "difficulty": "medium",
         "require_image": False,
         "passage_required": "Yes",
@@ -100,26 +100,28 @@ async def test_e2e_live_generation_sse_stream():
     events = []
     completed_question = None
 
-    async with httpx.AsyncClient(base_url=BASE_URL, timeout=120.0) as client:
-        async with client.stream("POST", "/generate", json=payload) as response:
-            assert response.status_code == 200
-            assert "text/event-stream" in response.headers.get("content-type", "")
+    async with (
+        httpx.AsyncClient(base_url=BASE_URL, timeout=120.0) as client,
+        client.stream("POST", "/generate", json=payload) as response,
+    ):
+        assert response.status_code == 200
+        assert "text/event-stream" in response.headers.get("content-type", "")
 
-            buffer = ""
-            async for chunk in response.aiter_text():
-                buffer += chunk
-                while "\n\n" in buffer:
-                    block, buffer = buffer.split("\n\n", 1)
-                    block = block.strip()
-                    if block.startswith("data: "):
-                        data_str = block[6:]
-                        try:
-                            ev = json.loads(data_str)
-                            events.append(ev)
-                            if ev.get("event_type") == "workflow_complete":
-                                completed_question = ev.get("data", {}).get("question")
-                        except json.JSONDecodeError:
-                            pass
+        buffer = ""
+        async for chunk in response.aiter_text():
+            buffer += chunk
+            while "\n\n" in buffer:
+                block, buffer = buffer.split("\n\n", 1)
+                block = block.strip()
+                if block.startswith("data: "):
+                    data_str = block[6:]
+                    try:
+                        ev = json.loads(data_str)
+                        events.append(ev)
+                        if ev.get("event_type") == "workflow_complete":
+                            completed_question = ev.get("data", {}).get("question")
+                    except json.JSONDecodeError:
+                        pass
 
     assert len(events) >= 3, f"Expected multi-agent stream events, received: {len(events)}"
 
@@ -132,7 +134,7 @@ async def test_e2e_live_generation_sse_stream():
 
     # Verify the question output
     assert completed_question is not None, "Workflow did not return a completed question"
-    assert completed_question["section"] == "verbal_reasoning"
+    assert completed_question["section"] == "cars"
     assert len(completed_question["options"]) == 4
     assert completed_question["correct_answer_id"] in ["A", "B", "C", "D"]
     assert completed_question["stimulus_text"] is not None
@@ -163,9 +165,9 @@ async def test_e2e_question_bank_crud_and_filtering():
         questions = data.get("questions", [])
         if len(questions) == 0:
             seed_payload = {
-                "section": "verbal_reasoning",
-                "section_label": "Verbal Reasoning",
-                "subtopic": "Critical Reading & Inferences",
+                "section": "cars",
+                "section_label": "Critical Analysis and Reasoning Skills",
+                "subtopic": "Reasoning Within the Text",
                 "difficulty": "medium",
                 "stimulus_text": "Clinical audit in acute tertiary hospitals demonstrated a 34% reduction in catheter-associated urinary tract infections following protocolized catheter removal policies.",
                 "question_stem": "Which conclusion is most robustly supported by the clinical audit findings?",
@@ -497,22 +499,23 @@ async def test_e2e_question_image_endpoint():
 
     img_q = {
         "id": test_id,
-        "section": "abstract_reasoning",
-        "section_label": "Abstract Reasoning",
-        "subtopic": "Set A vs Set B",
+        "section": "chem_phys",
+        "section_label": "Chemical and Physical Foundations of Biological Systems",
+        "subtopic": "Thermodynamics & Reaction Kinetics",
         "difficulty": "hard",
         "visual_type": "AI_FLUX_Image",
         "image_url": dummy_b64,
-        "image_description": "Geometric pattern of alternating concentric shaded hexagons",
-        "question_stem": "Which set does the test shape belong to?",
+        "image_description": "Reaction coordinate diagram showing activation energy profile",
+        "question_stem": "Which transition state represents the rate-determining step?",
         "options": [
-            {"id": "A", "text": "Set A"},
-            {"id": "B", "text": "Set B"},
-            {"id": "C", "text": "Neither"},
+            {"id": "A", "text": "Transition State 1"},
+            {"id": "B", "text": "Transition State 2"},
+            {"id": "C", "text": "Intermediate Complex"},
+            {"id": "D", "text": "Product Ground State"},
         ],
         "correct_answer_id": "A",
         "correct_answer_ids": ["A"],
-        "explanation": "Set A shapes maintain consistent hexagonal symmetries.",
+        "explanation": "Transition State 1 presents the highest activation barrier delta G double dagger.",
         "final_score": 96,
     }
 
