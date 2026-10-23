@@ -1,0 +1,2321 @@
+{
+  "schema_version": "1.0",
+  "exam": {
+    "id": "MCAT",
+    "name": "MCAT",
+    "taxonomy_note": "Practical starter taxonomy aligned broadly to the AAMC MCAT content outline. Review against the current official outline before production."
+  },
+  "selection_flow": [
+    "section",
+    "subject",
+    "unit",
+    "topic",
+    "subtopic",
+    "skill",
+    "subskill"
+  ],
+  "sections": [
+    {
+      "id": "CP",
+      "name": "Chemical and Physical Foundations of Biological Systems",
+      "subjects": [
+        {
+          "id": "GENERAL_CHEMISTRY",
+          "name": "General Chemistry",
+          "units": [
+            {
+              "id": "ATOMIC_STRUCTURE",
+              "name": "Atomic Structure and Periodicity",
+              "topics": [
+                {
+                  "id": "ATOMIC_PARTICLES",
+                  "name": "Atomic Structure",
+                  "subtopics": [
+                    "Protons, neutrons, and electrons",
+                    "Atomic number and mass number",
+                    "Isotopes and average atomic mass",
+                    "Electron configurations"
+                  ]
+                },
+                {
+                  "id": "PERIODIC_TRENDS",
+                  "name": "Periodic Trends",
+                  "subtopics": [
+                    "Atomic and ionic radius",
+                    "Ionization energy",
+                    "Electron affinity",
+                    "Electronegativity"
+                  ]
+                },
+                {
+                  "id": "CHEMICAL_BONDING",
+                  "name": "Chemical Bonding",
+                  "subtopics": [
+                    "Ionic and covalent bonds",
+                    "Lewis structures",
+                    "Formal charge and resonance",
+                    "Molecular geometry and polarity"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "STOICHIOMETRY",
+              "name": "Stoichiometry and Chemical Reactions",
+              "topics": [
+                {
+                  "id": "MOLES",
+                  "name": "Moles and Chemical Quantities",
+                  "subtopics": [
+                    "Molar mass",
+                    "Mole calculations",
+                    "Percent composition",
+                    "Empirical and molecular formulas"
+                  ]
+                },
+                {
+                  "id": "REACTION_STOICHIOMETRY",
+                  "name": "Reaction Stoichiometry",
+                  "subtopics": [
+                    "Balancing equations",
+                    "Limiting reagents",
+                    "Theoretical and percent yield",
+                    "Concentration calculations"
+                  ]
+                },
+                {
+                  "id": "REACTION_TYPES",
+                  "name": "Reaction Types",
+                  "subtopics": [
+                    "Precipitation reactions",
+                    "Acid-base reactions",
+                    "Oxidation-reduction reactions",
+                    "Net ionic equations"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "STATES_SOLUTIONS",
+              "name": "States of Matter and Solutions",
+              "topics": [
+                {
+                  "id": "GASES",
+                  "name": "Gases",
+                  "subtopics": [
+                    "Ideal gas law",
+                    "Partial pressures",
+                    "Gas mixtures",
+                    "Deviations from ideal behavior"
+                  ]
+                },
+                {
+                  "id": "SOLUTIONS",
+                  "name": "Solutions",
+                  "subtopics": [
+                    "Solubility",
+                    "Concentration units",
+                    "Dilution",
+                    "Colligative properties"
+                  ]
+                },
+                {
+                  "id": "INTERMOLECULAR_FORCES",
+                  "name": "Intermolecular Forces",
+                  "subtopics": [
+                    "Hydrogen bonding",
+                    "Dipole-dipole forces",
+                    "London dispersion forces",
+                    "Effects on boiling point and solubility"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "EQUILIBRIUM_ACID_BASE",
+              "name": "Equilibrium, Acids, and Bases",
+              "topics": [
+                {
+                  "id": "CHEMICAL_EQUILIBRIUM",
+                  "name": "Chemical Equilibrium",
+                  "subtopics": [
+                    "Equilibrium constants",
+                    "Reaction quotient",
+                    "Le Châtelier's principle",
+                    "Equilibrium calculations"
+                  ]
+                },
+                {
+                  "id": "ACIDS_BASES",
+                  "name": "Acids and Bases",
+                  "subtopics": [
+                    "Strong and weak acids and bases",
+                    "pH and pOH",
+                    "Ka and Kb",
+                    "Conjugate acid-base pairs"
+                  ]
+                },
+                {
+                  "id": "BUFFERS_TITRATIONS",
+                  "name": "Buffers and Titrations",
+                  "subtopics": [
+                    "Buffer action",
+                    "Henderson-Hasselbalch relationship",
+                    "Titration curves",
+                    "Equivalence and half-equivalence points"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "THERMODYNAMICS_KINETICS",
+              "name": "Thermodynamics and Kinetics",
+              "topics": [
+                {
+                  "id": "THERMODYNAMICS",
+                  "name": "Thermodynamics",
+                  "subtopics": [
+                    "Enthalpy",
+                    "Entropy",
+                    "Gibbs free energy",
+                    "Spontaneity and equilibrium"
+                  ]
+                },
+                {
+                  "id": "KINETICS",
+                  "name": "Chemical Kinetics",
+                  "subtopics": [
+                    "Reaction rates",
+                    "Rate laws",
+                    "Reaction order",
+                    "Activation energy and catalysts"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "ELECTROCHEMISTRY",
+              "name": "Electrochemistry",
+              "topics": [
+                {
+                  "id": "REDOX",
+                  "name": "Oxidation and Reduction",
+                  "subtopics": [
+                    "Oxidation states",
+                    "Balancing redox reactions",
+                    "Oxidizing and reducing agents"
+                  ]
+                },
+                {
+                  "id": "ELECTROCHEMICAL_CELLS",
+                  "name": "Electrochemical Cells",
+                  "subtopics": [
+                    "Galvanic cells",
+                    "Electrolytic cells",
+                    "Cell potential",
+                    "Electrolysis"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ORGANIC_CHEMISTRY",
+          "name": "Organic Chemistry",
+          "units": [
+            {
+              "id": "STRUCTURE_NOMENCLATURE",
+              "name": "Structure and Nomenclature",
+              "topics": [
+                {
+                  "id": "FUNCTIONAL_GROUPS",
+                  "name": "Functional Groups",
+                  "subtopics": [
+                    "Alcohols and phenols",
+                    "Aldehydes and ketones",
+                    "Carboxylic acids and derivatives",
+                    "Amines and amides",
+                    "Ethers, esters, and other common groups"
+                  ]
+                },
+                {
+                  "id": "ISOMERISM",
+                  "name": "Isomerism and Stereochemistry",
+                  "subtopics": [
+                    "Constitutional isomers",
+                    "Chirality and enantiomers",
+                    "Diastereomers",
+                    "R/S configuration",
+                    "Cis-trans and E/Z isomerism"
+                  ]
+                },
+                {
+                  "id": "STRUCTURE_PROPERTIES",
+                  "name": "Structure and Properties",
+                  "subtopics": [
+                    "Hybridization",
+                    "Resonance",
+                    "Acidity and basicity",
+                    "Molecular polarity"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "ORGANIC_REACTIONS",
+              "name": "Organic Reactions and Mechanisms",
+              "topics": [
+                {
+                  "id": "SUBSTITUTION_ELIMINATION",
+                  "name": "Substitution and Elimination",
+                  "subtopics": [
+                    "SN1 reactions",
+                    "SN2 reactions",
+                    "E1 reactions",
+                    "E2 reactions",
+                    "Factors affecting reaction pathways"
+                  ]
+                },
+                {
+                  "id": "ADDITION_REACTIONS",
+                  "name": "Addition Reactions",
+                  "subtopics": [
+                    "Electrophilic addition to alkenes",
+                    "Addition to carbonyls",
+                    "Hydrogenation",
+                    "Hydration"
+                  ]
+                },
+                {
+                  "id": "OXIDATION_REDUCTION_ORG",
+                  "name": "Organic Oxidation and Reduction",
+                  "subtopics": [
+                    "Oxidation of alcohols",
+                    "Reduction of carbonyls",
+                    "Redox reagents and selectivity"
+                  ]
+                },
+                {
+                  "id": "CARBOXYLIC_DERIVATIVES",
+                  "name": "Carboxylic Acids and Derivatives",
+                  "subtopics": [
+                    "Nucleophilic acyl substitution",
+                    "Esterification and hydrolysis",
+                    "Amide formation and hydrolysis"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "LAB_METHODS",
+              "name": "Laboratory Methods and Spectroscopy",
+              "topics": [
+                {
+                  "id": "SEPARATION",
+                  "name": "Separation and Purification",
+                  "subtopics": [
+                    "Extraction",
+                    "Distillation",
+                    "Recrystallization",
+                    "Chromatography",
+                    "Electrophoresis"
+                  ]
+                },
+                {
+                  "id": "SPECTROSCOPY",
+                  "name": "Spectroscopy",
+                  "subtopics": [
+                    "IR spectroscopy",
+                    "NMR basics",
+                    "Mass spectrometry",
+                    "UV-visible spectroscopy",
+                    "Interpreting spectral evidence"
+                  ]
+                },
+                {
+                  "id": "LAB_TECHNIQUES",
+                  "name": "Experimental Techniques",
+                  "subtopics": [
+                    "Purity assessment",
+                    "Sample preparation",
+                    "Yield and recovery",
+                    "Choosing an appropriate technique"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "PHYSICS",
+          "name": "Physics",
+          "units": [
+            {
+              "id": "MECHANICS",
+              "name": "Mechanics",
+              "topics": [
+                {
+                  "id": "MOTION_FORCES",
+                  "name": "Motion and Forces",
+                  "subtopics": [
+                    "Kinematics",
+                    "Newton's laws",
+                    "Friction and equilibrium",
+                    "Circular motion"
+                  ]
+                },
+                {
+                  "id": "WORK_ENERGY",
+                  "name": "Work, Energy, and Power",
+                  "subtopics": [
+                    "Work",
+                    "Kinetic and potential energy",
+                    "Conservation of energy",
+                    "Power and efficiency"
+                  ]
+                },
+                {
+                  "id": "MOMENTUM",
+                  "name": "Momentum and Impulse",
+                  "subtopics": [
+                    "Linear momentum",
+                    "Impulse",
+                    "Conservation of momentum",
+                    "Collisions"
+                  ]
+                },
+                {
+                  "id": "ROTATION",
+                  "name": "Rotational Motion",
+                  "subtopics": [
+                    "Torque",
+                    "Rotational equilibrium",
+                    "Angular motion",
+                    "Center of mass"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "FLUIDS",
+              "name": "Fluids",
+              "topics": [
+                {
+                  "id": "FLUID_STATICS",
+                  "name": "Fluid Statics",
+                  "subtopics": [
+                    "Density and specific gravity",
+                    "Pressure",
+                    "Pascal's principle",
+                    "Buoyancy"
+                  ]
+                },
+                {
+                  "id": "FLUID_DYNAMICS",
+                  "name": "Fluid Dynamics",
+                  "subtopics": [
+                    "Continuity equation",
+                    "Flow rate",
+                    "Bernoulli principle",
+                    "Viscosity and resistance"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "WAVES_SOUND",
+              "name": "Waves and Sound",
+              "topics": [
+                {
+                  "id": "WAVE_PROPERTIES",
+                  "name": "Wave Properties",
+                  "subtopics": [
+                    "Frequency and wavelength",
+                    "Wave speed",
+                    "Superposition",
+                    "Standing waves"
+                  ]
+                },
+                {
+                  "id": "SOUND",
+                  "name": "Sound",
+                  "subtopics": [
+                    "Sound intensity",
+                    "Decibels",
+                    "Doppler effect",
+                    "Resonance"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "OPTICS",
+              "name": "Light and Optics",
+              "topics": [
+                {
+                  "id": "GEOMETRIC_OPTICS",
+                  "name": "Geometric Optics",
+                  "subtopics": [
+                    "Reflection",
+                    "Refraction",
+                    "Lenses and mirrors",
+                    "Image formation",
+                    "Optical instruments"
+                  ]
+                },
+                {
+                  "id": "LIGHT_PROPERTIES",
+                  "name": "Light Properties",
+                  "subtopics": [
+                    "Electromagnetic spectrum",
+                    "Wavelength and frequency",
+                    "Polarization",
+                    "Absorption and transmission"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "ELECTRICITY_MAGNETISM",
+              "name": "Electricity and Magnetism",
+              "topics": [
+                {
+                  "id": "ELECTROSTATICS",
+                  "name": "Electrostatics",
+                  "subtopics": [
+                    "Electric charge",
+                    "Coulomb's law",
+                    "Electric fields",
+                    "Electric potential"
+                  ]
+                },
+                {
+                  "id": "CIRCUITS",
+                  "name": "Electrical Circuits",
+                  "subtopics": [
+                    "Current, voltage, and resistance",
+                    "Ohm's law",
+                    "Series and parallel circuits",
+                    "Capacitance",
+                    "Electrical power"
+                  ]
+                },
+                {
+                  "id": "MAGNETISM",
+                  "name": "Magnetism",
+                  "subtopics": [
+                    "Magnetic fields",
+                    "Magnetic force",
+                    "Electromagnetic induction",
+                    "Charged particles in fields"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "ATOMIC_NUCLEAR",
+              "name": "Atomic and Nuclear Phenomena",
+              "topics": [
+                {
+                  "id": "ATOMIC_PHYSICS",
+                  "name": "Atomic Physics",
+                  "subtopics": [
+                    "Energy levels",
+                    "Photon energy",
+                    "Emission and absorption spectra"
+                  ]
+                },
+                {
+                  "id": "NUCLEAR_PHYSICS",
+                  "name": "Nuclear Physics",
+                  "subtopics": [
+                    "Radioactive decay",
+                    "Half-life",
+                    "Nuclear reactions",
+                    "Radiation and energy"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "BIOCHEMISTRY",
+          "name": "Biochemistry",
+          "units": [
+            {
+              "id": "BIOMOLECULES",
+              "name": "Biological Molecules",
+              "topics": [
+                {
+                  "id": "AMINO_ACIDS_PROTEINS",
+                  "name": "Amino Acids and Proteins",
+                  "subtopics": [
+                    "Amino acid structure and properties",
+                    "Peptide bonds",
+                    "Protein primary to quaternary structure",
+                    "Protein folding and denaturation"
+                  ]
+                },
+                {
+                  "id": "ENZYMES",
+                  "name": "Enzymes and Kinetics",
+                  "subtopics": [
+                    "Enzyme function",
+                    "Michaelis-Menten kinetics",
+                    "Km and Vmax",
+                    "Competitive and noncompetitive inhibition",
+                    "Allosteric regulation"
+                  ]
+                },
+                {
+                  "id": "CARBOHYDRATES_LIPIDS",
+                  "name": "Carbohydrates and Lipids",
+                  "subtopics": [
+                    "Monosaccharides and polysaccharides",
+                    "Glycosidic bonds",
+                    "Fatty acids and triglycerides",
+                    "Phospholipids and membranes"
+                  ]
+                },
+                {
+                  "id": "NUCLEIC_ACIDS",
+                  "name": "Nucleic Acids",
+                  "subtopics": [
+                    "DNA and RNA structure",
+                    "Nucleotide chemistry",
+                    "Base pairing",
+                    "Nucleic acid stability"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "METABOLISM",
+              "name": "Metabolism and Bioenergetics",
+              "topics": [
+                {
+                  "id": "CARBOHYDRATE_METABOLISM",
+                  "name": "Carbohydrate Metabolism",
+                  "subtopics": [
+                    "Glycolysis",
+                    "Gluconeogenesis",
+                    "Glycogen synthesis and breakdown",
+                    "Pentose phosphate pathway"
+                  ]
+                },
+                {
+                  "id": "CITRIC_ACID_OXPHOS",
+                  "name": "Citric Acid Cycle and Oxidative Phosphorylation",
+                  "subtopics": [
+                    "Pyruvate oxidation",
+                    "Citric acid cycle",
+                    "Electron transport chain",
+                    "Chemiosmosis and ATP synthesis"
+                  ]
+                },
+                {
+                  "id": "LIPID_METABOLISM",
+                  "name": "Lipid Metabolism",
+                  "subtopics": [
+                    "Beta-oxidation",
+                    "Fatty acid synthesis",
+                    "Ketone bodies",
+                    "Lipid transport"
+                  ]
+                },
+                {
+                  "id": "METABOLIC_REGULATION",
+                  "name": "Metabolic Regulation",
+                  "subtopics": [
+                    "Fed and fasting states",
+                    "Hormonal regulation",
+                    "Energy charge",
+                    "Pathway integration"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "BIOLOGY",
+          "name": "Biology",
+          "units": [
+            {
+              "id": "CELL_BIOLOGY",
+              "name": "Cell Biology",
+              "topics": [
+                {
+                  "id": "CELL_STRUCTURE",
+                  "name": "Cell Structure and Organelles",
+                  "subtopics": [
+                    "Membrane structure",
+                    "Nucleus and ribosomes",
+                    "Mitochondria and chloroplasts",
+                    "Endomembrane system",
+                    "Cytoskeleton"
+                  ]
+                },
+                {
+                  "id": "MEMBRANE_TRANSPORT",
+                  "name": "Membranes and Transport",
+                  "subtopics": [
+                    "Diffusion and osmosis",
+                    "Facilitated diffusion",
+                    "Active transport",
+                    "Endocytosis and exocytosis"
+                  ]
+                },
+                {
+                  "id": "CELL_DIVISION",
+                  "name": "Cell Division",
+                  "subtopics": [
+                    "Cell cycle",
+                    "Mitosis",
+                    "Meiosis",
+                    "Apoptosis and checkpoints"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "MOLECULAR_GENETICS",
+              "name": "Molecular Biology and Genetics",
+              "topics": [
+                {
+                  "id": "GENE_EXPRESSION",
+                  "name": "Gene Expression",
+                  "subtopics": [
+                    "DNA replication",
+                    "Transcription",
+                    "Translation",
+                    "Gene regulation",
+                    "Mutations and DNA repair"
+                  ]
+                },
+                {
+                  "id": "INHERITANCE",
+                  "name": "Inheritance and Variation",
+                  "subtopics": [
+                    "Mendelian inheritance",
+                    "Pedigrees",
+                    "Linkage and recombination",
+                    "Chromosomal abnormalities",
+                    "Population genetics"
+                  ]
+                },
+                {
+                  "id": "BIOTECHNOLOGY",
+                  "name": "Biotechnology",
+                  "subtopics": [
+                    "PCR",
+                    "Gel electrophoresis",
+                    "Cloning and recombinant DNA",
+                    "Sequencing",
+                    "Gene-expression analysis"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "ORGAN_SYSTEMS",
+              "name": "Organ Systems and Homeostasis",
+              "topics": [
+                {
+                  "id": "NERVOUS_SYSTEM",
+                  "name": "Nervous System",
+                  "subtopics": [
+                    "Neuron structure",
+                    "Action potentials",
+                    "Synaptic transmission",
+                    "Central and peripheral nervous systems"
+                  ]
+                },
+                {
+                  "id": "ENDOCRINE_SYSTEM",
+                  "name": "Endocrine System",
+                  "subtopics": [
+                    "Hormones and receptors",
+                    "Feedback regulation",
+                    "Pituitary and hypothalamus",
+                    "Endocrine glands"
+                  ]
+                },
+                {
+                  "id": "CARDIOVASCULAR_SYSTEM",
+                  "name": "Cardiovascular System",
+                  "subtopics": [
+                    "Heart structure and cycle",
+                    "Blood flow and pressure",
+                    "Blood components",
+                    "Gas transport"
+                  ]
+                },
+                {
+                  "id": "RESPIRATORY_SYSTEM",
+                  "name": "Respiratory System",
+                  "subtopics": [
+                    "Ventilation",
+                    "Gas exchange",
+                    "Oxygen transport",
+                    "Carbon dioxide and acid-base balance"
+                  ]
+                },
+                {
+                  "id": "RENAL_SYSTEM",
+                  "name": "Renal System",
+                  "subtopics": [
+                    "Nephron structure",
+                    "Filtration and reabsorption",
+                    "Fluid and electrolyte balance",
+                    "Urine concentration"
+                  ]
+                },
+                {
+                  "id": "DIGESTIVE_SYSTEM",
+                  "name": "Digestive System",
+                  "subtopics": [
+                    "Digestive enzymes",
+                    "Absorption",
+                    "Liver and pancreas",
+                    "Nutrient processing"
+                  ]
+                },
+                {
+                  "id": "IMMUNE_SYSTEM",
+                  "name": "Immune System",
+                  "subtopics": [
+                    "Innate immunity",
+                    "Adaptive immunity",
+                    "Antibodies and lymphocytes",
+                    "Immune memory"
+                  ]
+                },
+                {
+                  "id": "REPRODUCTION_DEVELOPMENT",
+                  "name": "Reproduction and Development",
+                  "subtopics": [
+                    "Gametogenesis",
+                    "Reproductive hormones",
+                    "Fertilization",
+                    "Embryonic development"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "MICROBIOLOGY",
+              "name": "Microbiology",
+              "topics": [
+                {
+                  "id": "PROKARYOTES",
+                  "name": "Prokaryotes",
+                  "subtopics": [
+                    "Bacterial structure",
+                    "Bacterial growth",
+                    "Prokaryotic gene regulation",
+                    "Horizontal gene transfer"
+                  ]
+                },
+                {
+                  "id": "VIRUSES",
+                  "name": "Viruses",
+                  "subtopics": [
+                    "Viral structure",
+                    "Replication cycles",
+                    "Viral genetics",
+                    "Host interactions"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "BB",
+      "name": "Biological and Biochemical Foundations of Living Systems",
+      "subjects": [
+        {
+          "id": "BIOLOGY",
+          "name": "Biology",
+          "units": [
+            {
+              "id": "CELLS",
+              "name": "Cells and Cellular Organization",
+              "topics": [
+                {
+                  "id": "CELL_STRUCTURE",
+                  "name": "Cell Structure and Organelles",
+                  "subtopics": [
+                    "Membrane structure and function",
+                    "Organelles",
+                    "Cytoskeleton",
+                    "Cell junctions"
+                  ]
+                },
+                {
+                  "id": "TRANSPORT_SIGNALING",
+                  "name": "Transport and Cell Signaling",
+                  "subtopics": [
+                    "Membrane transport",
+                    "Receptors and signaling pathways",
+                    "Second messengers",
+                    "Cellular responses"
+                  ]
+                },
+                {
+                  "id": "CELL_CYCLE",
+                  "name": "Cell Growth and Division",
+                  "subtopics": [
+                    "Cell cycle regulation",
+                    "Mitosis",
+                    "Meiosis",
+                    "Differentiation and apoptosis"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "GENETICS_MOLECULAR",
+              "name": "Genetics and Molecular Biology",
+              "topics": [
+                {
+                  "id": "DNA_RNA_PROTEIN",
+                  "name": "DNA to Protein",
+                  "subtopics": [
+                    "Replication",
+                    "Transcription",
+                    "Translation",
+                    "Gene regulation",
+                    "Mutation effects"
+                  ]
+                },
+                {
+                  "id": "HEREDITY",
+                  "name": "Inheritance",
+                  "subtopics": [
+                    "Mendelian patterns",
+                    "Pedigrees",
+                    "Linkage",
+                    "Recombination",
+                    "Genetic diversity"
+                  ]
+                },
+                {
+                  "id": "BIOTECH",
+                  "name": "Biotechnology and Research Methods",
+                  "subtopics": [
+                    "PCR",
+                    "Gel electrophoresis",
+                    "Sequencing",
+                    "Blotting methods",
+                    "Gene and protein expression"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "MICROBIOLOGY",
+              "name": "Prokaryotes and Viruses",
+              "topics": [
+                {
+                  "id": "BACTERIA",
+                  "name": "Bacterial Biology",
+                  "subtopics": [
+                    "Structure and function",
+                    "Growth and reproduction",
+                    "Metabolism",
+                    "Gene transfer"
+                  ]
+                },
+                {
+                  "id": "VIRAL_BIOLOGY",
+                  "name": "Viral Biology",
+                  "subtopics": [
+                    "Viral structure",
+                    "Replication",
+                    "Lytic and lysogenic cycles",
+                    "Host response"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "PHYSIOLOGY",
+              "name": "Organ Systems and Physiology",
+              "topics": [
+                {
+                  "id": "NERVOUS",
+                  "name": "Nervous System",
+                  "subtopics": [
+                    "Neurons and glia",
+                    "Action potentials",
+                    "Synapses",
+                    "Neural organization"
+                  ]
+                },
+                {
+                  "id": "ENDOCRINE",
+                  "name": "Endocrine System",
+                  "subtopics": [
+                    "Hormone classes",
+                    "Hormone signaling",
+                    "Feedback loops",
+                    "Endocrine regulation"
+                  ]
+                },
+                {
+                  "id": "CARDIOVASCULAR",
+                  "name": "Cardiovascular System",
+                  "subtopics": [
+                    "Cardiac cycle",
+                    "Blood pressure and flow",
+                    "Blood vessels",
+                    "Blood composition"
+                  ]
+                },
+                {
+                  "id": "RESPIRATORY",
+                  "name": "Respiratory System",
+                  "subtopics": [
+                    "Ventilation",
+                    "Gas exchange",
+                    "Oxygen transport",
+                    "Carbon dioxide transport"
+                  ]
+                },
+                {
+                  "id": "RENAL",
+                  "name": "Renal System",
+                  "subtopics": [
+                    "Nephron",
+                    "Filtration and reabsorption",
+                    "Osmoregulation",
+                    "Acid-base balance"
+                  ]
+                },
+                {
+                  "id": "DIGESTIVE",
+                  "name": "Digestive System",
+                  "subtopics": [
+                    "Digestion",
+                    "Absorption",
+                    "Digestive secretions",
+                    "Nutrient metabolism"
+                  ]
+                },
+                {
+                  "id": "IMMUNE",
+                  "name": "Immune System",
+                  "subtopics": [
+                    "Innate immunity",
+                    "Adaptive immunity",
+                    "Antibodies",
+                    "Immune response"
+                  ]
+                },
+                {
+                  "id": "MUSCULOSKELETAL",
+                  "name": "Musculoskeletal System",
+                  "subtopics": [
+                    "Muscle contraction",
+                    "Skeletal structure",
+                    "Muscle energetics"
+                  ]
+                },
+                {
+                  "id": "REPRODUCTION",
+                  "name": "Reproduction and Development",
+                  "subtopics": [
+                    "Gametogenesis",
+                    "Hormonal control",
+                    "Fertilization",
+                    "Development"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "BIOCHEMISTRY",
+          "name": "Biochemistry",
+          "units": [
+            {
+              "id": "PROTEINS_ENZYMES",
+              "name": "Proteins and Enzymes",
+              "topics": [
+                {
+                  "id": "AMINO_ACIDS",
+                  "name": "Amino Acids",
+                  "subtopics": [
+                    "Structure and classification",
+                    "Charge and pKa",
+                    "Peptide bonds",
+                    "Isoelectric point"
+                  ]
+                },
+                {
+                  "id": "PROTEIN_STRUCTURE",
+                  "name": "Protein Structure and Function",
+                  "subtopics": [
+                    "Primary structure",
+                    "Secondary structure",
+                    "Tertiary and quaternary structure",
+                    "Folding and denaturation"
+                  ]
+                },
+                {
+                  "id": "ENZYME_KINETICS",
+                  "name": "Enzyme Kinetics",
+                  "subtopics": [
+                    "Michaelis-Menten model",
+                    "Km and Vmax",
+                    "Inhibition",
+                    "Allosteric enzymes",
+                    "Enzyme regulation"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "METABOLISM",
+              "name": "Metabolism",
+              "topics": [
+                {
+                  "id": "CARBOHYDRATES",
+                  "name": "Carbohydrate Metabolism",
+                  "subtopics": [
+                    "Glycolysis",
+                    "Gluconeogenesis",
+                    "Glycogen metabolism",
+                    "Pentose phosphate pathway"
+                  ]
+                },
+                {
+                  "id": "ENERGY_PRODUCTION",
+                  "name": "Energy Production",
+                  "subtopics": [
+                    "Pyruvate oxidation",
+                    "Citric acid cycle",
+                    "Electron transport chain",
+                    "Oxidative phosphorylation"
+                  ]
+                },
+                {
+                  "id": "LIPIDS",
+                  "name": "Lipid Metabolism",
+                  "subtopics": [
+                    "Beta-oxidation",
+                    "Fatty acid synthesis",
+                    "Ketone bodies",
+                    "Cholesterol metabolism"
+                  ]
+                },
+                {
+                  "id": "METABOLIC_INTEGRATION",
+                  "name": "Metabolic Integration",
+                  "subtopics": [
+                    "Fed state",
+                    "Fasting state",
+                    "Hormonal regulation",
+                    "Energy balance"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "MOLECULAR_BIOMOLECULES",
+              "name": "Other Biomolecules",
+              "topics": [
+                {
+                  "id": "CARBOHYDRATES",
+                  "name": "Carbohydrate Structure",
+                  "subtopics": [
+                    "Monosaccharides",
+                    "Disaccharides",
+                    "Polysaccharides",
+                    "Glycosidic bonds"
+                  ]
+                },
+                {
+                  "id": "LIPID_STRUCTURE",
+                  "name": "Lipid Structure",
+                  "subtopics": [
+                    "Fatty acids",
+                    "Triglycerides",
+                    "Phospholipids",
+                    "Membrane lipids"
+                  ]
+                },
+                {
+                  "id": "NUCLEIC_ACIDS",
+                  "name": "Nucleic Acids",
+                  "subtopics": [
+                    "DNA structure",
+                    "RNA structure",
+                    "Nucleotides",
+                    "Nucleic acid interactions"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "GENERAL_CHEMISTRY",
+          "name": "General Chemistry",
+          "units": [
+            {
+              "id": "CHEMICAL_PRINCIPLES",
+              "name": "Chemical Principles in Biological Systems",
+              "topics": [
+                {
+                  "id": "ACID_BASE",
+                  "name": "Acids, Bases, and Buffers",
+                  "subtopics": [
+                    "pH and pKa",
+                    "Buffers",
+                    "Titration",
+                    "Biological acid-base systems"
+                  ]
+                },
+                {
+                  "id": "THERMODYNAMICS",
+                  "name": "Thermodynamics",
+                  "subtopics": [
+                    "Free energy",
+                    "Enthalpy and entropy",
+                    "Equilibrium",
+                    "Coupled reactions"
+                  ]
+                },
+                {
+                  "id": "SOLUTIONS",
+                  "name": "Solutions and Concentration",
+                  "subtopics": [
+                    "Molarity",
+                    "Dilution",
+                    "Solubility",
+                    "Osmotic effects"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ORGANIC_CHEMISTRY",
+          "name": "Organic Chemistry",
+          "units": [
+            {
+              "id": "BIOLOGICALLY_RELEVANT_ORGANIC",
+              "name": "Biologically Relevant Organic Chemistry",
+              "topics": [
+                {
+                  "id": "FUNCTIONAL_GROUPS",
+                  "name": "Functional Groups",
+                  "subtopics": [
+                    "Alcohols",
+                    "Carbonyl compounds",
+                    "Carboxylic acids and derivatives",
+                    "Amines and amides"
+                  ]
+                },
+                {
+                  "id": "REACTIONS",
+                  "name": "Organic Reactions",
+                  "subtopics": [
+                    "Hydrolysis and condensation",
+                    "Oxidation and reduction",
+                    "Nucleophilic substitution",
+                    "Stereochemistry"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PS",
+      "name": "Psychological, Social, and Biological Foundations of Behavior",
+      "subjects": [
+        {
+          "id": "PSYCHOLOGY",
+          "name": "Psychology",
+          "units": [
+            {
+              "id": "SENSATION_PERCEPTION",
+              "name": "Sensation and Perception",
+              "topics": [
+                {
+                  "id": "SENSORY_PROCESSING",
+                  "name": "Sensory Processing",
+                  "subtopics": [
+                    "Sensory receptors",
+                    "Absolute and difference thresholds",
+                    "Signal detection",
+                    "Sensory adaptation"
+                  ]
+                },
+                {
+                  "id": "PERCEPTION",
+                  "name": "Perceptual Processes",
+                  "subtopics": [
+                    "Bottom-up and top-down processing",
+                    "Gestalt principles",
+                    "Depth perception",
+                    "Perceptual constancies"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "LEARNING_MEMORY",
+              "name": "Learning and Memory",
+              "topics": [
+                {
+                  "id": "LEARNING_THEORIES",
+                  "name": "Learning Theories",
+                  "subtopics": [
+                    "Classical conditioning",
+                    "Operant conditioning",
+                    "Reinforcement and punishment",
+                    "Observational learning"
+                  ]
+                },
+                {
+                  "id": "MEMORY_SYSTEMS",
+                  "name": "Memory Systems",
+                  "subtopics": [
+                    "Encoding",
+                    "Storage",
+                    "Retrieval",
+                    "Working memory",
+                    "Long-term memory",
+                    "Forgetting"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "COGNITION",
+              "name": "Cognition and Intelligence",
+              "topics": [
+                {
+                  "id": "THINKING_LANGUAGE",
+                  "name": "Thinking and Language",
+                  "subtopics": [
+                    "Problem-solving",
+                    "Decision-making",
+                    "Heuristics and biases",
+                    "Language development"
+                  ]
+                },
+                {
+                  "id": "INTELLIGENCE",
+                  "name": "Intelligence",
+                  "subtopics": [
+                    "Intelligence theories",
+                    "IQ testing",
+                    "Reliability and validity",
+                    "Cognitive development"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "BIOLOGICAL_BASES",
+              "name": "Biological Bases of Behavior",
+              "topics": [
+                {
+                  "id": "NERVOUS_SYSTEM",
+                  "name": "Nervous System",
+                  "subtopics": [
+                    "Brain regions",
+                    "Neurons and neurotransmitters",
+                    "Autonomic nervous system",
+                    "Neural plasticity"
+                  ]
+                },
+                {
+                  "id": "ENDOCRINE_BEHAVIOR",
+                  "name": "Endocrine and Behavioral Regulation",
+                  "subtopics": [
+                    "Hormones",
+                    "Stress response",
+                    "Sleep and circadian rhythms",
+                    "Biological influences on behavior"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "MOTIVATION_EMOTION",
+              "name": "Motivation and Emotion",
+              "topics": [
+                {
+                  "id": "MOTIVATION",
+                  "name": "Motivation",
+                  "subtopics": [
+                    "Drive theories",
+                    "Intrinsic and extrinsic motivation",
+                    "Needs and goals"
+                  ]
+                },
+                {
+                  "id": "EMOTION",
+                  "name": "Emotion and Stress",
+                  "subtopics": [
+                    "Theories of emotion",
+                    "Stress response",
+                    "Coping",
+                    "Physiological correlates"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "PERSONALITY_DISORDERS",
+              "name": "Personality and Psychological Disorders",
+              "topics": [
+                {
+                  "id": "PERSONALITY",
+                  "name": "Personality",
+                  "subtopics": [
+                    "Trait theories",
+                    "Psychodynamic theories",
+                    "Social-cognitive theories",
+                    "Self-concept and identity"
+                  ]
+                },
+                {
+                  "id": "DISORDERS",
+                  "name": "Psychological Disorders",
+                  "subtopics": [
+                    "Anxiety-related disorders",
+                    "Mood disorders",
+                    "Psychotic disorders",
+                    "Personality disorders",
+                    "Treatment approaches"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "DEVELOPMENT",
+              "name": "Psychological Development",
+              "topics": [
+                {
+                  "id": "LIFESPAN",
+                  "name": "Lifespan Development",
+                  "subtopics": [
+                    "Cognitive development",
+                    "Social development",
+                    "Attachment",
+                    "Aging and development"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "SOCIOLOGY",
+          "name": "Sociology",
+          "units": [
+            {
+              "id": "SOCIAL_PROCESSES",
+              "name": "Social Processes and Interaction",
+              "topics": [
+                {
+                  "id": "SOCIALIZATION",
+                  "name": "Socialization",
+                  "subtopics": [
+                    "Agents of socialization",
+                    "Norms and values",
+                    "Roles and status",
+                    "Resocialization"
+                  ]
+                },
+                {
+                  "id": "GROUPS",
+                  "name": "Groups and Organizations",
+                  "subtopics": [
+                    "Group dynamics",
+                    "Conformity",
+                    "Obedience",
+                    "Bureaucracy and organizations"
+                  ]
+                },
+                {
+                  "id": "IDENTITY_INTERACTION",
+                  "name": "Identity and Social Interaction",
+                  "subtopics": [
+                    "Self and identity",
+                    "Impression management",
+                    "Attribution",
+                    "Stigma and labeling"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "CULTURE_INSTITUTIONS",
+              "name": "Culture and Social Institutions",
+              "topics": [
+                {
+                  "id": "CULTURE",
+                  "name": "Culture",
+                  "subtopics": [
+                    "Cultural values",
+                    "Subcultures",
+                    "Cultural transmission",
+                    "Cultural relativism"
+                  ]
+                },
+                {
+                  "id": "INSTITUTIONS",
+                  "name": "Social Institutions",
+                  "subtopics": [
+                    "Family",
+                    "Education",
+                    "Religion",
+                    "Healthcare",
+                    "Economy and government"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "STRATIFICATION",
+              "name": "Social Stratification and Inequality",
+              "topics": [
+                {
+                  "id": "SOCIAL_CLASS",
+                  "name": "Social Class and Mobility",
+                  "subtopics": [
+                    "Socioeconomic status",
+                    "Social mobility",
+                    "Wealth and income",
+                    "Class systems"
+                  ]
+                },
+                {
+                  "id": "INEQUALITY",
+                  "name": "Inequality and Discrimination",
+                  "subtopics": [
+                    "Race and ethnicity as social constructs",
+                    "Gender and inequality",
+                    "Prejudice and discrimination",
+                    "Access to resources"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "POPULATION",
+              "name": "Demographics and Population",
+              "topics": [
+                {
+                  "id": "DEMOGRAPHIC_CHANGE",
+                  "name": "Demographic Processes",
+                  "subtopics": [
+                    "Fertility and mortality",
+                    "Migration",
+                    "Population growth",
+                    "Age structure"
+                  ]
+                },
+                {
+                  "id": "URBANIZATION",
+                  "name": "Population Distribution",
+                  "subtopics": [
+                    "Urbanization",
+                    "Rural and urban differences",
+                    "Population health patterns"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "HEALTH_SOCIETY",
+              "name": "Health and Society",
+              "topics": [
+                {
+                  "id": "SOCIAL_DETERMINANTS",
+                  "name": "Social Determinants of Health",
+                  "subtopics": [
+                    "Healthcare access",
+                    "Education and health",
+                    "Income and health",
+                    "Environmental influences",
+                    "Health disparities"
+                  ]
+                },
+                {
+                  "id": "ILLNESS_BEHAVIOR",
+                  "name": "Illness and Healthcare Behavior",
+                  "subtopics": [
+                    "Sick role",
+                    "Health behavior",
+                    "Patient-provider interactions",
+                    "Medicalization"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "BIOLOGY",
+          "name": "Biology",
+          "units": [
+            {
+              "id": "BIOLOGICAL_BEHAVIOR",
+              "name": "Biological Foundations of Behavior",
+              "topics": [
+                {
+                  "id": "BRAIN_BEHAVIOR",
+                  "name": "Brain and Behavior",
+                  "subtopics": [
+                    "Brain regions",
+                    "Neurotransmission",
+                    "Neural pathways",
+                    "Brain lateralization"
+                  ]
+                },
+                {
+                  "id": "SENSORY_SYSTEMS",
+                  "name": "Sensory Systems",
+                  "subtopics": [
+                    "Vision",
+                    "Hearing",
+                    "Somatosensation",
+                    "Sensory pathways"
+                  ]
+                },
+                {
+                  "id": "HORMONES_STRESS",
+                  "name": "Hormones and Stress",
+                  "subtopics": [
+                    "Endocrine signaling",
+                    "Stress physiology",
+                    "Circadian regulation"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CARS",
+      "name": "Critical Analysis and Reasoning Skills",
+      "subjects": [
+        {
+          "id": "HUMANITIES",
+          "name": "Humanities",
+          "units": [
+            {
+              "id": "PHILOSOPHY_ETHICS",
+              "name": "Philosophy and Ethics",
+              "topics": [
+                {
+                  "id": "MORAL_ETHICS",
+                  "name": "Moral and Applied Ethics",
+                  "subtopics": [
+                    "Moral arguments",
+                    "Ethical frameworks",
+                    "Conflicting values"
+                  ]
+                },
+                {
+                  "id": "KNOWLEDGE_REALITY",
+                  "name": "Knowledge and Reality",
+                  "subtopics": [
+                    "Claims and evidence",
+                    "Reasoning and skepticism",
+                    "Interpretation"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "ARTS_LITERATURE",
+              "name": "Arts and Literature",
+              "topics": [
+                {
+                  "id": "ART_CRITICISM",
+                  "name": "Art and Aesthetic Criticism",
+                  "subtopics": [
+                    "Interpretation of works",
+                    "Aesthetic judgments",
+                    "Cultural context"
+                  ]
+                },
+                {
+                  "id": "LITERATURE",
+                  "name": "Literature and Narrative",
+                  "subtopics": [
+                    "Narrative perspective",
+                    "Themes and symbolism",
+                    "Authorial intent"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "HISTORY_CULTURE",
+              "name": "History and Cultural Studies",
+              "topics": [
+                {
+                  "id": "HISTORICAL_ARGUMENTS",
+                  "name": "Historical Arguments",
+                  "subtopics": [
+                    "Historical interpretation",
+                    "Competing explanations",
+                    "Use of evidence"
+                  ]
+                },
+                {
+                  "id": "CULTURAL_ANALYSIS",
+                  "name": "Culture and Society in Humanities",
+                  "subtopics": [
+                    "Cultural values",
+                    "Tradition and change",
+                    "Social criticism"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "SOCIAL_SCIENCES",
+          "name": "Social Sciences",
+          "units": [
+            {
+              "id": "POLITICS_ECONOMICS",
+              "name": "Political Thought and Economics",
+              "topics": [
+                {
+                  "id": "POLITICAL_ARGUMENTS",
+                  "name": "Political and Civic Arguments",
+                  "subtopics": [
+                    "Political institutions",
+                    "Power and legitimacy",
+                    "Public policy arguments"
+                  ]
+                },
+                {
+                  "id": "ECONOMIC_ARGUMENTS",
+                  "name": "Economic Ideas",
+                  "subtopics": [
+                    "Economic assumptions",
+                    "Distribution of resources",
+                    "Markets and institutions"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "SOCIETY_ANTHROPOLOGY",
+              "name": "Sociology and Anthropology",
+              "topics": [
+                {
+                  "id": "SOCIAL_THEORIES",
+                  "name": "Social Theories",
+                  "subtopics": [
+                    "Social structures",
+                    "Group behavior",
+                    "Cultural explanations"
+                  ]
+                },
+                {
+                  "id": "ANTHROPOLOGY",
+                  "name": "Anthropological Perspectives",
+                  "subtopics": [
+                    "Cultural comparison",
+                    "Social practices",
+                    "Human interpretation"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "id": "S1",
+      "name": "Knowledge of Scientific Concepts and Principles",
+      "applies_to": [
+        "CP",
+        "BB",
+        "PS"
+      ],
+      "subskills": [
+        "Identify or recognize a scientific concept",
+        "Recall or define a principle",
+        "Explain a relationship between concepts",
+        "Apply a familiar scientific principle"
+      ]
+    },
+    {
+      "id": "S2",
+      "name": "Scientific Reasoning and Problem-Solving",
+      "applies_to": [
+        "CP",
+        "BB",
+        "PS"
+      ],
+      "subskills": [
+        "Apply a principle to a new situation",
+        "Predict an outcome",
+        "Combine multiple concepts",
+        "Solve a quantitative or logical problem",
+        "Evaluate a scientific explanation"
+      ]
+    },
+    {
+      "id": "S3",
+      "name": "Reasoning About Research Design and Execution",
+      "applies_to": [
+        "CP",
+        "BB",
+        "PS"
+      ],
+      "subskills": [
+        "Identify independent and dependent variables",
+        "Select an appropriate control",
+        "Evaluate experimental design",
+        "Identify limitations or confounds",
+        "Interpret methods and procedures",
+        "Assess whether evidence supports a hypothesis"
+      ]
+    },
+    {
+      "id": "S4",
+      "name": "Data-Based and Statistical Reasoning",
+      "applies_to": [
+        "CP",
+        "BB",
+        "PS"
+      ],
+      "subskills": [
+        "Interpret a graph",
+        "Interpret a table",
+        "Compare data sets",
+        "Identify a trend or relationship",
+        "Interpret statistical evidence",
+        "Draw a conclusion from experimental data"
+      ]
+    },
+    {
+      "id": "CARS1",
+      "name": "Comprehension",
+      "applies_to": [
+        "CARS"
+      ],
+      "subskills": [
+        "Identify main idea",
+        "Identify supporting detail",
+        "Summarize passage structure",
+        "Determine meaning in context"
+      ]
+    },
+    {
+      "id": "CARS2",
+      "name": "Reasoning Within the Text",
+      "applies_to": [
+        "CARS"
+      ],
+      "subskills": [
+        "Identify assumptions",
+        "Analyze argument structure",
+        "Infer an unstated implication",
+        "Evaluate evidence supporting a claim",
+        "Identify author's tone or perspective"
+      ]
+    },
+    {
+      "id": "CARS3",
+      "name": "Reasoning Beyond the Text",
+      "applies_to": [
+        "CARS"
+      ],
+      "subskills": [
+        "Apply an idea to a new scenario",
+        "Assess a hypothetical example",
+        "Compare alternative explanations",
+        "Predict the author's response",
+        "Evaluate a new claim using passage logic"
+      ]
+    }
+  ],
+  "generation_options": {
+    "difficulty": [
+      {
+        "id": "EASY",
+        "value": "Easy",
+        "description": "Focused concept; limited inference or one straightforward step."
+      },
+      {
+        "id": "MEDIUM",
+        "value": "Medium",
+        "description": "Application or interpretation, often combining related ideas or steps."
+      },
+      {
+        "id": "HARD",
+        "value": "Hard",
+        "description": "Multi-step reasoning, concept integration, or analysis of unfamiliar data."
+      }
+    ],
+    "question_type": [
+      {
+        "id": "DISCRETE_MCQ",
+        "value": "Discrete MCQ",
+        "description": "Standalone single-best-answer question without a shared passage."
+      },
+      {
+        "id": "PASSAGE_BASED_MCQ",
+        "value": "Passage-based MCQ",
+        "description": "Question linked to a science, humanities, or social-science passage."
+      },
+      {
+        "id": "GRAPH_INTERPRETATION",
+        "value": "Graph interpretation",
+        "description": "Interpret a graph or plotted results."
+      },
+      {
+        "id": "TABLE_INTERPRETATION",
+        "value": "Table interpretation",
+        "description": "Interpret tabular data or compare conditions."
+      },
+      {
+        "id": "EXPERIMENTAL_DESIGN",
+        "value": "Experimental design",
+        "description": "Reason about methods, controls, variables, limitations, or experimental logic."
+      },
+      {
+        "id": "CALCULATION",
+        "value": "Calculation",
+        "description": "A quantitative calculation is central to the answer."
+      },
+      {
+        "id": "DATA_INTERPRETATION",
+        "value": "Data interpretation",
+        "description": "Draw a conclusion from supplied results, measurements, or statistics."
+      },
+      {
+        "id": "PASSAGE_INFERENCE",
+        "value": "Passage inference",
+        "description": "Infer an answer from a passage; especially useful for CARS."
+      }
+    ],
+    "number_of_questions": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 50,
+      "default": 5,
+      "description": "Number of questions in one batch. Enforce a configurable backend limit based on model and token budget."
+    },
+    "content_domain": [
+      {
+        "id": "ATOMIC_MOLECULAR",
+        "value": "Atomic and Molecular Structure"
+      },
+      {
+        "id": "CHEMICAL_REACTIONS",
+        "value": "Chemical Reactions and Reactivity"
+      },
+      {
+        "id": "EQUILIBRIUM_ACID_BASE",
+        "value": "Equilibrium, Acids, and Bases"
+      },
+      {
+        "id": "THERMODYNAMICS_KINETICS",
+        "value": "Thermodynamics and Kinetics"
+      },
+      {
+        "id": "ELECTROCHEMISTRY",
+        "value": "Electrochemistry"
+      },
+      {
+        "id": "ORGANIC_STRUCTURE_REACTIONS",
+        "value": "Organic Structure and Reactions"
+      },
+      {
+        "id": "LAB_METHODS",
+        "value": "Laboratory Methods and Analysis"
+      },
+      {
+        "id": "MECHANICS_FLUIDS",
+        "value": "Mechanics and Fluids"
+      },
+      {
+        "id": "WAVES_OPTICS",
+        "value": "Waves, Sound, and Optics"
+      },
+      {
+        "id": "ELECTRICITY_MAGNETISM",
+        "value": "Electricity and Magnetism"
+      },
+      {
+        "id": "ATOMIC_NUCLEAR_PHYSICS",
+        "value": "Atomic and Nuclear Physics"
+      },
+      {
+        "id": "CELL_BIOLOGY",
+        "value": "Cell Biology"
+      },
+      {
+        "id": "MOLECULAR_BIOLOGY",
+        "value": "Molecular Biology and Genetics"
+      },
+      {
+        "id": "BIOCHEMISTRY",
+        "value": "Biochemistry and Biomolecules"
+      },
+      {
+        "id": "METABOLISM",
+        "value": "Metabolism and Bioenergetics"
+      },
+      {
+        "id": "HUMAN_PHYSIOLOGY",
+        "value": "Human Physiology and Homeostasis"
+      },
+      {
+        "id": "MICROBIOLOGY",
+        "value": "Microbiology and Virology"
+      },
+      {
+        "id": "RESEARCH_EXPERIMENTS",
+        "value": "Scientific Research and Experimental Data"
+      },
+      {
+        "id": "SENSATION_PERCEPTION",
+        "value": "Sensation and Perception"
+      },
+      {
+        "id": "LEARNING_MEMORY",
+        "value": "Learning, Memory, and Cognition"
+      },
+      {
+        "id": "BIOLOGICAL_BEHAVIOR",
+        "value": "Biological Bases of Behavior"
+      },
+      {
+        "id": "MOTIVATION_EMOTION",
+        "value": "Motivation, Emotion, and Stress"
+      },
+      {
+        "id": "PERSONALITY_DEVELOPMENT",
+        "value": "Personality and Development"
+      },
+      {
+        "id": "PSYCHOLOGICAL_DISORDERS",
+        "value": "Psychological Disorders and Treatment"
+      },
+      {
+        "id": "SOCIAL_INTERACTION",
+        "value": "Social Interaction and Group Processes"
+      },
+      {
+        "id": "CULTURE_INSTITUTIONS",
+        "value": "Culture and Social Institutions"
+      },
+      {
+        "id": "DEMOGRAPHICS_STRATIFICATION",
+        "value": "Demographics, Stratification, and Inequality"
+      },
+      {
+        "id": "HEALTH_SOCIETY",
+        "value": "Health and Society"
+      },
+      {
+        "id": "HUMANITIES_ARGUMENT",
+        "value": "Humanities and Philosophical Arguments"
+      },
+      {
+        "id": "ARTS_LITERATURE",
+        "value": "Arts and Literature"
+      },
+      {
+        "id": "HISTORY_CULTURE",
+        "value": "History and Cultural Analysis"
+      },
+      {
+        "id": "POLITICS_ECONOMICS",
+        "value": "Political Thought and Economics"
+      },
+      {
+        "id": "SOCIAL_SCIENCE_ARGUMENT",
+        "value": "Social-Science Arguments"
+      }
+    ],
+    "primary_trap": [
+      {
+        "id": "CONCEPT_CONFUSION",
+        "value": "Concept confusion"
+      },
+      {
+        "id": "WRONG_BASE",
+        "value": "Wrong base or reference value"
+      },
+      {
+        "id": "UNIT_CONVERSION",
+        "value": "Unit conversion error"
+      },
+      {
+        "id": "FORMULA_MISAPPLICATION",
+        "value": "Formula misapplication"
+      },
+      {
+        "id": "SIGN_CONVENTION",
+        "value": "Sign or direction convention"
+      },
+      {
+        "id": "PROPORTIONALITY_ERROR",
+        "value": "Proportionality error"
+      },
+      {
+        "id": "ASSUMPTION_MISSED",
+        "value": "Missed assumption or condition"
+      },
+      {
+        "id": "CAUSE_EFFECT_CONFUSION",
+        "value": "Cause-effect confusion"
+      },
+      {
+        "id": "CORRELATION_CAUSATION",
+        "value": "Correlation mistaken for causation"
+      },
+      {
+        "id": "CONTROL_GROUP_CONFUSION",
+        "value": "Control-group confusion"
+      },
+      {
+        "id": "VARIABLE_CONFUSION",
+        "value": "Independent/dependent variable confusion"
+      },
+      {
+        "id": "SAMPLE_SIZE_BIAS",
+        "value": "Sampling or sample-size bias"
+      },
+      {
+        "id": "STATISTICAL_SIGNIFICANCE",
+        "value": "Statistical significance misconception"
+      },
+      {
+        "id": "GRAPH_AXIS_MISREADING",
+        "value": "Graph or axis misreading"
+      },
+      {
+        "id": "TABLE_COMPARISON_ERROR",
+        "value": "Table comparison error"
+      },
+      {
+        "id": "TREND_EXTRAPOLATION",
+        "value": "Unsupported trend extrapolation"
+      },
+      {
+        "id": "MECHANISM_CONFUSION",
+        "value": "Mechanism confusion"
+      },
+      {
+        "id": "EXCEPTION_OVERLOOKED",
+        "value": "Exception or qualifier overlooked"
+      },
+      {
+        "id": "NEGATION_MISREAD",
+        "value": "Negation or NOT/EXCEPT misread"
+      },
+      {
+        "id": "SCOPE_SHIFT",
+        "value": "Scope shift"
+      },
+      {
+        "id": "UNSUPPORTED_INFERENCE",
+        "value": "Unsupported inference"
+      },
+      {
+        "id": "PASSAGE_CONTRADICTION",
+        "value": "Answer contradicts passage evidence"
+      },
+      {
+        "id": "OVERGENERALIZATION",
+        "value": "Overgeneralization"
+      },
+      {
+        "id": "DISTRACTOR_OVERINTERPRETATION",
+        "value": "Distractor overinterpretation"
+      },
+      {
+        "id": "ANSWER_CHOICE_CONFLATION",
+        "value": "Answer-choice conflation"
+      }
+    ],
+    "likely_mistake_pattern": {
+      "allow_custom_value": true,
+      "values": [
+        {
+          "id": "USES_WRONG_REFERENCE_VALUE",
+          "value": "Uses the wrong reference value in a calculation"
+        },
+        {
+          "id": "CONFUSES_ABSOLUTE_RELATIVE_CHANGE",
+          "value": "Confuses absolute change with relative or percentage change"
+        },
+        {
+          "id": "CONFUSES_KM_VMAX",
+          "value": "Confuses Km with Vmax"
+        },
+        {
+          "id": "ASSUMES_BOTH_ENZYME_PARAMETERS_CHANGE",
+          "value": "Assumes both Km and Vmax change under competitive inhibition"
+        },
+        {
+          "id": "IGNORES_UNITS",
+          "value": "Ignores or inconsistently converts units"
+        },
+        {
+          "id": "USES_WRONG_EQUATION",
+          "value": "Selects an equation that does not match the stated conditions"
+        },
+        {
+          "id": "DROPS_NEGATIVE_SIGN",
+          "value": "Drops or reverses a negative sign or direction"
+        },
+        {
+          "id": "CONFUSES_RATE_WITH_AMOUNT",
+          "value": "Confuses a rate with an amount or total quantity"
+        },
+        {
+          "id": "CONFUSES_MOLARITY_MOLES",
+          "value": "Confuses molarity with number of moles"
+        },
+        {
+          "id": "MISREADS_GRAPH_AXES",
+          "value": "Reads the wrong axis, scale, or plotted series"
+        },
+        {
+          "id": "ASSUMES_CORRELATION_CAUSATION",
+          "value": "Treats an observed association as proof of causation"
+        },
+        {
+          "id": "MISIDENTIFIES_VARIABLES",
+          "value": "Misidentifies the independent or dependent variable"
+        },
+        {
+          "id": "MISUNDERSTANDS_CONTROL",
+          "value": "Confuses a control condition with an experimental condition"
+        },
+        {
+          "id": "IGNORES_CONFOUND",
+          "value": "Overlooks a confounding variable or design limitation"
+        },
+        {
+          "id": "OVERREADS_STATISTICAL_SIGNIFICANCE",
+          "value": "Treats statistical significance as proof of a large or important effect"
+        },
+        {
+          "id": "FAILURE_TO_REJECT_AS_PROOF",
+          "value": "Treats failure to reject the null hypothesis as proof that it is true"
+        },
+        {
+          "id": "EXTRAPOLATES_BEYOND_DATA",
+          "value": "Extrapolates beyond the range or evidence supplied"
+        },
+        {
+          "id": "USES_OUTSIDE_KNOWLEDGE_OVER_PASSAGE",
+          "value": "Chooses general knowledge over evidence stated in the passage"
+        },
+        {
+          "id": "CONFUSES_AUTHOR_VIEW_WITH_REPORTED_VIEW",
+          "value": "Confuses the author's view with a view reported or criticized in the passage"
+        },
+        {
+          "id": "SELECTS_PARTLY_TRUE_OPTION",
+          "value": "Chooses a partly true option that does not answer the exact question"
+        },
+        {
+          "id": "MISSES_QUALIFIER",
+          "value": "Overlooks a qualifier such as most, least, except, or not"
+        },
+        {
+          "id": "CONFUSES_SIMILAR_TERMS",
+          "value": "Confuses two related but distinct terms"
+        },
+        {
+          "id": "ASSUMES_UNSTATED_CAUSE",
+          "value": "Adds a cause or mechanism not supported by the information given"
+        },
+        {
+          "id": "OVERGENERALIZES_RESULT",
+          "value": "Generalizes a result beyond the tested sample or context"
+        }
+      ]
+    },
+    "notes": [
+      "These are internal generation taxonomies, not official AAMC labels.",
+      "Content domain is a broad context tag and can be multi-select; it need not mirror the topic hierarchy exactly.",
+      "Use one primary trap per question. The likely mistake pattern describes the concrete error a student might make.",
+      "Human review is still required for scientific accuracy, passage consistency, one-best-answer validity, and distractor quality."
+    ]
+  },
+  "generation_form_fields": [
+    {
+      "id": "difficulty",
+      "label": "Difficulty",
+      "control": "single_select",
+      "required": true,
+      "options_ref": "generation_options.difficulty"
+    },
+    {
+      "id": "question_type",
+      "label": "Question type",
+      "control": "single_select",
+      "required": true,
+      "options_ref": "generation_options.question_type"
+    },
+    {
+      "id": "number_of_questions",
+      "label": "Number of questions",
+      "control": "integer",
+      "required": true,
+      "options_ref": "generation_options.number_of_questions"
+    },
+    {
+      "id": "content_domain",
+      "label": "Content domain",
+      "control": "multi_select",
+      "required": false,
+      "options_ref": "generation_options.content_domain"
+    },
+    {
+      "id": "primary_trap",
+      "label": "Primary trap",
+      "control": "single_select",
+      "required": false,
+      "options_ref": "generation_options.primary_trap"
+    },
+    {
+      "id": "likely_mistake_pattern",
+      "label": "Likely mistake pattern",
+      "control": "single_select_or_custom",
+      "required": false,
+      "options_ref": "generation_options.likely_mistake_pattern"
+    }
+  ]
+}

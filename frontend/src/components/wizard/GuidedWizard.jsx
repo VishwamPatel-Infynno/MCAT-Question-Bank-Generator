@@ -4,10 +4,13 @@ import {
   ArrowRight,
   Sparkles
 } from 'lucide-react';
-import { PACING_INFO } from '../../constants/mcat';
+import {
+  PACING_INFO,
+  getSubjectsForSection,
+  getSkillsForSection
+} from '../../constants/mcat';
 import {
   SECTION_METADATA,
-  CONTENT_DOMAINS,
   DIFFICULTY_TIERS,
   COGNITIVE_TRAPS
 } from './wizardConstants';
@@ -29,19 +32,32 @@ export default function GuidedWizard({
   const form = generatorForm?.formData || {};
   const update = generatorForm?.updateField;
   const updateFields = generatorForm?.updateFields;
+  const toggleContentDomain = generatorForm?.toggleContentDomain;
 
   const selectedSection = form.selectedSection || 'chem_phys';
+  const selectedSubject = form.selectedSubject || '';
+  const selectedUnit = form.selectedUnit || '';
+  const selectedTopic = form.selectedTopic || '';
   const selectedSubtopic = form.selectedSubtopic || '';
-  const setSelectedSubtopic = useCallback((v) => update('selectedSubtopic', v), [update]);
+  const selectedSkill = form.selectedSkill || '';
+  const selectedSubskill = form.selectedSubskill || '';
+  const questionType = form.questionType || 'DISCRETE_MCQ';
   const difficulty = form.difficulty || 'medium';
+  const totalQuestions = form.totalQuestions || 5;
+  const contentDomains = form.contentDomains || [];
+  const primaryTrap = form.primaryTrap || 'Automatic';
+  const likelyMistakePattern = form.likelyMistakePattern || '';
+  const customMistakePattern = form.customMistakePattern || '';
+
+  const setSelectedSubtopic = useCallback((v) => update('selectedSubtopic', v), [update]);
   const setDifficulty = (v) => update('difficulty', v);
-  const totalQuestions = 5;
+  const setTotalQuestions = (v) => update('totalQuestions', v);
+  const setQuestionType = (v) => update('questionType', v);
   const setPassageCount = (v) => update('passageCount', v);
   const passageMode = form.passageMode || 'single_passage';
   const setPassageMode = (v) => update('passageMode', v);
   const passageRequired = form.passageRequired || (passageMode === 'independent' ? 'No' : 'Yes');
   const setPassageRequired = (v) => update('passageRequired', v);
-  const primaryTrap = form.primaryTrap || 'Automatic';
   const setPrimaryTrap = (v) => update('primaryTrap', v);
   const imageMode = form.imageMode || 'none';
   const setImageCount = generatorForm?.setImageCount;
@@ -59,12 +75,12 @@ export default function GuidedWizard({
   const pacing = PACING_INFO[selectedSection] || PACING_INFO.chem_phys;
 
   // Number of passage questions vs independent questions
-  const numPassageQs = passageMode === 'single_passage' ? 5 : 0;
-  const numIndependentQs = passageMode === 'single_passage' ? 0 : 5;
+  const numPassageQs = passageMode === 'single_passage' ? totalQuestions : 0;
+  const numIndependentQs = passageMode === 'single_passage' ? 0 : totalQuestions;
 
-  const independentIndices = Array.from({ length: 5 }, (_, i) => i + 1).slice(numPassageQs);
+  const independentIndices = Array.from({ length: totalQuestions }, (_, i) => i + 1).slice(numPassageQs);
 
-  const indSingleTotal = passageMode === 'independent' ? 5 : 0;
+  const indSingleTotal = passageMode === 'independent' ? totalQuestions : 0;
   const indMultiTotal = 0;
 
   const indSingleIndices = independentIndices.slice(0, indSingleTotal);
@@ -96,37 +112,49 @@ export default function GuidedWizard({
         ];
   }, [sectionsData, selectedSection]);
 
-  useEffect(() => {
-    if (availableSubtopics.length > 0 && !availableSubtopics.includes(selectedSubtopic)) {
-      setSelectedSubtopic(availableSubtopics[0]);
-    }
-  }, [availableSubtopics, selectedSubtopic, setSelectedSubtopic]);
-
   // Section Selection handler
   const handleSelectSection = (sectionId) => {
     const isCars = sectionId === 'cars';
+    const subjs = getSubjectsForSection(sectionId);
+    const firstSubj = subjs[0];
+    const firstUnit = firstSubj?.units?.[0];
+    const firstTopic = firstUnit?.topics?.[0];
+    const firstSubtopic = firstTopic?.subtopics?.[0] || '';
+    const skills = getSkillsForSection(sectionId);
+    const firstSkill = skills[0];
+
     if (isCars) {
       updateFields({
         selectedSection: sectionId,
+        selectedSubject: firstSubj?.id || '',
+        selectedUnit: firstUnit?.id || '',
+        selectedTopic: firstTopic?.id || '',
+        selectedSubtopic: firstSubtopic,
+        selectedSkill: firstSkill?.id || 'CARS1',
+        selectedSubskill: firstSkill?.subskills?.[0] || '',
         passageMode: 'single_passage',
         passageRequired: 'Yes',
-        passageQuestionCount: 5,
-        passageCount: 1,
-        passageSingleCount: 5,
+        passageQuestionCount: totalQuestions,
+        passageCount: totalQuestions,
+        passageSingleCount: totalQuestions,
         passageMultiCount: 0,
-        singleChoiceCount: 5,
+        singleChoiceCount: totalQuestions,
         multiChoiceCount: 0,
         independentSingleCount: 0,
         independentMultiCount: 0,
-        totalQuestions: 5,
         requireImage: false,
         visual_type: 'None'
       });
     } else {
       updateFields({
         selectedSection: sectionId,
-        totalQuestions: 5,
-        singleChoiceCount: 5,
+        selectedSubject: firstSubj?.id || '',
+        selectedUnit: firstUnit?.id || '',
+        selectedTopic: firstTopic?.id || '',
+        selectedSubtopic: firstSubtopic,
+        selectedSkill: firstSkill?.id || 'S1',
+        selectedSubskill: firstSkill?.subskills?.[0] || '',
+        singleChoiceCount: totalQuestions,
         multiChoiceCount: 0
       });
     }
@@ -137,15 +165,14 @@ export default function GuidedWizard({
       updateFields({
         passageMode: 'single_passage',
         passageRequired: 'Yes',
-        passageQuestionCount: 5,
-        passageCount: 1,
-        passageSingleCount: 5,
+        passageQuestionCount: totalQuestions,
+        passageCount: totalQuestions,
+        passageSingleCount: totalQuestions,
         passageMultiCount: 0,
-        singleChoiceCount: 5,
+        singleChoiceCount: totalQuestions,
         multiChoiceCount: 0,
         independentSingleCount: 0,
-        independentMultiCount: 0,
-        totalQuestions: 5
+        independentMultiCount: 0
       });
     } else {
       updateFields({
@@ -155,11 +182,10 @@ export default function GuidedWizard({
         passageCount: 0,
         passageSingleCount: 0,
         passageMultiCount: 0,
-        singleChoiceCount: 5,
+        singleChoiceCount: totalQuestions,
         multiChoiceCount: 0,
-        independentSingleCount: 5,
-        independentMultiCount: 0,
-        totalQuestions: 5
+        independentSingleCount: totalQuestions,
+        independentMultiCount: 0
       });
     }
   };
@@ -200,9 +226,9 @@ export default function GuidedWizard({
             <span className="wizard-step-pill">Step {step} of {totalSteps}</span>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               {step === 1 && 'Choose Exam Section'}
-              {step === 2 && 'Pick Topic & Scenario'}
-              {step === 3 && 'Difficulty & Questions'}
-              {step === 4 && 'Passages, Diagrams & Traps'}
+              {step === 2 && 'Pick Syllabus Hierarchy & Topic'}
+              {step === 3 && 'Difficulty, Format & Batch Quantity'}
+              {step === 4 && 'Skills, Cognitive Traps & Stimulus'}
               {step === 5 && 'Review & Generate'}
             </span>
           </div>
@@ -231,13 +257,18 @@ export default function GuidedWizard({
 
         {step === 2 && (
           <WizardStep2Topic
+            selectedSection={selectedSection}
             sectionMeta={sectionMeta}
-            availableSubtopics={availableSubtopics}
+            selectedSubject={selectedSubject}
+            onSelectSubject={(v) => update('selectedSubject', v)}
+            selectedUnit={selectedUnit}
+            onSelectUnit={(v) => update('selectedUnit', v)}
+            selectedTopic={selectedTopic}
+            onSelectTopic={(v) => update('selectedTopic', v)}
             selectedSubtopic={selectedSubtopic}
+            onSelectSubtopic={(v) => update('selectedSubtopic', v)}
+            availableSubtopics={availableSubtopics}
             setSelectedSubtopic={setSelectedSubtopic}
-            CONTENT_DOMAINS={CONTENT_DOMAINS}
-            contentDomain={form.contentDomain}
-            onUpdateContentDomain={(val) => update('contentDomain', val)}
           />
         )}
 
@@ -249,11 +280,16 @@ export default function GuidedWizard({
             DIFFICULTY_TIERS={DIFFICULTY_TIERS}
             passageMode={passageMode}
             handlePassageModeChange={handlePassageModeChange}
+            totalQuestions={totalQuestions}
+            setTotalQuestions={setTotalQuestions}
+            questionType={questionType}
+            setQuestionType={setQuestionType}
           />
         )}
 
         {step === 4 && (
           <WizardStep4Stimulus
+            selectedSection={selectedSection}
             totalQuestions={totalQuestions}
             passageRequired={passageRequired}
             setPassageRequired={setPassageRequired}
@@ -281,6 +317,16 @@ export default function GuidedWizard({
             setPrimaryTrap={setPrimaryTrap}
             customPrompt={customPrompt}
             setCustomPrompt={setCustomPrompt}
+            selectedSkill={selectedSkill}
+            setSelectedSkill={(v) => update('selectedSkill', v)}
+            selectedSubskill={selectedSubskill}
+            setSelectedSubskill={(v) => update('selectedSubskill', v)}
+            contentDomains={contentDomains}
+            onToggleContentDomain={toggleContentDomain}
+            likelyMistakePattern={likelyMistakePattern}
+            setLikelyMistakePattern={(v) => update('likelyMistakePattern', v)}
+            customMistakePattern={customMistakePattern}
+            setCustomMistakePattern={(v) => update('customMistakePattern', v)}
           />
         )}
 
@@ -289,15 +335,25 @@ export default function GuidedWizard({
             sectionMeta={sectionMeta}
             pacing={pacing}
             setStep={setStep}
+            selectedSubject={selectedSubject}
+            selectedUnit={selectedUnit}
+            selectedTopic={selectedTopic}
             selectedSubtopic={selectedSubtopic}
             customPrompt={customPrompt}
             difficulty={difficulty}
             passageMode={passageMode}
+            totalQuestions={totalQuestions}
+            questionType={questionType}
             totalImagesCount={totalImagesCount}
             hasPassageImage={hasPassageImage}
             activeQuestionImagesCount={activeQuestionImagesCount}
             COGNITIVE_TRAPS={COGNITIVE_TRAPS}
             primaryTrap={primaryTrap}
+            selectedSkill={selectedSkill}
+            selectedSubskill={selectedSubskill}
+            likelyMistakePattern={likelyMistakePattern}
+            customMistakePattern={customMistakePattern}
+            contentDomains={contentDomains}
           />
         )}
       </div>

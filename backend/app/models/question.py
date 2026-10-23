@@ -56,5 +56,13 @@ class QuestionModel(Base):
     mcat_scaled_score: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     aamc_skill: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
 
+    # Granular Dependent Taxonomy Hierarchy
+    subject: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    unit: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    topic: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    subskill: Mapped[str | None] = mapped_column(String(256), nullable=True, index=True)
+    likely_mistake_pattern: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     # Multi-Stage Raw Outcome JSON
     stage_outcomes: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+

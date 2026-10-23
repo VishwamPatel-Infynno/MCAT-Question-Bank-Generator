@@ -2,9 +2,17 @@ import { useState, useCallback } from 'react';
 
 export const DEFAULT_GENERATOR_FORM = {
   selectedSection: 'chem_phys',
+  selectedSubject: '',
+  selectedUnit: '',
+  selectedTopic: '',
   selectedSubtopic: '',
+  selectedSkill: '',
+  selectedSubskill: '',
+  questionType: 'DISCRETE_MCQ',
   difficulty: 'medium',
   totalQuestions: 5,
+  contentDomains: [],
+  contentDomain: '',
   singleChoiceCount: 5,
   multiChoiceCount: 0,
   passageCount: 1,
@@ -17,6 +25,8 @@ export const DEFAULT_GENERATOR_FORM = {
   interactionType: 'single_choice',
   passageRequired: 'Yes',
   primaryTrap: 'Automatic',
+  likelyMistakePattern: '',
+  customMistakePattern: '',
   requireImage: false,
   imageMode: 'none', // 'none' | 'all' | 'specific'
   imageQuestionIndices: [], // 1-based question numbers e.g. [1, 2]
@@ -42,6 +52,19 @@ export function useGeneratorForm(initialValues = {}) {
       ...prev,
       ...fieldsObj
     }));
+  }, []);
+
+  const toggleContentDomain = useCallback((domainId) => {
+    setFormData(prev => {
+      const current = prev.contentDomains || [];
+      const exists = current.includes(domainId);
+      const next = exists ? current.filter(d => d !== domainId) : [...current, domainId];
+      return {
+        ...prev,
+        contentDomains: next,
+        contentDomain: next.join(', ')
+      };
+    });
   }, []);
 
   const toggleQuestionImage = useCallback((qIndex) => {
@@ -191,6 +214,7 @@ export function useGeneratorForm(initialValues = {}) {
     setFormData,
     updateField,
     updateFields,
+    toggleContentDomain,
     toggleQuestionImage,
     togglePassageImage,
     setImageMode,

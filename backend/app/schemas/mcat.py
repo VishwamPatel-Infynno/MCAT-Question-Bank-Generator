@@ -172,7 +172,31 @@ def calculate_mcat_scaled_score(audit_total: int, difficulty: str = "medium") ->
     }
 
 
+import json
+from pathlib import Path
+
+# Load Manager Dependent Taxonomy
+_DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "mcat_dependent_taxonomy.json"
+try:
+    with open(_DATA_PATH, "r", encoding="utf-8") as _f:
+        DEPENDENT_TAXONOMY = json.load(_f)
+except Exception:
+    DEPENDENT_TAXONOMY = {
+        "schema_version": "1.0",
+        "exam": {"id": "MCAT", "name": "MCAT"},
+        "selection_flow": ["section", "subject", "unit", "topic", "subtopic", "skill", "subskill"],
+        "sections": [],
+        "skills": [],
+        "generation_options": {},
+        "generation_form_fields": [],
+    }
+
+# Dynamic extraction from taxonomy JSON
+_gen_options = DEPENDENT_TAXONOMY.get("generation_options", {})
+
 CONTENT_DOMAINS = [
+    item.get("id") for item in _gen_options.get("content_domain", [])
+] or [
     "General_Chemistry",
     "Organic_Chemistry",
     "Biochemistry",
@@ -187,22 +211,80 @@ CONTENT_DOMAINS = [
     "Social_Sciences",
 ]
 
+CONTENT_DOMAINS_DETAILED = _gen_options.get("content_domain", [])
+
 QUESTION_TYPES = [
-    "Passage_Based_Set",
-    "Independent_Discrete",
-    "Data_and_Graph_Interpretation",
-    "Experimental_Design_Evaluation",
-    "Roman_Numeral_Combinations",
-    "Thesis_and_Argument_Analysis",
+    item.get("id") for item in _gen_options.get("question_type", [])
+] or [
+    "DISCRETE_MCQ",
+    "PASSAGE_BASED_MCQ",
+    "GRAPH_INTERPRETATION",
+    "TABLE_INTERPRETATION",
+    "EXPERIMENTAL_DESIGN",
+    "CALCULATION",
+    "DATA_INTERPRETATION",
+    "PASSAGE_INFERENCE",
 ]
 
+QUESTION_TYPES_DETAILED = _gen_options.get("question_type", [])
+
 PRIMARY_TRAPS = [
-    "Out_of_Scope",
-    "Distortion_Opposite",
-    "Outside_Knowledge_in_CARS",
-    "Extreme_Language",
-    "Correlation_vs_Causation",
-    "Calculation_Formula_Trap",
-    "Half_Right_False_Premise",
-    "Scope_Shift",
+    item.get("id") for item in _gen_options.get("primary_trap", [])
+] or [
+    "CONCEPT_CONFUSION",
+    "WRONG_BASE",
+    "UNIT_CONVERSION",
+    "FORMULA_MISAPPLICATION",
+    "SIGN_CONVENTION",
+    "PROPORTIONALITY_ERROR",
+    "ASSUMPTION_MISSED",
+    "CAUSE_EFFECT_CONFUSION",
+    "CORRELATION_CAUSATION",
+    "CONTROL_GROUP_CONFUSION",
+    "VARIABLE_CONFUSION",
+    "SAMPLE_SIZE_BIAS",
+    "STATISTICAL_SIGNIFICANCE",
+    "GRAPH_AXIS_MISREADING",
+    "TABLE_COMPARISON_ERROR",
+    "TREND_EXTRAPOLATION",
+    "MECHANISM_CONFUSION",
+    "EXCEPTION_OVERLOOKED",
+    "NEGATION_MISREAD",
+    "SCOPE_SHIFT",
+    "UNSUPPORTED_INFERENCE",
+    "PASSAGE_CONTRADICTION",
+    "OVERGENERALIZATION",
+    "DISTRACTOR_OVERINTERPRETATION",
+    "ANSWER_CHOICE_CONFLATION",
 ]
+
+PRIMARY_TRAPS_DETAILED = _gen_options.get("primary_trap", [])
+
+LIKELY_MISTAKE_PATTERNS = _gen_options.get("likely_mistake_pattern", {}).get("values", [])
+
+TAXONOMY_SKILLS = DEPENDENT_TAXONOMY.get("skills", [])
+
+
+def get_taxonomy_data() -> dict:
+    """Returns the full parsed manager MCAT dependent taxonomy."""
+    return DEPENDENT_TAXONOMY
+
+
+def get_skills_for_section(section_val: str | MCATSection) -> list[dict]:
+    """Returns skills with subskills applicable to a given section code e.g. CP, BB, PS, CARS."""
+    sec = normalize_section(section_val)
+    sec_code = MCAT_SECTION_CODES.get(sec, "CP")
+    return [
+        sk for sk in TAXONOMY_SKILLS
+        if sec_code in sk.get("applies_to", [])
+    ]
+
+
+def get_section_tree(section_val: str | MCATSection) -> dict | None:
+    """Finds the section hierarchy tree for a given MCATSection or string."""
+    sec = normalize_section(section_val)
+    sec_code = MCAT_SECTION_CODES.get(sec, "CP")
+    for s in DEPENDENT_TAXONOMY.get("sections", []):
+        if s.get("id") == sec_code:
+            return s
+    return None

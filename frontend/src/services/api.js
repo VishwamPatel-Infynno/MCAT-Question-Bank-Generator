@@ -11,6 +11,11 @@ export async function fetchSections() {
   return res.json();
 }
 
+export async function fetchTaxonomy() {
+  const res = await fetch(`${API_BASE}/taxonomy`);
+  return res.json();
+}
+
 export async function fetchQuestions(params = {}, signal = null) {
   const query = new URLSearchParams();
   if (params.section) query.append('section', params.section);

@@ -64,6 +64,11 @@ class QuestionDraft(BaseModel):
     aamc_skill: str | None = Field(
         None, description="AAMC Scientific Inquiry & Reasoning Skill (SIRS) or CARS skill classification"
     )
+    subject: str | None = Field(None, description="Taxonomy subject e.g. General Chemistry")
+    unit: str | None = Field(None, description="Taxonomy unit e.g. Atomic Structure and Periodicity")
+    topic: str | None = Field(None, description="Taxonomy topic e.g. Periodic Trends")
+    subskill: str | None = Field(None, description="Granular AAMC subskill focus")
+    likely_mistake_pattern: str | None = Field(None, description="Targeted student misconception or mistake pattern")
 
     def model_post_init(self, __context: Any) -> None:
         # Synchronize correct_answer_id and correct_answer_ids
@@ -161,6 +166,13 @@ class Question(BaseModel):
     )
     passage_questions: int | None = Field(None, description="Number of passage questions e.g. 3, 4")
     visual_type: str | None = Field("None", description="e.g. None, SVG_Diagram, AI_FLUX_Image")
+
+    # Granular Dependent Taxonomy Hierarchy
+    subject: str | None = Field(None, description="Taxonomy subject e.g. General Chemistry")
+    unit: str | None = Field(None, description="Taxonomy unit e.g. Atomic Structure and Periodicity")
+    topic: str | None = Field(None, description="Taxonomy topic e.g. Periodic Trends")
+    subskill: str | None = Field(None, description="Granular AAMC subskill focus")
+    likely_mistake_pattern: str | None = Field(None, description="Targeted student misconception or mistake pattern")
 
     # Multi-Stage Raw Outcome JSON
     stage_outcomes: dict[str, Any] | None = Field(

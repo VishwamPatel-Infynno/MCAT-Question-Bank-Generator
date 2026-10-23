@@ -198,6 +198,35 @@ async def init_db():
                 text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS stage_outcomes JSONB;")
             )
 
+            # Safe schema update for Granular Dependent Taxonomy Hierarchy
+            await conn.execute(
+                text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS subject VARCHAR(128);")
+            )
+            await conn.execute(
+                text("CREATE INDEX IF NOT EXISTS ix_questions_subject ON questions (subject);")
+            )
+            await conn.execute(
+                text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS unit VARCHAR(128);")
+            )
+            await conn.execute(
+                text("CREATE INDEX IF NOT EXISTS ix_questions_unit ON questions (unit);")
+            )
+            await conn.execute(
+                text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS topic VARCHAR(128);")
+            )
+            await conn.execute(
+                text("CREATE INDEX IF NOT EXISTS ix_questions_topic ON questions (topic);")
+            )
+            await conn.execute(
+                text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS subskill VARCHAR(256);")
+            )
+            await conn.execute(
+                text("CREATE INDEX IF NOT EXISTS ix_questions_subskill ON questions (subskill);")
+            )
+            await conn.execute(
+                text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS likely_mistake_pattern TEXT;")
+            )
+
             # Safe schema update for Run and Batch UUID columns and timestamps
             await conn.execute(
                 text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS run_id VARCHAR(64);")

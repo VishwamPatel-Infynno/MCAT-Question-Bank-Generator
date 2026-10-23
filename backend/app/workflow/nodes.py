@@ -426,6 +426,12 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
         passage_id=req.passage_id,
         passage_questions=req.passage_questions,
         visual_type=req.visual_type or "None",
+        aamc_skill=draft.aamc_skill or req.aamc_skill,
+        subject=req.subject or getattr(draft, "subject", None),
+        unit=req.unit or getattr(draft, "unit", None),
+        topic=req.topic or getattr(draft, "topic", None),
+        subskill=req.subskill or getattr(draft, "subskill", None),
+        likely_mistake_pattern=req.likely_mistake_pattern or getattr(draft, "likely_mistake_pattern", None),
         stage_outcomes=outcomes,
         option_symmetry=symmetry,
     )

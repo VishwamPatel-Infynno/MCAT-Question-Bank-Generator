@@ -19,28 +19,48 @@ def _build_generator_user_prompt(req: GenerationRequest, fused: bool = False) ->
 
     user_prompt = f"""Generate an official-caliber AAMC MCAT Multiple Choice Question with 4 options (A, B, C, D) and exactly ONE correct answer.
 
-Section: {section_name}
-Subtopic: {req.subtopic or "Foundational Syllabus Focus"}
-Target Difficulty: {req.difficulty.value}
-Interaction Format: Single Choice (4 options: A, B, C, D)
-"""
+Section: {section_name}"""
+    if req.subject:
+        user_prompt += f"\nSubject: {req.subject}"
+    if req.unit:
+        user_prompt += f"\nUnit: {req.unit}"
+    if req.topic:
+        user_prompt += f"\nTopic: {req.topic}"
+    user_prompt += f"\nSubtopic: {req.subtopic or 'Foundational Syllabus Focus'}"
+    user_prompt += f"\nTarget Difficulty: {req.difficulty.value}"
+    user_prompt += "\nInteraction Format: Single Choice (4 options: A, B, C, D)"
+
     if req.aamc_skill:
         user_prompt += f"\nAAMC Reasoning Skill: {req.aamc_skill}"
+    if req.subskill:
+        user_prompt += f"\nGranular Subskill Focus: {req.subskill}"
     if req.combination_id:
         user_prompt += f"\nCombination ID: {req.combination_id}"
-    if req.content_domain:
+    if req.content_domains:
+        user_prompt += f"\nContent Domains: {', '.join(req.content_domains)}"
+    elif req.content_domain:
         user_prompt += f"\nContent Domain: {req.content_domain}"
     if req.question_type:
         user_prompt += f"\nQuestion Type Format: {req.question_type}"
+    if req.likely_mistake_pattern:
+        user_prompt += (
+            f"\nTarget Student Misconception / Mistake Pattern: {req.likely_mistake_pattern}\n"
+            "CRITICAL DISTRACTOR DESIGN: Engineer at least one distractor option specifically designed "
+            "to attract students who commit this exact mistake, and explain this in the distractor breakdown."
+        )
     if req.primary_trap and req.primary_trap != "Automatic":
         user_prompt += f"\nPrimary Distractor Trap to Emphasize: {req.primary_trap}"
     else:
         user_prompt += (
             "\nPrimary Distractor Trap: Automatic (Smart AI Choice)\n"
             "Analyze the section, passage/stimulus, and question stem to intelligently choose the most realistic "
-            "AAMC cognitive distractor trap (e.g. Out_of_Scope, Distortion_Opposite, Outside_Knowledge_in_CARS, "
-            "Extreme_Language, Correlation_vs_Causation, Calculation_Formula_Trap, Half_Right_False_Premise, Scope_Shift) "
-            "and populate the 'primary_trap' JSON field with your selected trap."
+            "AAMC cognitive distractor trap from the official 25 traps (e.g. CONCEPT_CONFUSION, WRONG_BASE, "
+            "UNIT_CONVERSION, FORMULA_MISAPPLICATION, SIGN_CONVENTION, PROPORTIONALITY_ERROR, ASSUMPTION_MISSED, "
+            "CAUSE_EFFECT_CONFUSION, CORRELATION_CAUSATION, CONTROL_GROUP_CONFUSION, VARIABLE_CONFUSION, "
+            "SAMPLE_SIZE_BIAS, STATISTICAL_SIGNIFICANCE, GRAPH_AXIS_MISREADING, TABLE_COMPARISON_ERROR, "
+            "TREND_EXTRAPOLATION, MECHANISM_CONFUSION, EXCEPTION_OVERLOOKED, NEGATION_MISREAD, SCOPE_SHIFT, "
+            "UNSUPPORTED_INFERENCE, PASSAGE_CONTRADICTION, OVERGENERALIZATION, DISTRACTOR_OVERINTERPRETATION, "
+            "ANSWER_CHOICE_CONFLATION) and populate the 'primary_trap' JSON field with your selected trap."
         )
 
     # Section-specific CARS warning
@@ -176,6 +196,11 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
         explanation=data["explanation"],
         primary_trap=primary_trap,
         aamc_skill=aamc_skill,
+        subject=req.subject,
+        unit=req.unit,
+        topic=req.topic,
+        subskill=req.subskill,
+        likely_mistake_pattern=req.likely_mistake_pattern,
         image_needed=(
             False
             if (req.section in (MCATSection.CARS, "CARS", "cars") and not req.require_image)

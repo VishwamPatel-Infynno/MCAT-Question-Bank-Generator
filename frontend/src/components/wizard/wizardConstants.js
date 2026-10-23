@@ -5,6 +5,14 @@ import {
   Brain
 } from 'lucide-react';
 
+import {
+  CONTENT_DOMAINS as TAXONOMY_DOMAINS,
+  COGNITIVE_TRAPS as TAXONOMY_TRAPS,
+  QUESTION_TYPES as TAXONOMY_QUESTION_TYPES,
+  LIKELY_MISTAKE_PATTERNS as TAXONOMY_MISTAKE_PATTERNS,
+  AAMC_REASONING_SKILLS as TAXONOMY_SKILLS
+} from '../../constants/mcat';
+
 export const SECTION_METADATA = {
   chem_phys: {
     id: 'chem_phys',
@@ -48,16 +56,11 @@ export const SECTION_METADATA = {
   }
 };
 
-export const CONTENT_DOMAINS = [
-  'General & Organic Chemistry',
-  'Biochemistry & Metabolism',
-  'Classical & Modern Physics',
-  'Cellular & Molecular Biology',
-  'Organ Systems & Human Physiology',
-  'Cognitive & Behavioral Psychology',
-  'Sociology & Social Stratification',
-  'Humanities & Philosophy'
-];
+export const CONTENT_DOMAINS = TAXONOMY_DOMAINS;
+export const COGNITIVE_TRAPS = TAXONOMY_TRAPS;
+export const QUESTION_TYPES = TAXONOMY_QUESTION_TYPES;
+export const LIKELY_MISTAKE_PATTERNS = TAXONOMY_MISTAKE_PATTERNS;
+export const AAMC_SKILLS_LIST = TAXONOMY_SKILLS;
 
 export const DIFFICULTY_TIERS = [
   { id: 'easy', title: 'Foundational (~500 MCAT)', desc: 'Direct clues and straightforward scientific concepts, ideal for foundational mastery.' },
@@ -68,25 +71,4 @@ export const DIFFICULTY_TIERS = [
 export const SINGLE_ANSWER_FORMATS = [
   { id: 'single_choice', label: 'Single Best Answer (A to D)' },
   { id: 'roman_numerals', label: 'Roman Numeral Deductions (I, II, III)' }
-];
-
-export const COGNITIVE_TRAPS = [
-  { id: 'Automatic', label: 'Automatic (Smart AI Choice)', desc: 'The AI picks the most realistic AAMC trap for this question type.' },
-  { id: 'Out_of_Scope', label: 'Out of Scope Trap', desc: 'Introduces claims completely absent from the passage or experimental data.' },
-  { id: 'Distortion_Opposite', label: 'Distortion / Opposite Trap', desc: 'Twists or inverts an experimental finding, enzyme mechanism, or author premise.' },
-  { id: 'Outside_Knowledge_in_CARS', label: 'Outside Knowledge in CARS', desc: 'Lures candidates into using external scientific facts not stated in the passage.' },
-  { id: 'Extreme_Language', label: 'Extreme Language Trap', desc: 'Uses unhedged absolutes like "always", "never", or "only" that are rarely supported.' },
-  { id: 'Correlation_vs_Causation', label: 'Correlation vs. Causation', desc: 'Mistakes an observational correlation for a proven cause-and-effect mechanism.' },
-  { id: 'Calculation_Formula_Trap', label: 'Calculation / Formula Inversion', desc: 'Mirrors common intermediate math slips (omitted unit conversion or inverted terms).' },
-  { id: 'Scope_Shift', label: 'Scope Shift Trap', desc: 'Improperly generalizes a finding beyond what the study actually proved.' }
-];
-
-export const AAMC_SKILLS_LIST = [
-  { id: 'Skill_1', code: 'Skill 1', label: 'Knowledge of Scientific Concepts & Principles' },
-  { id: 'Skill_2', code: 'Skill 2', label: 'Scientific Reasoning & Problem Solving' },
-  { id: 'Skill_3', code: 'Skill 3', label: 'Reasoning About Design & Execution of Research' },
-  { id: 'Skill_4', code: 'Skill 4', label: 'Data-based & Statistical Reasoning' },
-  { id: 'CARS_Skill_1', code: 'CARS 1', label: 'Foundations of Comprehension' },
-  { id: 'CARS_Skill_2', code: 'CARS 2', label: 'Reasoning Within the Text' },
-  { id: 'CARS_Skill_3', code: 'CARS 3', label: 'Reasoning Beyond the Text' }
 ];

@@ -5,39 +5,51 @@ export default function WizardStep5Review({
   sectionMeta,
   pacing,
   setStep,
+  selectedSubject,
+  selectedUnit,
+  selectedTopic,
   selectedSubtopic,
   customPrompt,
   difficulty,
   passageMode,
+  totalQuestions = 5,
+  questionType = 'DISCRETE_MCQ',
   totalImagesCount,
   hasPassageImage,
   activeQuestionImagesCount,
   COGNITIVE_TRAPS,
-  primaryTrap
+  primaryTrap,
+  selectedSkill,
+  selectedSubskill,
+  likelyMistakePattern,
+  customMistakePattern,
+  contentDomains = []
 }) {
+  const trapObj = COGNITIVE_TRAPS?.find(t => t.id === primaryTrap);
+  const trapLabel = trapObj?.label || primaryTrap || 'Automatic';
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div className="wizard-heading-group">
-        <h2 className="wizard-step-title">Everything looks ready! Review your setup</h2>
+        <h2 className="wizard-step-title">Review & Finalize MCAT Generation Parameters</h2>
         <p className="wizard-step-subtitle">
-          Check your settings below. Click 'Edit' beside any row to adjust it, or generate your questions now!
+          Verify your full syllabus lineage, skills, and distractor traps before triggering the multi-agent generation swarm.
         </p>
       </div>
 
       <div className="wizard-summary-card">
-        {/* Row 1: Section */}
+        {/* Row 1: Section & Pacing */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Target Section</div>
+            <div className="wizard-summary-label">Target Section & Pacing</div>
             <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
               <span style={{ color: sectionMeta.color, fontWeight: 700 }}>{sectionMeta.label}</span>
               <span style={{ color: 'var(--text-muted)' }}>•</span>
-              <span className="badge-minimal">⏱️ {pacing.target || '~28s / Q'} Target Speed</span>
+              <span className="badge-minimal">⏱️ {pacing.target || '~96s / Q'} Target Speed</span>
             </div>
           </div>
           <button
             type="button"
-            id="btn-wizard-summary-edit-section"
             className="wizard-summary-edit-btn"
             onClick={() => setStep(1)}
             title="Edit Exam Section"
@@ -47,67 +59,72 @@ export default function WizardStep5Review({
           </button>
         </div>
 
-        {/* Row 2: Topic Focus & Custom Scenario */}
+        {/* Row 2: Syllabus Lineage */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Topic Focus & Custom Scenario</div>
-            <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
-              <span style={{ fontWeight: 600 }}>{selectedSubtopic || 'General Practice'}</span>
+            <div className="wizard-summary-label">Syllabus Lineage</div>
+            <div className="wizard-summary-value" style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <div>
+                <strong style={{ color: 'var(--text-primary)' }}>{selectedSubtopic || 'General Practice'}</strong>
+              </div>
+              <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                {selectedSubject && <span>{selectedSubject}</span>}
+                {selectedUnit && <span> &bull; {selectedUnit}</span>}
+                {selectedTopic && <span> &bull; {selectedTopic}</span>}
+              </div>
               {customPrompt && (
-                <>
-                  <span style={{ color: 'var(--text-muted)' }}>•</span>
-                  <span style={{ fontStyle: 'italic', color: 'var(--text-secondary)' }}>"{customPrompt.slice(0, 48)}{customPrompt.length > 48 ? '...' : ''}"</span>
-                </>
+                <div style={{ fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                  Prompt: "{customPrompt}"
+                </div>
               )}
             </div>
           </div>
           <button
             type="button"
-            id="btn-wizard-summary-edit-topic"
             className="wizard-summary-edit-btn"
             onClick={() => setStep(2)}
-            title="Edit Topic & Custom Prompt"
+            title="Edit Syllabus Hierarchy"
           >
             <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
             Edit Topic
           </button>
         </div>
 
-        {/* Row 3: Difficulty & Quantity */}
+        {/* Row 3: Difficulty, Question Type & Quantity */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Difficulty & Batch Size</div>
-            <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
-              <span style={{ textTransform: 'capitalize' }}>{difficulty} Difficulty</span>
+            <div className="wizard-summary-label">Question Format & Batch Quantity</div>
+            <div className="wizard-summary-value" style={{ marginTop: '4px', flexWrap: 'wrap' }}>
+              <span style={{ textTransform: 'capitalize', fontWeight: 600 }}>{difficulty} Difficulty</span>
               <span style={{ color: 'var(--text-muted)' }}>•</span>
-              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>5 Questions (Fixed Batch)</span>
+              <span style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>{totalQuestions} Questions</span>
               <span style={{ color: 'var(--text-muted)' }}>•</span>
-              <span>4-Option Multiple Choice (A–D)</span>
+              <span className="badge-minimal">{questionType.replace(/_/g, ' ')}</span>
             </div>
           </div>
           <button
             type="button"
             className="wizard-summary-edit-btn"
             onClick={() => setStep(3)}
-            title="Edit Difficulty Tier"
+            title="Edit Difficulty & Format"
           >
             <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
-            Edit
+            Edit Format
           </button>
         </div>
 
         {/* Row 4: Reading Material Structure */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Question Set Structure</div>
+            <div className="wizard-summary-label">Passage Arrangement</div>
             <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
               {passageMode === 'single_passage' ? (
                 <span style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>
-                  Passage-Based Set: 1 Shared Passage + 5 Linked Questions
+                  Passage-Based Set (All {totalQuestions} Questions Linked to 1 Shared Passage)
                 </span>
               ) : (
-                <span style={{ color: 'var(--status-teal)', fontWeight: 600 }}>
-                  Independent Discretes: 5 Standalone Questions (No Shared Passage)
+                <span style={{ color: 'var(--status-purple)', fontWeight: 600 }}>
+                  Independent Discretes ({totalQuestions} Standalone Items)
                 </span>
               )}
             </div>
@@ -119,11 +136,75 @@ export default function WizardStep5Review({
             title="Edit Question Set Structure"
           >
             <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
-            Edit
+            Edit Passage
           </button>
         </div>
 
-        {/* Row 5: Visual Stimuli & Diagram Budget */}
+        {/* Row 5: AAMC Skill & Subskill */}
+        {(selectedSkill || selectedSubskill) && (
+          <div className="wizard-summary-row">
+            <div>
+              <div className="wizard-summary-label">AAMC Inquiry Skill Focus</div>
+              <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{selectedSkill}</span>
+                {selectedSubskill && (
+                  <>
+                    <span style={{ color: 'var(--text-muted)' }}>•</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>{selectedSubskill}</span>
+                  </>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              className="wizard-summary-edit-btn"
+              onClick={() => setStep(4)}
+              title="Edit Skill Focus"
+            >
+              <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
+              Edit Skill
+            </button>
+          </div>
+        )}
+
+        {/* Row 6: Cognitive Distractor Trap & Likely Mistake Pattern */}
+        <div className="wizard-summary-row">
+          <div>
+            <div className="wizard-summary-label">Distractor Trap & Student Mistake Lure</div>
+            <div className="wizard-summary-value" style={{ marginTop: '4px', flexWrap: 'wrap' }}>
+              <span className="badge badge-purple" style={{ fontSize: '0.76rem' }}>
+                {trapLabel}
+              </span>
+              {(likelyMistakePattern || customMistakePattern) && (
+                <>
+                  <span style={{ color: 'var(--text-muted)' }}>•</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    Mistake: <em>{customMistakePattern || likelyMistakePattern}</em>
+                  </span>
+                </>
+              )}
+              {contentDomains.length > 0 && (
+                <>
+                  <span style={{ color: 'var(--text-muted)' }}>•</span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    {contentDomains.length} Domains tagged
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+          <button
+            type="button"
+            className="wizard-summary-edit-btn"
+            onClick={() => setStep(4)}
+            title="Edit Traps & Directives"
+          >
+            <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
+            Edit Traps
+          </button>
+        </div>
+
+        {/* Row 7: Diagrams & Visual Budget */}
         <div className="wizard-summary-row">
           <div>
             <div className="wizard-summary-label">Visual Stimuli & Diagrams</div>
@@ -147,30 +228,6 @@ export default function WizardStep5Review({
             Edit
           </button>
         </div>
-
-        {/* Row 6: Cognitive Traps & Directives */}
-        <div className="wizard-summary-row">
-          <div>
-            <div className="wizard-summary-label">Tricky Distractor Trap</div>
-            <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
-              <span>{COGNITIVE_TRAPS.find(t => t.id === primaryTrap)?.label || primaryTrap}</span>
-              {customPrompt && (
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                  • "{customPrompt.length > 40 ? `${customPrompt.slice(0, 40)}...` : customPrompt}"
-                </span>
-              )}
-            </div>
-          </div>
-          <button
-            type="button"
-            className="wizard-summary-edit-btn"
-            onClick={() => setStep(4)}
-            title="Edit Traps & Directives"
-          >
-            <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
-            Edit
-          </button>
-        </div>
       </div>
 
       {/* Generation Summary Banner */}
@@ -185,8 +242,8 @@ export default function WizardStep5Review({
       }}>
         <Sparkles size={20} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-          Clicking <strong>Generate Questions</strong> will create your questions, verify them against official AAMC MCAT rubrics (&gt; 90 quality score &amp; scaled 118-132 scoring),
-          and calibrate all 4 choices (A-D) in ~15-25 seconds.
+          Clicking <strong>Generate Questions</strong> will deploy the multi-agent question writing, peer review, and anti-guessability balance swarm
+          to create publication-grade MCAT questions with detailed mentor explanations in seconds.
         </div>
       </div>
     </div>

@@ -1,5 +1,11 @@
 import React from 'react';
-import { Layers, FileText, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import {
+  Layers,
+  FileText,
+  AlertCircle,
+  CheckCircle2
+} from 'lucide-react';
+import { QUESTION_TYPES as ALL_QUESTION_TYPES } from '../../../constants/mcat';
 
 export default function WizardStep3Difficulty({
   selectedSection,
@@ -7,16 +13,21 @@ export default function WizardStep3Difficulty({
   setDifficulty,
   DIFFICULTY_TIERS,
   passageMode,
-  handlePassageModeChange
+  handlePassageModeChange,
+  totalQuestions = 5,
+  setTotalQuestions,
+  questionType = 'DISCRETE_MCQ',
+  setQuestionType
 }) {
   const isCars = selectedSection === 'cars';
+  const typesList = ALL_QUESTION_TYPES;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
       <div className="wizard-heading-group">
-        <h2 className="wizard-step-title">How challenging should this be, and what is your set format?</h2>
+        <h2 className="wizard-step-title">Calibrate Difficulty, Question Type & Batch Size</h2>
         <p className="wizard-step-subtitle">
-          Calibrated to official AAMC MCAT standards. Generates an authentic, publication-grade 5-question batch.
+          Calibrated to official AAMC MCAT standards. Tailor the cognitive demand, interaction format, and batch size.
         </p>
       </div>
 
@@ -27,7 +38,7 @@ export default function WizardStep3Difficulty({
         </label>
         <div className="wizard-difficulty-grid">
           {DIFFICULTY_TIERS.map((tier) => {
-            const isSelected = difficulty.toLowerCase() === tier.id;
+            const isSelected = difficulty?.toLowerCase() === tier.id.toLowerCase();
             return (
               <div
                 key={tier.id}
@@ -51,7 +62,43 @@ export default function WizardStep3Difficulty({
         </div>
       </div>
 
-      {/* Fixed 5-Question Batch Size Card */}
+      {/* Official Question Type Selector (8 types from Manager Taxonomy) */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+            Official AAMC Question Type:
+          </label>
+          <span className="badge-minimal">8 Standard Types</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '8px' }}>
+          {typesList.map((qt) => {
+            const isSelected = questionType === qt.id;
+            return (
+              <div
+                key={qt.id}
+                onClick={() => setQuestionType?.(qt.id)}
+                className={`wizard-tier-card ${isSelected ? 'selected' : ''}`}
+                style={{
+                  padding: '12px 14px',
+                  cursor: 'pointer'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: isSelected ? 'var(--brand-primary)' : 'var(--text-primary)' }}>
+                    {qt.label}
+                  </span>
+                  {isSelected && <CheckCircle2 size={14} style={{ color: 'var(--brand-primary)' }} />}
+                </div>
+                <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>
+                  {qt.description}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Configurable Batch Quantity (1 to 10 Questions) */}
       <div
         style={{
           padding: '16px 20px',
@@ -59,44 +106,69 @@ export default function WizardStep3Difficulty({
           background: 'var(--bg-surface-elevated)',
           border: '1px solid var(--border-light)',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
+          flexDirection: 'column',
           gap: '12px'
         }}
       >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              Batch Quantity: Exactly 5 Questions
-            </span>
-            <span className="badge badge-purple" style={{ fontSize: '0.72rem', padding: '3px 8px' }}>
-              Official MCAT Standard
-            </span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                Batch Quantity: {totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'}
+              </span>
+              <span className="badge badge-purple" style={{ fontSize: '0.72rem', padding: '3px 8px' }}>
+                Configurable Batch
+              </span>
+            </div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              Select how many questions to generate in this batch (1 to 10 questions, default 5).
+            </div>
           </div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Each generation run strictly produces a calibrated set of 5 AAMC MCAT items (fixed batch size).
+
+          {/* Quick Preset Buttons */}
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {[1, 3, 5, 8, 10].map((qty) => (
+              <button
+                key={qty}
+                type="button"
+                onClick={() => setTotalQuestions?.(qty)}
+                className={`pill-track-btn ${totalQuestions === qty ? 'active' : ''}`}
+                style={{
+                  padding: '5px 12px',
+                  fontSize: '0.8rem',
+                  borderRadius: 'var(--radius-sm)'
+                }}
+              >
+                {qty} Q
+              </button>
+            ))}
           </div>
         </div>
-        <div
-          style={{
-            padding: '6px 14px',
-            borderRadius: 'var(--radius-sm)',
-            background: 'var(--brand-light)',
-            border: '1px solid var(--border-brand)',
-            fontSize: '0.85rem',
-            fontWeight: 700,
-            color: 'var(--brand-primary)'
-          }}
-        >
-          5 Questions (Fixed)
+
+        {/* Range Slider for granular control */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>1</span>
+          <input
+            type="range"
+            min={1}
+            max={10}
+            step={1}
+            value={totalQuestions}
+            onChange={(e) => setTotalQuestions?.(parseInt(e.target.value, 10))}
+            style={{
+              flex: 1,
+              accentColor: 'var(--brand-primary)',
+              cursor: 'pointer'
+            }}
+          />
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>10</span>
         </div>
       </div>
 
       {/* Binary Passage Selection */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>
-          Question Set Structure (Passage vs. Discretes):
+          Stimulus Arrangement (Passage Set vs. Standalone Discretes):
         </label>
 
         {isCars ? (
@@ -118,7 +190,7 @@ export default function WizardStep3Difficulty({
               <AlertCircle size={18} style={{ flexShrink: 0 }} />
               <div>
                 <strong>AAMC CARS Standard:</strong> Critical Analysis and Reasoning Skills (CARS) is 100% passage-based.
-                All 5 questions are strictly linked to a single scholarly passage (500–650 words). Independent discretes are not permitted.
+                All questions are strictly linked to a single scholarly passage (500–650 words). Independent discretes are not permitted.
               </div>
             </div>
 
@@ -130,7 +202,7 @@ export default function WizardStep3Difficulty({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <FileText size={18} style={{ color: 'var(--brand-primary)' }} />
                   <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Passage-Based Set (All 5 Questions)
+                    Passage-Based Set (All {totalQuestions} Questions)
                   </span>
                 </div>
                 <span className="badge badge-purple" style={{ fontSize: '0.72rem' }}>
@@ -138,12 +210,12 @@ export default function WizardStep3Difficulty({
                 </span>
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
-                1 continuous scholarly passage (humanities or social sciences, 500–650 words) with all 5 questions testing comprehension, reasoning within the text, and reasoning beyond the text.
+                1 continuous scholarly passage (humanities or social sciences, 500–650 words) with all {totalQuestions} questions testing comprehension, reasoning within the text, and reasoning beyond the text.
               </p>
             </div>
           </div>
         ) : (
-          /* Sciences Mode: Binary choice between 1 Passage Set OR 5 Discretes */
+          /* Sciences Mode: Binary choice between 1 Passage Set OR Discretes */
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
             {/* Mode A: Single Passage Set */}
             <div
@@ -158,27 +230,21 @@ export default function WizardStep3Difficulty({
               role="button"
               tabIndex={0}
               id="btn-passage-mode-single"
-              style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '8px' }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <FileText size={18} style={{ color: 'var(--brand-primary)' }} />
-                  <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Passage-Based Set (5 Questions)
+                  <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    Passage-Based Set
                   </span>
                 </div>
                 {passageMode === 'single_passage' && (
                   <CheckCircle2 size={16} style={{ color: 'var(--brand-primary)' }} />
                 )}
               </div>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
-                All 5 questions are anchored to <strong>1 single shared passage</strong> (scientific experiment, biochemical pathway, or research data). 100% passage-linked.
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
+                All {totalQuestions} questions linked to 1 continuous research or experimental passage stimulus.
               </p>
-              <div style={{ marginTop: 'auto', paddingTop: '6px' }}>
-                <span className="badge badge-purple" style={{ fontSize: '0.7rem' }}>
-                  Authentic AAMC Exam Set
-                </span>
-              </div>
             </div>
 
             {/* Mode B: Independent Discretes */}
@@ -194,58 +260,24 @@ export default function WizardStep3Difficulty({
               role="button"
               tabIndex={0}
               id="btn-passage-mode-independent"
-              style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '8px' }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Layers size={18} style={{ color: 'var(--status-teal)' }} />
-                  <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Independent Discretes (5 Questions)
+                  <Layers size={18} style={{ color: 'var(--status-purple)' }} />
+                  <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    Independent Discretes
                   </span>
                 </div>
                 {passageMode === 'independent' && (
-                  <CheckCircle2 size={16} style={{ color: 'var(--status-teal)' }} />
+                  <CheckCircle2 size={16} style={{ color: 'var(--brand-primary)' }} />
                 )}
               </div>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
-                All 5 questions are <strong>independent standalone items</strong> with separate stems and distinct scientific concepts (no shared passage).
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
+                {totalQuestions} standalone questions with zero reading passage (problem stated directly in the question stem).
               </p>
-              <div style={{ marginTop: 'auto', paddingTop: '6px' }}>
-                <span className="badge badge-teal" style={{ fontSize: '0.7rem' }}>
-                  High-Yield Discrete Practice
-                </span>
-              </div>
             </div>
           </div>
         )}
-
-        {/* Status Callout Banner */}
-        <div
-          style={{
-            padding: '10px 14px',
-            borderRadius: 'var(--radius-xs)',
-            background: 'var(--bg-surface-elevated)',
-            border: '1px solid var(--border-light)',
-            fontSize: '0.78rem',
-            color: 'var(--text-secondary)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <Sparkles size={14} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
-          <span>
-            {passageMode === 'single_passage' || isCars ? (
-              <>
-                <strong>Selected:</strong> 1 shared passage (500–650 words) + 5 passage-linked questions with step-by-step rationales.
-              </>
-            ) : (
-              <>
-                <strong>Selected:</strong> 5 independent discrete questions with individual stems and scientific explanations.
-              </>
-            )}
-          </span>
-        </div>
       </div>
     </div>
   );

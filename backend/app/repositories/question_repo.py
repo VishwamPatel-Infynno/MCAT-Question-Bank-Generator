@@ -62,6 +62,11 @@ def _model_to_schema(m: QuestionModel) -> Question:
         visual_type=m.visual_type or "None",
         mcat_scaled_score=getattr(m, "mcat_scaled_score", None),
         aamc_skill=getattr(m, "aamc_skill", None),
+        subject=getattr(m, "subject", None),
+        unit=getattr(m, "unit", None),
+        topic=getattr(m, "topic", None),
+        subskill=getattr(m, "subskill", None),
+        likely_mistake_pattern=getattr(m, "likely_mistake_pattern", None),
         stage_outcomes=m.stage_outcomes or {},
     )
 
@@ -111,6 +116,11 @@ def _schema_to_model(q: Question) -> QuestionModel:
         visual_type=q.visual_type,
         mcat_scaled_score=q.mcat_scaled_score,
         aamc_skill=q.aamc_skill,
+        subject=q.subject,
+        unit=q.unit,
+        topic=q.topic,
+        subskill=q.subskill,
+        likely_mistake_pattern=q.likely_mistake_pattern,
         stage_outcomes=q.stage_outcomes,
     )
 

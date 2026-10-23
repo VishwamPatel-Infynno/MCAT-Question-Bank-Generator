@@ -47,21 +47,21 @@ async def test_schemas_validation():
     assert len(draft.options) == 4
     assert draft.correct_answer_id == "B"
 
-    # Test batch limit <= 5 constraint
+    # Test batch limit <= 10 constraint
     valid_batch_req = GenerationRequest(
         section=MCATSection.CHEM_PHYS,
-        questions_to_generate=5,
-        single_choice_count=3,
-        multi_choice_count=2,
+        questions_to_generate=10,
+        single_choice_count=5,
+        multi_choice_count=5,
     )
-    assert valid_batch_req.questions_to_generate == 5
+    assert valid_batch_req.questions_to_generate == 10
 
     from pydantic import ValidationError
 
     with pytest.raises(ValidationError):
         GenerationRequest(
             section=MCATSection.CHEM_PHYS,
-            questions_to_generate=6,
+            questions_to_generate=11,
         )
 
 
@@ -1582,4 +1582,82 @@ async def test_call_llm_effective_max_tokens(monkeypatch):
     )
     assert len(captured_kwargs) == 2
     assert captured_kwargs[1]["max_tokens"] == 1800
+
+
+@pytest.mark.asyncio
+async def test_manager_dependent_taxonomy_integration():
+    """Validates the official manager-provided MCAT Dependent Taxonomy integration."""
+    from httpx import ASGITransport, AsyncClient
+
+    from app.main import app
+    from app.schemas.mcat import (
+        CONTENT_DOMAINS,
+        PRIMARY_TRAPS,
+        QUESTION_TYPES,
+        get_skills_for_section,
+        get_taxonomy_data,
+    )
+    from app.schemas.workflow import GenerationRequest
+
+    # 1. Verify Taxonomy Data Structure
+    tax = get_taxonomy_data()
+    assert tax["schema_version"] == "1.0"
+    assert tax["exam"]["id"] == "MCAT"
+    assert len(tax["sections"]) == 4
+
+    # 2. Verify Skills Mapping
+    cp_skills = get_skills_for_section("CP")
+    assert len(cp_skills) == 4
+    cp_skill_ids = [s["id"] for s in cp_skills]
+    assert cp_skill_ids == ["S1", "S2", "S3", "S4"]
+
+    cars_skills = get_skills_for_section("CARS")
+    assert len(cars_skills) == 3
+    cars_skill_ids = [s["id"] for s in cars_skills]
+    assert cars_skill_ids == ["CARS1", "CARS2", "CARS3"]
+
+    # 3. Verify Options Counts
+    assert len(CONTENT_DOMAINS) == 33
+    assert len(PRIMARY_TRAPS) == 25
+    assert len(QUESTION_TYPES) == 8
+
+    # 4. Verify API Endpoints
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # GET /api/taxonomy
+        resp_tax = await client.get("/api/taxonomy")
+        assert resp_tax.status_code == 200
+        tax_payload = resp_tax.json()
+        assert tax_payload["exam"]["id"] == "MCAT"
+        assert len(tax_payload["sections"]) == 4
+
+        # GET /api/sections
+        resp_sec = await client.get("/api/sections")
+        assert resp_sec.status_code == 200
+        sec_payload = resp_sec.json()
+        sections = sec_payload["sections"]
+        assert len(sections) == 4
+        cp_sec = next(s for s in sections if s["code"] == "CP")
+        assert len(cp_sec["subjects"]) == 5
+        assert len(cp_sec["skills"]) == 4
+
+    # 5. Verify GenerationRequest Hierarchy Lineage & Dynamic Batch Size
+    req = GenerationRequest(
+        section="chem_phys",
+        subject="General Chemistry",
+        unit="Atomic Structure and Periodicity",
+        topic="Atomic Structure",
+        subtopic="Protons, neutrons, and electrons",
+        aamc_skill="S1",
+        subskill="Identify or recognize a scientific concept",
+        question_type="DISCRETE_MCQ",
+        likely_mistake_pattern="Uses the wrong reference value in a calculation",
+        content_domains=["Atomic and Molecular Structure"],
+        questions_to_generate=3,
+    )
+    assert req.questions_to_generate == 3
+    assert req.single_choice_count == 3
+    assert req.subject == "General Chemistry"
+    assert req.subskill == "Identify or recognize a scientific concept"
+
 
