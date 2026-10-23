@@ -1,4 +1,6 @@
+import json
 from enum import Enum
+from pathlib import Path
 
 
 class MCATSection(str, Enum):
@@ -172,13 +174,10 @@ def calculate_mcat_scaled_score(audit_total: int, difficulty: str = "medium") ->
     }
 
 
-import json
-from pathlib import Path
-
 # Load Manager Dependent Taxonomy
 _DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "mcat_dependent_taxonomy.json"
 try:
-    with open(_DATA_PATH, "r", encoding="utf-8") as _f:
+    with open(_DATA_PATH, encoding="utf-8") as _f:
         DEPENDENT_TAXONOMY = json.load(_f)
 except Exception:
     DEPENDENT_TAXONOMY = {

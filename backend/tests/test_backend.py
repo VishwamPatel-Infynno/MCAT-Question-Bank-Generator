@@ -1587,8 +1587,6 @@ async def test_call_llm_effective_max_tokens(monkeypatch):
 @pytest.mark.asyncio
 async def test_manager_dependent_taxonomy_integration():
     """Validates the official manager-provided MCAT Dependent Taxonomy integration."""
-    from httpx import ASGITransport, AsyncClient
-
     from app.main import app
     from app.schemas.mcat import (
         CONTENT_DOMAINS,
@@ -1598,6 +1596,7 @@ async def test_manager_dependent_taxonomy_integration():
         get_taxonomy_data,
     )
     from app.schemas.workflow import GenerationRequest
+    from httpx import ASGITransport, AsyncClient
 
     # 1. Verify Taxonomy Data Structure
     tax = get_taxonomy_data()
