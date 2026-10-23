@@ -61,8 +61,7 @@ async def list_questions(
 @router.get("/questions/counts")
 async def get_question_counts():
     """Returns counts of questions grouped by lifecycle status."""
-    counts = await get_question_status_counts()
-    return counts
+    return await get_question_status_counts()
 
 
 @router.get("/questions/{question_id}")
@@ -180,89 +179,89 @@ async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
             content=data,
             headers={"Content-Disposition": "attachment; filename=mcat_question_bank.json"},
         )
-    else:
-        output = io.StringIO()
-        writer = csv.writer(output)
-        writer.writerow(
-            [
-                "ID",
-                "Run_ID",
-                "Batch_ID",
-                "Combination_ID",
-                "Section",
-                "Subcategory",
-                "Difficulty",
-                "MCAT_Scaled_Score",
-                "AAMC_Skill",
-                "Content_Domain",
-                "Question_Type",
-                "Interaction_Type",
-                "Primary_Trap",
-                "Passage_Required",
-                "Visual_Type",
-                "Image_URL",
-                "Image_Description",
-                "Stimulus",
-                "Question Stem",
-                "Option A",
-                "Option B",
-                "Option C",
-                "Option D",
-                "Option E",
-                "Correct Answer",
-                "Explanation",
-                "Final Score",
-                "Cycles",
-                "Created At",
-            ]
-        )
-        for q in questions:
-            opts = {opt.id: opt.text for opt in q.options}
-            if q.image_url:
-                if q.image_url.startswith("data:"):
-                    img_val = f"/api/questions/{q.id}/image"
-                else:
-                    img_val = q.image_url
-            elif q.image_svg:
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(
+        [
+            "ID",
+            "Run_ID",
+            "Batch_ID",
+            "Combination_ID",
+            "Section",
+            "Subcategory",
+            "Difficulty",
+            "MCAT_Scaled_Score",
+            "AAMC_Skill",
+            "Content_Domain",
+            "Question_Type",
+            "Interaction_Type",
+            "Primary_Trap",
+            "Passage_Required",
+            "Visual_Type",
+            "Image_URL",
+            "Image_Description",
+            "Stimulus",
+            "Question Stem",
+            "Option A",
+            "Option B",
+            "Option C",
+            "Option D",
+            "Option E",
+            "Correct Answer",
+            "Explanation",
+            "Final Score",
+            "Cycles",
+            "Created At",
+        ]
+    )
+    for q in questions:
+        opts = {opt.id: opt.text for opt in q.options}
+        if q.image_url:
+            if q.image_url.startswith("data:"):
                 img_val = f"/api/questions/{q.id}/image"
             else:
-                img_val = ""
-            writer.writerow(
-                [
-                    q.id,
-                    q.run_id or "",
-                    q.batch_id or "",
-                    q.combination_id or "",
-                    q.section_label,
-                    q.subtopic,
-                    q.difficulty,
-                    q.mcat_scaled_score or "",
-                    q.aamc_skill or "",
-                    q.content_domain or "",
-                    q.question_type or "",
-                    q.interaction_type or "single_choice",
-                    q.primary_trap or "",
-                    q.passage_required or "",
-                    q.visual_type or "None",
-                    img_val,
-                    q.image_description or "",
-                    q.stimulus_text or "",
-                    q.question_stem,
-                    opts.get("A", ""),
-                    opts.get("B", ""),
-                    opts.get("C", ""),
-                    opts.get("D", ""),
-                    opts.get("E", ""),
-                    q.correct_answer_id,
-                    q.explanation,
-                    q.final_score,
-                    q.iteration_count,
-                    q.created_at,
-                ]
-            )
-        csv_data = output.getvalue()
-        return Response(
-            content=csv_data,
-            media_type="text/csv",
-            headers={"Content-Disposition": "attachment; filename=mcat_question_bank.csv"},
+                img_val = q.image_url
+        elif q.image_svg:
+            img_val = f"/api/questions/{q.id}/image"
+        else:
+            img_val = ""
+        writer.writerow(
+            [
+                q.id,
+                q.run_id or "",
+                q.batch_id or "",
+                q.combination_id or "",
+                q.section_label,
+                q.subtopic,
+                q.difficulty,
+                q.mcat_scaled_score or "",
+                q.aamc_skill or "",
+                q.content_domain or "",
+                q.question_type or "",
+                q.interaction_type or "single_choice",
+                q.primary_trap or "",
+                q.passage_required or "",
+                q.visual_type or "None",
+                img_val,
+                q.image_description or "",
+                q.stimulus_text or "",
+                q.question_stem,
+                opts.get("A", ""),
+                opts.get("B", ""),
+                opts.get("C", ""),
+                opts.get("D", ""),
+                opts.get("E", ""),
+                q.correct_answer_id,
+                q.explanation,
+                q.final_score,
+                q.iteration_count,
+                q.created_at,
+            ]
         )
+    csv_data = output.getvalue()
+    return Response(
+        content=csv_data,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=mcat_question_bank.csv"},
+    )

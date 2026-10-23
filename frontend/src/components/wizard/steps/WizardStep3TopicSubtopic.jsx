@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import {
   getSubjectsForSection
-} from '../../../constants/mcat';
+} from '../../../constants';
 
 export default function WizardStep3TopicSubtopic({
   selectedSection = 'chem_phys',

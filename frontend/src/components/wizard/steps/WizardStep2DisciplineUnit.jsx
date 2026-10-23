@@ -7,7 +7,7 @@ import {
 import {
   getSubjectsForSection,
   SECTION_ID_TO_CODE
-} from '../../../constants/mcat';
+} from '../../../constants';
 
 export default function WizardStep2DisciplineUnit({
   selectedSection = 'chem_phys',

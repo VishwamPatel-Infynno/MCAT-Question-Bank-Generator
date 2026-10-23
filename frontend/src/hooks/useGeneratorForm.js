@@ -225,5 +225,3 @@ export function useGeneratorForm(initialValues = {}) {
     resetForm
   };
 }
-
-export default useGeneratorForm;

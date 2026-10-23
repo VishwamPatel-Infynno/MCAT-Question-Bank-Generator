@@ -9,7 +9,7 @@ import {
   getSkillsForSection,
   getSubskillsForSkill,
   COGNITIVE_TRAPS
-} from '../../../constants/mcat';
+} from '../../../constants';
 
 export default function WizardStep5TrapsSkills({
   selectedSection = 'chem_phys',

@@ -114,7 +114,6 @@ async def _run_question_review_loop(
     idx: int,
     total_qty: int,
     item_run_id: str,
-    gen_usage: dict[str, Any],
     event_queue: asyncio.Queue[WorkflowEvent | None],
     make_event: Callable[..., WorkflowEvent],
 ) -> bool:
@@ -207,7 +206,7 @@ async def _run_question_review_loop(
             )
             await event_queue.put(regen_done_evt)
             continue
-        elif next_step == "reject":
+        if next_step == "reject":
             rej_res = await reject_node(state)
             state.update(rej_res)
             rej_data = state.get("rejection_data") or {}
@@ -571,7 +570,6 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                     idx=idx,
                     total_qty=total_qty,
                     item_run_id=item_run_id,
-                    gen_usage=gen_usage,
                     event_queue=event_queue,
                     make_event=make_event,
                 )

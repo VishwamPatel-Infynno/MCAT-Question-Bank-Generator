@@ -10,8 +10,8 @@ import { useTheme } from './useTheme';
 import { useGeneratorForm } from './useGeneratorForm';
 import { useQuestionGenerator } from './useQuestionGenerator';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
-import { MCAT_SECTIONS_FALLBACK } from '../constants/mcat';
-import { fetchSections, fetchHealth, approveQuestion, batchApproveQuestions, startBackgroundBatch, fetchBatches, fetchQuestionCounts } from '../services/api';
+import { MCAT_SECTIONS_FALLBACK } from '../constants';
+import { fetchSections, fetchHealth, approveQuestion, batchApproveQuestions, startBackgroundBatch, fetchBatches, fetchQuestionCounts } from '../services';
 
 export function useAppState() {
   // ─── Theme ───────────────────────────────────────────────────────────────

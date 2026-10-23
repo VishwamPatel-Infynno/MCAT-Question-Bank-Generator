@@ -46,11 +46,10 @@ def route_after_review(state: AgentWorkflowState) -> str:
                 f"Score {score} <= {threshold} and iteration {iteration} < {max_attempts}. Routing to Re-Generator."
             )
             return "regenerator"
-        else:
-            logger.warning(
-                f"Score {score} <= {threshold} after max attempts ({max_attempts}). Strict Quality Gate: Halting workflow."
-            )
-            return "reject"
+        logger.warning(
+            f"Score {score} <= {threshold} after max attempts ({max_attempts}). Strict Quality Gate: Halting workflow."
+        )
+        return "reject"
 
     # Passing score (> 90): check if image generation is required
     req_raw = state["request"]

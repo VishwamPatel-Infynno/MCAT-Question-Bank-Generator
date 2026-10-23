@@ -8,13 +8,11 @@ import {
 import {
   PACING_INFO,
   getSubjectsForSection,
-  getSkillsForSection
-} from '../../constants/mcat';
-import {
+  getSkillsForSection,
   SECTION_METADATA,
   DIFFICULTY_TIERS,
   COGNITIVE_TRAPS
-} from './wizardConstants';
+} from '../../constants';
 import {
   WizardStep1Section,
   WizardStep2DisciplineUnit,

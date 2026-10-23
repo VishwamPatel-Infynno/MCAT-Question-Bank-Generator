@@ -4,10 +4,11 @@ import {
   Lightbulb
 } from 'lucide-react';
 import IndependentDiagramControls from '../IndependentDiagramControls';
-import { DEFAULT_IMAGE_MODEL, IMAGE_PRICING } from '../../../constants/config';
 import {
+  DEFAULT_IMAGE_MODEL,
+  IMAGE_PRICING,
   LIKELY_MISTAKE_PATTERNS
-} from '../../../constants/mcat';
+} from '../../../constants';
 
 const EMPTY_ARRAY = [];
 

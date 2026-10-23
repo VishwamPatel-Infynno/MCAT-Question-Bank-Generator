@@ -12,7 +12,7 @@ import {
   GuidedWizard,
   Footer
 } from './components';
-import { useAppState } from './hooks/useAppState';
+import { useAppState } from './hooks';
 
 // Dynamic code-split chunk imports for optimal bundle size
 const QuestionBank = lazy(() => import('./components/bank/QuestionBank'));
