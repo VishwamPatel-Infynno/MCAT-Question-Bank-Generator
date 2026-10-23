@@ -259,5 +259,6 @@ async def test_centralized_repository_package_exports():
     ]
     for fn_name in expected_exports:
         assert hasattr(repos, fn_name), f"app.repositories must export '{fn_name}'"
-        assert callable(getattr(repos, fn_name)), f"'{fn_name}' in app.repositories must be callable"
-
+        assert callable(getattr(repos, fn_name)), (
+            f"'{fn_name}' in app.repositories must be callable"
+        )

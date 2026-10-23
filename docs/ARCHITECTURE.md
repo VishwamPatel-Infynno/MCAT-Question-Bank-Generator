@@ -460,11 +460,13 @@ frontend/src/
 ├── components/          # Domain-organized UI components
 │   ├── index.js         # Barrel exports for clean component imports
 │   ├── layout/          # Layout components (Navbar, Footer)
-│   ├── wizard/          # Guided Wizard (HeroLanding, GuidedWizard, IndependentDiagramControls, WizardStep1-5)
+│   ├── wizard/          # Progressive 7-Step Guided Wizard (HeroLanding, GuidedWizard, IndependentDiagramControls, WizardStep1-7)
 │   ├── pipeline/        # AI Pipeline (AgentVisualizer, MultiAgentPipelineVisualizer, RejectionCard)
 │   ├── question/        # Review Desk (QuestionCard, QuestionScorecardTab, QuestionInlineEditor, StagedBatchReview, StagedBatchGrid, StagedDetailedView, StagedQuestionSlotCard, StagedSlotSkeleton, MentorExplanationView, ReviewAuditView, SharedPassageCard, StageJsonInspector, VisualStimulusViewer)
 │   ├── bank/            # Repository table, filter chips, pagination, export (QuestionBank, QuestionBankFilters, QuestionBankTable)
-│   ├── modals/          # Dialog modals (ExportPrintModal)
+│   ├── batch/           # Batch Activity & job monitor (BatchActivityView, BatchCard, BatchJobCard, BatchStatsHeader, BatchFiltersBar)
+│   ├── validated/       # Dedicated AI Validated (>90) quality bank (AiValidatedQuestionsView, AiValidatedQuestionCard, AiValidatedFiltersBar, AiValidatedStatsBar)
+│   ├── modals/          # Dialog modals (ExportPrintModal, ExportPaperPreview)
 │   └── common/          # Common primitives (CustomSelect, InfynnoLogo, NumberStepper, Toast)
 ├── services/
 │   └── api.js           # SSE event reader, candidate approval & REST API client

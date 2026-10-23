@@ -3,19 +3,14 @@ import {
   Search,
   CheckCircle2,
   BookmarkCheck,
-  Tag,
-  Sparkles
+  Tag
 } from 'lucide-react';
 import {
-  getSubjectsForSection,
-  getUnitsForSubject,
-  getTopicsForUnit,
-  getSubtopicsForTopic
+  getSubjectsForSection
 } from '../../../constants/mcat';
 
 export default function WizardStep3TopicSubtopic({
   selectedSection = 'chem_phys',
-  sectionMeta,
   selectedSubject,
   selectedUnit,
   selectedTopic,

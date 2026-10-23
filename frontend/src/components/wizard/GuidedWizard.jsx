@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -37,7 +37,6 @@ const STEP_CONFIG = [
 
 export default function GuidedWizard({
   generatorForm,
-  sectionsData,
   onGenerateQuestions,
   onLaunchGeneration
 }) {
@@ -47,7 +46,6 @@ export default function GuidedWizard({
   const form = generatorForm?.formData || {};
   const update = generatorForm?.updateField;
   const updateFields = generatorForm?.updateFields;
-  const toggleContentDomain = generatorForm?.toggleContentDomain;
 
   const selectedSection = form.selectedSection || 'chem_phys';
   const selectedSubject = form.selectedSubject || '';
@@ -59,24 +57,16 @@ export default function GuidedWizard({
   const questionType = form.questionType || 'PASSAGE_BASED_MCQ';
   const difficulty = form.difficulty || 'medium';
   const totalQuestions = 50;
-  const contentDomains = form.contentDomains || [];
   const primaryTrap = form.primaryTrap || 'Automatic';
   const likelyMistakePattern = form.likelyMistakePattern || '';
   const customMistakePattern = form.customMistakePattern || '';
 
-  const setSelectedSubtopic = useCallback((v) => update('selectedSubtopic', v), [update]);
   const setDifficulty = (v) => update('difficulty', v);
   const setQuestionType = (v) => update('questionType', v);
-  const setPassageCount = (v) => update('passageCount', v);
   const passageMode = form.passageMode || 'single_passage';
-  const setPassageMode = (v) => update('passageMode', v);
-  const passageRequired = form.passageRequired || (passageMode === 'independent' ? 'No' : 'Yes');
-  const setPassageRequired = (v) => update('passageRequired', v);
   const setPrimaryTrap = (v) => update('primaryTrap', v);
   const imageMode = form.imageMode || 'none';
-  const setImageCount = generatorForm?.setImageCount;
   const setSingleImageCount = generatorForm?.setSingleImageCount;
-  const setMultiImageCount = generatorForm?.setMultiImageCount;
   const imageQuestionIndices = form.imageQuestionIndices || [];
   const requirePassageImage = form.requirePassageImage || false;
   const setRequirePassageImage = generatorForm?.setRequirePassageImage;
@@ -337,7 +327,6 @@ export default function GuidedWizard({
         {step === 3 && (
           <WizardStep3TopicSubtopic
             selectedSection={selectedSection}
-            sectionMeta={sectionMeta}
             selectedSubject={selectedSubject}
             selectedUnit={selectedUnit}
             selectedTopic={selectedTopic}
@@ -390,8 +379,6 @@ export default function GuidedWizard({
             setLikelyMistakePattern={(v) => update('likelyMistakePattern', v)}
             customMistakePattern={customMistakePattern}
             setCustomMistakePattern={(v) => update('customMistakePattern', v)}
-            contentDomains={contentDomains}
-            onToggleContentDomain={toggleContentDomain}
             customPrompt={customPrompt}
             setCustomPrompt={setCustomPrompt}
           />
@@ -409,7 +396,6 @@ export default function GuidedWizard({
             selectedSubtopic={selectedSubtopic}
             customPrompt={customPrompt}
             difficulty={difficulty}
-            passageMode={passageMode}
             totalQuestions={totalQuestions}
             questionType={questionType}
             totalImagesCount={totalImagesCount}
@@ -421,7 +407,6 @@ export default function GuidedWizard({
             selectedSubskill={selectedSubskill}
             likelyMistakePattern={likelyMistakePattern}
             customMistakePattern={customMistakePattern}
-            contentDomains={contentDomains}
           />
         )}
       </div>

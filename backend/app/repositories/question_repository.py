@@ -464,7 +464,9 @@ async def batch_update_question_status(question_ids: list[str], status: str) -> 
 async def get_question_status_counts() -> dict[str, int]:
     """Returns counts of questions grouped by lifecycle status."""
     async with async_session_factory() as session:
-        stmt = select(QuestionModel.status, func.count(QuestionModel.id)).group_by(QuestionModel.status)
+        stmt = select(QuestionModel.status, func.count(QuestionModel.id)).group_by(
+            QuestionModel.status
+        )
         res = await session.execute(stmt)
         counts = {row[0] or "in_bank": row[1] for row in res.all()}
         return {

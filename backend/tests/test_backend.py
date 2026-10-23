@@ -1685,9 +1685,9 @@ def test_taxonomy_json_parity_between_backend_and_frontend():
     backend_content = backend_path.read_text(encoding="utf-8")
     frontend_content = frontend_path.read_text(encoding="utf-8")
 
-    assert (
-        backend_content == frontend_content
-    ), "Taxonomy JSON in backend/app/data and frontend/src/constants must be byte-for-byte identical"
+    assert backend_content == frontend_content, (
+        "Taxonomy JSON in backend/app/data and frontend/src/constants must be byte-for-byte identical"
+    )
 
 
 @pytest.mark.asyncio
@@ -1781,4 +1781,3 @@ async def test_question_status_lifecycle_and_counts():
     # Cleanup
     await delete_question(uid1)
     await delete_question(uid2)
-

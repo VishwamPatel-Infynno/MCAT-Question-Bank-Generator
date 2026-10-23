@@ -1,17 +1,12 @@
 import React, { useState } from 'react';
 import {
   Image as ImageIcon,
-  Lightbulb,
-  Tag,
-  AlertCircle,
-  Sparkles,
-  CheckCircle2
+  Lightbulb
 } from 'lucide-react';
 import IndependentDiagramControls from '../IndependentDiagramControls';
 import { DEFAULT_IMAGE_MODEL, IMAGE_PRICING } from '../../../constants/config';
 import {
-  LIKELY_MISTAKE_PATTERNS,
-  CONTENT_DOMAINS
+  LIKELY_MISTAKE_PATTERNS
 } from '../../../constants/mcat';
 
 const EMPTY_ARRAY = [];
@@ -30,8 +25,6 @@ export default function WizardStep6VisualsPrompt({
   setLikelyMistakePattern,
   customMistakePattern = '',
   setCustomMistakePattern,
-  contentDomains = EMPTY_ARRAY,
-  onToggleContentDomain,
   customPrompt = '',
   setCustomPrompt
 }) {

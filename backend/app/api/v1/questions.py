@@ -145,7 +145,10 @@ async def batch_update_status(payload: StatusUpdateRequest):
     """Bulk update question lifecycle status ('in_bank', 'discarded', 'ai_validated')."""
     valid_statuses = {"in_bank", "discarded", "ai_validated", "below_threshold"}
     if payload.status not in valid_statuses:
-        raise HTTPException(status_code=400, detail=f"Invalid status '{payload.status}'. Must be one of {valid_statuses}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status '{payload.status}'. Must be one of {valid_statuses}",
+        )
     updated_count = await batch_update_question_status(payload.ids, payload.status)
     logger.info(f"Bulk updated {updated_count} questions to status '{payload.status}'.")
     return {"success": True, "updated_count": updated_count, "status": payload.status}
@@ -157,7 +160,9 @@ async def update_single_status(question_id: str, payload: dict):
     new_status = payload.get("status")
     valid_statuses = {"in_bank", "discarded", "ai_validated", "below_threshold"}
     if not new_status or new_status not in valid_statuses:
-        raise HTTPException(status_code=400, detail=f"Missing or invalid 'status'. Must be one of {valid_statuses}")
+        raise HTTPException(
+            status_code=400, detail=f"Missing or invalid 'status'. Must be one of {valid_statuses}"
+        )
     success = await update_question_status(question_id, new_status)
     if not success:
         raise HTTPException(status_code=404, detail="Question not found")

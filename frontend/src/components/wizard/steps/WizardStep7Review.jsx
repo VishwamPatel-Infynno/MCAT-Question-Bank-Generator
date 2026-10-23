@@ -1,7 +1,5 @@
 import React from 'react';
-import { Edit3, Sparkles, CheckCircle2, Zap } from 'lucide-react';
-
-const EMPTY_ARRAY = [];
+import { Edit3, Sparkles, Zap } from 'lucide-react';
 
 export default function WizardStep7Review({
   sectionMeta,
@@ -13,7 +11,6 @@ export default function WizardStep7Review({
   selectedSubtopic,
   customPrompt,
   difficulty,
-  passageMode,
   totalQuestions = 50,
   questionType = 'PASSAGE_BASED_MCQ',
   totalImagesCount = 0,
@@ -24,8 +21,7 @@ export default function WizardStep7Review({
   selectedSkill,
   selectedSubskill,
   likelyMistakePattern,
-  customMistakePattern,
-  contentDomains = EMPTY_ARRAY
+  customMistakePattern
 }) {
   const trapObj = COGNITIVE_TRAPS?.find(t => t.id === primaryTrap);
   const trapLabel = trapObj?.label || primaryTrap || 'Automatic';

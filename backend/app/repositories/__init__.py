@@ -55,4 +55,3 @@ __all__ = [
     "update_job_progress",
     "update_question_status",
 ]
-

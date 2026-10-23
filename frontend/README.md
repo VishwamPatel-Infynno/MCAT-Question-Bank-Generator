@@ -51,12 +51,24 @@ frontend/src/
 │   │   ├── StagedBatchReview.jsx # Multi-question batch confirmation deck
 │   │   ├── StagedQuestionSlotCard.jsx # Individual question slot reviewer card
 │   │   └── VisualStimulusViewer.jsx # SVG & neural visual diagram renderer
+│   ├── batch/
+│   │   ├── BatchActivityView.jsx # Live & historical batch monitoring dashboard
+│   │   ├── BatchCard.jsx         # Summary status card for generation batches
+│   │   ├── BatchFiltersBar.jsx   # Section, status, and search filters
+│   │   ├── BatchJobCard.jsx      # Per-question job card with lifecycle status
+│   │   ├── BatchQuestionItem.jsx # Staged question item with review modal
+│   │   └── BatchStatsHeader.jsx  # High-level aggregate batch statistics
+│   ├── validated/
+│   │   ├── AiValidatedQuestionsView.jsx # Dedicated AI-Validated (>90) quality bank
+│   │   ├── AiValidatedQuestionCard.jsx  # Card with direct bank approval actions
+│   │   ├── AiValidatedFiltersBar.jsx    # Filters for AI-validated questions
+│   │   └── AiValidatedStatsBar.jsx      # Quick-action statistics header
 │   └── wizard/
-│       ├── GuidedWizard.jsx      # 5-step guided exam generation wizard dock
+│       ├── GuidedWizard.jsx      # Progressive 7-step guided exam generation wizard dock
 │       ├── HeroLanding.jsx       # Welcome landing hero header
 │       ├── IndependentDiagramControls.jsx # Standalone diagram requirements selector
-│       ├── QuestionStyleMixSection.jsx # Single vs multi-choice allocation controls
-│       └── steps/                # Subcomponents for wizard steps 1 through 5
+│       ├── wizardConstants.js    # Re-exports and presets for wizard steps
+│       └── steps/                # Progressive 7-step subcomponents (WizardStep1Section through WizardStep7Review)
 ├── constants/
 │   ├── config.js                 # Pricing models, image parameters, token rates
 │   └── mcat.js                   # MCAT sections, pacing specs, icons, and fallback topics

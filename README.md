@@ -243,10 +243,12 @@ Question Bank Generator/
         ├── components/          # Domain-organized UI components
         │   ├── index.js         # Barrel exports for clean component imports
         │   ├── layout/          # Layout components (Navbar, Footer)
-        │   ├── wizard/          # Guided Wizard (HeroLanding, GuidedWizard, IndependentDiagramControls, QuestionStyleMixSection)
+        │   ├── wizard/          # Progressive 7-step Guided Wizard (HeroLanding, GuidedWizard, IndependentDiagramControls, steps 1-7)
         │   ├── pipeline/        # AI Pipeline (AgentVisualizer, MultiAgentPipelineVisualizer, RejectionCard)
         │   ├── question/        # Review Desk (QuestionCard, ReviewAuditView, StageJsonInspector, StagedBatchReview, VisualStimulusViewer)
         │   ├── bank/            # Question repository (QuestionBank)
+        │   ├── batch/           # Batch Activity & job monitor (BatchActivityView)
+        │   ├── validated/       # Dedicated AI Validated (>90) quality bank (AiValidatedQuestionsView)
         │   ├── modals/          # Dialog modals (ExportPrintModal)
         │   └── common/          # Common primitives (CustomSelect, InfynnoLogo, NumberStepper, Toast)
         └── services/

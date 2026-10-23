@@ -1,12 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import {
-  AlertTriangle,
-  Target,
   CheckCircle2,
   Search,
   Sparkles,
-  Zap,
-  Tag
+  Zap
 } from 'lucide-react';
 import {
   getSkillsForSection,

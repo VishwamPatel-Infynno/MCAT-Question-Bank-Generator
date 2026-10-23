@@ -3,8 +3,7 @@ import {
   Layers,
   FileText,
   AlertCircle,
-  CheckCircle2,
-  Gauge
+  CheckCircle2
 } from 'lucide-react';
 
 export default function WizardStep4LevelFormat({

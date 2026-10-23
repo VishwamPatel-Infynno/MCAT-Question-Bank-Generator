@@ -1,7 +1,5 @@
 import React, { useMemo } from 'react';
 import {
-  BookOpen,
-  Layers,
   CheckCircle2,
   ChevronRight,
   Atom

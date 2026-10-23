@@ -232,14 +232,14 @@ async def init_db_schema(engine: AsyncEngine, session_factory: async_sessionmake
             text("CREATE INDEX IF NOT EXISTS ix_questions_job_id ON questions (job_id);")
         )
         await conn.execute(
-            text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS status VARCHAR(32) DEFAULT 'in_bank';")
+            text(
+                "ALTER TABLE questions ADD COLUMN IF NOT EXISTS status VARCHAR(32) DEFAULT 'in_bank';"
+            )
         )
         await conn.execute(
             text("CREATE INDEX IF NOT EXISTS ix_questions_status ON questions (status);")
         )
-        await conn.execute(
-            text("UPDATE questions SET status = 'in_bank' WHERE status IS NULL;")
-        )
+        await conn.execute(text("UPDATE questions SET status = 'in_bank' WHERE status IS NULL;"))
 
         # Safe schema update for batch job tracking columns
         await conn.execute(
