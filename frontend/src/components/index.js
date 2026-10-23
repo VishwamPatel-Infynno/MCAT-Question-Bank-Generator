@@ -15,7 +15,11 @@ export { default as RejectionCard } from './pipeline/RejectionCard';
 
 // Question & Review
 export { default as QuestionCard } from './question/QuestionCard';
+export { default as QuestionScorecardTab } from './question/QuestionScorecardTab';
+export { default as QuestionInlineEditor } from './question/QuestionInlineEditor';
 export { default as QuestionDraftingSkeleton } from './question/QuestionDraftingSkeleton';
+export { default as StagedSlotSkeleton } from './question/StagedSlotSkeleton';
+export { default as StagedQuestionSlotCard } from './question/StagedQuestionSlotCard';
 export { default as StagedBatchReview } from './question/StagedBatchReview';
 export { default as SharedPassageCard } from './question/SharedPassageCard';
 export { default as VisualStimulusViewer } from './question/VisualStimulusViewer';

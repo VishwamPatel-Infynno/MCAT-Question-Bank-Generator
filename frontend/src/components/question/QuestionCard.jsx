@@ -9,8 +9,6 @@ import {
   Trash2,
   Check,
   Edit3,
-  Save,
-  X,
   FileText,
   BarChart3,
   Code2,
@@ -22,6 +20,8 @@ import {
 import StageJsonInspector from './StageJsonInspector';
 import VisualStimulusViewer from './VisualStimulusViewer';
 import MentorExplanationView from './MentorExplanationView';
+import QuestionScorecardTab from './QuestionScorecardTab';
+import QuestionInlineEditor from './QuestionInlineEditor';
 import { getEffectiveTrapInfo } from '../../constants/mcatTraps';
 
 export default function QuestionCard({ 
@@ -346,32 +346,10 @@ export default function QuestionCard({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Edit Mode Alert */}
           {isEditing && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '10px 14px',
-                background: 'var(--status-warning-bg)',
-                border: '1px solid var(--status-warning-border)',
-                borderRadius: 'var(--radius-md)',
-                color: 'var(--status-warning)',
-                fontSize: '0.8rem'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
-                <Edit3 size={14} />
-                <span>Quick Edit Mode Active. Modify fields below and click Save.</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <button onClick={handleSaveEdit} className="btn-success" style={{ padding: '5px 10px', fontSize: '0.75rem' }}>
-                  <Save size={12} /> Save
-                </button>
-                <button onClick={handleCancelEdit} className="btn-secondary" style={{ padding: '5px 10px', fontSize: '0.75rem' }}>
-                  <X size={12} /> Cancel
-                </button>
-              </div>
-            </div>
+            <QuestionInlineEditor
+              onSave={handleSaveEdit}
+              onCancel={handleCancelEdit}
+            />
           )}
 
           {/* Clinical Vignette (Stimulus) */}
@@ -628,43 +606,7 @@ export default function QuestionCard({
 
       {/* --- TAB 2: 100-PT QUALITY SCORECARD --- */}
       {activeTab === 'scorecard' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Question Quality Scorecard
-              </h4>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                Checked against 100-point quality standards
-              </p>
-            </div>
-            <span className="badge badge-emerald" style={{ fontSize: '0.8rem', padding: '4px 10px' }}>
-              Overall Score: {question.final_score}/100
-            </span>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
-            {pillars.map(p => (
-              <div
-                key={p.label}
-                style={{
-                  background: 'var(--bg-surface-elevated)',
-                  border: '1px solid var(--border-light)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '12px 14px'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.775rem' }}>
-                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.label}</span>
-                  <span style={{ fontWeight: 700, color: p.color }}>{p.score}/{p.max}</span>
-                </div>
-                <div style={{ width: '100%', height: '4px', background: 'var(--bg-app)', borderRadius: '2px', overflow: 'hidden' }}>
-                  <div style={{ width: `${(p.score / p.max) * 100}%`, height: '100%', background: p.color, borderRadius: '2px' }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <QuestionScorecardTab question={question} pillars={pillars} />
       )}
 
       {/* --- TAB 3: STAGE JSON TELEMETRY --- */}

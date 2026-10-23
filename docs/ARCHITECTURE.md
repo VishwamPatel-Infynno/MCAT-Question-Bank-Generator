@@ -439,11 +439,19 @@ backend/app/
 
 ```
 frontend/src/
-├── constants/           # Centralized application constants
+├── constants/           # Centralized application constants & AAMC taxonomy
+│   ├── index.js         # Unified barrel export for constants
 │   ├── mcat.js          # MCAT sections, pacing targets, icons & fallback taxonomy
+│   ├── mcatTraps.js     # 25-trap cognitive distractor taxonomy & regex matchers
 │   └── config.js        # Model options & pricing constants
+├── utils/               # Pure helper utilities
+│   ├── index.js         # Unified barrel export for utils
+│   ├── exportUtils.js   # A4 HTML print document builder, CSV & JSON serializers
+│   ├── formatters.js    # Time, word count, token & currency formatters
+│   └── trapHelpers.js   # Cognitive trap resolution & text detectors
 ├── hooks/               # Custom stateful React hooks
 │   ├── index.js         # Barrel export for custom hooks
+│   ├── useAppState.js          # Centralized view routing & global event broker
 │   ├── useGeneratorForm.js     # Form state, validation & preset handlers
 │   ├── useQuestionGenerator.js # SSE streaming multi-agent orchestrator hook
 │   ├── useQuestionBank.js      # CRUD, filtering, clipboard & repository stats hook
@@ -452,10 +460,10 @@ frontend/src/
 ├── components/          # Domain-organized UI components
 │   ├── index.js         # Barrel exports for clean component imports
 │   ├── layout/          # Layout components (Navbar, Footer)
-│   ├── wizard/          # Guided Wizard (HeroLanding, GuidedWizard, IndependentDiagramControls, QuestionStyleMixSection)
+│   ├── wizard/          # Guided Wizard (HeroLanding, GuidedWizard, IndependentDiagramControls, WizardStep1-5)
 │   ├── pipeline/        # AI Pipeline (AgentVisualizer, MultiAgentPipelineVisualizer, RejectionCard)
-│   ├── question/        # Review Desk (MentorExplanationView, QuestionCard, ReviewAuditView, SharedPassageCard, StageJsonInspector, StagedBatchReview, StagedQuestionSlotCard, VisualStimulusViewer)
-│   ├── bank/            # Repository table, filter chips, pagination, export (QuestionBank)
+│   ├── question/        # Review Desk (QuestionCard, QuestionScorecardTab, QuestionInlineEditor, StagedBatchReview, StagedBatchGrid, StagedDetailedView, StagedQuestionSlotCard, StagedSlotSkeleton, MentorExplanationView, ReviewAuditView, SharedPassageCard, StageJsonInspector, VisualStimulusViewer)
+│   ├── bank/            # Repository table, filter chips, pagination, export (QuestionBank, QuestionBankFilters, QuestionBankTable)
 │   ├── modals/          # Dialog modals (ExportPrintModal)
 │   └── common/          # Common primitives (CustomSelect, InfynnoLogo, NumberStepper, Toast)
 ├── services/

@@ -11,3 +11,11 @@ export {
   detectTrapFromText,
   getEffectiveTrapInfo
 } from './trapHelpers';
+
+export {
+  escapeCsv,
+  generateExamCsv,
+  generateExamJson,
+  generateExamHtmlDoc
+} from './exportUtils';
+
