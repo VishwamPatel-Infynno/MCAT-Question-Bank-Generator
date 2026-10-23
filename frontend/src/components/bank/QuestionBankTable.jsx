@@ -15,7 +15,7 @@ import {
 import VisualStimulusViewer from '../question/VisualStimulusViewer';
 import SharedPassageCard from '../question/SharedPassageCard';
 import MentorExplanationView from '../question/MentorExplanationView';
-import { getEffectiveTrapInfo } from '../../constants/mcatTraps';
+import { getEffectiveTrapInfo } from '../../utils';
 
 /**
  * QuestionBankTable

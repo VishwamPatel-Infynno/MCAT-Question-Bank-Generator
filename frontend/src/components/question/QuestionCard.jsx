@@ -22,7 +22,7 @@ import VisualStimulusViewer from './VisualStimulusViewer';
 import MentorExplanationView from './MentorExplanationView';
 import QuestionScorecardTab from './QuestionScorecardTab';
 import QuestionInlineEditor from './QuestionInlineEditor';
-import { getEffectiveTrapInfo } from '../../constants/mcatTraps';
+import { getEffectiveTrapInfo } from '../../utils';
 
 export default function QuestionCard({ 
   question, 

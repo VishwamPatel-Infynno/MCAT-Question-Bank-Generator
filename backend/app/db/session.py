@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from app.core.config import config
 from app.db.schema import init_db_schema
-from app.db.seeder import seed_mcat_questions_if_empty
+from app.db.seeder import cleanup_legacy_questions
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ async def init_db():
     """Coordinates database schema creation, DDL migrations, and table verification."""
     logger.info("Initializing PostgreSQL schema and tables...")
     await init_db_schema(engine, async_session_factory)
-    await seed_mcat_questions_if_empty(async_session_factory)
+    await cleanup_legacy_questions(async_session_factory)
 
 
 async def check_db_health() -> dict[str, Any]:

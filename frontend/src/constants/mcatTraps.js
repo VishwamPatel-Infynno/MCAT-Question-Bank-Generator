@@ -144,10 +144,4 @@ export const MCAT_TRAP_DEFINITIONS = {
  */
 export const TRAP_PATTERN_STR = '\\b(?:Concept Confusion|Wrong Base|Unit Conversion|Formula Misapplication|Sign Convention|Proportionality Error|Missed Assumption|Cause-?Effect Confusion|Correlation (?:vs\\.?|and) Causation|Control-?Group Confusion|Variable Confusion|Sample(?:-?Size)? Bias|Statistical Significance|Graph (?:or Axis )?Misreading|Table Comparison|Trend Extrapolation|Mechanism Confusion|Exception Overlooked|Negation Misread|NOT/EXCEPT|Scope Shift|Unsupported Inference|Passage Contradiction|Overgeneralization|Distractor Overinterpretation|Answer-?Choice Conflation|Out of Scope|Distortion|Extreme Language|Calculation Trap)\\b';
 
-// Re-export pure trap helpers from utils layer for backward compatibility
-export {
-  resolveTrapInfo,
-  detectTrapFromText,
-  getEffectiveTrapInfo
-} from '../utils/trapHelpers';
 

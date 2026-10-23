@@ -8,7 +8,7 @@ from app.models.question import QuestionModel
 logger = logging.getLogger(__name__)
 
 
-async def seed_mcat_questions_if_empty(session_factory: async_sessionmaker):
+async def cleanup_legacy_questions(session_factory: async_sessionmaker):
     """
     Cleans up legacy UCAT questions if present.
     Does not auto-seed mock questions so a fresh database/Docker instance remains clean.
@@ -37,3 +37,9 @@ async def seed_mcat_questions_if_empty(session_factory: async_sessionmaker):
             await session.commit()
     except Exception as e:
         logger.warning(f"Could not clean legacy questions: {e}")
+
+
+# Backward-compatible alias
+seed_mcat_questions_if_empty = cleanup_legacy_questions
+
+__all__ = ["cleanup_legacy_questions", "seed_mcat_questions_if_empty"]

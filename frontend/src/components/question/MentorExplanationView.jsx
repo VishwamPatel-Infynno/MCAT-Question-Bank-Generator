@@ -10,9 +10,7 @@ import {
 
 import {
   resolveTrapInfo,
-  detectTrapFromText
-} from '../../constants/mcatTraps';
-import {
+  detectTrapFromText,
   renderFormattedText,
   extractDistractorLines
 } from '../../utils';
