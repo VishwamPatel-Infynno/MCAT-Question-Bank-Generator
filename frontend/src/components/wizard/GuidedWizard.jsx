@@ -282,7 +282,6 @@ export default function GuidedWizard({
             DIFFICULTY_TIERS={DIFFICULTY_TIERS}
             passageMode={passageMode}
             handlePassageModeChange={handlePassageModeChange}
-            totalQuestions={totalQuestions}
             questionType={questionType}
             setQuestionType={setQuestionType}
           />

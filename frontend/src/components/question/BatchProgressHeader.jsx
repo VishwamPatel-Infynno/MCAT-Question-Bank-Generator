@@ -28,7 +28,6 @@ export default function BatchProgressHeader({
   isSaving,
   // Derived stats
   singleCount,
-  multiCount,
   passageCount,
   isPassageSet,
   isMixedBatch,

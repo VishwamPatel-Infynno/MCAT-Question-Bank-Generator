@@ -13,7 +13,6 @@ export default function WizardStep3Difficulty({
   DIFFICULTY_TIERS,
   passageMode,
   handlePassageModeChange,
-  _totalQuestions = 50,
   questionType = 'PASSAGE_BASED_MCQ',
   setQuestionType
 }) {
@@ -184,51 +183,6 @@ export default function WizardStep3Difficulty({
             </div>
           </div>
         )}
-      </div>
-
-      {/* Standard 50-Question Full-Section Batch Informational Card */}
-      <div
-        style={{
-          padding: '16px 20px',
-          borderRadius: 'var(--radius-md)',
-          background: 'rgba(79, 48, 185, 0.07)',
-          border: '1px solid rgba(79, 48, 185, 0.22)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '16px'
-        }}
-      >
-        <div
-          style={{
-            width: '42px',
-            height: '42px',
-            borderRadius: 'var(--radius-sm)',
-            background: 'var(--infynno-gradient)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-            flexShrink: 0
-          }}
-        >
-          <Layers size={22} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              Standard Full-Section Batch: 50 Questions
-            </span>
-            <span className="badge badge-purple" style={{ fontSize: '0.72rem', padding: '3px 8px' }}>
-              10 Parallel Jobs
-            </span>
-            <span className="badge-minimal" style={{ fontSize: '0.7rem' }}>
-              AAMC Standard Size
-            </span>
-          </div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.4 }}>
-            Generates 50 single-choice questions organized across <strong>10 distinct jobs (5 questions/job)</strong> running in the background with 2-worker concurrency. Live progress and questions are tracked in the <strong>Batch Activity</strong> view.
-          </div>
-        </div>
       </div>
     </div>
   );

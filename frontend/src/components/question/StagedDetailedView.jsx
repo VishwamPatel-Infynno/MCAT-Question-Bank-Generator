@@ -43,10 +43,6 @@ export default function StagedDetailedView({
           const isCurrent = idx === validIdx && Boolean(q);
           const isChecked = q && selectedIds.has(q.id);
           const isSaved = q && savedIds.has(q.id);
-          const isMulti =
-            q &&
-            (q.interaction_type === 'multi_choice' ||
-              (Array.isArray(q.correct_answer_ids) && q.correct_answer_ids.length > 1));
           const isPassage =
             q && (q.passage_required === 'Yes' || (q.stimulus_text && q.stimulus_text.trim().split(/\s+/).length >= 180));
 
