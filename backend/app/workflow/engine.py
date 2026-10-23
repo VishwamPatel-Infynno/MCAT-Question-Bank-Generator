@@ -96,7 +96,7 @@ def _determine_item_diagram_requirement(
     visual_type = req_data.get("visual_type", "None")
 
     # CARS strictly has no figures, data tables or diagrams in official AAMC format
-    if section_val in (MCATSection.CARS.value, "CARS", "cars", "VR", "verbal_reasoning"):
+    if section_val in (MCATSection.CARS.value, "CARS", "cars"):
         return False
     if is_passage_item:
         # Passage question items share the passage diagram; they never have internal images

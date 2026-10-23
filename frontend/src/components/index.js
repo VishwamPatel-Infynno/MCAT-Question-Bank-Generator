@@ -26,7 +26,6 @@ export { default as MentorExplanationView } from './question/MentorExplanationVi
 export { default as HeroLanding } from './wizard/HeroLanding';
 export { default as GuidedWizard } from './wizard/GuidedWizard';
 export { default as IndependentDiagramControls } from './wizard/IndependentDiagramControls';
-export { default as QuestionStyleMixSection } from './wizard/QuestionStyleMixSection';
 
 // Heavy views (QuestionBank, ReviewAuditView) are intentionally
 // loaded via React.lazy() in App.jsx to preserve optimal code splitting.

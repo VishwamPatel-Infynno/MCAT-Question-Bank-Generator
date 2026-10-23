@@ -1,6 +1,8 @@
 import React from 'react';
 import { Edit3, Sparkles } from 'lucide-react';
 
+const EMPTY_ARRAY = [];
+
 export default function WizardStep5Review({
   sectionMeta,
   pacing,
@@ -23,7 +25,7 @@ export default function WizardStep5Review({
   selectedSubskill,
   likelyMistakePattern,
   customMistakePattern,
-  contentDomains = []
+  contentDomains = EMPTY_ARRAY
 }) {
   const trapObj = COGNITIVE_TRAPS?.find(t => t.id === primaryTrap);
   const trapLabel = trapObj?.label || primaryTrap || 'Automatic';

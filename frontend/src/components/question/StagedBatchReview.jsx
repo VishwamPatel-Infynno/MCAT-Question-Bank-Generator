@@ -798,7 +798,7 @@ export default function StagedBatchReview({
                   {/* Selection Checkbox */}
                   <input
                     type="checkbox"
-                    aria-label={`Select Question ${q.index || i + 1}`}
+                    aria-label={`Select Question ${q.index || slotNumber}`}
                     checked={isChecked}
                     onChange={(e) => {
                       e.stopPropagation();

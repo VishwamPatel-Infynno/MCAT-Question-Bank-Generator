@@ -268,7 +268,7 @@ export default function WizardStep2Topic({
             ) : (
               searchMatches.map((m, idx) => (
                 <div
-                  key={idx}
+                  key={`${m.subject.id}-${m.unit.id}-${m.topic.id}-${m.subtopic || idx}`}
                   onClick={() => {
                     onSelectSubject?.(m.subject.id);
                     onSelectUnit?.(m.unit.id);

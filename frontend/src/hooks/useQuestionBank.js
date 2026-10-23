@@ -11,8 +11,6 @@ export function useQuestionBank() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'score_desc' | 'score_asc' | 'difficulty'
   const [copiedId, setCopiedId] = useState(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-
   // Debounce search query by 250ms
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -21,41 +19,49 @@ export function useQuestionBank() {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
+  const [refreshCount, setRefreshCount] = useState(0);
+
   // Fetch questions with inflight cancellation via AbortController
   useEffect(() => {
-    void refreshTrigger;
+    let isCancelled = false;
     const controller = new AbortController();
 
-    fetchQuestions(
-      {
-        section: sectionFilter || undefined,
-        difficulty: diffFilter || undefined,
-        search: debouncedSearch || undefined
-      },
-      controller.signal
-    )
-      .then((data) => {
-        setRawQuestions(data.questions || []);
-        setRepoStats({
-          total_tokens: data.total_tokens || 0,
-          total_cost_usd: data.total_cost_usd || 0
+    // Trigger reload when refreshCount changes
+    if (refreshCount >= 0) {
+      fetchQuestions(
+        {
+          section: sectionFilter || undefined,
+          difficulty: diffFilter || undefined,
+          search: debouncedSearch || undefined
+        },
+        controller.signal
+      )
+        .then((data) => {
+          if (!isCancelled) {
+            setRawQuestions(data.questions || []);
+            setRepoStats({
+              total_tokens: data.total_tokens || 0,
+              total_cost_usd: data.total_cost_usd || 0
+            });
+            setLoading(false);
+          }
+        })
+        .catch((err) => {
+          if (err.name === 'AbortError') return;
+          console.error('Failed to load question bank:', err);
+          if (!isCancelled) setLoading(false);
         });
-        setLoading(false);
-      })
-      .catch((err) => {
-        if (err.name === 'AbortError') return;
-        console.error('Failed to load question bank:', err);
-        setLoading(false);
-      });
+    }
 
     return () => {
+      isCancelled = true;
       controller.abort();
     };
-  }, [sectionFilter, diffFilter, debouncedSearch, refreshTrigger]);
+  }, [sectionFilter, diffFilter, debouncedSearch, refreshCount]);
 
   const loadQuestions = useCallback(() => {
     setLoading(true);
-    setRefreshTrigger((prev) => prev + 1);
+    setRefreshCount(c => c + 1);
   }, []);
 
   const handleDelete = useCallback(

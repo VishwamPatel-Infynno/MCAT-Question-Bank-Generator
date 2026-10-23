@@ -16,6 +16,8 @@ import {
   CONTENT_DOMAINS
 } from '../../../constants/mcat';
 
+const EMPTY_ARRAY = [];
+
 export default function WizardStep4Stimulus({
   selectedSection = 'chem_phys',
   totalQuestions,
@@ -50,7 +52,7 @@ export default function WizardStep4Stimulus({
   setSelectedSkill,
   selectedSubskill,
   setSelectedSubskill,
-  contentDomains = [],
+  contentDomains = EMPTY_ARRAY,
   onToggleContentDomain,
   likelyMistakePattern,
   setLikelyMistakePattern,

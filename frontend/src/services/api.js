@@ -90,6 +90,7 @@ export async function generateQuestionStream(payload, onEvent, onError, onComple
     let buffer = '';
 
     while (true) {
+      // eslint-disable-next-line no-await-in-loop
       const { value, done } = await reader.read();
       if (done) break;
 

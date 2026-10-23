@@ -115,20 +115,6 @@ class Question(BaseModel):
         None, description="AAMC SIRS or CARS skill classification"
     )
 
-    def model_post_init(self, __context: Any) -> None:
-        if not self.correct_answer_ids and self.correct_answer_id:
-            self.correct_answer_ids = [
-                k.strip().upper() for k in self.correct_answer_id.split(",") if k.strip()
-            ]
-        elif self.correct_answer_ids and not self.correct_answer_id:
-            self.correct_answer_id = ", ".join(self.correct_answer_ids)
-
-        if not self.mcat_scaled_score:
-            scaled_info = calculate_mcat_scaled_score(self.final_score, self.difficulty)
-            self.mcat_scaled_score = scaled_info["section_score"]
-            if not self.mcat_percentile:
-                self.mcat_percentile = scaled_info["percentile"]
-
     iteration_count: int = 1
     iterations_history: list[dict[str, Any]] = Field(default_factory=list)
     total_tokens: int = Field(
@@ -182,6 +168,20 @@ class Question(BaseModel):
         default_factory=dict,
         description="Option length disparity, symmetry score, and anti-guessability balance metrics",
     )
+
+    def model_post_init(self, __context: Any) -> None:
+        if not self.correct_answer_ids and self.correct_answer_id:
+            self.correct_answer_ids = [
+                k.strip().upper() for k in self.correct_answer_id.split(",") if k.strip()
+            ]
+        elif self.correct_answer_ids and not self.correct_answer_id:
+            self.correct_answer_id = ", ".join(self.correct_answer_ids)
+
+        if not self.mcat_scaled_score:
+            scaled_info = calculate_mcat_scaled_score(self.final_score, self.difficulty)
+            self.mcat_scaled_score = scaled_info["section_score"]
+            if not self.mcat_percentile:
+                self.mcat_percentile = scaled_info["percentile"]
 
 
 class Passage(BaseModel):

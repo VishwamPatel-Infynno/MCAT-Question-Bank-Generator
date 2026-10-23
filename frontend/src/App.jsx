@@ -213,14 +213,15 @@ export default function App() {
       custom_prompt: customPrompt.trim() || undefined
     };
     startGeneration(payload);
+    const isPassageBatch = passageMode === 'single_passage' || selectedSection === 'cars';
     showToast({
       type: 'info',
       title: totalQuestions > 1 ? `Batch Generation Started (${totalQuestions})` : 'Generation Started',
-      message: isMixedSet
-        ? `Drafting mixed batch: ${passageQuestionCount} linked to Shared Passage + ${totalQuestions - passageQuestionCount} Independent Questions...`
-        : totalQuestions > 1
-          ? `Drafting ${totalQuestions} questions (${singleChoiceCount} Single, ${multiChoiceCount} Multi)...`
-          : `Multi-agent swarm drafting ${difficulty.toUpperCase()} question...`
+      message: totalQuestions > 1
+        ? (isPassageBatch
+            ? `Drafting ${totalQuestions}-question Passage-Based Set linked to a shared reading passage...`
+            : `Drafting ${totalQuestions} Independent Discrete Questions...`)
+        : `Multi-agent swarm drafting ${difficulty.toUpperCase()} question...`
     });
   }, [
     isGenerating,
