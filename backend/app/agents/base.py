@@ -154,9 +154,7 @@ def _resolve_api_key(model: str, explicit_key: str | None) -> str | None:
         or os.getenv("GROQ_API_KEY")
     )
     if not has_env_key:
-        raise ValueError(
-            f"No API key configured for {model}. Please set in Settings or .env"
-        )
+        raise ValueError(f"No API key configured for {model}. Please set in Settings or .env")
     return None
 
 

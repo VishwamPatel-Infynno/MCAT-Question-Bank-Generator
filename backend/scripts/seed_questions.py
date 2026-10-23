@@ -236,7 +236,9 @@ async def seed():
 
     for q in [q1, q2, q3, q4]:
         saved = await save_question(q)
-        logger.info("Seeded MCAT Question: %s [%s - %s]", saved.id, saved.section, saved.section_label)
+        logger.info(
+            "Seeded MCAT Question: %s [%s - %s]", saved.id, saved.section, saved.section_label
+        )
 
 
 if __name__ == "__main__":

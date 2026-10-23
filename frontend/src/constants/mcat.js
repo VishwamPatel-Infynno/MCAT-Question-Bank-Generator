@@ -45,6 +45,19 @@ export const SECTION_CODE_TO_ID = {
   psych_soc: 'psych_soc'
 };
 
+export const SECTION_CODE_MAP = SECTION_ID_TO_CODE;
+
+export const MCAT_SECTION_LABELS = {
+  chem_phys: 'Chemical and Physical Foundations',
+  cars: 'Critical Analysis and Reasoning Skills',
+  bio_biochem: 'Biological and Biochemical Foundations',
+  psych_soc: 'Psychological, Social, and Biological Foundations',
+  CP: 'Chemical and Physical Foundations',
+  CARS: 'Critical Analysis and Reasoning Skills',
+  BB: 'Biological and Biochemical Foundations',
+  PS: 'Psychological, Social, and Biological Foundations'
+};
+
 export const DEPENDENT_TAXONOMY = mcatTaxonomy;
 
 /**

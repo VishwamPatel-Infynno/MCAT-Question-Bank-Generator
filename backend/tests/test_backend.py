@@ -58,10 +58,11 @@ async def test_schemas_validation():
 
     from pydantic import ValidationError
 
+    # Test batch limit <= 50 constraint
     with pytest.raises(ValidationError):
         GenerationRequest(
             section=MCATSection.CHEM_PHYS,
-            questions_to_generate=11,
+            questions_to_generate=51,
         )
 
 
@@ -1316,7 +1317,10 @@ async def test_independent_question_direct_no_stimulus(monkeypatch):
     batch_progress_events = [e for e in events if e.get("event_type") == "batch_progress"]
     assert len(batch_progress_events) == 5
     for b_evt in batch_progress_events:
-        assert "independent" in b_evt["message"].lower() or "direct question" in b_evt["message"].lower()
+        assert (
+            "independent" in b_evt["message"].lower()
+            or "direct question" in b_evt["message"].lower()
+        )
 
     # Verify final staged questions
     complete_evt = next(e for e in events if e.get("event_type") == "workflow_complete")
@@ -1658,5 +1662,3 @@ async def test_manager_dependent_taxonomy_integration():
     assert req.single_choice_count == 3
     assert req.subject == "General Chemistry"
     assert req.subskill == "Identify or recognize a scientific concept"
-
-

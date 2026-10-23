@@ -20,6 +20,10 @@ def _batch_model_to_schema(m: GenerationBatchModel) -> GenerationBatch:
         passage_mode=m.passage_mode,
         target_count=m.target_count or 0,
         actual_count=m.actual_count or 0,
+        total_jobs=m.total_jobs or 10,
+        completed_jobs=m.completed_jobs or 0,
+        failed_jobs=m.failed_jobs or 0,
+        error_message=m.error_message,
         total_tokens=m.total_tokens or 0,
         cost_usd=float(m.cost_usd) if m.cost_usd is not None else 0.0,
         status=m.status or "completed",
@@ -38,6 +42,10 @@ def _batch_schema_to_model(b: GenerationBatch) -> GenerationBatchModel:
         passage_mode=b.passage_mode,
         target_count=b.target_count,
         actual_count=b.actual_count,
+        total_jobs=b.total_jobs,
+        completed_jobs=b.completed_jobs,
+        failed_jobs=b.failed_jobs,
+        error_message=b.error_message,
         total_tokens=b.total_tokens,
         cost_usd=b.cost_usd,
         status=b.status,
@@ -81,3 +89,14 @@ async def save_batch(batch: GenerationBatch) -> GenerationBatch:
         await session.merge(model)
         await session.commit()
         return batch
+
+
+async def delete_batch(batch_id: str) -> bool:
+    """Deletes a batch and cascades delete to related jobs."""
+    async with async_session_factory() as session:
+        model = await session.get(GenerationBatchModel, batch_id)
+        if not model:
+            return False
+        await session.delete(model)
+        await session.commit()
+        return True

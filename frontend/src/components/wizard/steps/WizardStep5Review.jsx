@@ -236,7 +236,7 @@ export default function WizardStep5Review({
       <div style={{
         padding: '16px 20px',
         borderRadius: 'var(--radius-md)',
-        background: 'rgba(79, 48, 185, 0.08)',
+        background: totalQuestions === 50 ? 'rgba(79, 48, 185, 0.12)' : 'rgba(79, 48, 185, 0.08)',
         border: '1px solid rgba(79, 48, 185, 0.25)',
         display: 'flex',
         alignItems: 'center',
@@ -244,8 +244,16 @@ export default function WizardStep5Review({
       }}>
         <Sparkles size={20} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-          Clicking <strong>Generate Questions</strong> will deploy the multi-agent question writing, peer review, and anti-guessability balance swarm
-          to create publication-grade MCAT questions with detailed mentor explanations in seconds.
+          {totalQuestions === 50 ? (
+            <>
+              Clicking <strong>Launch 50-Question Background Batch</strong> will initiate an asynchronous background process with <strong>10 dedicated jobs</strong> (5 questions each) running at controlled 2-job concurrency. You can safely navigate the application or inspect real-time progress inside the <strong>Batch Activity</strong> screen.
+            </>
+          ) : (
+            <>
+              Clicking <strong>Generate Questions</strong> will deploy the multi-agent question writing, peer review, and anti-guessability balance swarm
+              to create publication-grade MCAT questions with detailed mentor explanations in seconds.
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -17,6 +17,7 @@ import { useAppState } from './hooks/useAppState';
 // Dynamic code-split chunk imports for optimal bundle size
 const QuestionBank = lazy(() => import('./components/bank/QuestionBank'));
 const ReviewAuditView = lazy(() => import('./components/question/ReviewAuditView'));
+const BatchActivityView = lazy(() => import('./components/batch/BatchActivityView'));
 
 function LazyLoadingSpinner({ label = 'Loading...' }) {
   return (
@@ -62,6 +63,7 @@ export default function App() {
     // Data
     sectionsData,
     backendStatus,
+    activeBatchCount,
     // Form
     generatorForm,
     // Modals
@@ -69,6 +71,7 @@ export default function App() {
     setAuditQuestion,
     // Toasts
     toasts,
+    showToast,
     dismissToast,
     // Generator
     isGenerating,
@@ -106,6 +109,7 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         backendStatus={backendStatus}
+        activeBatchCount={activeBatchCount}
         theme={theme}
         onToggleTheme={toggleTheme}
         onGoHome={() => {
@@ -252,11 +256,25 @@ export default function App() {
           <Suspense fallback={<LazyLoadingSpinner label="Loading Question Bank..." />}>
             <QuestionBank
               onSelectQuestion={handleSelectFromBank}
-              onShowToast={(t) => t}
+              onShowToast={showToast}
               onNavigateToWizard={() => {
                 setActiveTab('generator');
                 setViewMode('wizard');
               }}
+            />
+          </Suspense>
+        )}
+
+        {activeTab === 'batches' && (
+          <Suspense fallback={<LazyLoadingSpinner label="Loading Batch Activity Monitor..." />}>
+            <BatchActivityView
+              onOpenAudit={(q) => setAuditQuestion(q)}
+              onNavigateToBank={() => setActiveTab('bank')}
+              onNavigateToWizard={() => {
+                setActiveTab('generator');
+                setViewMode('wizard');
+              }}
+              onShowToast={showToast}
             />
           </Suspense>
         )}

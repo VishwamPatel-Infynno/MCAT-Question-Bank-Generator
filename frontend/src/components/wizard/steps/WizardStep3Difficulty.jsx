@@ -126,7 +126,7 @@ export default function WizardStep3Difficulty({
           </div>
 
           {/* Quick Preset Buttons */}
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             {[1, 3, 5, 8, 10].map((qty) => (
               <button
                 key={qty}
@@ -142,16 +142,33 @@ export default function WizardStep3Difficulty({
                 {qty} Q
               </button>
             ))}
+            <button
+              type="button"
+              id="btn-preset-50-batch"
+              onClick={() => setTotalQuestions?.(50)}
+              className={`pill-track-btn ${totalQuestions === 50 ? 'active' : ''}`}
+              style={{
+                padding: '5px 14px',
+                fontSize: '0.8rem',
+                borderRadius: 'var(--radius-sm)',
+                fontWeight: 700,
+                background: totalQuestions === 50 ? 'var(--infynno-gradient)' : 'rgba(79, 48, 185, 0.12)',
+                color: totalQuestions === 50 ? '#ffffff' : 'var(--brand-primary)',
+                border: '1px solid rgba(79, 48, 185, 0.3)'
+              }}
+            >
+              ⚡ 50 Q (10 Jobs)
+            </button>
           </div>
         </div>
 
-        {/* Range Slider for granular control */}
+        {/* Range Slider for granular control (up to 10 for standard, 50 for full section) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>1</span>
           <input
             type="range"
             min={1}
-            max={10}
+            max={50}
             step={1}
             value={totalQuestions}
             onChange={(e) => setTotalQuestions?.(parseInt(e.target.value, 10))}
@@ -161,8 +178,31 @@ export default function WizardStep3Difficulty({
               cursor: 'pointer'
             }}
           />
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>10</span>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>50</span>
         </div>
+
+        {totalQuestions === 50 && (
+          <div
+            style={{
+              padding: '12px 16px',
+              borderRadius: 'var(--radius-sm)',
+              background: 'rgba(79, 48, 185, 0.08)',
+              border: '1px solid rgba(79, 48, 185, 0.25)',
+              fontSize: '0.8rem',
+              color: 'var(--text-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              marginTop: '4px'
+            }}
+          >
+            <Layers size={20} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
+            <div>
+              <strong style={{ color: 'var(--brand-primary)' }}>50-Question Background Section Batch:</strong>{' '}
+              Generates 50 questions organized into <strong>10 distinct jobs</strong> (5 questions per job) with controlled 2-job concurrency. Execution runs securely in the background and is tracked live in the <strong>Batch Activity</strong> screen.
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Binary Passage Selection */}

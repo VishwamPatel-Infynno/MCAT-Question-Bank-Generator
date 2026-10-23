@@ -431,7 +431,8 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
         unit=req.unit or getattr(draft, "unit", None),
         topic=req.topic or getattr(draft, "topic", None),
         subskill=req.subskill or getattr(draft, "subskill", None),
-        likely_mistake_pattern=req.likely_mistake_pattern or getattr(draft, "likely_mistake_pattern", None),
+        likely_mistake_pattern=req.likely_mistake_pattern
+        or getattr(draft, "likely_mistake_pattern", None),
         stage_outcomes=outcomes,
         option_symmetry=symmetry,
     )

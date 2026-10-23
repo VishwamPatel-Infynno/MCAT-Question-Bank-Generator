@@ -39,22 +39,25 @@ def _build_rich_sections_payload():
 
         subtopics = all_subtopics if all_subtopics else MCAT_SUBTOPICS.get(sec, [])
 
-        sections_list.append({
-            "id": sec.value,
-            "code": code,
-            "label": MCAT_SECTION_LABELS[sec],
-            "pacing": MCAT_PACING[sec],
-            "subtopics": subtopics,
-            "subjects": subjects,
-            "skills": get_skills_for_section(sec),
-        })
+        sections_list.append(
+            {
+                "id": sec.value,
+                "code": code,
+                "label": MCAT_SECTION_LABELS[sec],
+                "pacing": MCAT_PACING[sec],
+                "subtopics": subtopics,
+                "subjects": subjects,
+                "skills": get_skills_for_section(sec),
+            }
+        )
 
     return {
         "exam": "MCAT",
         "exam_full_name": "Medical College Admission Test (AAMC)",
-        "selection_flow": DEPENDENT_TAXONOMY.get("selection_flow", [
-            "section", "subject", "unit", "topic", "subtopic", "skill", "subskill"
-        ]),
+        "selection_flow": DEPENDENT_TAXONOMY.get(
+            "selection_flow",
+            ["section", "subject", "unit", "topic", "subtopic", "skill", "subskill"],
+        ),
         "sections": sections_list,
         "skills": TAXONOMY_SKILLS,
         "aamc_skills": AAMC_REASONING_SKILLS,

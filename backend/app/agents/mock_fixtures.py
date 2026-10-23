@@ -186,7 +186,9 @@ def _build_raw_mock_draft(req: GenerationRequest) -> QuestionDraft:
                     OptionChoice(id="A", text="High intracellular ratio of NAD+ to NADH"),
                     OptionChoice(id="B", text="High intracellular concentration of ADP"),
                     OptionChoice(id="C", text="High intracellular ratio of acetyl-CoA to free CoA"),
-                    OptionChoice(id="D", text="Elevated intramitochondrial concentration of free Ca2+"),
+                    OptionChoice(
+                        id="D", text="Elevated intramitochondrial concentration of free Ca2+"
+                    ),
                 ],
                 correct_answer_id="C",
                 correct_answer_ids=["C"],
@@ -272,9 +274,17 @@ def _build_raw_mock_draft(req: GenerationRequest) -> QuestionDraft:
                 ),
                 options=[
                     OptionChoice(id="A", text="Actor-observer asymmetry"),
-                    OptionChoice(id="B", text="Depressive attributional style (internalizing failure, externalizing success)"),
-                    OptionChoice(id="C", text="Self-serving bias (externalizing failure, internalizing success)"),
-                    OptionChoice(id="D", text="Fundamental attribution error regarding group members"),
+                    OptionChoice(
+                        id="B",
+                        text="Depressive attributional style (internalizing failure, externalizing success)",
+                    ),
+                    OptionChoice(
+                        id="C",
+                        text="Self-serving bias (externalizing failure, internalizing success)",
+                    ),
+                    OptionChoice(
+                        id="D", text="Fundamental attribution error regarding group members"
+                    ),
                 ],
                 correct_answer_id="B",
                 correct_answer_ids=["B"],

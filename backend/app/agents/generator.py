@@ -185,7 +185,11 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
             else data.get("stimulus_text", "").strip()
         )
 
-    aamc_skill = data.get("aamc_skill") or req.aamc_skill or ("CARS_Skill_1" if req.section in (MCATSection.CARS, "CARS", "cars") else "Skill_2")
+    aamc_skill = (
+        data.get("aamc_skill")
+        or req.aamc_skill
+        or ("CARS_Skill_1" if req.section in (MCATSection.CARS, "CARS", "cars") else "Skill_2")
+    )
 
     return QuestionDraft(
         stimulus_text=effective_stimulus,
@@ -217,7 +221,11 @@ async def generate_passage_stimulus(req: GenerationRequest) -> tuple[str, TokenU
     """Generates a standalone, publication-caliber AAMC MCAT academic/experimental reading passage."""
     section_val = req.section.value if hasattr(req.section, "value") else str(req.section)
     section_name = MCAT_SECTION_LABELS.get(req.section, section_val)
-    domain = req.content_domain or ("Humanities & Social Sciences" if req.section in (MCATSection.CARS, "CARS", "cars") else "Biomedical & Physical Sciences")
+    domain = req.content_domain or (
+        "Humanities & Social Sciences"
+        if req.section in (MCATSection.CARS, "CARS", "cars")
+        else "Biomedical & Physical Sciences"
+    )
     topic = req.subtopic or "Foundational Concepts & Research Design"
 
     is_cars = req.section in (MCATSection.CARS, "CARS", "cars")

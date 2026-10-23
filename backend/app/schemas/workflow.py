@@ -43,7 +43,9 @@ class GenerationRequest(BaseModel):
     )
     subcategory: str | None = Field(None, description="e.g. Inference")
     content_domain: str | None = Field(None, description="e.g. General_Chemistry, Biochemistry")
-    question_type: str | None = Field(None, description="e.g. Passage_Based_Set, Independent_Discrete")
+    question_type: str | None = Field(
+        None, description="e.g. Passage_Based_Set, Independent_Discrete"
+    )
     interaction_type: str | None = Field(
         "single_choice", description="single_choice (standard 4-choice AAMC), multi_choice"
     )
@@ -63,41 +65,45 @@ class GenerationRequest(BaseModel):
 
     # Granular Dependent Taxonomy Hierarchy
     subject: str | None = Field(None, description="Taxonomy subject e.g. General Chemistry")
-    unit: str | None = Field(None, description="Taxonomy unit e.g. Atomic Structure and Periodicity")
+    unit: str | None = Field(
+        None, description="Taxonomy unit e.g. Atomic Structure and Periodicity"
+    )
     topic: str | None = Field(None, description="Taxonomy topic e.g. Periodic Trends")
     subskill: str | None = Field(None, description="Granular AAMC subskill focus")
-    likely_mistake_pattern: str | None = Field(None, description="Targeted student misconception pattern")
+    likely_mistake_pattern: str | None = Field(
+        None, description="Targeted student misconception pattern"
+    )
     content_domains: list[str] | None = Field(None, description="Multi-selected content domains")
 
     questions_to_generate: int = Field(
         5,
         ge=1,
-        le=10,
-        description="Quantity to generate in MCAT batch (1 to 10 questions)",
+        le=50,
+        description="Quantity to generate in MCAT batch (1 to 50 questions)",
     )
     single_choice_count: int | None = Field(
-        5, ge=0, le=10, description="Number of single-choice items in batch (default: 5)"
+        5, ge=0, le=50, description="Number of single-choice items in batch (default: 5)"
     )
     multi_choice_count: int | None = Field(
-        0, ge=0, le=10, description="Number of multi-choice items in batch (default: 0)"
+        0, ge=0, le=50, description="Number of multi-choice items in batch (default: 0)"
     )
     passage_count: int | None = Field(
-        None, ge=0, le=10, description="Number of passage-type items in batch"
+        None, ge=0, le=50, description="Number of passage-type items in batch"
     )
     passage_question_count: int | None = Field(
-        5, ge=0, le=10, description="Number of questions linked to the shared passage"
+        5, ge=0, le=50, description="Number of questions linked to the shared passage"
     )
     passage_single_count: int | None = Field(
-        None, ge=0, le=10, description="Single choice count under shared passage"
+        None, ge=0, le=50, description="Single choice count under shared passage"
     )
     passage_multi_count: int | None = Field(
-        None, ge=0, le=10, description="Multi choice count under shared passage"
+        None, ge=0, le=50, description="Multi choice count under shared passage"
     )
     independent_single_count: int | None = Field(
-        0, ge=0, le=10, description="Single choice count for independent questions"
+        0, ge=0, le=50, description="Single choice count for independent questions"
     )
     independent_multi_count: int | None = Field(
-        0, ge=0, le=10, description="Multi choice count for independent questions"
+        0, ge=0, le=50, description="Multi choice count for independent questions"
     )
     auto_save: bool = Field(
         False,
@@ -160,9 +166,9 @@ class GenerationRequest(BaseModel):
     @model_validator(mode="after")
     def resolve_binary_passage_and_fixed_count(self) -> "GenerationRequest":
         """Enforces 1 to 10 questions for batch runs and binary passage mode (all linked or all independent)."""
-        if not (1 <= self.questions_to_generate <= 10):
+        if not (1 <= self.questions_to_generate <= 50):
             raise ValueError(
-                f"MCAT question generation requires 1 to 10 questions per run (received {self.questions_to_generate})."
+                f"MCAT question generation requires 1 to 50 questions per run (received {self.questions_to_generate})."
             )
 
         if self.questions_to_generate == 1:
@@ -253,7 +259,6 @@ class GenerationRequest(BaseModel):
             self.independent_multi_count = 0
             self.single_choice_count = total_q
             self.multi_choice_count = 0
-
 
         return self
 

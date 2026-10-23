@@ -239,13 +239,10 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
     # Resolve binary passage mode: either all 5 linked or all 5 independent
     is_cars = req.section in (MCATSection.CARS, "cars", "CARS")
-    is_independent = (
-        not is_cars
-        and (
-            req.passage_mode == "independent"
-            or str(req.passage_required).lower() in ("no", "false", "0")
-            or (req.passage_question_count == 0 and not req.shared_stimulus)
-        )
+    is_independent = not is_cars and (
+        req.passage_mode == "independent"
+        or str(req.passage_required).lower() in ("no", "false", "0")
+        or (req.passage_question_count == 0 and not req.shared_stimulus)
     )
 
     if is_independent:
@@ -674,7 +671,10 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 results = await asyncio.gather(*tasks, return_exceptions=True)
                 for idx_t, res in enumerate(results):
                     if isinstance(res, Exception):
-                        logger.error(f"Worker task {idx_t + 1} raised unhandled exception: {res}", exc_info=res)
+                        logger.error(
+                            f"Worker task {idx_t + 1} raised unhandled exception: {res}",
+                            exc_info=res,
+                        )
             finally:
                 await event_queue.put(None)
 

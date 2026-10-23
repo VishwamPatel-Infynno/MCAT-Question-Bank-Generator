@@ -120,7 +120,6 @@ async def remove_question(question_id: str):
     return {"success": success}
 
 
-
 @router.post("/questions/delete-batch")
 async def remove_questions_batch(payload: BatchDeleteRequest):
     """Bulk Admin deletion endpoint: removes multiple questions in a single atomic SQL transaction."""

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Database, Sun, Moon, ExternalLink } from 'lucide-react';
+import { Sparkles, Database, Layers, Sun, Moon, ExternalLink } from 'lucide-react';
 import InfynnoLogo from '../common/InfynnoLogo';
 
 export default function Navbar({
@@ -8,7 +8,8 @@ export default function Navbar({
   backendStatus,
   theme,
   onToggleTheme,
-  onGoHome
+  onGoHome,
+  activeBatchCount = 0
 }) {
   return (
     <header
@@ -126,6 +127,33 @@ export default function Navbar({
         >
           <Database size={12} color={activeTab === 'bank' ? 'var(--brand-primary)' : 'currentColor'} />
           <span>Question Bank</span>
+        </button>
+
+        <button
+          id="nav-tab-batches"
+          type="button"
+          onClick={() => setActiveTab('batches')}
+          className={`pill-track-btn ${activeTab === 'batches' ? 'active' : ''}`}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+        >
+          <Layers size={12} color={activeTab === 'batches' ? 'var(--brand-primary)' : 'currentColor'} />
+          <span>Batch Activity</span>
+          {activeBatchCount > 0 && (
+            <span
+              style={{
+                background: 'linear-gradient(135deg, var(--infynno-violet) 0%, var(--infynno-blue) 100%)',
+                color: '#ffffff',
+                borderRadius: '10px',
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                padding: '1px 5px',
+                lineHeight: 1,
+                boxShadow: '0 0 6px rgba(79, 48, 185, 0.4)'
+              }}
+            >
+              {activeBatchCount}
+            </span>
+          )}
         </button>
       </nav>
 

@@ -62,13 +62,18 @@ class QuestionDraft(BaseModel):
         None, description="Primary cognitive distractor trap used (e.g. Scope_Shift, Out_of_Scope)"
     )
     aamc_skill: str | None = Field(
-        None, description="AAMC Scientific Inquiry & Reasoning Skill (SIRS) or CARS skill classification"
+        None,
+        description="AAMC Scientific Inquiry & Reasoning Skill (SIRS) or CARS skill classification",
     )
     subject: str | None = Field(None, description="Taxonomy subject e.g. General Chemistry")
-    unit: str | None = Field(None, description="Taxonomy unit e.g. Atomic Structure and Periodicity")
+    unit: str | None = Field(
+        None, description="Taxonomy unit e.g. Atomic Structure and Periodicity"
+    )
     topic: str | None = Field(None, description="Taxonomy topic e.g. Periodic Trends")
     subskill: str | None = Field(None, description="Granular AAMC subskill focus")
-    likely_mistake_pattern: str | None = Field(None, description="Targeted student misconception or mistake pattern")
+    likely_mistake_pattern: str | None = Field(
+        None, description="Targeted student misconception or mistake pattern"
+    )
 
     def model_post_init(self, __context: Any) -> None:
         # Synchronize correct_answer_id and correct_answer_ids
@@ -89,6 +94,9 @@ class Question(BaseModel):
     run_id: str | None = Field(None, description="Workflow execution run UUID4")
     batch_id: str | None = Field(
         None, description="Batch execution UUID4 binding multiple questions"
+    )
+    job_id: str | None = Field(
+        None, description="Job execution UUID4 binding questions to a specific job"
     )
     section: str
     section_label: str
@@ -111,9 +119,7 @@ class Question(BaseModel):
     mcat_percentile: str | None = Field(
         None, description="Calibrated percentile rank e.g. '96th Percentile (Top Tier)'"
     )
-    aamc_skill: str | None = Field(
-        None, description="AAMC SIRS or CARS skill classification"
-    )
+    aamc_skill: str | None = Field(None, description="AAMC SIRS or CARS skill classification")
 
     iteration_count: int = 1
     iterations_history: list[dict[str, Any]] = Field(default_factory=list)
@@ -155,10 +161,14 @@ class Question(BaseModel):
 
     # Granular Dependent Taxonomy Hierarchy
     subject: str | None = Field(None, description="Taxonomy subject e.g. General Chemistry")
-    unit: str | None = Field(None, description="Taxonomy unit e.g. Atomic Structure and Periodicity")
+    unit: str | None = Field(
+        None, description="Taxonomy unit e.g. Atomic Structure and Periodicity"
+    )
     topic: str | None = Field(None, description="Taxonomy topic e.g. Periodic Trends")
     subskill: str | None = Field(None, description="Granular AAMC subskill focus")
-    likely_mistake_pattern: str | None = Field(None, description="Targeted student misconception or mistake pattern")
+    likely_mistake_pattern: str | None = Field(
+        None, description="Targeted student misconception or mistake pattern"
+    )
 
     # Multi-Stage Raw Outcome JSON
     stage_outcomes: dict[str, Any] | None = Field(
@@ -204,13 +214,41 @@ class GenerationBatch(BaseModel):
     subtopic: str | None = None
     difficulty: str | None = None
     passage_mode: str | None = None
-    target_count: int = 0
+    target_count: int = 50
     actual_count: int = 0
+    total_jobs: int = 10
+    completed_jobs: int = 0
+    failed_jobs: int = 0
+    error_message: str | None = None
     total_tokens: int = 0
     cost_usd: float = 0.0
     status: str = "completed"
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     updated_at: str | None = None
+
+
+class GenerationJob(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    batch_id: str
+    job_number: int
+    status: str = "pending"  # pending, running, completed, failed
+    target_count: int = 5
+    actual_count: int = 0
+    passage_id: str | None = None
+    total_tokens: int = 0
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    cost_usd: float = 0.0
+    error_message: str | None = None
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
+    started_at: str | None = None
+    completed_at: str | None = None
+
+
+class BatchDetailResponse(BaseModel):
+    batch: GenerationBatch
+    jobs: list[GenerationJob] = Field(default_factory=list)
+    questions: list[Question] = Field(default_factory=list)
 
 
 class BatchDeleteRequest(BaseModel):

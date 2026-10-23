@@ -47,7 +47,9 @@ async def seed_mcat_questions_if_empty(session_factory: async_sessionmaker):
             res = await session.execute(select(func.count(QuestionModel.id)))
             count = res.scalar() or 0
             if count == 0:
-                logger.info("Seeding authentic publication-grade MCAT questions across all 4 sections...")
+                logger.info(
+                    "Seeding authentic publication-grade MCAT questions across all 4 sections..."
+                )
                 now_iso = datetime.now(UTC).isoformat()
                 for sec in [
                     MCATSection.CHEM_PHYS,
@@ -86,6 +88,8 @@ async def seed_mcat_questions_if_empty(session_factory: async_sessionmaker):
                     )
                     session.add(q_model)
                 await session.commit()
-                logger.info("Successfully seeded 4 authentic MCAT question sets into Question Bank.")
+                logger.info(
+                    "Successfully seeded 4 authentic MCAT question sets into Question Bank."
+                )
     except Exception as e:
         logger.warning(f"Could not seed MCAT questions: {e}")

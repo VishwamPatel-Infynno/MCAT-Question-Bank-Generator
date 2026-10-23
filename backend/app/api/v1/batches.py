@@ -1,18 +1,43 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, status
 
 from app.repositories.batch_repository import (
+    delete_batch,
     get_batch_by_id,
     get_batches,
     save_batch,
 )
+from app.repositories.job_repository import get_jobs_by_batch_id
 from app.repositories.question_repository import get_questions
-from app.schemas import GenerationBatch
+from app.schemas import GenerationBatch, GenerationRequest
+from app.services.batch_runner import launch_background_batch
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Generation Batches"])
+
+
+@router.post("/batches/start", status_code=status.HTTP_202_ACCEPTED)
+async def start_batch_generation(req: GenerationRequest):
+    """
+    Launches an asynchronous background batch generation.
+    Creates 1 batch record and 10 job records (each job producing 5 questions for 50 total).
+    Returns immediately with batch and job details while generation runs in the background.
+    """
+    try:
+        batch, jobs = await launch_background_batch(req)
+        return {
+            "success": True,
+            "message": f"Background batch {batch.id} launched with 10 jobs (50 questions total).",
+            "batch": batch.model_dump(),
+            "jobs": [j.model_dump() for j in jobs],
+        }
+    except Exception as e:
+        logger.error(f"Failed to start background batch: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail=f"Failed to initialize background batch: {e}"
+        ) from e
 
 
 @router.get("/batches")
@@ -20,23 +45,57 @@ async def list_batches(
     section: str | None = Query(None),
     status: str | None = Query(None),
 ):
-    """Lists generation batches in the question bank."""
+    """Lists generation batches in the question bank with job progress counts."""
     batches = await get_batches(section=section, status=status)
-    return {"batches": [b.model_dump() for b in batches]}
+    active_count = sum(1 for b in batches if b.status == "in_progress")
+    return {
+        "batches": [b.model_dump() for b in batches],
+        "active_running_batches": active_count,
+    }
 
 
 @router.get("/batches/{batch_id}")
 async def get_single_batch(batch_id: str):
-    """Retrieves a single generation batch with its linked questions."""
+    """
+    Retrieves a single generation batch along with its 10 jobs and all generated questions.
+    Questions are organized so the client can easily view questions per job.
+    """
     b = await get_batch_by_id(batch_id)
     if not b:
         raise HTTPException(status_code=404, detail="Batch not found")
 
+    jobs = await get_jobs_by_batch_id(batch_id)
     linked_questions = await get_questions(batch_id=batch_id)
+
+    # Group questions by job_id or run_id
+    questions_by_job: dict[str, list[dict]] = {}
+    for q in linked_questions:
+        q_dump = q.model_dump()
+        j_key = q.job_id or q.run_id or "unassigned"
+        questions_by_job.setdefault(j_key, []).append(q_dump)
+
+    # Augment jobs with their questions
+    jobs_with_questions = []
+    for j in jobs:
+        j_dump = j.model_dump()
+        j_dump["questions"] = questions_by_job.get(j.id, [])
+        jobs_with_questions.append(j_dump)
+
     return {
         "batch": b.model_dump(),
+        "jobs": jobs_with_questions,
         "questions": [q.model_dump() for q in linked_questions],
+        "total_questions_count": len(linked_questions),
     }
+
+
+@router.delete("/batches/{batch_id}")
+async def delete_single_batch(batch_id: str):
+    """Deletes a generation batch and cascades delete to jobs and questions."""
+    deleted = await delete_batch(batch_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    return {"success": True, "message": f"Batch {batch_id} deleted successfully."}
 
 
 @router.post("/batches")

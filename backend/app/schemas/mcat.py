@@ -193,9 +193,7 @@ except Exception:
 # Dynamic extraction from taxonomy JSON
 _gen_options = DEPENDENT_TAXONOMY.get("generation_options", {})
 
-CONTENT_DOMAINS = [
-    item.get("id") for item in _gen_options.get("content_domain", [])
-] or [
+CONTENT_DOMAINS = [item.get("id") for item in _gen_options.get("content_domain", [])] or [
     "General_Chemistry",
     "Organic_Chemistry",
     "Biochemistry",
@@ -212,9 +210,7 @@ CONTENT_DOMAINS = [
 
 CONTENT_DOMAINS_DETAILED = _gen_options.get("content_domain", [])
 
-QUESTION_TYPES = [
-    item.get("id") for item in _gen_options.get("question_type", [])
-] or [
+QUESTION_TYPES = [item.get("id") for item in _gen_options.get("question_type", [])] or [
     "DISCRETE_MCQ",
     "PASSAGE_BASED_MCQ",
     "GRAPH_INTERPRETATION",
@@ -227,9 +223,7 @@ QUESTION_TYPES = [
 
 QUESTION_TYPES_DETAILED = _gen_options.get("question_type", [])
 
-PRIMARY_TRAPS = [
-    item.get("id") for item in _gen_options.get("primary_trap", [])
-] or [
+PRIMARY_TRAPS = [item.get("id") for item in _gen_options.get("primary_trap", [])] or [
     "CONCEPT_CONFUSION",
     "WRONG_BASE",
     "UNIT_CONVERSION",
@@ -273,10 +267,7 @@ def get_skills_for_section(section_val: str | MCATSection) -> list[dict]:
     """Returns skills with subskills applicable to a given section code e.g. CP, BB, PS, CARS."""
     sec = normalize_section(section_val)
     sec_code = MCAT_SECTION_CODES.get(sec, "CP")
-    return [
-        sk for sk in TAXONOMY_SKILLS
-        if sec_code in sk.get("applies_to", [])
-    ]
+    return [sk for sk in TAXONOMY_SKILLS if sec_code in sk.get("applies_to", [])]
 
 
 def get_section_tree(section_val: str | MCATSection) -> dict | None:

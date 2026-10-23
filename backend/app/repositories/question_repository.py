@@ -26,6 +26,7 @@ def _model_to_schema(m: QuestionModel) -> Question:
         id=m.id,
         run_id=m.run_id,
         batch_id=m.batch_id,
+        job_id=getattr(m, "job_id", None),
         section=m.section,
         section_label=m.section_label,
         subtopic=m.subtopic,
@@ -80,6 +81,7 @@ def _schema_to_model(q: Question) -> QuestionModel:
         id=q.id,
         run_id=q.run_id,
         batch_id=q.batch_id,
+        job_id=getattr(q, "job_id", None),
         section=q.section,
         section_label=q.section_label,
         subtopic=q.subtopic,
@@ -334,6 +336,7 @@ async def get_questions(
     combination_id: str | None = None,
     run_id: str | None = None,
     batch_id: str | None = None,
+    job_id: str | None = None,
     passage_id: str | None = None,
 ) -> list[Question]:
     """Retrieves questions from PostgreSQL with optional filtering and hybrid full-text search."""
@@ -350,6 +353,8 @@ async def get_questions(
             stmt = stmt.where(QuestionModel.run_id == run_id)
         if batch_id:
             stmt = stmt.where(QuestionModel.batch_id == batch_id)
+        if job_id:
+            stmt = stmt.where(QuestionModel.job_id == job_id)
         if passage_id:
             stmt = stmt.where(QuestionModel.passage_id == passage_id)
 

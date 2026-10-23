@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 from app.core.config import config
 from app.db.base import Base
 from app.models.batch import GenerationBatchModel  # noqa: F401 - Registered for Base.metadata
+from app.models.job import GenerationJobModel  # noqa: F401 - Registered for Base.metadata
 from app.models.passage import PassageModel  # noqa: F401 - Registered for Base.metadata
 from app.models.question import QuestionModel
 
@@ -108,14 +109,10 @@ async def init_db_schema(engine: AsyncEngine, session_factory: async_sessionmake
         await conn.run_sync(Base.metadata.create_all)
         # Safe schema update for token tracking columns
         await conn.execute(
-            text(
-                "ALTER TABLE questions ADD COLUMN IF NOT EXISTS total_tokens INTEGER DEFAULT 0;"
-            )
+            text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS total_tokens INTEGER DEFAULT 0;")
         )
         await conn.execute(
-            text(
-                "ALTER TABLE questions ADD COLUMN IF NOT EXISTS prompt_tokens INTEGER DEFAULT 0;"
-            )
+            text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS prompt_tokens INTEGER DEFAULT 0;")
         )
         await conn.execute(
             text(
@@ -157,9 +154,7 @@ async def init_db_schema(engine: AsyncEngine, session_factory: async_sessionmake
             text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS passage_id VARCHAR(64);")
         )
         await conn.execute(
-            text(
-                "CREATE INDEX IF NOT EXISTS ix_questions_passage_id ON questions (passage_id);"
-            )
+            text("CREATE INDEX IF NOT EXISTS ix_questions_passage_id ON questions (passage_id);")
         )
         await conn.execute(
             text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS passage_questions INTEGER;")
@@ -179,9 +174,7 @@ async def init_db_schema(engine: AsyncEngine, session_factory: async_sessionmake
             )
         )
         await conn.execute(
-            text(
-                "CREATE INDEX IF NOT EXISTS ix_questions_aamc_skill ON questions (aamc_skill);"
-            )
+            text("CREATE INDEX IF NOT EXISTS ix_questions_aamc_skill ON questions (aamc_skill);")
         )
         await conn.execute(
             text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS stage_outcomes JSONB;")
@@ -232,15 +225,37 @@ async def init_db_schema(engine: AsyncEngine, session_factory: async_sessionmake
         await conn.execute(
             text("CREATE INDEX IF NOT EXISTS ix_questions_batch_id ON questions (batch_id);")
         )
+        await conn.execute(
+            text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS job_id VARCHAR(64);")
+        )
+        await conn.execute(
+            text("CREATE INDEX IF NOT EXISTS ix_questions_job_id ON questions (job_id);")
+        )
+
+        # Safe schema update for batch job tracking columns
+        await conn.execute(
+            text(
+                "ALTER TABLE generation_batches ADD COLUMN IF NOT EXISTS total_jobs INTEGER DEFAULT 10;"
+            )
+        )
+        await conn.execute(
+            text(
+                "ALTER TABLE generation_batches ADD COLUMN IF NOT EXISTS completed_jobs INTEGER DEFAULT 0;"
+            )
+        )
+        await conn.execute(
+            text(
+                "ALTER TABLE generation_batches ADD COLUMN IF NOT EXISTS failed_jobs INTEGER DEFAULT 0;"
+            )
+        )
+        await conn.execute(
+            text("ALTER TABLE generation_batches ADD COLUMN IF NOT EXISTS error_message TEXT;")
+        )
 
         # Safe indexes and image columns for passages and batches
-        await conn.execute(
-            text("ALTER TABLE passages ADD COLUMN IF NOT EXISTS image_url TEXT;")
-        )
+        await conn.execute(text("ALTER TABLE passages ADD COLUMN IF NOT EXISTS image_url TEXT;"))
         await conn.execute(text("ALTER TABLE passages ALTER COLUMN image_url TYPE TEXT;"))
-        await conn.execute(
-            text("ALTER TABLE passages ADD COLUMN IF NOT EXISTS image_svg TEXT;")
-        )
+        await conn.execute(text("ALTER TABLE passages ADD COLUMN IF NOT EXISTS image_svg TEXT;"))
         await conn.execute(
             text("ALTER TABLE passages ADD COLUMN IF NOT EXISTS image_description TEXT;")
         )
@@ -381,6 +396,24 @@ async def init_db_schema(engine: AsyncEngine, session_factory: async_sessionmake
                         ALTER TABLE questions
                         ADD CONSTRAINT fk_questions_batch_id
                         FOREIGN KEY (batch_id) REFERENCES generation_batches(id) ON DELETE SET NULL;
+                    END IF;
+                END $$;
+                """
+            )
+        )
+
+        # 5. Safe Foreign Key: questions.job_id -> generation_jobs.id
+        await conn.execute(
+            text(
+                """
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_constraint WHERE conname = 'fk_questions_job_id'
+                    ) THEN
+                        ALTER TABLE questions
+                        ADD CONSTRAINT fk_questions_job_id
+                        FOREIGN KEY (job_id) REFERENCES generation_jobs(id) ON DELETE SET NULL;
                     END IF;
                 END $$;
                 """

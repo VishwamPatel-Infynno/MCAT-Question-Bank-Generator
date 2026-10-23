@@ -149,3 +149,35 @@ export async function generateQuestionStream(payload, onEvent, onError, onComple
     if (onError) onError(err);
   }
 }
+
+export async function startBackgroundBatch(payload) {
+  const res = await fetch(`${API_BASE}/batches/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  await assertOk(res, 'Start background batch');
+  return res.json();
+}
+
+export async function fetchBatches(params = {}, signal = null) {
+  const query = new URLSearchParams();
+  if (params.section) query.append('section', params.section);
+  if (params.status) query.append('status', params.status);
+
+  const res = await fetch(`${API_BASE}/batches?${query.toString()}`, { signal });
+  await assertOk(res, 'Fetch batches');
+  return res.json();
+}
+
+export async function fetchBatchDetail(batchId, signal = null) {
+  const res = await fetch(`${API_BASE}/batches/${batchId}`, { signal });
+  await assertOk(res, `Fetch batch ${batchId}`);
+  return res.json();
+}
+
+export async function deleteBatch(batchId) {
+  const res = await fetch(`${API_BASE}/batches/${batchId}`, { method: 'DELETE' });
+  await assertOk(res, `Delete batch ${batchId}`);
+  return res.json();
+}

@@ -397,7 +397,7 @@ export default function GuidedWizard({
           {step === totalSteps ? (
             <>
               <Sparkles size={16} />
-              <span>Generate Questions</span>
+              <span>{totalQuestions === 50 ? 'Launch 50-Question Background Batch' : 'Generate Questions'}</span>
             </>
           ) : (
             <>

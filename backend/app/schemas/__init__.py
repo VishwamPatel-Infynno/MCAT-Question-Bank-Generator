@@ -17,7 +17,9 @@ from app.schemas.mcat import (
 )
 from app.schemas.question import (
     BatchDeleteRequest,
+    BatchDetailResponse,
     GenerationBatch,
+    GenerationJob,
     OptionChoice,
     Passage,
     Question,
@@ -31,9 +33,11 @@ __all__ = [
     "AAMC_REASONING_SKILLS",
     "AAMC_SKILL_LABELS",
     "BatchDeleteRequest",
+    "BatchDetailResponse",
     "CONTENT_DOMAINS",
     "Difficulty",
     "GenerationBatch",
+    "GenerationJob",
     "GenerationRequest",
     "MCATSection",
     "MCAT_PACING",

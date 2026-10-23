@@ -11,7 +11,7 @@ import { useGeneratorForm } from './useGeneratorForm';
 import { useQuestionGenerator } from './useQuestionGenerator';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { MCAT_SECTIONS_FALLBACK } from '../constants/mcat';
-import { fetchSections, fetchHealth, approveQuestion, batchApproveQuestions } from '../services/api';
+import { fetchSections, fetchHealth, approveQuestion, batchApproveQuestions, startBackgroundBatch, fetchBatches } from '../services/api';
 
 export function useAppState() {
   // ─── Theme ───────────────────────────────────────────────────────────────
@@ -24,6 +24,7 @@ export function useAppState() {
   // ─── Sections / Backend Status ────────────────────────────────────────────
   const [sectionsData, setSectionsData] = useState([]);
   const [backendStatus, setBackendStatus] = useState(false);
+  const [activeBatchCount, setActiveBatchCount] = useState(0);
 
   // ─── Form ─────────────────────────────────────────────────────────────────
   const generatorForm = useGeneratorForm();
@@ -97,6 +98,21 @@ export function useAppState() {
       });
   }, [updateFields]);
 
+  // ─── Batch Polling & Active Count ─────────────────────────────────────────
+  const refreshActiveBatches = useCallback(() => {
+    fetchBatches()
+      .then((data) => {
+        setActiveBatchCount(data.active_running_batches || 0);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    refreshActiveBatches();
+    const timer = setInterval(refreshActiveBatches, 5000);
+    return () => clearInterval(timer);
+  }, [refreshActiveBatches]);
+
   // ─── Save State ───────────────────────────────────────────────────────────
   const [isQuestionSaved, setIsQuestionSaved] = useState(false);
   const [savedQuestionIds, setSavedQuestionIds] = useState(() => new Set());
@@ -104,9 +120,6 @@ export function useAppState() {
   // ─── Generate Handler ─────────────────────────────────────────────────────
   const handleGenerate = useCallback(() => {
     if (isGenerating) return;
-    setViewMode('workspace');
-    setIsQuestionSaved(false);
-    setSavedQuestionIds(new Set());
     const {
       selectedSection,
       selectedSubject,
@@ -181,6 +194,32 @@ export function useAppState() {
       require_passage_image: Boolean(requirePassageImage),
       custom_prompt: customPrompt.trim() || undefined
     };
+
+    // If 50 questions selected, trigger background multi-job batch
+    if (totalQuestions === 50) {
+      startBackgroundBatch(payload)
+        .then(() => {
+          showToast({
+            type: 'success',
+            title: '50-Question Batch Launched',
+            message: 'Generating 50 questions across 10 jobs (5 questions/job) in the background with 2-job concurrency.'
+          });
+          setActiveTab('batches');
+          refreshActiveBatches();
+        })
+        .catch((err) => {
+          showToast({
+            type: 'error',
+            title: 'Batch Launch Failed',
+            message: err.message || 'Could not launch background batch.'
+          });
+        });
+      return;
+    }
+
+    setViewMode('workspace');
+    setIsQuestionSaved(false);
+    setSavedQuestionIds(new Set());
     startGeneration(payload);
     const isPassageBatch = passageMode === 'single_passage' || selectedSection === 'cars';
     showToast({
@@ -196,7 +235,8 @@ export function useAppState() {
     isGenerating,
     generatorForm.formData,
     startGeneration,
-    showToast
+    showToast,
+    refreshActiveBatches
   ]);
 
   // ─── Approve / Discard Handlers ────────────────────────────────────────────
@@ -364,6 +404,7 @@ export function useAppState() {
     // Data
     sectionsData,
     backendStatus,
+    activeBatchCount,
     // Form
     generatorForm,
     // Modals
