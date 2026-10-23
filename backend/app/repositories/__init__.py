@@ -10,7 +10,6 @@ from app.repositories.passage_repo import (
 )
 from app.repositories.question_repo import (
     BatchSaveResult,
-    _model_to_schema,
     delete_question,
     delete_questions_batch,
     get_question_by_id,
@@ -22,7 +21,6 @@ from app.repositories.question_repo import (
 
 __all__ = [
     "BatchSaveResult",
-    "_model_to_schema",
     "delete_question",
     "delete_questions_batch",
     "get_batch_by_id",

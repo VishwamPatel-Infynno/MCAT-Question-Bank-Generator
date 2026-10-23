@@ -144,59 +144,10 @@ export const MCAT_TRAP_DEFINITIONS = {
  */
 export const TRAP_PATTERN_STR = '\\b(?:Concept Confusion|Wrong Base|Unit Conversion|Formula Misapplication|Sign Convention|Proportionality Error|Missed Assumption|Cause-?Effect Confusion|Correlation (?:vs\\.?|and) Causation|Control-?Group Confusion|Variable Confusion|Sample(?:-?Size)? Bias|Statistical Significance|Graph (?:or Axis )?Misreading|Table Comparison|Trend Extrapolation|Mechanism Confusion|Exception Overlooked|Negation Misread|NOT/EXCEPT|Scope Shift|Unsupported Inference|Passage Contradiction|Overgeneralization|Distractor Overinterpretation|Answer-?Choice Conflation|Out of Scope|Distortion|Extreme Language|Calculation Trap)\\b';
 
-/**
- * Resolves a normalized trap key to user-friendly label and advice.
- */
-export function resolveTrapInfo(trapKeyOrName) {
-  if (!trapKeyOrName) return null;
-  const clean = String(trapKeyOrName).trim();
-  if (clean === 'Automatic' || clean === 'None') return null;
+// Re-export pure trap helpers from utils layer for backward compatibility
+export {
+  resolveTrapInfo,
+  detectTrapFromText,
+  getEffectiveTrapInfo
+} from '../utils/trapHelpers';
 
-  // Direct lookup
-  if (MCAT_TRAP_DEFINITIONS[clean]) {
-    return { key: clean, ...MCAT_TRAP_DEFINITIONS[clean] };
-  }
-
-  // Look up by matching label or normalized key
-  const normClean = clean.toLowerCase().replace(/[_\s-]+/g, ' ');
-  for (const [k, info] of Object.entries(MCAT_TRAP_DEFINITIONS)) {
-    const normKey = k.toLowerCase().replace(/[_\s-]+/g, ' ');
-    const normLabel = info.label.toLowerCase().replace(/[_\s-]+/g, ' ');
-    if (normKey === normClean || normLabel === normClean || normClean.includes(normKey) || normClean.includes(normLabel)) {
-      return { key: k, ...info };
-    }
-  }
-
-  // Fallback to formatted string
-  return {
-    key: clean,
-    label: clean.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-    advice: 'Watch out for subtle cognitive traps and unwarranted inferential leaps under MCAT timing pressure.'
-  };
-}
-
-/**
- * Detects the most prominent trap mentioned in explanation text.
- */
-export function detectTrapFromText(text) {
-  if (!text) return null;
-  for (const [k, info] of Object.entries(MCAT_TRAP_DEFINITIONS)) {
-    const pattern = new RegExp(info.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + `|${k.replace(/_/g, '\\s*')}`, 'i');
-    if (pattern.test(text)) {
-      return { key: k, ...info };
-    }
-  }
-  return null;
-}
-
-/**
- * Derives the effective primary trap info (key, label, advice) for a question.
- */
-export function getEffectiveTrapInfo(question) {
-  if (!question) return null;
-  const t = question.primary_trap;
-  if (!t || t === 'Automatic' || t === 'None') {
-    return detectTrapFromText(question.explanation || '');
-  }
-  return resolveTrapInfo(t);
-}

@@ -13,25 +13,10 @@ import {
   GraduationCap
 } from 'lucide-react';
 import { fetchQuestions } from '../../services/api';
+import { formatExamTime } from '../../utils';
 
 const EMPTY_ARRAY = [];
 
-const PACING_SECONDS = {
-  chem_phys: 96,
-  cars: 101,
-  bio_biochem: 96,
-  psych_soc: 96
-};
-
-function formatExamTime(questions) {
-  if (!questions || questions.length === 0) return '0 mins';
-  const totalSeconds = questions.reduce((acc, q) => {
-    const sec = PACING_SECONDS[q.section] || 96;
-    return acc + sec;
-  }, 0);
-  const minutes = Math.ceil(totalSeconds / 60);
-  return `${minutes} minute${minutes === 1 ? '' : 's'}`;
-}
 
 export default function ExportPrintModal({
   isOpen,

@@ -6,11 +6,17 @@ from app.agents.mock_fixtures import (
     get_mock_draft,
     improve_draft_heuristically,
 )
+from app.agents.option_balancer import (
+    balance_and_shuffle_options,
+    calculate_option_symmetry,
+)
 from app.agents.regenerator import regenerate_question
 from app.agents.reviewer import review_question
 
 __all__ = [
+    "balance_and_shuffle_options",
     "calculate_flux_image_cost",
+    "calculate_option_symmetry",
     "calculate_token_cost",
     "call_llm",
     "clean_json_text",
