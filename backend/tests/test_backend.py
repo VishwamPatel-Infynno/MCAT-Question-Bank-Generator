@@ -669,10 +669,9 @@ async def test_batch_generation_and_staging_flow(monkeypatch):
         in_db = await get_question_by_id(q_data["id"])
         assert in_db is None  # Not saved until user confirms!
 
-    # Test user selecting 2 of the 5 questions to save (Confirmation Simulation)
     chosen_to_approve = [Question(**staged_qs[0]), Question(**staged_qs[1])]
-    saved_count = await save_questions_batch(chosen_to_approve)
-    assert saved_count == 2
+    saved_ids = await save_questions_batch(chosen_to_approve)
+    assert len(saved_ids) == 2
 
     # Verify the 2 approved are now in DB, and unapproved are not
     assert await get_question_by_id(staged_qs[0]["id"]) is not None

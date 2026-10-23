@@ -6,7 +6,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     # Base paths
     BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent
-    SQLITE_PATH: Path = BASE_DIR / "question_bank.db"
 
     # PostgreSQL Database URL
     DATABASE_URL: str = "postgresql+asyncpg://mcat_user:mcat_password@localhost:5432/mcat_db"
@@ -84,4 +83,3 @@ class Settings(BaseSettings):
 
 
 config = Settings()
-Config = Settings  # Backward-compatible alias

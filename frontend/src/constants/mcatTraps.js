@@ -102,40 +102,6 @@ export const MCAT_TRAP_DEFINITIONS = {
   ANSWER_CHOICE_CONFLATION: {
     label: 'Answer-Choice Conflation',
     advice: 'Merges elements of two distinct answer choices to form a seemingly comprehensive but erroneous hybrid.'
-  },
-
-  // Legacy mappings for backward compatibility
-  Out_of_Scope: {
-    label: 'Out of Scope Trap',
-    advice: 'Introduces claims or extrapolations that sound plausible, but are completely absent from the passage or experimental data.'
-  },
-  Distortion_Opposite: {
-    label: 'Distortion / Opposite Trap',
-    advice: 'Twists, inverts, or reverses an experimental finding, enzymatic effect, or author premise.'
-  },
-  Outside_Knowledge_in_CARS: {
-    label: 'Outside Knowledge Trap',
-    advice: 'Lures candidates into using external scientific or real-world facts not stated in the passage.'
-  },
-  Extreme_Language: {
-    label: 'Extreme Language Trap',
-    advice: 'Introduces unhedged absolutes like "always", "never", "only", or "invariably".'
-  },
-  Correlation_vs_Causation: {
-    label: 'Correlation vs. Causation',
-    advice: 'Mistakes an observational association for a proven mechanistic cause-and-effect mechanism.'
-  },
-  Calculation_Formula_Trap: {
-    label: 'Calculation / Formula Inversion',
-    advice: 'Mirrors common quantitative slips (omitted unit conversion, inverted Michaelis-Menten terms, or sign errors).'
-  },
-  Half_Right_False_Premise: {
-    label: 'Half-Right / False Premise',
-    advice: 'Begins with an accurate statement from the text, but injects a false premise or unverified conclusion.'
-  },
-  Scope_Shift: {
-    label: 'Scope Shift Trap',
-    advice: 'Takes a finding specific to a narrow experimental condition and improperly generalizes it beyond evidence.'
   }
 };
 

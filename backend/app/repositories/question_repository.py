@@ -198,19 +198,10 @@ async def save_question(q: Question) -> Question:
         return q
 
 
-class BatchSaveResult(list):
-    """List of saved question IDs that also evaluates equality against integer count for backwards compatibility."""
-
-    def __eq__(self, other: Any) -> bool:
-        if isinstance(other, int):
-            return len(self) == other
-        return super().__eq__(other)
-
-
-async def save_questions_batch(questions: list[Question]) -> BatchSaveResult:
+async def save_questions_batch(questions: list[Question]) -> list[str]:
     """Inserts or updates an array of questions in PostgreSQL within a single atomic transaction, auto-syncing passages and batches."""
     if not questions:
-        return BatchSaveResult()
+        return []
 
     now_iso = datetime.now(UTC).isoformat()
     saved_ids = []
@@ -311,7 +302,7 @@ async def save_questions_batch(questions: list[Question]) -> BatchSaveResult:
 
         await session.commit()
 
-    return BatchSaveResult(saved_ids)
+    return saved_ids
 
 
 async def get_repository_metrics() -> dict[str, Any]:
@@ -479,7 +470,6 @@ async def get_question_status_counts() -> dict[str, int]:
 
 
 __all__ = [
-    "BatchSaveResult",
     "_model_to_schema",
     "_schema_to_model",
     "batch_update_question_status",

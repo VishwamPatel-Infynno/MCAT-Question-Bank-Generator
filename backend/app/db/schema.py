@@ -1,106 +1,15 @@
-import json
 import logging
-from pathlib import Path
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
-from app.core.config import config
 from app.db.base import Base
 from app.models.batch import GenerationBatchModel  # noqa: F401 - Registered for Base.metadata
 from app.models.job import GenerationJobModel  # noqa: F401 - Registered for Base.metadata
 from app.models.passage import PassageModel  # noqa: F401 - Registered for Base.metadata
-from app.models.question import QuestionModel
+from app.models.question import QuestionModel  # noqa: F401 - Registered for Base.metadata
 
 logger = logging.getLogger(__name__)
-
-
-async def auto_migrate_sqlite_if_needed(session_factory: async_sessionmaker):
-    """Migrates existing questions from SQLite question_bank.db into PostgreSQL on initial run."""
-    candidates = [
-        Path(config.SQLITE_PATH),
-        Path("question_bank.db"),
-        Path(__file__).resolve().parent.parent.parent.parent / "question_bank.db",
-        Path(__file__).resolve().parent.parent.parent / "question_bank.db",
-    ]
-    sqlite_path = None
-    for p in candidates:
-        if p.exists():
-            sqlite_path = p
-            break
-
-    if not sqlite_path:
-        return
-
-    try:
-        import aiosqlite
-
-        async with aiosqlite.connect(sqlite_path) as sdb:
-            sdb.row_factory = aiosqlite.Row
-            async with sdb.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name='questions'"
-            ) as cur:
-                table_row = await cur.fetchone()
-                if not table_row:
-                    return
-
-            async with sdb.execute("SELECT * FROM questions") as cur:
-                rows = await cur.fetchall()
-                if not rows:
-                    return
-
-                async with session_factory() as session:
-                    migrated_count = 0
-                    for r in rows:
-                        existing = await session.get(QuestionModel, r["id"])
-                        if not existing:
-                            opts_data = json.loads(r["options_json"]) if r["options_json"] else []
-                            rubric_data = (
-                                json.loads(r["review_rubric_json"])
-                                if r["review_rubric_json"]
-                                else None
-                            )
-                            history_data = (
-                                json.loads(r["iterations_history_json"])
-                                if r["iterations_history_json"]
-                                else []
-                            )
-
-                            new_m = QuestionModel(
-                                id=r["id"],
-                                section=r["section"],
-                                section_label=r["section_label"],
-                                subtopic=r["subtopic"],
-                                difficulty=r["difficulty"],
-                                stimulus_text=r["stimulus_text"],
-                                question_stem=r["question_stem"],
-                                options=opts_data,
-                                correct_answer_id=r["correct_answer_id"],
-                                explanation=r["explanation"],
-                                image_url=r["image_url"],
-                                image_svg=r["image_svg"],
-                                image_description=r["image_description"],
-                                final_score=r["final_score"],
-                                review_rubric=rubric_data,
-                                iteration_count=r["iteration_count"],
-                                iterations_history=history_data,
-                                created_at=r["created_at"],
-                                total_tokens=0,
-                                prompt_tokens=0,
-                                completion_tokens=0,
-                                cost_usd=0.0,
-                                token_usage_details=[],
-                            )
-                            session.add(new_m)
-                            migrated_count += 1
-
-                    if migrated_count > 0:
-                        await session.commit()
-                        logger.info(
-                            f"Auto-migrated {migrated_count} questions from SQLite into PostgreSQL."
-                        )
-    except Exception as e:
-        logger.warning(f"Could not auto-migrate from SQLite: {e}")
 
 
 async def init_db_schema(engine: AsyncEngine, session_factory: async_sessionmaker):
@@ -295,8 +204,6 @@ async def init_db_schema(engine: AsyncEngine, session_factory: async_sessionmake
                 """
             )
         )
-
-    await auto_migrate_sqlite_if_needed(session_factory)
 
     # Data Backfill & Foreign Key Constraints
     async with engine.begin() as conn:

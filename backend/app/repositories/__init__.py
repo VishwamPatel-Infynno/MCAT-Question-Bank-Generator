@@ -17,7 +17,6 @@ from app.repositories.passage_repository import (
     save_passage,
 )
 from app.repositories.question_repository import (
-    BatchSaveResult,
     batch_update_question_status,
     delete_question,
     delete_questions_batch,
@@ -31,7 +30,6 @@ from app.repositories.question_repository import (
 )
 
 __all__ = [
-    "BatchSaveResult",
     "batch_update_question_status",
     "delete_batch",
     "delete_question",

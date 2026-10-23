@@ -74,7 +74,7 @@ graph LR
 - **Native JSONB Columns**: Stores options, review rubrics, evolution histories, and granular per-agent token tracking.
 - **UUID4 Traceability**: Automatic UUID4 generation for every question (`id`), execution run (`run_id`), batch set (`batch_id`), and combination matrix (`combination_id`).
 - **Docker Compose Setup**: Instant container initialization on port `5432` with pre-ping connection pooling.
-- **Zero-Downtime Auto-Migration**: Automatically runs non-destructive schema migrations and SQLite fallback migrations on startup.
+- **Zero-Downtime Auto-Migration**: Automatically runs non-destructive schema migrations and full-text search indexing on startup.
 
 ### 4. Modern Enterprise Minimalist UI (Dual Theme: Dark & Light)
 - **Linear/Vercel-Inspired Aesthetic**: Hairline borders (`rgba(255, 255, 255, 0.06)` dark / `#e8ecf2` light), quiet obsidian and alabaster surfaces, and zero multi-card clutter.

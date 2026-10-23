@@ -351,8 +351,7 @@ export default function BatchCard({
                     border: '1px dashed var(--border-medium)'
                   }}
                 >
-                  No constituent jobs recorded for this batch (legacy batch generated
-                  before multi-job tracking).
+                  No constituent jobs recorded for this batch.
                 </div>
               ) : (
                 <div
