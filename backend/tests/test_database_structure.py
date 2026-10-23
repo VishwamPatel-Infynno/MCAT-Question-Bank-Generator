@@ -229,3 +229,35 @@ async def test_api_passages_and_batches():
 
     # Clean up
     await delete_question(q.id)
+
+
+@pytest.mark.asyncio
+async def test_centralized_repository_package_exports():
+    """Verify that all job, batch, question, and passage functions are correctly exported by app.repositories."""
+    import app.repositories as repos
+
+    expected_exports = [
+        "get_job_by_id",
+        "get_jobs_by_batch_id",
+        "save_job",
+        "save_jobs_bulk",
+        "update_job_progress",
+        "get_batch_by_id",
+        "get_batches",
+        "save_batch",
+        "delete_batch",
+        "get_passage_by_id",
+        "get_passages",
+        "save_passage",
+        "get_question_by_id",
+        "get_questions",
+        "save_question",
+        "save_questions_batch",
+        "delete_question",
+        "delete_questions_batch",
+        "get_repository_metrics",
+    ]
+    for fn_name in expected_exports:
+        assert hasattr(repos, fn_name), f"app.repositories must export '{fn_name}'"
+        assert callable(getattr(repos, fn_name)), f"'{fn_name}' in app.repositories must be callable"
+

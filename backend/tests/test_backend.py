@@ -1662,3 +1662,30 @@ async def test_manager_dependent_taxonomy_integration():
     assert req.single_choice_count == 3
     assert req.subject == "General Chemistry"
     assert req.subskill == "Identify or recognize a scientific concept"
+
+
+def test_taxonomy_json_parity_between_backend_and_frontend():
+    """Verify that backend and frontend taxonomy JSON files stay 100% in sync with zero drift."""
+    from pathlib import Path
+
+    backend_path = (
+        Path(__file__).resolve().parent.parent / "app" / "data" / "mcat_dependent_taxonomy.json"
+    )
+    frontend_path = (
+        Path(__file__).resolve().parent.parent.parent
+        / "frontend"
+        / "src"
+        / "constants"
+        / "mcat_dependent_taxonomy.json"
+    )
+
+    assert backend_path.exists(), f"Backend taxonomy JSON file must exist at {backend_path}"
+    assert frontend_path.exists(), f"Frontend taxonomy JSON file must exist at {frontend_path}"
+
+    backend_content = backend_path.read_text(encoding="utf-8")
+    frontend_content = frontend_path.read_text(encoding="utf-8")
+
+    assert (
+        backend_content == frontend_content
+    ), "Taxonomy JSON in backend/app/data and frontend/src/constants must be byte-for-byte identical"
+

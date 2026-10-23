@@ -31,6 +31,7 @@ export { default as HeroLanding } from './wizard/HeroLanding';
 export { default as GuidedWizard } from './wizard/GuidedWizard';
 export { default as IndependentDiagramControls } from './wizard/IndependentDiagramControls';
 
-// Heavy views (QuestionBank, ReviewAuditView) are intentionally
+// Heavy views (QuestionBank, ReviewAuditView, BatchActivityView) are intentionally
 // loaded via React.lazy() in App.jsx to preserve optimal code splitting.
+
 

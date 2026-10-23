@@ -165,7 +165,7 @@ class GenerationRequest(BaseModel):
 
     @model_validator(mode="after")
     def resolve_binary_passage_and_fixed_count(self) -> "GenerationRequest":
-        """Enforces 1 to 10 questions for batch runs and binary passage mode (all linked or all independent)."""
+        """Enforces 1 to 50 questions for batch runs and binary passage mode (all linked or all independent)."""
         if not (1 <= self.questions_to_generate <= 50):
             raise ValueError(
                 f"MCAT question generation requires 1 to 50 questions per run (received {self.questions_to_generate})."
