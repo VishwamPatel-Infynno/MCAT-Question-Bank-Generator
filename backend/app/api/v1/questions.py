@@ -5,9 +5,8 @@ import logging
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from fastapi.responses import JSONResponse, RedirectResponse
-from pydantic import BaseModel
 
-from app.repositories.question_repo import (
+from app.repositories.question_repository import (
     delete_question,
     delete_questions_batch,
     get_question_by_id,
@@ -16,7 +15,7 @@ from app.repositories.question_repo import (
     save_question,
     save_questions_batch,
 )
-from app.schemas import Question
+from app.schemas import BatchDeleteRequest, Question
 
 logger = logging.getLogger(__name__)
 
@@ -120,9 +119,6 @@ async def remove_question(question_id: str):
     success = await delete_question(question_id)
     return {"success": success}
 
-
-class BatchDeleteRequest(BaseModel):
-    ids: list[str]
 
 
 @router.post("/questions/delete-batch")

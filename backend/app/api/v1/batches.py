@@ -2,12 +2,12 @@ import logging
 
 from fastapi import APIRouter, HTTPException, Query
 
-from app.repositories.batch_repo import (
+from app.repositories.batch_repository import (
     get_batch_by_id,
     get_batches,
     save_batch,
 )
-from app.repositories.question_repo import get_questions
+from app.repositories.question_repository import get_questions
 from app.schemas import GenerationBatch
 
 logger = logging.getLogger(__name__)

@@ -103,6 +103,63 @@ def calculate_token_cost(prompt_tokens: int, completion_tokens: int) -> float:
     return round(in_cost + out_cost, 7)
 
 
+def _resolve_api_key(model: str, explicit_key: str | None) -> str | None:
+    """
+    Resolves the correct API key for the given model identifier.
+
+    Priority order:
+    1. Explicitly passed ``explicit_key`` (caller override)
+    2. Provider-specific key from Settings (loaded from .env)
+    3. Ambient environment key already set (litellm picks it up)
+    4. Raises ValueError if no key is available for models that require one.
+
+    Args:
+        model: The litellm model string, e.g. ``deepinfra/deepseek-ai/…``.
+        explicit_key: Caller-supplied API key override, or ``None``.
+
+    Returns:
+        Resolved API key string, or ``None`` if litellm should use its ambient env key.
+    """
+    if explicit_key:
+        return explicit_key
+
+    model_lower = model.lower()
+
+    if "deepinfra" in model_lower:
+        key = config.DEEPINFRA_API_KEY or os.getenv("DEEPINFRA_API_KEY")
+        if not key:
+            raise ValueError(
+                "AI Gateway API Key is required. Please configure it in Settings or set the server environment key."
+            )
+        return key
+
+    if "gemini" in model_lower and config.GEMINI_API_KEY:
+        return config.GEMINI_API_KEY
+
+    if ("gpt" in model_lower or "openai" in model_lower) and config.OPENAI_API_KEY:
+        return config.OPENAI_API_KEY
+
+    if "claude" in model_lower and config.ANTHROPIC_API_KEY:
+        return config.ANTHROPIC_API_KEY
+
+    if "groq" in model_lower and config.GROQ_API_KEY:
+        return config.GROQ_API_KEY
+
+    # Fall through — check if any ambient env key exists; if not, raise
+    has_env_key = (
+        os.getenv("DEEPINFRA_API_KEY")
+        or os.getenv("GEMINI_API_KEY")
+        or os.getenv("OPENAI_API_KEY")
+        or os.getenv("ANTHROPIC_API_KEY")
+        or os.getenv("GROQ_API_KEY")
+    )
+    if not has_env_key:
+        raise ValueError(
+            f"No API key configured for {model}. Please set in Settings or .env"
+        )
+    return None
+
+
 async def call_llm(
     prompt: str,
     system_prompt: str,
@@ -128,38 +185,9 @@ async def call_llm(
         "num_retries": 2,
     }
 
-    if api_key:
-        kwargs["api_key"] = api_key
-    elif "deepinfra" in chosen_model.lower():
-        effective_key = config.DEEPINFRA_API_KEY or os.getenv("DEEPINFRA_API_KEY")
-        if not effective_key:
-            raise ValueError(
-                "AI Gateway API Key is required. Please configure it in Settings or set the server environment key."
-            )
-        kwargs["api_key"] = effective_key
-    elif "gemini" in chosen_model.lower() and config.GEMINI_API_KEY:
-        kwargs["api_key"] = config.GEMINI_API_KEY
-    elif (
-        "gpt" in chosen_model.lower() or "openai" in chosen_model.lower()
-    ) and config.OPENAI_API_KEY:
-        kwargs["api_key"] = config.OPENAI_API_KEY
-    elif "claude" in chosen_model.lower() and config.ANTHROPIC_API_KEY:
-        kwargs["api_key"] = config.ANTHROPIC_API_KEY
-    elif "groq" in chosen_model.lower() and config.GROQ_API_KEY:
-        kwargs["api_key"] = config.GROQ_API_KEY
-    else:
-        # Check if environment already has relevant key
-        has_env_key = (
-            os.getenv("DEEPINFRA_API_KEY")
-            or os.getenv("GEMINI_API_KEY")
-            or os.getenv("OPENAI_API_KEY")
-            or os.getenv("ANTHROPIC_API_KEY")
-            or os.getenv("GROQ_API_KEY")
-        )
-        if not has_env_key:
-            raise ValueError(
-                f"No API key configured for {chosen_model}. Please set in Settings or .env"
-            )
+    resolved_key = _resolve_api_key(chosen_model, api_key)
+    if resolved_key:
+        kwargs["api_key"] = resolved_key
 
     try:
         response = await litellm.acompletion(**kwargs)

@@ -1,3 +1,4 @@
+export { useAppState } from './useAppState';
 export { useTheme } from './useTheme';
 export { useKeyboardShortcuts } from './useKeyboardShortcuts';
 export { useQuestionGenerator } from './useQuestionGenerator';

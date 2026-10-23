@@ -1,18 +1,43 @@
 // API Service for communicating with backend API
 const API_BASE = '/api';
 
+/**
+ * Asserts that a fetch Response is successful (2xx).
+ * Extracts the server error detail from JSON body when available.
+ * @param {Response} res - The fetch Response object.
+ * @param {string} context - Human-readable description of the call for error messages.
+ * @returns {Promise<Response>} The same response if OK.
+ * @throws {Error} A descriptive error if the response is not OK.
+ */
+async function assertOk(res, context = 'API call') {
+  if (!res.ok) {
+    let detail = '';
+    try {
+      const body = await res.clone().json();
+      detail = body?.detail || body?.message || '';
+    } catch { /* ignore parse failures — use status code only */ }
+    throw new Error(
+      `${context} failed (HTTP ${res.status})${detail ? ': ' + detail : ''}`
+    );
+  }
+  return res;
+}
+
 export async function fetchHealth() {
   const res = await fetch(`${API_BASE}/health`);
+  await assertOk(res, 'Health check');
   return res.json();
 }
 
 export async function fetchSections() {
   const res = await fetch(`${API_BASE}/sections`);
+  await assertOk(res, 'Fetch sections');
   return res.json();
 }
 
 export async function fetchTaxonomy() {
   const res = await fetch(`${API_BASE}/taxonomy`);
+  await assertOk(res, 'Fetch taxonomy');
   return res.json();
 }
 
@@ -23,17 +48,19 @@ export async function fetchQuestions(params = {}, signal = null) {
   if (params.search) query.append('search', params.search);
 
   const res = await fetch(`${API_BASE}/questions?${query.toString()}`, { signal });
+  await assertOk(res, 'Fetch questions');
   return res.json();
 }
 
 export async function fetchQuestionById(id) {
   const res = await fetch(`${API_BASE}/questions/${id}`);
-  if (!res.ok) throw new Error('Question not found');
+  await assertOk(res, `Fetch question ${id}`);
   return res.json();
 }
 
 export async function deleteQuestion(id) {
   const res = await fetch(`${API_BASE}/questions/${id}`, { method: 'DELETE' });
+  await assertOk(res, `Delete question ${id}`);
   return res.json();
 }
 
@@ -43,10 +70,9 @@ export async function batchDeleteQuestions(ids) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ids })
   });
-  if (!res.ok) throw new Error('Failed to bulk delete questions');
+  await assertOk(res, 'Bulk delete questions');
   return res.json();
 }
-
 
 export async function approveQuestion(question) {
   const res = await fetch(`${API_BASE}/questions`, {
@@ -54,7 +80,7 @@ export async function approveQuestion(question) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(question)
   });
-  if (!res.ok) throw new Error('Failed to save approved question');
+  await assertOk(res, 'Save approved question');
   return res.json();
 }
 
@@ -64,7 +90,7 @@ export async function batchApproveQuestions(questions) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(questions)
   });
-  if (!res.ok) throw new Error('Failed to bulk-save approved questions');
+  await assertOk(res, 'Bulk-save approved questions');
   return res.json();
 }
 

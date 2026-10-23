@@ -7,7 +7,7 @@ from app.agents.image_generator import calculate_flux_image_cost, generate_image
 from app.agents.reviewer import evaluate_heuristically
 from app.core.config import config
 from app.db.session import init_db
-from app.repositories.question_repo import delete_question, get_questions, save_question
+from app.repositories.question_repository import delete_question, get_questions, save_question
 from app.schemas import (
     Difficulty,
     GenerationRequest,
@@ -445,7 +445,7 @@ async def test_admin_approval_and_persistence_endpoints():
         batch_approve_and_save_questions,
         remove_questions_batch,
     )
-    from app.repositories.question_repo import (
+    from app.repositories.question_repository import (
         delete_question,
         delete_questions_batch,
         get_question_by_id,
@@ -566,7 +566,7 @@ async def test_admin_approval_and_persistence_endpoints():
 
 @pytest.mark.asyncio
 async def test_multichoice_and_passage_support():
-    from app.repositories.question_repo import get_question_by_id, save_question
+    from app.repositories.question_repository import get_question_by_id, save_question
 
     # 1. Test multi-choice GenerationRequest with passage and trap
     req = GenerationRequest(
@@ -632,7 +632,7 @@ async def test_batch_generation_and_staging_flow(monkeypatch):
     import json
 
     from app.core.config import config
-    from app.repositories.question_repo import get_question_by_id, save_questions_batch
+    from app.repositories.question_repository import get_question_by_id, save_questions_batch
     from app.workflow.graph import run_workflow_stream
 
     monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")

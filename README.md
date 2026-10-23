@@ -187,9 +187,9 @@ Question Bank Generator/
 │       │   ├── batch.py         # BatchModel for multi-question generation runs
 │       │   └── __init__.py
 │       ├── repositories/        # Data Access Layer (DAL)
-│       │   ├── question_repo.py # Clean CRUD, hybrid FTS & aggregate token usage queries
-│       │   ├── batch_repo.py    # Staged batch run queries & persistence
-│       │   ├── passage_repo.py  # Shared stimulus reading passage queries
+│       │   ├── question_repository.py # Clean CRUD, hybrid FTS & aggregate token usage queries
+│       │   ├── batch_repository.py    # Staged batch run queries & persistence
+│       │   ├── passage_repository.py  # Shared stimulus reading passage queries
 │       │   └── __init__.py
 │       ├── schemas/             # Domain Pydantic V2 schemas
 │       │   ├── mcat.py          # Official AAMC MCAT sections & subtopic taxonomy

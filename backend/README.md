@@ -37,9 +37,9 @@ backend/app/
 │   ├── mock_fixtures.py # Deterministic fallback fixtures for offline resilience
 │   └── base.py          # LiteLLM execution wrapper & sub-micro-cent token cost engine
 ├── repositories/        # Data Access Layer (DAL)
-│   ├── question_repo.py # Clean CRUD, hybrid full-text search & token analytics
-│   ├── batch_repo.py    # Staged batch run queries & persistence
-│   └── passage_repo.py  # Shared stimulus reading passage queries
+│   ├── question_repository.py # Clean CRUD, hybrid full-text search & token analytics
+│   ├── batch_repository.py    # Staged batch run queries & persistence
+│   └── passage_repository.py  # Shared stimulus reading passage queries
 ├── models/              # Persistence Layer (SQLAlchemy 2.0 ORM Entities)
 │   ├── question.py      # QuestionModel with JSONB columns & B-Tree indexes
 │   ├── passage.py       # PassageModel for multi-item shared reading stimuli

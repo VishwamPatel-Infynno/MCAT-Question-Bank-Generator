@@ -16,6 +16,7 @@ from app.schemas.mcat import (
     normalize_section,
 )
 from app.schemas.question import (
+    BatchDeleteRequest,
     GenerationBatch,
     OptionChoice,
     Passage,
@@ -29,6 +30,7 @@ from app.schemas.workflow import GenerationRequest, WorkflowEvent
 __all__ = [
     "AAMC_REASONING_SKILLS",
     "AAMC_SKILL_LABELS",
+    "BatchDeleteRequest",
     "CONTENT_DOMAINS",
     "Difficulty",
     "GenerationBatch",

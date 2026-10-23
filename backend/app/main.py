@@ -1,11 +1,12 @@
 import logging
-import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
+from app.core.config import config
+from app.core.logging import configure_logging
 from app.db.session import init_db
 
 logger = logging.getLogger(__name__)
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
+    configure_logging()
     logger.info("Initializing Infynno MCAT Question Bank Generator backend...")
     await init_db()
     yield
@@ -40,20 +42,10 @@ async def add_security_headers(request, call_next):
     return response
 
 
-# Trusted CORS origins (Local dev + environment override)
-default_origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-env_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
-allowed_origins = list(set(default_origins + env_origins))
-
-# Enable hardened CORS
+# Enable hardened CORS — origins sourced from Settings (localhost defaults + env overrides)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=config.effective_allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
     allow_headers=["*"],

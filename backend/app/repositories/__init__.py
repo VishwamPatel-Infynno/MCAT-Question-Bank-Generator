@@ -1,14 +1,14 @@
-from app.repositories.batch_repo import (
+from app.repositories.batch_repository import (
     get_batch_by_id,
     get_batches,
     save_batch,
 )
-from app.repositories.passage_repo import (
+from app.repositories.passage_repository import (
     get_passage_by_id,
     get_passages,
     save_passage,
 )
-from app.repositories.question_repo import (
+from app.repositories.question_repository import (
     BatchSaveResult,
     delete_question,
     delete_questions_batch,

@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 from app.db.session import init_db
-from app.repositories.question_repo import save_question
+from app.repositories.question_repository import save_question
 from app.schemas.question import OptionChoice, Question
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")

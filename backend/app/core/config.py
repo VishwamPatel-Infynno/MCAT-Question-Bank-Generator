@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -10,27 +9,21 @@ class Settings(BaseSettings):
     SQLITE_PATH: Path = BASE_DIR / "question_bank.db"
 
     # PostgreSQL Database URL
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", "postgresql+asyncpg://mcat_user:mcat_password@localhost:5432/mcat_db"
-    )
+    DATABASE_URL: str = "postgresql+asyncpg://mcat_user:mcat_password@localhost:5432/mcat_db"
 
     # Primary LLM for multi-agent reasoning: DeepSeek V4.1 Flash 1017 via DeepInfra
-    DEFAULT_TEXT_MODEL: str = os.getenv(
-        "DEFAULT_TEXT_MODEL", "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017"
-    )
+    DEFAULT_TEXT_MODEL: str = "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017"
 
     # Official DeepInfra Pricing (USD per 1,000,000 tokens)
-    COST_PER_MILLION_INPUT_TOKENS: float = float(os.getenv("COST_PER_MILLION_INPUT_TOKENS", "0.098"))
-    COST_PER_MILLION_OUTPUT_TOKENS: float = float(
-        os.getenv("COST_PER_MILLION_OUTPUT_TOKENS", "0.294")
-    )
+    COST_PER_MILLION_INPUT_TOKENS: float = 0.098
+    COST_PER_MILLION_OUTPUT_TOKENS: float = 0.294
 
     # Image generation model: black-forest-labs/FLUX-2-klein-4b via DeepInfra
-    DEFAULT_IMAGE_MODEL: str = os.getenv("DEFAULT_IMAGE_MODEL", "black-forest-labs/FLUX-2-klein-4b")
-    IMAGE_WIDTH: int = int(os.getenv("IMAGE_WIDTH", "1024"))
-    IMAGE_HEIGHT: int = int(os.getenv("IMAGE_HEIGHT", "1024"))
-    IMAGE_ITERS: int = int(os.getenv("IMAGE_ITERS", "0"))
-    IMAGE_COST_PER_BASE_UNIT: float = float(os.getenv("IMAGE_COST_PER_BASE_UNIT", "0.014"))
+    DEFAULT_IMAGE_MODEL: str = "black-forest-labs/FLUX-2-klein-4b"
+    IMAGE_WIDTH: int = 1024
+    IMAGE_HEIGHT: int = 1024
+    IMAGE_ITERS: int = 0
+    IMAGE_COST_PER_BASE_UNIT: float = 0.014
 
     def calculate_flux_image_cost(
         self,
@@ -57,18 +50,32 @@ class Settings(BaseSettings):
         rate = self.IMAGE_COST_PER_BASE_UNIT
         return round(rate * (w / 1024.0) * (h / 1024.0), 6)
 
-    # API Keys
-    DEEPINFRA_API_KEY: str = os.getenv("DEEPINFRA_API_KEY", "")
-    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
-    ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
-    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    # API Keys — loaded automatically from .env by pydantic-settings
+    DEEPINFRA_API_KEY: str = ""
+    GEMINI_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
+    ANTHROPIC_API_KEY: str = ""
+    GROQ_API_KEY: str = ""
+
+    # CORS Trusted Origins (extra origins beyond localhost defaults, comma-separated in .env)
+    ALLOWED_ORIGINS: list[str] = []
+
+    @property
+    def effective_allowed_origins(self) -> list[str]:
+        """Merges hardcoded localhost dev origins with any runtime ALLOWED_ORIGINS overrides."""
+        defaults = [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+        ]
+        return list(set(defaults + self.ALLOWED_ORIGINS))
 
     # Multi-Agent Workflow Parameters
-    MAX_REGENERATION_ATTEMPTS: int = int(os.getenv("MAX_REGENERATION_ATTEMPTS", "3"))
-    PASSING_SCORE_THRESHOLD: int = int(os.getenv("PASSING_SCORE_THRESHOLD", "90"))
-    DEFAULT_MAX_TOKENS: int = int(os.getenv("DEFAULT_MAX_TOKENS", "3000"))
-    REVIEWER_MAX_TOKENS: int = int(os.getenv("REVIEWER_MAX_TOKENS", "1800"))
+    MAX_REGENERATION_ATTEMPTS: int = 3
+    PASSING_SCORE_THRESHOLD: int = 90
+    DEFAULT_MAX_TOKENS: int = 3000
+    REVIEWER_MAX_TOKENS: int = 1800
 
     model_config = SettingsConfigDict(
         env_file=[str(Path(__file__).resolve().parent.parent.parent.parent / ".env"), ".env"],

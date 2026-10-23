@@ -401,9 +401,9 @@ backend/app/
 │   ├── passage.py       # PassageModel for shared reading passage stimuli
 │   └── batch.py         # BatchModel for multi-question generation runs
 ├── repositories/        # Data Access Layer (DAL)
-│   ├── question_repo.py # Clean async CRUD operations, FTS search & token aggregations
-│   ├── batch_repo.py    # Staged batch run queries & persistence
-│   └── passage_repo.py  # Shared stimulus reading passage queries
+│   ├── question_repository.py # Clean async CRUD operations, FTS search & token aggregations
+│   ├── batch_repository.py    # Staged batch run queries & persistence
+│   └── passage_repository.py  # Shared stimulus reading passage queries
 ├── schemas/             # Pydantic Domain Transfer Schemas
 │   ├── mcat.py          # MCAT sections & subtopic taxonomy
 │   ├── token.py         # TokenUsage & TokenCostAccumulator schemas
