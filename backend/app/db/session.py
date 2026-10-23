@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import func, select, text
+from sqlalchemy import delete, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.config import config
@@ -421,9 +421,9 @@ async def seed_mcat_questions_if_empty():
 
     try:
         async with async_session_factory() as session:
-            # 1. Check for legacy UCAT questions and clean them up
-            legacy_res = await session.execute(
-                select(QuestionModel).where(
+            # 1. Clean up legacy UCAT questions directly via DELETE without fetching all columns
+            await session.execute(
+                delete(QuestionModel).where(
                     QuestionModel.section.in_(
                         [
                             "verbal_reasoning",
@@ -440,14 +440,7 @@ async def seed_mcat_questions_if_empty():
                     )
                 )
             )
-            legacy_rows = legacy_res.scalars().all()
-            if legacy_rows:
-                for row in legacy_rows:
-                    await session.delete(row)
-                await session.commit()
-                logger.info(
-                    f"Cleaned {len(legacy_rows)} legacy UCAT questions from Question Bank repository."
-                )
+            await session.commit()
 
             # 2. Check if any questions exist
             res = await session.execute(select(func.count(QuestionModel.id)))

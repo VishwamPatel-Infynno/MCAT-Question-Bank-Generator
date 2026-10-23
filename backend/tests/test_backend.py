@@ -586,8 +586,8 @@ async def test_multichoice_and_passage_support():
     # 2. Test Question model creation with multiple keys
     multi_q = Question(
         id=str(uuid.uuid4()),
-        section="verbal_reasoning",
-        section_label="Verbal Reasoning",
+        section="cars",
+        section_label="Critical Analysis and Reasoning Skills (CARS)",
         subtopic="Critical Inference",
         difficulty="Hard",
         interaction_type="multi_choice",

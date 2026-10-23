@@ -33,8 +33,8 @@ async def test_passage_auto_sync_and_retrieval():
 
     q = Question(
         id=f"test-q-{uuid.uuid4()}",
-        section="VR",
-        section_label="Verbal Reasoning",
+        section="cars",
+        section_label="Critical Analysis and Reasoning Skills",
         subtopic="Critical Reading",
         difficulty="Medium",
         stimulus_text=stimulus,
@@ -59,7 +59,7 @@ async def test_passage_auto_sync_and_retrieval():
     assert passage.id == passage_uuid
     assert passage.text == stimulus
     assert passage.word_count == len(stimulus.split())
-    assert passage.section == "VR"
+    assert passage.section == "cars"
 
     # Verify querying questions by passage_id
     linked_qs = await get_questions(passage_id=passage_uuid)
@@ -79,8 +79,8 @@ async def test_batch_auto_sync_and_atomic_aggregation():
     q1 = Question(
         id=f"test-q1-{uuid.uuid4()}",
         batch_id=batch_uuid,
-        section="DM",
-        section_label="Decision Making",
+        section="chem_phys",
+        section_label="Chemical and Physical Foundations",
         subtopic="Syllogisms",
         difficulty="Hard",
         question_stem="Does Conclusion 1 follow?",
@@ -98,8 +98,8 @@ async def test_batch_auto_sync_and_atomic_aggregation():
     q2 = Question(
         id=f"test-q2-{uuid.uuid4()}",
         batch_id=batch_uuid,
-        section="DM",
-        section_label="Decision Making",
+        section="chem_phys",
+        section_label="Chemical and Physical Foundations",
         subtopic="Syllogisms",
         difficulty="Hard",
         question_stem="Does Conclusion 2 follow?",
@@ -138,8 +138,8 @@ async def test_hybrid_full_text_search():
     unique_keyword = f"quasarastrophysics{uuid.uuid4().hex[:6]}"
     q = Question(
         id=f"test-fts-{uuid.uuid4()}",
-        section="QR",
-        section_label="Quantitative Reasoning",
+        section="bio_biochem",
+        section_label="Biological and Biochemical Foundations",
         subtopic="Rates and Proportions",
         difficulty="Medium",
         stimulus_text=f"A deep sky telescope detected a rare {unique_keyword} phenomenon.",
@@ -178,8 +178,8 @@ async def test_api_passages_and_batches():
         id=f"test-api-q-{uuid.uuid4()}",
         batch_id=batch_id,
         passage_id=passage_id,
-        section="VR",
-        section_label="Verbal Reasoning",
+        section="cars",
+        section_label="Critical Analysis and Reasoning Skills",
         subtopic="Inference",
         difficulty="Easy",
         stimulus_text="Medical triage protocols require immediate categorization of acute trauma.",
