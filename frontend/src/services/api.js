@@ -46,9 +46,38 @@ export async function fetchQuestions(params = {}, signal = null) {
   if (params.section) query.append('section', params.section);
   if (params.difficulty) query.append('difficulty', params.difficulty);
   if (params.search) query.append('search', params.search);
+  if (params.status) query.append('status', params.status);
+  if (params.batch_id) query.append('batch_id', params.batch_id);
+  if (params.job_id) query.append('job_id', params.job_id);
 
   const res = await fetch(`${API_BASE}/questions?${query.toString()}`, { signal });
   await assertOk(res, 'Fetch questions');
+  return res.json();
+}
+
+export async function fetchQuestionCounts(signal = null) {
+  const res = await fetch(`${API_BASE}/questions/counts`, { signal });
+  await assertOk(res, 'Fetch question counts');
+  return res.json();
+}
+
+export async function updateQuestionStatus(id, status) {
+  const res = await fetch(`${API_BASE}/questions/${id}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status })
+  });
+  await assertOk(res, `Update question ${id} status to ${status}`);
+  return res.json();
+}
+
+export async function batchUpdateQuestionStatus(ids, status) {
+  const res = await fetch(`${API_BASE}/questions/update-status`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids, status })
+  });
+  await assertOk(res, `Bulk update questions status to ${status}`);
   return res.json();
 }
 

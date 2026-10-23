@@ -121,12 +121,8 @@ export default function BatchProgressHeader({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ color: 'var(--text-muted)' }}>Question Mix:</span>
-          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{singleCount} Single Answer</span>
-          <span style={{ color: 'var(--border-light)' }}>•</span>
-          <span style={{ fontWeight: 600, color: multiCount > 0 ? 'var(--brand-indigo)' : 'var(--text-secondary)' }}>
-            {multiCount} Multiple Answers
-          </span>
+          <span style={{ color: 'var(--text-muted)' }}>Format:</span>
+          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{singleCount} Single Choice MCQs (A–D)</span>
           <span style={{ color: 'var(--border-light)' }}>•</span>
           <span style={{ fontWeight: 600, color: (isMixedBatch || isPassageSet || passageCount > 0) ? 'var(--brand-primary)' : 'var(--text-secondary)' }}>
             {isMixedBatch

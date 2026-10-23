@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Database, Layers, Sun, Moon, ExternalLink } from 'lucide-react';
+import { Sparkles, Database, Layers, CheckCircle2, Sun, Moon, ExternalLink } from 'lucide-react';
 import InfynnoLogo from '../common/InfynnoLogo';
 
 export default function Navbar({
@@ -9,14 +9,15 @@ export default function Navbar({
   theme,
   onToggleTheme,
   onGoHome,
-  activeBatchCount = 0
+  activeBatchCount = 0,
+  validatedCount = 0
 }) {
   return (
     <header
       style={{
-        display: 'flex',
+        display: 'grid',
+        gridTemplateColumns: '1fr auto 1fr',
         alignItems: 'center',
-        justifyContent: 'space-between',
         padding: '10px 24px',
         borderBottom: '1px solid var(--border-light)',
         background: 'var(--bg-surface)',
@@ -28,7 +29,7 @@ export default function Navbar({
       }}
     >
       {/* Brand & Subtitle */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', justifySelf: 'start', minWidth: 0 }}>
         {/* Infynno Solutions Logo & Corporate Anchor */}
         <a
           href="https://infynno.com/"
@@ -108,7 +109,7 @@ export default function Navbar({
       </div>
 
       {/* Center Nav Tabs (Quiet Minimalist Pill Track) */}
-      <nav className="pill-track">
+      <nav className="pill-track" style={{ justifySelf: 'center' }}>
         <button
           id="nav-tab-generator"
           type="button"
@@ -117,16 +118,6 @@ export default function Navbar({
         >
           <Sparkles size={12} color={activeTab === 'generator' ? 'var(--brand-primary)' : 'currentColor'} />
           <span>Question Generator</span>
-        </button>
-
-        <button
-          id="nav-tab-bank"
-          type="button"
-          onClick={() => setActiveTab('bank')}
-          className={`pill-track-btn ${activeTab === 'bank' ? 'active' : ''}`}
-        >
-          <Database size={12} color={activeTab === 'bank' ? 'var(--brand-primary)' : 'currentColor'} />
-          <span>Question Bank</span>
         </button>
 
         <button
@@ -155,10 +146,47 @@ export default function Navbar({
             </span>
           )}
         </button>
+
+        <button
+          id="nav-tab-validated"
+          type="button"
+          onClick={() => setActiveTab('validated')}
+          className={`pill-track-btn ${activeTab === 'validated' ? 'active' : ''}`}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+        >
+          <CheckCircle2 size={12} color={activeTab === 'validated' ? 'var(--brand-primary)' : 'currentColor'} />
+          <span>AI Validated</span>
+          {validatedCount > 0 && (
+            <span
+              style={{
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: '#ffffff',
+                borderRadius: '10px',
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                padding: '1px 5px',
+                lineHeight: 1,
+                boxShadow: '0 0 6px rgba(16, 185, 129, 0.4)'
+              }}
+            >
+              {validatedCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          id="nav-tab-bank"
+          type="button"
+          onClick={() => setActiveTab('bank')}
+          className={`pill-track-btn ${activeTab === 'bank' ? 'active' : ''}`}
+        >
+          <Database size={12} color={activeTab === 'bank' ? 'var(--brand-primary)' : 'currentColor'} />
+          <span>Question Bank</span>
+        </button>
       </nav>
 
       {/* Right Tools */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifySelf: 'end', minWidth: 0 }}>
         {/* Infynno Website Pill Link */}
         <a
           href="https://infynno.com/"

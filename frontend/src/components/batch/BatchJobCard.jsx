@@ -7,6 +7,7 @@ export default function BatchJobCard({
   isExpanded = false,
   onToggleExpand,
   onNavigateToBank,
+  onNavigateToValidated,
   onOpenAudit
 }) {
   if (!job) return null;
@@ -15,6 +16,12 @@ export default function BatchJobCard({
   const isJobDone = job.status === 'completed';
   const isJobRunning = job.status === 'running';
   const isJobFailed = job.status === 'failed';
+
+  // Compute status counts for questions in this job
+  const validatedCount = jobQuestions.filter(q => (q.status || (q.final_score > 90 ? 'ai_validated' : 'below_threshold')) === 'ai_validated').length;
+  const inBankCount = jobQuestions.filter(q => q.status === 'in_bank').length;
+  const discardedCount = jobQuestions.filter(q => q.status === 'discarded').length;
+  const belowCount = jobQuestions.filter(q => (q.status || (q.final_score > 90 ? 'ai_validated' : 'below_threshold')) === 'below_threshold').length;
 
   return (
     <div
@@ -118,6 +125,63 @@ export default function BatchJobCard({
         </div>
       )}
 
+      {jobQuestions.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', fontSize: '0.675rem' }}>
+          {validatedCount > 0 && (
+            <span
+              style={{
+                background: 'rgba(79, 48, 185, 0.1)',
+                color: 'var(--brand-primary)',
+                padding: '1px 6px',
+                borderRadius: '4px',
+                fontWeight: 600
+              }}
+            >
+              {validatedCount} in AI Validated
+            </span>
+          )}
+          {inBankCount > 0 && (
+            <span
+              style={{
+                background: 'rgba(16, 185, 129, 0.1)',
+                color: 'var(--status-success)',
+                padding: '1px 6px',
+                borderRadius: '4px',
+                fontWeight: 600
+              }}
+            >
+              {inBankCount} in Bank
+            </span>
+          )}
+          {discardedCount > 0 && (
+            <span
+              style={{
+                background: 'rgba(244, 63, 94, 0.1)',
+                color: 'var(--status-danger)',
+                padding: '1px 6px',
+                borderRadius: '4px',
+                fontWeight: 600
+              }}
+            >
+              {discardedCount} Discarded
+            </span>
+          )}
+          {belowCount > 0 && (
+            <span
+              style={{
+                background: 'rgba(245, 158, 11, 0.1)',
+                color: '#d97706',
+                padding: '1px 6px',
+                borderRadius: '4px',
+                fontWeight: 600
+              }}
+            >
+              {belowCount} Below &le;90
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Action button: Expand/Hide questions */}
       {jobQuestions.length > 0 && (
         <div>
@@ -165,6 +229,7 @@ export default function BatchJobCard({
               question={q}
               index={qIdx}
               onNavigateToBank={onNavigateToBank}
+              onNavigateToValidated={onNavigateToValidated}
               onOpenAudit={onOpenAudit}
             />
           ))}

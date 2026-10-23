@@ -18,6 +18,7 @@ import { useAppState } from './hooks/useAppState';
 const QuestionBank = lazy(() => import('./components/bank/QuestionBank'));
 const ReviewAuditView = lazy(() => import('./components/question/ReviewAuditView'));
 const BatchActivityView = lazy(() => import('./components/batch/BatchActivityView'));
+const AiValidatedQuestionsView = lazy(() => import('./components/validated/AiValidatedQuestionsView'));
 
 function LazyLoadingSpinner({ label = 'Loading...' }) {
   return (
@@ -64,6 +65,8 @@ export default function App() {
     sectionsData,
     backendStatus,
     activeBatchCount,
+    validatedCount,
+    refreshCounts,
     // Form
     generatorForm,
     // Modals
@@ -110,6 +113,7 @@ export default function App() {
         setActiveTab={setActiveTab}
         backendStatus={backendStatus}
         activeBatchCount={activeBatchCount}
+        validatedCount={validatedCount}
         theme={theme}
         onToggleTheme={toggleTheme}
         onGoHome={() => {
@@ -136,10 +140,7 @@ export default function App() {
               <GuidedWizard
                 generatorForm={generatorForm}
                 sectionsData={sectionsData}
-                onGenerateQuestions={() => {
-                  setViewMode('workspace');
-                  handleGenerate();
-                }}
+                onGenerateQuestions={handleGenerate}
               />
             )}
 
@@ -252,6 +253,37 @@ export default function App() {
           </>
         )}
 
+        {activeTab === 'batches' && (
+          <Suspense fallback={<LazyLoadingSpinner label="Loading Batch Activity Monitor..." />}>
+            <BatchActivityView
+              onOpenAudit={(q) => setAuditQuestion(q)}
+              onNavigateToBank={() => setActiveTab('bank')}
+              onNavigateToValidated={() => setActiveTab('validated')}
+              onNavigateToWizard={() => {
+                setActiveTab('generator');
+                setViewMode('wizard');
+              }}
+              onShowToast={showToast}
+            />
+          </Suspense>
+        )}
+
+        {activeTab === 'validated' && (
+          <Suspense fallback={<LazyLoadingSpinner label="Loading AI Validated Questions..." />}>
+            <AiValidatedQuestionsView
+              onOpenAudit={(q) => setAuditQuestion(q)}
+              onNavigateToBank={() => setActiveTab('bank')}
+              onNavigateToBatches={() => setActiveTab('batches')}
+              onNavigateToWizard={() => {
+                setActiveTab('generator');
+                setViewMode('wizard');
+              }}
+              onShowToast={showToast}
+              onRefreshCounts={refreshCounts}
+            />
+          </Suspense>
+        )}
+
         {activeTab === 'bank' && (
           <Suspense fallback={<LazyLoadingSpinner label="Loading Question Bank..." />}>
             <QuestionBank
@@ -261,20 +293,6 @@ export default function App() {
                 setActiveTab('generator');
                 setViewMode('wizard');
               }}
-            />
-          </Suspense>
-        )}
-
-        {activeTab === 'batches' && (
-          <Suspense fallback={<LazyLoadingSpinner label="Loading Batch Activity Monitor..." />}>
-            <BatchActivityView
-              onOpenAudit={(q) => setAuditQuestion(q)}
-              onNavigateToBank={() => setActiveTab('bank')}
-              onNavigateToWizard={() => {
-                setActiveTab('generator');
-                setViewMode('wizard');
-              }}
-              onShowToast={showToast}
             />
           </Suspense>
         )}

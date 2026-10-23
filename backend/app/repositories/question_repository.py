@@ -2,7 +2,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import delete, func, or_, select
+from sqlalchemy import delete, func, or_, select, update
 
 from app.db.session import async_session_factory
 from app.models.batch import GenerationBatchModel
@@ -27,6 +27,7 @@ def _model_to_schema(m: QuestionModel) -> Question:
         run_id=m.run_id,
         batch_id=m.batch_id,
         job_id=getattr(m, "job_id", None),
+        status=getattr(m, "status", None) or "in_bank",
         section=m.section,
         section_label=m.section_label,
         subtopic=m.subtopic,
@@ -82,6 +83,7 @@ def _schema_to_model(q: Question) -> QuestionModel:
         run_id=q.run_id,
         batch_id=q.batch_id,
         job_id=getattr(q, "job_id", None),
+        status=getattr(q, "status", None) or "in_bank",
         section=q.section,
         section_label=q.section_label,
         subtopic=q.subtopic,
@@ -338,6 +340,7 @@ async def get_questions(
     batch_id: str | None = None,
     job_id: str | None = None,
     passage_id: str | None = None,
+    status: str | None = None,
 ) -> list[Question]:
     """Retrieves questions from PostgreSQL with optional filtering and hybrid full-text search."""
     async with async_session_factory() as session:
@@ -357,6 +360,8 @@ async def get_questions(
             stmt = stmt.where(QuestionModel.job_id == job_id)
         if passage_id:
             stmt = stmt.where(QuestionModel.passage_id == passage_id)
+        if status:
+            stmt = stmt.where(QuestionModel.status == status)
 
         if search:
             search_clean = search.strip()
@@ -425,15 +430,64 @@ async def delete_questions_batch(question_ids: list[str]) -> int:
     return result.rowcount or 0
 
 
+async def update_question_status(question_id: str, status: str) -> bool:
+    """Updates the lifecycle status of a single question."""
+    now_iso = datetime.now(UTC).isoformat()
+    async with async_session_factory() as session:
+        stmt = select(QuestionModel).where(QuestionModel.id == question_id)
+        res = await session.execute(stmt)
+        q = res.scalar_one_or_none()
+        if not q:
+            return False
+        q.status = status
+        q.updated_at = now_iso
+        await session.commit()
+        return True
+
+
+async def batch_update_question_status(question_ids: list[str], status: str) -> int:
+    """Updates the lifecycle status of multiple questions in a single atomic transaction."""
+    if not question_ids:
+        return 0
+    now_iso = datetime.now(UTC).isoformat()
+    async with async_session_factory() as session:
+        stmt = (
+            update(QuestionModel)
+            .where(QuestionModel.id.in_(question_ids))
+            .values(status=status, updated_at=now_iso)
+        )
+        result = await session.execute(stmt)
+        await session.commit()
+        return result.rowcount or 0
+
+
+async def get_question_status_counts() -> dict[str, int]:
+    """Returns counts of questions grouped by lifecycle status."""
+    async with async_session_factory() as session:
+        stmt = select(QuestionModel.status, func.count(QuestionModel.id)).group_by(QuestionModel.status)
+        res = await session.execute(stmt)
+        counts = {row[0] or "in_bank": row[1] for row in res.all()}
+        return {
+            "ai_validated": counts.get("ai_validated", 0),
+            "in_bank": counts.get("in_bank", 0),
+            "discarded": counts.get("discarded", 0),
+            "below_threshold": counts.get("below_threshold", 0),
+            "total": sum(counts.values()),
+        }
+
+
 __all__ = [
     "BatchSaveResult",
     "_model_to_schema",
     "_schema_to_model",
+    "batch_update_question_status",
     "delete_question",
     "delete_questions_batch",
     "get_question_by_id",
+    "get_question_status_counts",
     "get_questions",
     "get_repository_metrics",
     "save_question",
     "save_questions_batch",
+    "update_question_status",
 ]

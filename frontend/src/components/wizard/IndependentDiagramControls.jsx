@@ -10,19 +10,17 @@ export default function IndependentDiagramControls({
   passageMode = 'single_passage',
   activeQuestionImagesCount = 0,
   indSingleTotal = 0,
-  indMultiTotal = 0,
   indSingleIndices = EMPTY_ARRAY,
-  indMultiIndices = EMPTY_ARRAY,
   activeSingleImageCount = 0,
-  activeMultiImageCount = 0,
-  setSingleImageCount,
-  setMultiImageCount
+  setSingleImageCount
 }) {
   const imageUnitRate = IMAGE_PRICING[DEFAULT_IMAGE_MODEL]?.baseRate ?? 0.014;
 
   if (isAbstractReasoning || numIndependentQs <= 0) {
     return null;
   }
+
+  const effectiveTotal = indSingleTotal || numIndependentQs;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed var(--border-light)' }}>
@@ -38,26 +36,26 @@ export default function IndependentDiagramControls({
         </span>
       </div>
 
-      {/* 1. Single Choice Diagrams Control */}
-      {indSingleTotal > 0 && (
+      {/* Discrete Questions Diagrams Control */}
+      {effectiveTotal > 0 && (
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
             gap: '4px',
-            padding: '6px 8px',
+            padding: '8px 10px',
             background: 'var(--bg-surface-subtle)',
             borderRadius: 'var(--radius-xs)',
             border: '1px solid var(--border-light)'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-              Single Choice Diagrams
+            <span style={{ fontSize: '0.74rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              Independent Questions with Diagrams
             </span>
-            <span className="badge-minimal" style={{ fontSize: '0.585rem' }}>
+            <span className="badge-minimal" style={{ fontSize: '0.62rem' }}>
               {activeSingleImageCount > 0
-                ? `${activeSingleImageCount} of ${indSingleTotal} ($${(activeSingleImageCount * imageUnitRate).toFixed(3)} flat)`
+                ? `${activeSingleImageCount} of ${effectiveTotal} ($${(activeSingleImageCount * imageUnitRate).toFixed(3)} flat)`
                 : 'No Diagrams'}
             </span>
           </div>
@@ -65,53 +63,14 @@ export default function IndependentDiagramControls({
           <NumberStepper
             value={activeSingleImageCount}
             min={0}
-            max={indSingleTotal}
-            onChange={(cnt) => setSingleImageCount && setSingleImageCount(cnt, indSingleIndices, indMultiIndices)}
+            max={effectiveTotal}
+            onChange={(cnt) => setSingleImageCount && setSingleImageCount(cnt, indSingleIndices, EMPTY_ARRAY)}
             idPrefix="btn-single-img"
             size="sm"
             bgCard={true}
             activeColor="var(--brand-primary)"
-            titleMinus="Decrease single choice questions with diagrams"
-            titlePlus="Increase single choice questions with diagrams"
-          />
-        </div>
-      )}
-
-      {/* 2. Multiple Choice Diagrams Control */}
-      {indMultiTotal > 0 && (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px',
-            padding: '6px 8px',
-            background: 'var(--bg-surface-subtle)',
-            borderRadius: 'var(--radius-xs)',
-            border: '1px solid var(--border-light)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-              Multiple Choice Diagrams
-            </span>
-            <span className="badge-minimal" style={{ fontSize: '0.585rem' }}>
-              {activeMultiImageCount > 0
-                ? `${activeMultiImageCount} of ${indMultiTotal} ($${(activeMultiImageCount * imageUnitRate).toFixed(3)} flat)`
-                : 'No Diagrams'}
-            </span>
-          </div>
-
-          <NumberStepper
-            value={activeMultiImageCount}
-            min={0}
-            max={indMultiTotal}
-            onChange={(cnt) => setMultiImageCount && setMultiImageCount(cnt, indSingleIndices, indMultiIndices)}
-            idPrefix="btn-multi-img"
-            size="sm"
-            bgCard={true}
-            activeColor="var(--brand-indigo)"
-            titleMinus="Decrease multiple choice questions with diagrams"
-            titlePlus="Increase multiple choice questions with diagrams"
+            titleMinus="Decrease independent questions with diagrams"
+            titlePlus="Increase independent questions with diagrams"
           />
         </div>
       )}

@@ -1,13 +1,17 @@
 import React from 'react';
-import { CheckCircle2, Image as ImageIcon } from 'lucide-react';
+import { CheckCircle2, Image as ImageIcon, Sparkles, XCircle, AlertCircle, Database } from 'lucide-react';
 
 export default function BatchQuestionItem({
   question,
   index = 0,
   onNavigateToBank,
+  onNavigateToValidated,
   onOpenAudit
 }) {
   if (!question) return null;
+
+  // Determine lifecycle status
+  const status = question.status || (question.final_score > 90 ? 'ai_validated' : 'below_threshold');
 
   return (
     <div
@@ -24,14 +28,105 @@ export default function BatchQuestionItem({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '6px'
+          marginBottom: '8px',
+          flexWrap: 'wrap',
+          gap: '6px'
         }}
       >
-        <span style={{ fontWeight: 700, color: 'var(--brand-primary)', fontSize: '0.725rem' }}>
-          Question {index + 1}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontWeight: 800, color: 'var(--brand-primary)', fontSize: '0.75rem' }}>
+            Question {index + 1}
+          </span>
+
+          {/* Status Badge */}
+          {status === 'in_bank' && (
+            <span
+              style={{
+                fontSize: '0.675rem',
+                padding: '2px 8px',
+                borderRadius: '10px',
+                background: 'rgba(16, 185, 129, 0.12)',
+                color: 'var(--status-success)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <CheckCircle2 size={11} /> In Question Bank
+            </span>
+          )}
+
+          {status === 'ai_validated' && (
+            <span
+              style={{
+                fontSize: '0.675rem',
+                padding: '2px 8px',
+                borderRadius: '10px',
+                background: 'rgba(79, 48, 185, 0.12)',
+                color: 'var(--brand-primary)',
+                border: '1px solid rgba(79, 48, 185, 0.3)',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <Sparkles size={11} /> In AI Validated
+            </span>
+          )}
+
+          {status === 'discarded' && (
+            <span
+              style={{
+                fontSize: '0.675rem',
+                padding: '2px 8px',
+                borderRadius: '10px',
+                background: 'rgba(244, 63, 94, 0.12)',
+                color: 'var(--status-danger)',
+                border: '1px solid rgba(244, 63, 94, 0.3)',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <XCircle size={11} /> Discarded
+            </span>
+          )}
+
+          {status === 'below_threshold' && (
+            <span
+              style={{
+                fontSize: '0.675rem',
+                padding: '2px 8px',
+                borderRadius: '10px',
+                background: 'rgba(245, 158, 11, 0.12)',
+                color: '#d97706',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <AlertCircle size={11} /> Below Threshold (&le;90)
+            </span>
+          )}
+        </div>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span className="badge badge-success" style={{ fontSize: '0.65rem', padding: '1px 5px' }}>
+          <span
+            className="badge"
+            style={{
+              fontSize: '0.65rem',
+              padding: '1px 6px',
+              background: (question.final_score || 95) > 90 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+              color: (question.final_score || 95) > 90 ? 'var(--status-success)' : '#d97706',
+              fontWeight: 700
+            }}
+          >
             Score {question.final_score || 95}/100
           </span>
           {question.image_svg && (
@@ -115,17 +210,32 @@ export default function BatchQuestionItem({
           {question.aamc_skill || question.primary_trap || 'MCAT Standard'}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          {onNavigateToBank && (
+          {status === 'ai_validated' && onNavigateToValidated && (
+            <button
+              type="button"
+              onClick={onNavigateToValidated}
+              className="btn-primary"
+              style={{ padding: '2px 8px', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              title="Review in AI Validated screen"
+            >
+              <Sparkles size={10} />
+              <span>Review in AI Validated</span>
+            </button>
+          )}
+
+          {status === 'in_bank' && onNavigateToBank && (
             <button
               type="button"
               onClick={onNavigateToBank}
               className="btn-secondary"
-              style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+              style={{ padding: '2px 8px', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               title="Open in Question Bank"
             >
-              Bank
+              <Database size={10} />
+              <span>In Bank</span>
             </button>
           )}
+
           {onOpenAudit && (
             <button
               type="button"

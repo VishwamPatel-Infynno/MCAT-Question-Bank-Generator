@@ -18,17 +18,21 @@ from app.repositories.passage_repository import (
 )
 from app.repositories.question_repository import (
     BatchSaveResult,
+    batch_update_question_status,
     delete_question,
     delete_questions_batch,
     get_question_by_id,
+    get_question_status_counts,
     get_questions,
     get_repository_metrics,
     save_question,
     save_questions_batch,
+    update_question_status,
 )
 
 __all__ = [
     "BatchSaveResult",
+    "batch_update_question_status",
     "delete_batch",
     "delete_question",
     "delete_questions_batch",
@@ -39,6 +43,7 @@ __all__ = [
     "get_passage_by_id",
     "get_passages",
     "get_question_by_id",
+    "get_question_status_counts",
     "get_questions",
     "get_repository_metrics",
     "save_batch",
@@ -48,5 +53,6 @@ __all__ = [
     "save_question",
     "save_questions_batch",
     "update_job_progress",
+    "update_question_status",
 ]
 

@@ -43,7 +43,7 @@ export default function GuidedWizard({
   const selectedSubskill = form.selectedSubskill || '';
   const questionType = form.questionType || 'DISCRETE_MCQ';
   const difficulty = form.difficulty || 'medium';
-  const totalQuestions = form.totalQuestions || 5;
+  const totalQuestions = 50;
   const contentDomains = form.contentDomains || [];
   const primaryTrap = form.primaryTrap || 'Automatic';
   const likelyMistakePattern = form.likelyMistakePattern || '';
@@ -51,7 +51,6 @@ export default function GuidedWizard({
 
   const setSelectedSubtopic = useCallback((v) => update('selectedSubtopic', v), [update]);
   const setDifficulty = (v) => update('difficulty', v);
-  const setTotalQuestions = (v) => update('totalQuestions', v);
   const setQuestionType = (v) => update('questionType', v);
   const setPassageCount = (v) => update('passageCount', v);
   const passageMode = form.passageMode || 'single_passage';
@@ -134,6 +133,7 @@ export default function GuidedWizard({
         selectedSubskill: firstSkill?.subskills?.[0] || '',
         passageMode: 'single_passage',
         passageRequired: 'Yes',
+        questionType: 'PASSAGE_BASED_MCQ',
         passageQuestionCount: totalQuestions,
         passageCount: totalQuestions,
         passageSingleCount: totalQuestions,
@@ -165,6 +165,7 @@ export default function GuidedWizard({
       updateFields({
         passageMode: 'single_passage',
         passageRequired: 'Yes',
+        questionType: 'PASSAGE_BASED_MCQ',
         passageQuestionCount: totalQuestions,
         passageCount: totalQuestions,
         passageSingleCount: totalQuestions,
@@ -178,6 +179,7 @@ export default function GuidedWizard({
       updateFields({
         passageMode: 'independent',
         passageRequired: 'No',
+        questionType: 'DISCRETE_MCQ',
         passageQuestionCount: 0,
         passageCount: 0,
         passageSingleCount: 0,
@@ -227,7 +229,7 @@ export default function GuidedWizard({
             <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               {step === 1 && 'Choose Exam Section'}
               {step === 2 && 'Pick Syllabus Hierarchy & Topic'}
-              {step === 3 && 'Difficulty, Format & Batch Quantity'}
+              {step === 3 && 'Difficulty, Format & Structure'}
               {step === 4 && 'Skills, Cognitive Traps & Stimulus'}
               {step === 5 && 'Review & Generate'}
             </span>
@@ -281,7 +283,6 @@ export default function GuidedWizard({
             passageMode={passageMode}
             handlePassageModeChange={handlePassageModeChange}
             totalQuestions={totalQuestions}
-            setTotalQuestions={setTotalQuestions}
             questionType={questionType}
             setQuestionType={setQuestionType}
           />
@@ -397,7 +398,7 @@ export default function GuidedWizard({
           {step === totalSteps ? (
             <>
               <Sparkles size={16} />
-              <span>{totalQuestions === 50 ? 'Launch 50-Question Background Batch' : 'Generate Questions'}</span>
+              <span>Launch 50-Question Batch</span>
             </>
           ) : (
             <>

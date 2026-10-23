@@ -31,7 +31,6 @@ export default function StagedQuestionSlotCard({
 }) {
   // State A: Question has been generated and ready for review
   if (q) {
-    const isMulti = q.interaction_type === 'multi_choice' || (Array.isArray(q.correct_answer_ids) && q.correct_answer_ids.length > 1);
     const wordCount = q.stimulus_text ? q.stimulus_text.trim().split(/\s+/).length : 0;
     const isPassage = q.passage_required === 'Yes' || wordCount >= 180;
     const correctKeysList = Array.isArray(q.correct_answer_ids) && q.correct_answer_ids.length > 0
@@ -98,15 +97,9 @@ export default function StagedQuestionSlotCard({
             <span style={{ fontSize: '0.725rem', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>
               {q.difficulty}
             </span>
-            {isMulti ? (
-              <span className="badge badge-indigo" style={{ fontSize: '0.675rem' }}>
-                Multi Choice
-              </span>
-            ) : (
-              <span className="badge badge-neutral" style={{ fontSize: '0.675rem' }}>
-                Single Choice
-              </span>
-            )}
+            <span className="badge badge-neutral" style={{ fontSize: '0.675rem' }}>
+              Single Choice MCQ
+            </span>
             {isLinked ? (
               <span className="badge badge-cyan" style={{ fontSize: '0.675rem' }}>
                 Passage Set
@@ -220,7 +213,7 @@ export default function StagedQuestionSlotCard({
                     justifyContent: 'center',
                     width: '18px',
                     height: '18px',
-                    borderRadius: isMulti ? '4px' : '50%',
+                    borderRadius: '50%',
                     background: isCorrect ? 'var(--status-success)' : 'transparent',
                     border: isCorrect ? '1px solid var(--status-success)' : '1px solid var(--border-medium)',
                     color: isCorrect ? '#ffffff' : 'var(--text-muted)',
@@ -240,7 +233,7 @@ export default function StagedQuestionSlotCard({
                 </span>
                 {isCorrect && (
                   <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--status-success)', flexShrink: 0 }}>
-                    {isMulti ? 'Correct Key' : 'Answer'}
+                    Answer
                   </span>
                 )}
               </div>

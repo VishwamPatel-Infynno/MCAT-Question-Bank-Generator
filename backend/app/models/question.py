@@ -33,6 +33,7 @@ class QuestionModel(Base):
     run_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     batch_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     job_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    status: Mapped[str] = mapped_column(String(32), default="in_bank", index=True)
 
     # Token usage & cost tracking
     total_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True, default=0)

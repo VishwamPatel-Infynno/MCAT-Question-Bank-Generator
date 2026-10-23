@@ -32,7 +32,8 @@ export function useQuestionBank() {
         {
           section: sectionFilter || undefined,
           difficulty: diffFilter || undefined,
-          search: debouncedSearch || undefined
+          search: debouncedSearch || undefined,
+          status: 'in_bank'
         },
         controller.signal
       )

@@ -144,7 +144,6 @@ export default function QuestionCard({
     ? question.correct_answer_ids.map(k => String(k).trim().toUpperCase())
     : (question.correct_answer_id || '').split(',').map(k => k.trim().toUpperCase()).filter(Boolean);
 
-  const isMulti = correctKeysList.length > 1 || question.interaction_type === 'multi_choice';
   const wordCount = question.stimulus_text ? question.stimulus_text.trim().split(/\s+/).length : 0;
   const isPassage = question.passage_required === 'Yes' || wordCount >= 180;
 
@@ -194,11 +193,7 @@ export default function QuestionCard({
             {question.difficulty}
           </span>
 
-          {isMulti && (
-            <span style={{ fontSize: '0.7rem', color: 'var(--brand-indigo)', fontWeight: 500 }}>
-              Multiple Answers ({correctKeysList.length})
-            </span>
-          )}
+
 
           {question.passage_mode === 'single_passage' || question.passage_id ? (
             <span className="badge badge-cyan" style={{ fontSize: '0.675rem' }}>
@@ -488,7 +483,7 @@ export default function QuestionCard({
                 >
                   {/* Option Letter Indicator */}
                   <div className="choice-letter-badge">
-                    {isMulti && isCorrectKey ? <Check size={13} /> : opt.id}
+                    {opt.id}
                   </div>
 
                   {/* Option Text */}
@@ -540,7 +535,7 @@ export default function QuestionCard({
                       className="badge badge-emerald"
                       style={{ fontSize: '0.675rem', padding: '2px 8px', flexShrink: 0 }}
                     >
-                      <CheckCircle size={11} /> {isMulti ? `Correct Choice (${opt.id})` : 'Correct Answer'}
+                      <CheckCircle size={11} /> Correct Answer
                     </span>
                   )}
                 </div>

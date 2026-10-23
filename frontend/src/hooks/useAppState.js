@@ -11,7 +11,7 @@ import { useGeneratorForm } from './useGeneratorForm';
 import { useQuestionGenerator } from './useQuestionGenerator';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { MCAT_SECTIONS_FALLBACK } from '../constants/mcat';
-import { fetchSections, fetchHealth, approveQuestion, batchApproveQuestions, startBackgroundBatch, fetchBatches } from '../services/api';
+import { fetchSections, fetchHealth, approveQuestion, batchApproveQuestions, startBackgroundBatch, fetchBatches, fetchQuestionCounts } from '../services/api';
 
 export function useAppState() {
   // ─── Theme ───────────────────────────────────────────────────────────────
@@ -25,6 +25,7 @@ export function useAppState() {
   const [sectionsData, setSectionsData] = useState([]);
   const [backendStatus, setBackendStatus] = useState(false);
   const [activeBatchCount, setActiveBatchCount] = useState(0);
+  const [validatedCount, setValidatedCount] = useState(0);
 
   // ─── Form ─────────────────────────────────────────────────────────────────
   const generatorForm = useGeneratorForm();
@@ -98,18 +99,24 @@ export function useAppState() {
       });
   }, [updateFields]);
 
-  // ─── Batch Polling & Active Count ─────────────────────────────────────────
+  // ─── Batch & Counts Polling ───────────────────────────────────────────────
   const refreshActiveBatches = useCallback(() => {
     fetchBatches()
       .then((data) => {
         setActiveBatchCount(data.active_running_batches || 0);
       })
       .catch(() => {});
+
+    fetchQuestionCounts()
+      .then((counts) => {
+        setValidatedCount(counts.ai_validated || 0);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
     refreshActiveBatches();
-    const timer = setInterval(refreshActiveBatches, 5000);
+    const timer = setInterval(refreshActiveBatches, 4000);
     return () => clearInterval(timer);
   }, [refreshActiveBatches]);
 
@@ -170,19 +177,19 @@ export function useAppState() {
       subtopic: selectedSubtopic,
       aamc_skill: selectedSkill || undefined,
       subskill: selectedSubskill || undefined,
-      question_type: questionType || 'DISCRETE_MCQ',
+      question_type: questionType || (passageMode === 'single_passage' ? 'PASSAGE_BASED_MCQ' : 'DISCRETE_MCQ'),
       difficulty,
-      questions_to_generate: totalQuestions,
-      single_choice_count: totalQuestions > 1 ? singleChoiceCount : (interactionType === 'multi_choice' ? 0 : 1),
-      multi_choice_count: totalQuestions > 1 ? multiChoiceCount : (interactionType === 'multi_choice' ? 1 : 0),
-      passage_count: totalQuestions > 1 ? passageCount : (passageRequired === 'Yes' ? 1 : 0),
+      questions_to_generate: 50,
+      single_choice_count: 50,
+      multi_choice_count: 0,
+      passage_count: passageMode === 'single_passage' ? 10 : 0,
       passage_mode: passageMode,
-      passage_question_count: (totalQuestions > 1 && passageMode === 'single_passage') ? passageQuestionCount : undefined,
-      passage_single_count: (totalQuestions > 1 && passageMode === 'single_passage') ? passageSingleCount : undefined,
-      passage_multi_count: (totalQuestions > 1 && passageMode === 'single_passage') ? passageMultiCount : undefined,
-      independent_single_count: (totalQuestions > 1 && passageMode === 'single_passage') ? independentSingleCount : undefined,
-      independent_multi_count: (totalQuestions > 1 && passageMode === 'single_passage') ? independentMultiCount : undefined,
-      interaction_type: interactionType,
+      passage_question_count: passageMode === 'single_passage' ? 50 : undefined,
+      passage_single_count: passageMode === 'single_passage' ? 50 : undefined,
+      passage_multi_count: 0,
+      independent_single_count: passageMode === 'independent' ? 50 : undefined,
+      independent_multi_count: 0,
+      interaction_type: 'single_choice',
       passage_required: passageRequired,
       primary_trap: primaryTrap || 'Automatic',
       likely_mistake_pattern: customMistakePattern || likelyMistakePattern || undefined,
@@ -332,26 +339,25 @@ export function useAppState() {
       ...(cfg.difficulty && { difficulty: cfg.difficulty }),
       ...(cfg.totalQuestions !== undefined && { totalQuestions: cfg.totalQuestions }),
       ...(cfg.singleChoiceCount !== undefined && { singleChoiceCount: cfg.singleChoiceCount }),
-      ...(cfg.multiChoiceCount !== undefined && {
-        multiChoiceCount: cfg.multiChoiceCount,
-        interactionType: cfg.multiChoiceCount > 0 ? 'multi_choice' : 'single_choice'
-      }),
+      interactionType: 'single_choice',
+      multiChoiceCount: 0,
       ...(cfg.passageCount !== undefined && {
         passageCount: cfg.passageCount,
         passageRequired: cfg.passageCount > 0 ? 'Yes' : 'No'
       }),
-      ...(cfg.passageMode && { passageMode: cfg.passageMode }),
+      ...(cfg.passageMode && {
+        passageMode: cfg.passageMode,
+        questionType: cfg.passageMode === 'single_passage' ? 'PASSAGE_BASED_MCQ' : 'DISCRETE_MCQ'
+      }),
       ...(cfg.passageQuestionCount !== undefined && { passageQuestionCount: cfg.passageQuestionCount }),
       ...(cfg.passageSingleCount !== undefined && { passageSingleCount: cfg.passageSingleCount }),
-      ...(cfg.passageMultiCount !== undefined && { passageMultiCount: cfg.passageMultiCount }),
       ...(cfg.independentSingleCount !== undefined && { independentSingleCount: cfg.independentSingleCount }),
-      ...(cfg.independentMultiCount !== undefined && { independentMultiCount: cfg.independentMultiCount }),
       ...(cfg.primaryTrap && { primaryTrap: cfg.primaryTrap })
     });
     showToast({
       type: 'info',
       title: 'Preset Applied',
-      message: `${cfg.totalQuestions || 5} questions set for ${cfg.section ? cfg.section.replace(/_/g, ' ') : 'MCAT'}.`
+      message: `${cfg.totalQuestions || 50} questions configured for ${cfg.section ? cfg.section.replace(/_/g, ' ') : 'MCAT'}.`
     });
   }, [generatorForm, showToast]);
 
@@ -444,5 +450,8 @@ export function useAppState() {
     handleSelectFromBank,
     handleUpdateQuestionInBatch,
     handleUpdateSingleQuestion,
+    // AI Validated state
+    validatedCount,
+    refreshCounts: refreshActiveBatches
   };
 }

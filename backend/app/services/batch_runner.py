@@ -80,6 +80,7 @@ async def _run_single_job(
                             q_obj.batch_id = batch_id
                             q_obj.job_id = job.id
                             q_obj.run_id = job.id
+                            q_obj.status = "ai_validated" if (q_obj.final_score or 0) > 90 else "below_threshold"
                             if passage_id_for_job and not q_obj.passage_id:
                                 q_obj.passage_id = passage_id_for_job
                             saved_q = await save_question(q_obj)
@@ -99,6 +100,7 @@ async def _run_single_job(
                                 q_obj.batch_id = batch_id
                                 q_obj.job_id = job.id
                                 q_obj.run_id = job.id
+                                q_obj.status = "ai_validated" if (q_obj.final_score or 0) > 90 else "below_threshold"
                                 if passage_id_for_job and not q_obj.passage_id:
                                     q_obj.passage_id = passage_id_for_job
                                 if not any(existing.id == q_obj.id for existing in job_questions):

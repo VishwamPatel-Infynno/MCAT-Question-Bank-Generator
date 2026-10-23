@@ -5,7 +5,6 @@ import {
   AlertCircle,
   CheckCircle2
 } from 'lucide-react';
-import { QUESTION_TYPES as ALL_QUESTION_TYPES } from '../../../constants/mcat';
 
 export default function WizardStep3Difficulty({
   selectedSection,
@@ -14,20 +13,25 @@ export default function WizardStep3Difficulty({
   DIFFICULTY_TIERS,
   passageMode,
   handlePassageModeChange,
-  totalQuestions = 5,
-  setTotalQuestions,
-  questionType = 'DISCRETE_MCQ',
+  _totalQuestions = 50,
+  questionType = 'PASSAGE_BASED_MCQ',
   setQuestionType
 }) {
   const isCars = selectedSection === 'cars';
-  const typesList = ALL_QUESTION_TYPES;
+
+  const selectPassageMode = (mode) => {
+    handlePassageModeChange?.(mode);
+    setQuestionType?.(mode === 'single_passage' ? 'PASSAGE_BASED_MCQ' : 'DISCRETE_MCQ');
+  };
+
+  const isPassage = isCars || passageMode === 'single_passage' || questionType === 'PASSAGE_BASED_MCQ';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
       <div className="wizard-heading-group">
-        <h2 className="wizard-step-title">Calibrate Difficulty, Question Type & Batch Size</h2>
+        <h2 className="wizard-step-title">Calibrate Challenge Level & Question Type</h2>
         <p className="wizard-step-subtitle">
-          Calibrated to official AAMC MCAT standards. Tailor the cognitive demand, interaction format, and batch size.
+          Calibrated to official AAMC MCAT standards. Tailor the cognitive demand and choose between Passage-Based or Independent Single-Choice MCQs.
         </p>
       </div>
 
@@ -62,154 +66,16 @@ export default function WizardStep3Difficulty({
         </div>
       </div>
 
-      {/* Official Question Type Selector (8 types from Manager Taxonomy) */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+      {/* Unified MCAT Question Type Selector (Single Choice Only) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-            Official AAMC Question Type:
+            MCAT Question Type (Single Choice MCQs Only):
           </label>
-          <span className="badge-minimal">8 Standard Types</span>
+          <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
+            Single Best Answer (A–D)
+          </span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '8px' }}>
-          {typesList.map((qt) => {
-            const isSelected = questionType === qt.id;
-            return (
-              <div
-                key={qt.id}
-                onClick={() => setQuestionType?.(qt.id)}
-                className={`wizard-tier-card ${isSelected ? 'selected' : ''}`}
-                style={{
-                  padding: '12px 14px',
-                  cursor: 'pointer'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: isSelected ? 'var(--brand-primary)' : 'var(--text-primary)' }}>
-                    {qt.label}
-                  </span>
-                  {isSelected && <CheckCircle2 size={14} style={{ color: 'var(--brand-primary)' }} />}
-                </div>
-                <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>
-                  {qt.description}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Configurable Batch Quantity (1 to 10 Questions) */}
-      <div
-        style={{
-          padding: '16px 20px',
-          borderRadius: 'var(--radius-md)',
-          background: 'var(--bg-surface-elevated)',
-          border: '1px solid var(--border-light)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Batch Quantity: {totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'}
-              </span>
-              <span className="badge badge-purple" style={{ fontSize: '0.72rem', padding: '3px 8px' }}>
-                Configurable Batch
-              </span>
-            </div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-              Select how many questions to generate in this batch (1 to 10 questions, default 5).
-            </div>
-          </div>
-
-          {/* Quick Preset Buttons */}
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {[1, 3, 5, 8, 10].map((qty) => (
-              <button
-                key={qty}
-                type="button"
-                onClick={() => setTotalQuestions?.(qty)}
-                className={`pill-track-btn ${totalQuestions === qty ? 'active' : ''}`}
-                style={{
-                  padding: '5px 12px',
-                  fontSize: '0.8rem',
-                  borderRadius: 'var(--radius-sm)'
-                }}
-              >
-                {qty} Q
-              </button>
-            ))}
-            <button
-              type="button"
-              id="btn-preset-50-batch"
-              onClick={() => setTotalQuestions?.(50)}
-              className={`pill-track-btn ${totalQuestions === 50 ? 'active' : ''}`}
-              style={{
-                padding: '5px 14px',
-                fontSize: '0.8rem',
-                borderRadius: 'var(--radius-sm)',
-                fontWeight: 700,
-                background: totalQuestions === 50 ? 'var(--infynno-gradient)' : 'rgba(79, 48, 185, 0.12)',
-                color: totalQuestions === 50 ? '#ffffff' : 'var(--brand-primary)',
-                border: '1px solid rgba(79, 48, 185, 0.3)'
-              }}
-            >
-              ⚡ 50 Q (10 Jobs)
-            </button>
-          </div>
-        </div>
-
-        {/* Range Slider for granular control (up to 10 for standard, 50 for full section) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>1</span>
-          <input
-            type="range"
-            min={1}
-            max={50}
-            step={1}
-            value={totalQuestions}
-            onChange={(e) => setTotalQuestions?.(parseInt(e.target.value, 10))}
-            style={{
-              flex: 1,
-              accentColor: 'var(--brand-primary)',
-              cursor: 'pointer'
-            }}
-          />
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>50</span>
-        </div>
-
-        {totalQuestions === 50 && (
-          <div
-            style={{
-              padding: '12px 16px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'rgba(79, 48, 185, 0.08)',
-              border: '1px solid rgba(79, 48, 185, 0.25)',
-              fontSize: '0.8rem',
-              color: 'var(--text-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              marginTop: '4px'
-            }}
-          >
-            <Layers size={20} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
-            <div>
-              <strong style={{ color: 'var(--brand-primary)' }}>50-Question Background Section Batch:</strong>{' '}
-              Generates 50 questions organized into <strong>10 distinct jobs</strong> (5 questions per job) with controlled 2-job concurrency. Execution runs securely in the background and is tracked live in the <strong>Batch Activity</strong> screen.
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Binary Passage Selection */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>
-          Stimulus Arrangement (Passage Set vs. Standalone Discretes):
-        </label>
 
         {isCars ? (
           /* CARS Mode: Strictly 100% Passage-Based */
@@ -230,7 +96,7 @@ export default function WizardStep3Difficulty({
               <AlertCircle size={18} style={{ flexShrink: 0 }} />
               <div>
                 <strong>AAMC CARS Standard:</strong> Critical Analysis and Reasoning Skills (CARS) is 100% passage-based.
-                All questions are strictly linked to a single scholarly passage (500–650 words). Independent discretes are not permitted.
+                All 50 questions are organized into passage sets across 10 jobs. Independent discretes are not permitted.
               </div>
             </div>
 
@@ -242,7 +108,7 @@ export default function WizardStep3Difficulty({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <FileText size={18} style={{ color: 'var(--brand-primary)' }} />
                   <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Passage-Based Set (All {totalQuestions} Questions)
+                    Passage-Based MCQ (Single Choice)
                   </span>
                 </div>
                 <span className="badge badge-purple" style={{ fontSize: '0.72rem' }}>
@@ -250,74 +116,119 @@ export default function WizardStep3Difficulty({
                 </span>
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
-                1 continuous scholarly passage (humanities or social sciences, 500–650 words) with all {totalQuestions} questions testing comprehension, reasoning within the text, and reasoning beyond the text.
+                10 continuous scholarly passages (500–650 words each) with 5 linked single-choice questions per passage testing comprehension, reasoning within the text, and reasoning beyond the text.
               </p>
             </div>
           </div>
         ) : (
-          /* Sciences Mode: Binary choice between 1 Passage Set OR Discretes */
+          /* Sciences Mode: Binary choice between Passage-Based MCQ OR Independent MCQ */
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
-            {/* Mode A: Single Passage Set */}
+            {/* Mode A: Passage-Based MCQ */}
             <div
-              className={`wizard-tier-card ${passageMode === 'single_passage' ? 'selected' : ''}`}
-              onClick={() => handlePassageModeChange('single_passage')}
+              className={`wizard-tier-card ${isPassage ? 'selected' : ''}`}
+              onClick={() => selectPassageMode('single_passage')}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  handlePassageModeChange('single_passage');
+                  selectPassageMode('single_passage');
                 }
               }}
               role="button"
               tabIndex={0}
-              id="btn-passage-mode-single"
+              id="btn-question-type-passage"
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <FileText size={18} style={{ color: 'var(--brand-primary)' }} />
                   <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Passage-Based Set
+                    Passage-Based MCQ (Single Choice)
                   </span>
                 </div>
-                {passageMode === 'single_passage' && (
+                {isPassage && (
                   <CheckCircle2 size={16} style={{ color: 'var(--brand-primary)' }} />
                 )}
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
-                All {totalQuestions} questions linked to 1 continuous research or experimental passage stimulus.
+                50 questions organized into 10 passage sets (1 dedicated experimental or research passage stimulus per job, 5 linked single-choice questions each).
               </p>
             </div>
 
-            {/* Mode B: Independent Discretes */}
+            {/* Mode B: Independent MCQ */}
             <div
-              className={`wizard-tier-card ${passageMode === 'independent' ? 'selected' : ''}`}
-              onClick={() => handlePassageModeChange('independent')}
+              className={`wizard-tier-card ${!isPassage ? 'selected' : ''}`}
+              onClick={() => selectPassageMode('independent')}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  handlePassageModeChange('independent');
+                  selectPassageMode('independent');
                 }
               }}
               role="button"
               tabIndex={0}
-              id="btn-passage-mode-independent"
+              id="btn-question-type-independent"
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Layers size={18} style={{ color: 'var(--status-purple)' }} />
                   <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Independent Discretes
+                    Independent MCQ (Single Choice)
                   </span>
                 </div>
-                {passageMode === 'independent' && (
+                {!isPassage && (
                   <CheckCircle2 size={16} style={{ color: 'var(--brand-primary)' }} />
                 )}
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
-                {totalQuestions} standalone questions with zero reading passage (problem stated directly in the question stem).
+                50 standalone discrete single-choice questions with zero reading passages (problem stated directly in the question stem across all 10 jobs).
               </p>
             </div>
           </div>
         )}
+      </div>
+
+      {/* Standard 50-Question Full-Section Batch Informational Card */}
+      <div
+        style={{
+          padding: '16px 20px',
+          borderRadius: 'var(--radius-md)',
+          background: 'rgba(79, 48, 185, 0.07)',
+          border: '1px solid rgba(79, 48, 185, 0.22)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px'
+        }}
+      >
+        <div
+          style={{
+            width: '42px',
+            height: '42px',
+            borderRadius: 'var(--radius-sm)',
+            background: 'var(--infynno-gradient)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#ffffff',
+            flexShrink: 0
+          }}
+        >
+          <Layers size={22} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              Standard Full-Section Batch: 50 Questions
+            </span>
+            <span className="badge badge-purple" style={{ fontSize: '0.72rem', padding: '3px 8px' }}>
+              10 Parallel Jobs
+            </span>
+            <span className="badge-minimal" style={{ fontSize: '0.7rem' }}>
+              AAMC Standard Size
+            </span>
+          </div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.4 }}>
+            Generates 50 single-choice questions organized across <strong>10 distinct jobs (5 questions/job)</strong> running in the background with 2-worker concurrency. Live progress and questions are tracked in the <strong>Batch Activity</strong> view.
+          </div>
+        </div>
       </div>
     </div>
   );

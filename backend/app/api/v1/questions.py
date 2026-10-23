@@ -7,15 +7,18 @@ from fastapi import APIRouter, HTTPException, Query, Response
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.repositories.question_repository import (
+    batch_update_question_status,
     delete_question,
     delete_questions_batch,
     get_question_by_id,
+    get_question_status_counts,
     get_questions,
     get_repository_metrics,
     save_question,
     save_questions_batch,
+    update_question_status,
 )
-from app.schemas import BatchDeleteRequest, Question
+from app.schemas import BatchDeleteRequest, Question, StatusUpdateRequest
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +34,7 @@ async def list_questions(
     run_id: str | None = Query(None),
     batch_id: str | None = Query(None),
     passage_id: str | None = Query(None),
+    status: str | None = Query(None),
 ):
     """Lists saved questions from the Question Bank repository along with aggregated metrics."""
     questions = await get_questions(
@@ -41,6 +45,7 @@ async def list_questions(
         run_id=run_id,
         batch_id=batch_id,
         passage_id=passage_id,
+        status=status,
     )
     dumped = [q.model_dump() for q in questions]
 
@@ -51,6 +56,13 @@ async def list_questions(
         "total_tokens": metrics["total_tokens"],
         "total_cost_usd": metrics["total_cost_usd"],
     }
+
+
+@router.get("/questions/counts")
+async def get_question_counts():
+    """Returns counts of questions grouped by lifecycle status."""
+    counts = await get_question_status_counts()
+    return counts
 
 
 @router.get("/questions/{question_id}")
@@ -126,6 +138,30 @@ async def remove_questions_batch(payload: BatchDeleteRequest):
     deleted_count = await delete_questions_batch(payload.ids)
     logger.info(f"Bulk deleted {deleted_count} questions from Question Bank.")
     return {"success": True, "deleted_count": deleted_count}
+
+
+@router.post("/questions/update-status")
+async def batch_update_status(payload: StatusUpdateRequest):
+    """Bulk update question lifecycle status ('in_bank', 'discarded', 'ai_validated')."""
+    valid_statuses = {"in_bank", "discarded", "ai_validated", "below_threshold"}
+    if payload.status not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Invalid status '{payload.status}'. Must be one of {valid_statuses}")
+    updated_count = await batch_update_question_status(payload.ids, payload.status)
+    logger.info(f"Bulk updated {updated_count} questions to status '{payload.status}'.")
+    return {"success": True, "updated_count": updated_count, "status": payload.status}
+
+
+@router.patch("/questions/{question_id}/status")
+async def update_single_status(question_id: str, payload: dict):
+    """Update single question lifecycle status."""
+    new_status = payload.get("status")
+    valid_statuses = {"in_bank", "discarded", "ai_validated", "below_threshold"}
+    if not new_status or new_status not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Missing or invalid 'status'. Must be one of {valid_statuses}")
+    success = await update_question_status(question_id, new_status)
+    if not success:
+        raise HTTPException(status_code=404, detail="Question not found")
+    return {"success": True, "question_id": question_id, "status": new_status}
 
 
 @router.get("/export")

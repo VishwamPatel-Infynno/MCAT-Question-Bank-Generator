@@ -21,58 +21,61 @@ export default function HeroLanding({
   const PRESETS = [
     {
       label: 'Chem / Phys Foundations',
-      tag: '5-Question Passage Set',
+      tag: '50-Question Passage Batch',
       icon: FlaskConical,
       config: {
         section: 'chem_phys',
         difficulty: 'medium',
-        totalQuestions: 5,
-        singleChoiceCount: 5,
+        totalQuestions: 50,
+        singleChoiceCount: 50,
         passageMode: 'single_passage',
-        passageQuestionCount: 5,
+        passageQuestionCount: 50,
+        passageCount: 10,
         passageRequired: 'Yes'
       }
     },
     {
       label: 'Critical Analysis (CARS)',
-      tag: '5-Question Passage Set',
+      tag: '50-Question Passage Batch',
       icon: BookOpen,
       config: {
         section: 'cars',
         difficulty: 'medium',
-        totalQuestions: 5,
-        singleChoiceCount: 5,
-        passageCount: 1,
+        totalQuestions: 50,
+        singleChoiceCount: 50,
+        passageCount: 10,
         passageMode: 'single_passage',
-        passageQuestionCount: 5,
+        passageQuestionCount: 50,
         passageRequired: 'Yes'
       }
     },
     {
       label: 'Bio / Biochem Foundations',
-      tag: '5-Question Passage Set',
+      tag: '50-Question Passage Batch',
       icon: Dna,
       config: {
         section: 'bio_biochem',
         difficulty: 'hard',
-        totalQuestions: 5,
-        singleChoiceCount: 5,
+        totalQuestions: 50,
+        singleChoiceCount: 50,
         passageMode: 'single_passage',
-        passageQuestionCount: 5,
+        passageQuestionCount: 50,
+        passageCount: 10,
         passageRequired: 'Yes'
       }
     },
     {
       label: 'Psych / Soc Foundations',
-      tag: '5 Independent Discretes',
+      tag: '50-Question Discrete Batch',
       icon: Brain,
       config: {
         section: 'psych_soc',
         difficulty: 'medium',
-        totalQuestions: 5,
-        singleChoiceCount: 5,
+        totalQuestions: 50,
+        singleChoiceCount: 50,
         passageMode: 'independent',
         passageQuestionCount: 0,
+        passageCount: 0,
         passageRequired: 'No'
       }
     }

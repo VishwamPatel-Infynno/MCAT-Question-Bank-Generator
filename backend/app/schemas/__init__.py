@@ -25,6 +25,7 @@ from app.schemas.question import (
     Question,
     QuestionDraft,
     ReviewScore,
+    StatusUpdateRequest,
 )
 from app.schemas.token import TokenUsage
 from app.schemas.workflow import GenerationRequest, WorkflowEvent
@@ -53,6 +54,7 @@ __all__ = [
     "QUESTION_TYPES",
     "ReviewScore",
     "SECTION_CODE_MAP",
+    "StatusUpdateRequest",
     "TokenUsage",
     "WorkflowEvent",
     "calculate_mcat_scaled_score",

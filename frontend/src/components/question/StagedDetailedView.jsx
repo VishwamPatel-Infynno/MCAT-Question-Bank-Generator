@@ -114,7 +114,6 @@ export default function StagedDetailedView({
                 <span className="badge badge-neutral" style={{ fontSize: '0.625rem' }}>
                   {q.difficulty}
                 </span>
-                {isMulti && <span className="badge badge-indigo" style={{ fontSize: '0.625rem' }}>Multi</span>}
                 {isQuestionPassageLinked(q, slotNumber) ? (
                   <span className="badge badge-purple" style={{ fontSize: '0.625rem' }}>Passage</span>
                 ) : isMixedBatch ? (

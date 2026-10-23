@@ -1689,3 +1689,95 @@ def test_taxonomy_json_parity_between_backend_and_frontend():
         backend_content == frontend_content
     ), "Taxonomy JSON in backend/app/data and frontend/src/constants must be byte-for-byte identical"
 
+
+@pytest.mark.asyncio
+async def test_question_status_lifecycle_and_counts():
+    """Verifies question status filtering, counts aggregation, and status transitions."""
+    import uuid
+    from app.repositories.question_repository import (
+        batch_update_question_status,
+        delete_question,
+        get_question_status_counts,
+        get_questions,
+        save_question,
+        update_question_status,
+    )
+    from app.schemas.question import OptionChoice, Question
+
+    uid1 = str(uuid.uuid4())
+    uid2 = str(uuid.uuid4())
+
+    q1 = Question(
+        id=uid1,
+        section="chem_phys",
+        section_label="Chemical and Physical Foundations",
+        subtopic="Acid-Base Equilibrium",
+        difficulty="Hard",
+        question_stem="What is the pH?",
+        options=[
+            OptionChoice(id="A", text="3.0"),
+            OptionChoice(id="B", text="4.0"),
+            OptionChoice(id="C", text="5.0"),
+            OptionChoice(id="D", text="7.0"),
+        ],
+        correct_answer_id="A",
+        explanation="Calculated pH is 3.0",
+        final_score=96,
+        status="ai_validated",
+    )
+
+    q2 = Question(
+        id=uid2,
+        section="bio_biochem",
+        section_label="Biological and Biochemical Foundations",
+        subtopic="Enzyme Kinetics",
+        difficulty="Medium",
+        question_stem="What is Km?",
+        options=[
+            OptionChoice(id="A", text="Vmax/2"),
+            OptionChoice(id="B", text="Substrate concentration at half Vmax"),
+            OptionChoice(id="C", text="Turnover rate"),
+            OptionChoice(id="D", text="Inhibition constant"),
+        ],
+        correct_answer_id="B",
+        explanation="Km definition",
+        final_score=85,
+        status="below_threshold",
+    )
+
+    await save_question(q1)
+    await save_question(q2)
+
+    # Verify filtering
+    validated_qs = await get_questions(status="ai_validated")
+    assert any(q.id == uid1 for q in validated_qs)
+    assert not any(q.id == uid2 for q in validated_qs)
+
+    below_qs = await get_questions(status="below_threshold")
+    assert any(q.id == uid2 for q in below_qs)
+    assert not any(q.id == uid1 for q in below_qs)
+
+    # Test counts
+    counts = await get_question_status_counts()
+    assert counts["ai_validated"] >= 1
+    assert counts["below_threshold"] >= 1
+
+    # Update single status (e.g. promote to in_bank)
+    res_single = await update_question_status(uid1, "in_bank")
+    assert res_single is True
+
+    bank_qs = await get_questions(status="in_bank")
+    assert any(q.id == uid1 for q in bank_qs)
+
+    # Batch update status (e.g. discard)
+    res_batch = await batch_update_question_status([uid1, uid2], "discarded")
+    assert res_batch == 2
+
+    discarded_qs = await get_questions(status="discarded")
+    assert any(q.id == uid1 for q in discarded_qs)
+    assert any(q.id == uid2 for q in discarded_qs)
+
+    # Cleanup
+    await delete_question(uid1)
+    await delete_question(uid2)
+

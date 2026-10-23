@@ -98,6 +98,10 @@ class Question(BaseModel):
     job_id: str | None = Field(
         None, description="Job execution UUID4 binding questions to a specific job"
     )
+    status: str = Field(
+        "in_bank",
+        description="Lifecycle status: 'ai_validated', 'in_bank', 'discarded', 'below_threshold'",
+    )
     section: str
     section_label: str
     subtopic: str
@@ -255,3 +259,10 @@ class BatchDeleteRequest(BaseModel):
     """Request body for bulk question deletion."""
 
     ids: list[str]
+
+
+class StatusUpdateRequest(BaseModel):
+    """Request body for updating lifecycle status of questions."""
+
+    ids: list[str]
+    status: str  # 'in_bank', 'discarded', 'ai_validated', 'below_threshold'

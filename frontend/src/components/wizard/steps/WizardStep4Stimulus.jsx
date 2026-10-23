@@ -384,13 +384,9 @@ export default function WizardStep4Stimulus({
             passageMode={passageMode}
             activeQuestionImagesCount={activeQuestionImagesCount}
             indSingleTotal={indSingleTotal}
-            indMultiTotal={indMultiTotal}
             indSingleIndices={indSingleIndices}
-            indMultiIndices={indMultiIndices}
             activeSingleImageCount={activeSingleImageCount}
-            activeMultiImageCount={activeMultiImageCount}
             setSingleImageCount={setSingleImageCount}
-            setMultiImageCount={setMultiImageCount}
           />
         </div>
       )}

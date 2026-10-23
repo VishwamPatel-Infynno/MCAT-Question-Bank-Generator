@@ -19,6 +19,7 @@ import BatchJobCard from './BatchJobCard';
 export default function BatchActivityView({
   onOpenAudit,
   onNavigateToBank,
+  onNavigateToValidated,
   onNavigateToWizard,
   onShowToast
 }) {
@@ -735,6 +736,7 @@ export default function BatchActivityView({
                                 isExpanded={Boolean(expandedJobIds[job.id])}
                                 onToggleExpand={handleToggleJob}
                                 onNavigateToBank={onNavigateToBank}
+                                onNavigateToValidated={onNavigateToValidated}
                                 onOpenAudit={onOpenAudit}
                               />
                             ))}

@@ -136,11 +136,7 @@ export default function QuestionBankTable({
                       </span>
                     )}
 
-                    {((q.correct_answer_ids && q.correct_answer_ids.length > 1) || q.interaction_type === 'multi_choice') && (
-                      <span style={{ color: 'var(--brand-indigo)', fontWeight: 500, fontSize: '0.7rem' }}>
-                        • Multi-Choice
-                      </span>
-                    )}
+
 
                     {q.passage_id ? (
                       <span className="badge badge-cyan" style={{ fontSize: '0.625rem', padding: '1px 6px' }}>

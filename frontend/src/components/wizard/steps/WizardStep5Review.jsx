@@ -92,16 +92,18 @@ export default function WizardStep5Review({
           </button>
         </div>
 
-        {/* Row 3: Difficulty, Question Type & Quantity */}
+        {/* Row 3: Difficulty, Question Type & Standard Batch */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Question Format & Batch Quantity</div>
+            <div className="wizard-summary-label">Question Format & Standard Batch</div>
             <div className="wizard-summary-value" style={{ marginTop: '4px', flexWrap: 'wrap' }}>
               <span style={{ textTransform: 'capitalize', fontWeight: 600 }}>{difficulty} Difficulty</span>
               <span style={{ color: 'var(--text-muted)' }}>•</span>
-              <span style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>{totalQuestions} Questions</span>
+              <span style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>Standard Batch: 50 Questions (10 Jobs)</span>
               <span style={{ color: 'var(--text-muted)' }}>•</span>
-              <span className="badge-minimal">{questionType.replace(/_/g, ' ')}</span>
+              <span className="badge-minimal">
+                {questionType === 'PASSAGE_BASED_MCQ' ? 'Passage-Based MCQ (Single Choice)' : 'Independent MCQ (Single Choice)'}
+              </span>
             </div>
           </div>
           <button
@@ -122,11 +124,11 @@ export default function WizardStep5Review({
             <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
               {passageMode === 'single_passage' ? (
                 <span style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>
-                  Passage-Based Set (All {totalQuestions} Questions Linked to 1 Shared Passage)
+                  Passage-Based Sets (10 Passages × 5 Questions = 50 Questions)
                 </span>
               ) : (
                 <span style={{ color: 'var(--status-purple)', fontWeight: 600 }}>
-                  Independent Discretes ({totalQuestions} Standalone Items)
+                  Independent Discretes (50 Standalone Items)
                 </span>
               )}
             </div>
