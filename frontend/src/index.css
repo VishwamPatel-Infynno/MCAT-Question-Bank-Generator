@@ -1461,6 +1461,85 @@ input:focus, select:focus, textarea:focus {
   text-decoration: underline;
 }
 
+/* ==========================================================================
+   Progressive 7-Step Wizard Styles (1-2 Decisions Per Step)
+   ========================================================================== */
+.wizard-stacked-decision {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wizard-decision-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wizard-decision-num {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: var(--infynno-gradient);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(79, 48, 185, 0.3);
+}
+
+.wizard-decision-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.wizard-decision-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-surface-elevated);
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-light);
+}
+
+.wizard-decision-connector {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-medium), transparent);
+  margin: 4px 0;
+}
+
+.wizard-step-fade-enter {
+  animation: wizardFadeEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes wizardFadeEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wizard-stepper-7::-webkit-scrollbar {
+  height: 3px;
+}
+
+.wizard-stepper-7::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: var(--radius-full);
+}
+
+
 
 .workspace-action-btn-primary {
   display: inline-flex;

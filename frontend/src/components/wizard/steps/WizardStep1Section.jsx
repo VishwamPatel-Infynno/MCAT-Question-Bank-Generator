@@ -1,13 +1,23 @@
 import React from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, CheckCircle2 } from 'lucide-react';
 
 export default function WizardStep1Section({
   selectedSection,
   onSelectSection,
   SECTION_METADATA,
   sectionMeta,
-  pacing
+  pacing,
+  onAutoAdvance
 }) {
+  const handleCardClick = (secId) => {
+    onSelectSection(secId);
+    if (onAutoAdvance) {
+      setTimeout(() => {
+        onAutoAdvance();
+      }, 240);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div className="wizard-heading-group">
@@ -30,11 +40,11 @@ export default function WizardStep1Section({
             <div
               key={sec.id}
               className={`wizard-section-card ${isSelected ? 'selected' : ''}`}
-              onClick={() => onSelectSection(sec.id)}
+              onClick={() => handleCardClick(sec.id)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  onSelectSection(sec.id);
+                  handleCardClick(sec.id);
                 }
               }}
               role="button"
@@ -51,7 +61,12 @@ export default function WizardStep1Section({
                 >
                   <Icon size={18} />
                 </div>
-                <span className="badge-minimal">{sec.tag}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {isSelected && (
+                    <CheckCircle2 size={15} style={{ color: 'var(--brand-primary)' }} />
+                  )}
+                  <span className="badge-minimal">{sec.tag}</span>
+                </div>
               </div>
 
               <div className="wizard-section-name">{sec.label}</div>

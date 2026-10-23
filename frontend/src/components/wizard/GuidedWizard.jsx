@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Check
 } from 'lucide-react';
 import {
   PACING_INFO,
@@ -14,11 +15,25 @@ import {
   DIFFICULTY_TIERS,
   COGNITIVE_TRAPS
 } from './wizardConstants';
-import WizardStep1Section from './steps/WizardStep1Section';
-import WizardStep2Topic from './steps/WizardStep2Topic';
-import WizardStep3Difficulty from './steps/WizardStep3Difficulty';
-import WizardStep4Stimulus from './steps/WizardStep4Stimulus';
-import WizardStep5Review from './steps/WizardStep5Review';
+import {
+  WizardStep1Section,
+  WizardStep2DisciplineUnit,
+  WizardStep3TopicSubtopic,
+  WizardStep4LevelFormat,
+  WizardStep5TrapsSkills,
+  WizardStep6VisualsPrompt,
+  WizardStep7Review
+} from './steps';
+
+const STEP_CONFIG = [
+  { num: 1, label: 'Section', short: 'Section', subtitle: 'Choose Exam Section', nextLabel: 'Continue to Unit' },
+  { num: 2, label: 'Discipline', short: 'Unit', subtitle: 'Pick Discipline & Major Unit', nextLabel: 'Continue to Topic' },
+  { num: 3, label: 'Topic', short: 'Topic', subtitle: 'Select Topic & Concept', nextLabel: 'Continue to Level' },
+  { num: 4, label: 'Level', short: 'Level', subtitle: 'Calibrate Level & Format', nextLabel: 'Continue to Traps' },
+  { num: 5, label: 'Traps', short: 'Traps', subtitle: 'Cognitive Traps & Reasoning Skills', nextLabel: 'Continue to Visuals' },
+  { num: 6, label: 'Visuals', short: 'Visuals', subtitle: 'Figures & Vignette Guidance', nextLabel: 'Review Configuration' },
+  { num: 7, label: 'Review', short: 'Review', subtitle: 'Review & Launch', nextLabel: 'Launch 50-Question Batch' }
+];
 
 export default function GuidedWizard({
   generatorForm,
@@ -27,7 +42,7 @@ export default function GuidedWizard({
   onLaunchGeneration
 }) {
   const [step, setStep] = useState(1);
-  const totalSteps = 5;
+  const totalSteps = 7;
 
   const form = generatorForm?.formData || {};
   const update = generatorForm?.updateField;
@@ -41,7 +56,7 @@ export default function GuidedWizard({
   const selectedSubtopic = form.selectedSubtopic || '';
   const selectedSkill = form.selectedSkill || '';
   const selectedSubskill = form.selectedSubskill || '';
-  const questionType = form.questionType || 'DISCRETE_MCQ';
+  const questionType = form.questionType || 'PASSAGE_BASED_MCQ';
   const difficulty = form.difficulty || 'medium';
   const totalQuestions = 50;
   const contentDomains = form.contentDomains || [];
@@ -69,7 +84,6 @@ export default function GuidedWizard({
   const setCustomPrompt = (v) => update('customPrompt', v);
 
   const isPassageSet = passageMode === 'single_passage';
-  const isAbstractReasoning = false;
   const sectionMeta = SECTION_METADATA[selectedSection] || SECTION_METADATA.chem_phys;
   const pacing = PACING_INFO[selectedSection] || PACING_INFO.chem_phys;
 
@@ -80,36 +94,16 @@ export default function GuidedWizard({
   const independentIndices = Array.from({ length: totalQuestions }, (_, i) => i + 1).slice(numPassageQs);
 
   const indSingleTotal = passageMode === 'independent' ? totalQuestions : 0;
-  const indMultiTotal = 0;
-
   const indSingleIndices = independentIndices.slice(0, indSingleTotal);
-  const indMultiIndices = [];
 
   const activeSingleImageIndices = (imageQuestionIndices || []).filter(i => indSingleIndices.includes(i));
   const activeSingleImageCount = activeSingleImageIndices.length;
-  const activeMultiImageCount = 0;
 
   const activeQuestionImagesCount = imageMode === 'all'
     ? independentIndices.length
     : activeSingleImageCount;
   const hasPassageImage = isPassageSet && Boolean(requirePassageImage);
   const totalImagesCount = activeQuestionImagesCount + (hasPassageImage ? 1 : 0);
-
-  // Subtopics for current section
-  const availableSubtopics = useMemo(() => {
-    const secObj = sectionsData?.find(s => s.id === selectedSection);
-    return secObj?.subtopics && secObj.subtopics.length > 0
-      ? secObj.subtopics
-      : [
-          'Thermodynamics & Kinetics',
-          'Enzymatic Catalysis & Inhibition',
-          'Circuits & Electromagnetism',
-          'Fluids & Gas Laws',
-          'Genetics & Molecular Biology',
-          'Cognitive & Behavioral Foundations',
-          'Foundations of Comprehension'
-        ];
-  }, [sectionsData, selectedSection]);
 
   // Section Selection handler
   const handleSelectSection = (sectionId) => {
@@ -219,24 +213,90 @@ export default function GuidedWizard({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  const currentStepConfig = STEP_CONFIG[step - 1] || STEP_CONFIG[0];
+
   return (
     <div className="wizard-card" id="guided-wizard-container">
-      {/* Top Navigation & Progress Bar */}
+      {/* Top Navigation & Interactive Progress Tracker */}
       <div className="wizard-topbar">
-        <div className="wizard-topbar-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span className="wizard-step-pill">Step {step} of {totalSteps}</span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              {step === 1 && 'Choose Exam Section'}
-              {step === 2 && 'Pick Syllabus Hierarchy & Topic'}
-              {step === 3 && 'Difficulty, Format & Structure'}
-              {step === 4 && 'Skills, Cognitive Traps & Stimulus'}
-              {step === 5 && 'Review & Generate'}
+        <div className="wizard-topbar-header" style={{ marginBottom: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span className="wizard-step-pill">Step {step} of {totalSteps}</span>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                {currentStepConfig.subtitle}
+              </span>
+            </div>
+            <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
+              Standard Batch: {totalQuestions} Questions
             </span>
           </div>
         </div>
 
-        {/* Progress Track */}
+        {/* Interactive Step Pills Tracker */}
+        <div className="wizard-stepper-7" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', overflowX: 'auto', paddingBottom: '4px' }}>
+          {STEP_CONFIG.map((cfg) => {
+            const isCurrent = step === cfg.num;
+            const isCompleted = step > cfg.num;
+            const isClickable = isCompleted || isCurrent;
+
+            return (
+              <button
+                key={cfg.num}
+                type="button"
+                onClick={() => isCompleted && setStep(cfg.num)}
+                disabled={!isClickable}
+                title={isCompleted ? `Jump back to ${cfg.label}` : cfg.label}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-full)',
+                  fontSize: '0.75rem',
+                  fontWeight: isCurrent ? 700 : 500,
+                  cursor: isCompleted ? 'pointer' : 'default',
+                  background: isCurrent
+                    ? 'var(--infynno-gradient)'
+                    : isCompleted
+                    ? 'rgba(16, 185, 129, 0.1)'
+                    : 'var(--bg-surface-elevated)',
+                  border: isCurrent
+                    ? '1px solid transparent'
+                    : isCompleted
+                    ? '1px solid rgba(16, 185, 129, 0.3)'
+                    : '1px solid var(--border-light)',
+                  color: isCurrent
+                    ? '#ffffff'
+                    : isCompleted
+                    ? 'var(--status-success)'
+                    : 'var(--text-muted)',
+                  transition: 'all 0.18s ease',
+                  flexShrink: 0
+                }}
+              >
+                <span
+                  style={{
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.68rem',
+                    background: isCurrent ? 'rgba(255, 255, 255, 0.25)' : 'transparent',
+                    fontWeight: 700
+                  }}
+                >
+                  {isCompleted ? <Check size={11} /> : cfg.num}
+                </span>
+                <span>{cfg.short}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Continuous Progress Track */}
         <div className="wizard-progress-track">
           <div
             className="wizard-progress-fill"
@@ -245,8 +305,9 @@ export default function GuidedWizard({
         </div>
       </div>
 
-      {/* Wizard Body: Render per-step subcomponents */}
-      <div className="wizard-body">
+      {/* Wizard Body: Render Focused Progressive Steps */}
+      <div className="wizard-body wizard-step-fade-enter" key={step}>
+        {/* Step 1: Exam Section (1 Decision) */}
         {step === 1 && (
           <WizardStep1Section
             selectedSection={selectedSection}
@@ -254,28 +315,41 @@ export default function GuidedWizard({
             SECTION_METADATA={SECTION_METADATA}
             sectionMeta={sectionMeta}
             pacing={pacing}
+            onAutoAdvance={() => setStep(2)}
           />
         )}
 
+        {/* Step 2: Discipline & Major Unit (2 Decisions) */}
         {step === 2 && (
-          <WizardStep2Topic
+          <WizardStep2DisciplineUnit
             selectedSection={selectedSection}
             sectionMeta={sectionMeta}
             selectedSubject={selectedSubject}
             onSelectSubject={(v) => update('selectedSubject', v)}
             selectedUnit={selectedUnit}
             onSelectUnit={(v) => update('selectedUnit', v)}
+            onSelectTopic={(v) => update('selectedTopic', v)}
+            onSelectSubtopic={(v) => update('selectedSubtopic', v)}
+          />
+        )}
+
+        {/* Step 3: Specific Topic & Subtopic Concept (2 Decisions) */}
+        {step === 3 && (
+          <WizardStep3TopicSubtopic
+            selectedSection={selectedSection}
+            sectionMeta={sectionMeta}
+            selectedSubject={selectedSubject}
+            selectedUnit={selectedUnit}
             selectedTopic={selectedTopic}
             onSelectTopic={(v) => update('selectedTopic', v)}
             selectedSubtopic={selectedSubtopic}
             onSelectSubtopic={(v) => update('selectedSubtopic', v)}
-            availableSubtopics={availableSubtopics}
-            setSelectedSubtopic={setSelectedSubtopic}
           />
         )}
 
-        {step === 3 && (
-          <WizardStep3Difficulty
+        {/* Step 4: Challenge Level & Question Format (2 Decisions) */}
+        {step === 4 && (
+          <WizardStep4LevelFormat
             selectedSection={selectedSection}
             difficulty={difficulty}
             setDifficulty={setDifficulty}
@@ -287,51 +361,45 @@ export default function GuidedWizard({
           />
         )}
 
-        {step === 4 && (
-          <WizardStep4Stimulus
+        {/* Step 5: Cognitive Traps & Reasoning Skills (2 Decisions) */}
+        {step === 5 && (
+          <WizardStep5TrapsSkills
             selectedSection={selectedSection}
-            totalQuestions={totalQuestions}
-            passageRequired={passageRequired}
-            setPassageRequired={setPassageRequired}
-            setPassageCount={setPassageCount}
-            setPassageMode={setPassageMode}
-            requirePassageImage={requirePassageImage}
-            setRequirePassageImage={setRequirePassageImage}
-            isAbstractReasoning={isAbstractReasoning}
-            imageQuestionIndices={imageQuestionIndices}
-            imageMode={imageMode}
-            setImageCount={setImageCount}
-            passageMode={passageMode}
-            numIndependentQs={numIndependentQs}
-            activeQuestionImagesCount={activeQuestionImagesCount}
-            indSingleTotal={indSingleTotal}
-            indMultiTotal={indMultiTotal}
-            indSingleIndices={indSingleIndices}
-            indMultiIndices={indMultiIndices}
-            activeSingleImageCount={activeSingleImageCount}
-            activeMultiImageCount={activeMultiImageCount}
-            setSingleImageCount={setSingleImageCount}
-            setMultiImageCount={setMultiImageCount}
-            COGNITIVE_TRAPS={COGNITIVE_TRAPS}
             primaryTrap={primaryTrap}
             setPrimaryTrap={setPrimaryTrap}
-            customPrompt={customPrompt}
-            setCustomPrompt={setCustomPrompt}
             selectedSkill={selectedSkill}
             setSelectedSkill={(v) => update('selectedSkill', v)}
             selectedSubskill={selectedSubskill}
             setSelectedSubskill={(v) => update('selectedSubskill', v)}
-            contentDomains={contentDomains}
-            onToggleContentDomain={toggleContentDomain}
+          />
+        )}
+
+        {/* Step 6: Visual Stimulus & Custom Guidance (2 Decisions) */}
+        {step === 6 && (
+          <WizardStep6VisualsPrompt
+            passageMode={passageMode}
+            requirePassageImage={requirePassageImage}
+            setRequirePassageImage={setRequirePassageImage}
+            numIndependentQs={numIndependentQs}
+            activeQuestionImagesCount={activeQuestionImagesCount}
+            indSingleTotal={indSingleTotal}
+            indSingleIndices={indSingleIndices}
+            activeSingleImageCount={activeSingleImageCount}
+            setSingleImageCount={setSingleImageCount}
             likelyMistakePattern={likelyMistakePattern}
             setLikelyMistakePattern={(v) => update('likelyMistakePattern', v)}
             customMistakePattern={customMistakePattern}
             setCustomMistakePattern={(v) => update('customMistakePattern', v)}
+            contentDomains={contentDomains}
+            onToggleContentDomain={toggleContentDomain}
+            customPrompt={customPrompt}
+            setCustomPrompt={setCustomPrompt}
           />
         )}
 
-        {step === 5 && (
-          <WizardStep5Review
+        {/* Step 7: Review & Multi-Agent Launch */}
+        {step === 7 && (
+          <WizardStep7Review
             sectionMeta={sectionMeta}
             pacing={pacing}
             setStep={setStep}
@@ -377,12 +445,15 @@ export default function GuidedWizard({
           <span>Back</span>
         </button>
 
-        {/* Step Dots */}
+        {/* Step dots for compact view */}
         <div className="wizard-step-indicators">
-          {Array.from({ length: totalSteps }, (_, i) => i + 1).map((dot) => (
+          {STEP_CONFIG.map((cfg) => (
             <div
-              key={dot}
-              className={`wizard-dot ${step === dot ? 'active' : step > dot ? 'completed' : ''}`}
+              key={cfg.num}
+              onClick={() => step > cfg.num && setStep(cfg.num)}
+              style={{ cursor: step > cfg.num ? 'pointer' : 'default' }}
+              className={`wizard-dot ${step === cfg.num ? 'active' : step > cfg.num ? 'completed' : ''}`}
+              title={`Step ${cfg.num}: ${cfg.label}`}
             />
           ))}
         </div>
@@ -392,7 +463,7 @@ export default function GuidedWizard({
           className="workspace-action-btn-primary"
           id={step === totalSteps ? 'btn-wizard-generate-questions' : 'btn-wizard-next-step'}
           onClick={handleNext}
-          style={{ padding: '10px 22px', fontSize: '0.95rem' }}
+          style={{ padding: '10px 22px', fontSize: '0.92rem' }}
         >
           {step === totalSteps ? (
             <>
@@ -401,7 +472,7 @@ export default function GuidedWizard({
             </>
           ) : (
             <>
-              <span>Next</span>
+              <span>{currentStepConfig.nextLabel}</span>
               <ArrowRight size={16} />
             </>
           )}
