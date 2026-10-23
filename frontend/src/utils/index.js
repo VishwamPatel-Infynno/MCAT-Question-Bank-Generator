@@ -19,3 +19,8 @@ export {
   generateExamHtmlDoc
 } from './exportUtils';
 
+export {
+  renderFormattedText,
+  extractDistractorLines
+} from './explanationHelpers';
+
