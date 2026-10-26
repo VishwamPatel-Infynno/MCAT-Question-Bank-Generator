@@ -20,7 +20,6 @@ export {
 } from './exportUtils';
 
 export {
-  renderFormattedText,
   extractDistractorLines
 } from './explanationHelpers';
 

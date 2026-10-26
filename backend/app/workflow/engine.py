@@ -83,11 +83,10 @@ def _determine_item_diagram_requirement(
     state: AgentWorkflowState,
     idx: int,
     is_passage_item: bool,
-    req_img_indices: list[int] | None,
 ) -> bool:
     """
     Evaluates whether a specific question item within a batch requires a visual stimulus diagram.
-    Respects section type, passage attachment, explicit image flags, and granular question-level image indices.
+    Respects section type, passage attachment, explicit image flags, and autonomous AI needs.
     """
     req_data = state["request"]
     sec_raw = req_data.get("section", "")
@@ -104,13 +103,11 @@ def _determine_item_diagram_requirement(
         return False
 
     # Check if visual generation is permitted at all
-    visuals_permitted = allow_ai_images or explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image")
+    visuals_permitted = (
+        allow_ai_images or explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image")
+    )
     if not visuals_permitted:
         return False
-
-    # If explicit question indices were specified, honor them (legacy support)
-    if req_img_indices is not None and len(req_img_indices) > 0:
-        return (idx + 1) in req_img_indices
 
     # Autonomous AI determination for independent items
     return bool(state.get("current_draft", {}).get("image_needed", False))
@@ -370,10 +367,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 req.section != MCATSection.CARS
                 and (
                     req.require_passage_image
-                    or (
-                        req.require_image
-                        and req.image_question_indices is None
-                    )
+                    or req.require_image
                     or req.visual_type in ("SVG_Diagram", "AI_FLUX_Image")
                 )
             )
@@ -620,7 +614,6 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         state=state,
                         idx=idx,
                         is_passage_item=is_passage_item_check,
-                        req_img_indices=req.image_question_indices,
                     )
 
                     if requires_image:

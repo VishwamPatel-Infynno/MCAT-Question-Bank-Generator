@@ -4,11 +4,9 @@ import {
   RefreshCw,
   Sparkles
 } from 'lucide-react';
-import { fetchBatches, fetchBatchDetail, deleteBatch } from '../../services/api';
-import { SECTION_CODE_MAP } from '../../constants/mcat';
-import BatchStatsHeader from './BatchStatsHeader';
-import BatchFiltersBar from './BatchFiltersBar';
-import BatchCard from './BatchCard';
+import { fetchBatches, fetchBatchDetail, deleteBatch } from '../services/api';
+import { SECTION_CODE_MAP } from '../constants/mcat';
+import { BatchStatsHeader, BatchFiltersBar, BatchCard } from '../components/batch';
 
 export default function BatchActivityView({
   onOpenAudit,

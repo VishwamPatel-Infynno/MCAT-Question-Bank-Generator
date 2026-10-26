@@ -10,6 +10,9 @@ export * from './pipeline';
 // Question & Review Components
 export * from './question';
 
+// Staged Batch Review Components
+export * from './staged';
+
 // Wizard & Guided Onboarding
 export * from './wizard';
 
@@ -25,5 +28,5 @@ export * from './modals';
 // AI Validated Review Components
 export * from './validated';
 
-// Heavy views (QuestionBank, ReviewAuditView, BatchActivityView, AiValidatedQuestionsView)
-// are intentionally loaded via React.lazy() in App.jsx to preserve optimal code splitting.
+// Top-level application views live under src/views/ and are loaded via React.lazy() in App.jsx.
+// (ReviewAuditView is an audit inspection modal dialog loaded via React.lazy from components/question).

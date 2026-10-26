@@ -20,10 +20,6 @@ class GenerationRequest(BaseModel):
         description="Whether AI is permitted to generate visual stimuli (diagrams/charts) when deemed pedagogically necessary",
     )
     require_image: bool = False
-    image_question_indices: list[int] | None = Field(
-        default=None,
-        description="1-based question numbers in batch that require images, e.g. [1, 3]",
-    )
     require_passage_image: bool = Field(
         default=False,
         description="Whether the shared reading passage stimulus requires an image diagram",
@@ -133,9 +129,7 @@ class GenerationRequest(BaseModel):
             return False
         if self.visual_type in ("SVG_Diagram", "AI_FLUX_Image") and not self.allow_ai_images:
             return True
-        if self.require_image or self.require_passage_image:
-            return True
-        return bool(self.image_question_indices)
+        return bool(self.require_image or self.require_passage_image)
 
     @field_validator("combination_id", mode="before")
     @classmethod

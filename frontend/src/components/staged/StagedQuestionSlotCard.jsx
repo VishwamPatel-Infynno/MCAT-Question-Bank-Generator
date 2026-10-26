@@ -8,7 +8,7 @@ import {
   ChevronUp,
   Image as ImageIcon
 } from 'lucide-react';
-import VisualStimulusViewer from './VisualStimulusViewer';
+import VisualStimulusViewer from '../question/VisualStimulusViewer';
 import StagedSlotSkeleton from './StagedSlotSkeleton';
 
 export default function StagedQuestionSlotCard({

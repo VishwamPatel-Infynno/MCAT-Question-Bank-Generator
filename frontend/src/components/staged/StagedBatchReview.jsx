@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import SharedPassageCard from './SharedPassageCard';
+import SharedPassageCard from '../question/SharedPassageCard';
 import StagedQuestionSlotCard from './StagedQuestionSlotCard';
 import BatchProgressHeader from './BatchProgressHeader';
 import StagedBatchGrid from './StagedBatchGrid';

@@ -169,9 +169,16 @@ Question Bank Generator/
 │   ├── README.md                # Dedicated backend developer guide
 │   ├── requirements.txt         # Python dependencies
 │   ├── tests/
-│   │   ├── test_backend.py      # Automated pytest suite (26 unit & integration tests)
-│   │   ├── test_database_structure.py # Relational schema, passage & batch sync tests (5 tests)
-│   │   └── test_e2e_live.py     # Live end-to-end integration test suite (9 tests)
+│   │   ├── test_schemas.py      # Pydantic V2 schema validation & constraints
+│   │   ├── test_agents.py       # Heuristics, agent mocking & quality gates
+│   │   ├── test_workflow.py     # StateGraph multi-agent flow & bypass routing
+│   │   ├── test_visuals.py      # SVG & FLUX image generation and pricing
+│   │   ├── test_tokens.py       # Token counting, accumulation & DeepInfra limits
+│   │   ├── test_pedagogy.py     # Option symmetry, AAMC traps & taxonomy parity
+│   │   ├── test_api.py          # CRUD endpoints, batch staging & lifecycle
+│   │   ├── test_database_structure.py # Relational schema, passage & batch sync tests
+│   │   ├── test_batch_jobs_flow.py # Background jobs & batch execution flow
+│   │   └── test_e2e_live.py     # Live end-to-end integration test suite
 │   └── app/
 │       ├── main.py              # FastAPI app with modern lifespan context & security headers
 │       ├── core/                # Core configurations & Pydantic V2 settings
@@ -228,8 +235,14 @@ Question Bank Generator/
     ├── package.json             # React 19 dependencies & scripts (pnpm workspace)
     ├── vite.config.js           # Vite build configuration with chunk splitting
     └── src/
-        ├── App.jsx              # Main application shell with dedicated Review Workspace
+        ├── App.jsx              # Main application shell & router
         ├── index.css            # Modern Enterprise Minimalist design system (Dual Theme)
+        ├── views/               # Top-level screen views (Code-split with React.lazy)
+        │   ├── index.js         # Centralized views index
+        │   ├── GeneratorWorkspaceView.jsx # Multi-agent active generation & review desk
+        │   ├── QuestionBankView.jsx       # Question Bank search, filter, and export
+        │   ├── BatchActivityView.jsx      # Batch job lifecycle monitor
+        │   └── AiValidatedQuestionsView.jsx # Dedicated AI Validated (>90) quality bank
         ├── constants/           # Centralized application constants
         │   ├── mcat.js          # MCAT sections, pacing targets, and skills
         │   └── config.js        # Model options & pricing constants
@@ -243,16 +256,18 @@ Question Bank Generator/
         ├── components/          # Domain-organized UI components
         │   ├── index.js         # Barrel exports for clean component imports
         │   ├── layout/          # Layout components (Navbar, Footer)
-        │   ├── wizard/          # Progressive 7-step Guided Wizard (HeroLanding, GuidedWizard, IndependentDiagramControls, steps 1-7)
+        │   ├── wizard/          # Progressive 7-step Guided Wizard (HeroLanding, GuidedWizard, steps 1-7)
         │   ├── pipeline/        # AI Pipeline (AgentVisualizer, MultiAgentPipelineVisualizer, RejectionCard)
-        │   ├── question/        # Review Desk (QuestionCard, ReviewAuditView, StageJsonInspector, StagedBatchReview, VisualStimulusViewer)
-        │   ├── bank/            # Question repository (QuestionBank)
-        │   ├── batch/           # Batch Activity & job monitor (BatchActivityView)
-        │   ├── validated/       # Dedicated AI Validated (>90) quality bank (AiValidatedQuestionsView)
-        │   ├── modals/          # Dialog modals (ExportPrintModal)
-        │   └── common/          # Common primitives (CustomSelect, InfynnoLogo, NumberStepper, Toast)
-        └── services/
-            └── api.js           # SSE event reader & REST API client
+        │   ├── question/        # Single Question Review Desk (QuestionCard, ReviewAuditView, SharedPassageCard, VisualStimulusViewer)
+        │   ├── staged/          # Staged batch review (StagedBatchReview, StagedBatchGrid, StagedDetailedView, StagedQuestionSlotCard, StagedSlotSkeleton, BatchProgressHeader, StageJsonInspector)
+        │   ├── bank/            # Question repository filters & table
+        │   ├── batch/           # Batch Activity cards & job monitors
+        │   ├── validated/       # Dedicated AI Validated quality cards & filters
+        │   ├── modals/          # Dialog modals (ExportPrintModal, ExportPaperPreview)
+        │   └── common/          # Common primitives (CustomSelect, InfynnoLogo, NumberStepper, Toast, FormattedText)
+        ├── services/
+        │   └── api.js           # SSE event reader & REST API client
+        └── utils/               # Pure utility helpers (exportUtils, formatters, trapHelpers, explanationHelpers)
 ```
 
 ---

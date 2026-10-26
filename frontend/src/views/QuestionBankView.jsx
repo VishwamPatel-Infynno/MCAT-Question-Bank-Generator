@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Database, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
-import { batchDeleteQuestions } from '../../services/api';
-import { useQuestionBank } from '../../hooks/useQuestionBank';
-import CustomSelect from '../common/CustomSelect';
-import ExportPrintModal from '../modals/ExportPrintModal';
-import QuestionBankFilters from './QuestionBankFilters';
-import QuestionBankTable from './QuestionBankTable';
+import { batchDeleteQuestions } from '../services/api';
+import { useQuestionBank } from '../hooks/useQuestionBank';
+import CustomSelect from '../components/common/CustomSelect';
+import ExportPrintModal from '../components/modals/ExportPrintModal';
+import QuestionBankFilters from '../components/bank/QuestionBankFilters';
+import QuestionBankTable from '../components/bank/QuestionBankTable';
 
-export default function QuestionBank({ onSelectQuestion, onShowToast, onNavigateToWizard }) {
+export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavigateToWizard }) {
   const {
     questions,
     loading,

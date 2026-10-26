@@ -8,10 +8,12 @@ import {
   fetchQuestionCounts,
   updateQuestionStatus,
   batchUpdateQuestionStatus
-} from '../../services/api';
-import AiValidatedStatsBar from './AiValidatedStatsBar';
-import AiValidatedFiltersBar from './AiValidatedFiltersBar';
-import AiValidatedQuestionCard from './AiValidatedQuestionCard';
+} from '../services/api';
+import {
+  AiValidatedStatsBar,
+  AiValidatedFiltersBar,
+  AiValidatedQuestionCard
+} from '../components/validated';
 
 export default function AiValidatedQuestionsView({
   onOpenAudit,

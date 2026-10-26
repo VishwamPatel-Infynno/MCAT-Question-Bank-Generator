@@ -8,7 +8,7 @@
  */
 import React from 'react';
 import { ChevronLeft, ChevronRight, Loader2, Clock, Check } from 'lucide-react';
-import QuestionCard from './QuestionCard';
+import QuestionCard from '../question/QuestionCard';
 
 export default function StagedDetailedView({
   effectiveTotal,

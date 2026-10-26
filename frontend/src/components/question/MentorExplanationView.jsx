@@ -11,9 +11,9 @@ import {
 import {
   resolveTrapInfo,
   detectTrapFromText,
-  renderFormattedText,
   extractDistractorLines
 } from '../../utils';
+import { FormattedText } from '../common';
 
 /**
  * MentorExplanationView
@@ -217,14 +217,14 @@ export default function MentorExplanationView({
                       {label}
                     </span>
                     <span style={{ color: 'var(--text-primary)', flex: 1, lineHeight: 1.55 }}>
-                      {renderFormattedText(stepBody)}
+                      <FormattedText text={stepBody} />
                     </span>
                   </div>
                 );
               }
               return (
                 <div key={stepKey} style={{ color: 'var(--text-primary)', lineHeight: 1.55, fontSize: isCompact ? '0.8rem' : '0.86rem' }}>
-                  {renderFormattedText(st)}
+                  <FormattedText text={st} />
                 </div>
               );
             })}
@@ -238,7 +238,7 @@ export default function MentorExplanationView({
               whiteSpace: 'pre-line'
             }}
           >
-            {renderFormattedText(parsed.correctExplanation)}
+            <FormattedText text={parsed.correctExplanation} />
           </div>
         )}
       </div>
@@ -319,10 +319,7 @@ export default function MentorExplanationView({
                   </span>
                 )}
 
-                {/* Flaw description */}
-                <div style={{ color: 'var(--text-secondary)', flex: 1 }}>
-                  {renderFormattedText(item.body, { highlightTraps: true })}
-                </div>
+                <FormattedText text={item.body} highlightTraps style={{ color: 'var(--text-secondary)', flex: 1 }} />
               </div>
             ))}
           </div>

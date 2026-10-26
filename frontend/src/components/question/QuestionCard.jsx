@@ -17,7 +17,7 @@ import {
   Image as ImageIcon,
   AlertTriangle
 } from 'lucide-react';
-import StageJsonInspector from './StageJsonInspector';
+import StageJsonInspector from '../staged/StageJsonInspector';
 import VisualStimulusViewer from './VisualStimulusViewer';
 import MentorExplanationView from './MentorExplanationView';
 import QuestionScorecardTab from './QuestionScorecardTab';
