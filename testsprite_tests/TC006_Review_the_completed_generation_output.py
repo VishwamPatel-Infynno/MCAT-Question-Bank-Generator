@@ -41,80 +41,88 @@ async def run_test():
         except Exception:
             pass
 
-        # -> Open the question generator using “Get Started - Create Questions.”
+        # -> Open the question-generation workflow using “Get Started - Create Questions.”
         # Get Started - Create Questions button
         elem = page.get_by_role("button", name="Get Started - Create Questions")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected Chemistry & Physics section to the unit-selection step.
+        # -> Continue from the selected Chemistry & Physics section to the Unit selection step.
         # Continue to Unit button
         elem = page.get_by_role("button", name="Continue to Unit")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected major unit to the topic-selection step.
+        # -> Continue from the selected unit to the Topic selection step.
         # Continue to Topic button
         elem = page.get_by_role("button", name="Continue to Topic")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected topic and subtopic to the question-level settings.
+        # -> Continue from the selected topic and subtopic to the Level selection step.
         # Continue to Level button
         elem = page.get_by_role("button", name="Continue to Level")
         await elem.click(timeout=10000)
 
-        # -> Select “Live Mini-Set (5 Qs)” to use the staged batch review workflow.
+        # -> Select “Live Mini-Set (5 Qs)” to use the staged batch desk for reviewing generated questions.
         # 🎯 Live Mini-Set (5 Qs) Staged Batch Desk... button
         elem = page.get_by_role("button", name="🎯 Live Mini-Set (5 Qs)")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected Live Mini-Set setup to the trap-selection step.
+        # -> Continue from the Level and Format step to the Traps step.
         # Continue to Traps button
         elem = page.get_by_role("button", name="Continue to Traps")
         await elem.click(timeout=10000)
 
-        # -> Continue from the cognitive-trap settings to the Visuals step.
+        # -> Continue from the Cognitive Traps & Reasoning Skills step to Visuals.
         # Continue to Visuals button
         elem = page.get_by_role("button", name="Continue to Visuals")
         await elem.click(timeout=10000)
 
-        # -> Open the configuration review by clicking “Review Configuration.”
+        # -> Open the review step by selecting “Review Configuration.”
         # Review Configuration button
         elem = page.get_by_role("button", name="Review Configuration")
         await elem.click(timeout=10000)
 
-        # -> Click “Generate 5-Question Set (Live)” to start generation and check for the staged-question review.
+        # -> Click “Generate 5-Question Set (Live)” and verify the staged questions and generation-complete status.
         # Generate 5-Question Set (Live) button
         elem = page.get_by_role("button", name="Generate 5-Question Set (Live)")
         await elem.click(timeout=10000)
 
         # --> Assertions to verify final state
 
-        # --> Five staged questions are displayed for review.
+        # --> Five staged questions are available for review.
+        # Assert-outcome: not verified — the export-time check could not be evaluated
+        # Assert: The review area shows five generated questions.
+        (
+            await expect(page.get_by_role("main").nth(0)).to_contain_text(
+                "5 Generated", timeout=15000
+            ),
+            "The review area shows five generated questions.",
+        )
         await (
             page.get_by_text(
-                "Question 5•mediumSingle Choice MCQPassage Set95/100References shared reading"
+                "Question 1•mediumSingle Choice MCQPassage Set95/100References shared reading"
             )
             .nth(0)
             .scroll_into_view_if_needed()
         )
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: The fifth staged question is visible for review.
+        # Assert: A staged question is visible for review.
         (
             await expect(
                 page.get_by_text(
-                    "Question 5•mediumSingle Choice MCQPassage Set95/100References shared reading"
+                    "Question 1•mediumSingle Choice MCQPassage Set95/100References shared reading"
                 ).nth(0)
             ).to_be_visible(timeout=15000),
-            "The fifth staged question is visible for review.",
+            "A staged question is visible for review.",
         )
 
-        # --> Generation is marked complete with five questions ready.
+        # --> Generation is complete, with all five questions ready.
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: Generation is marked complete with five questions ready.
+        # Assert: The generation status shows that all five questions are ready.
         (
             await expect(page.get_by_role("main").nth(0)).to_contain_text(
                 "All Questions Ready (5 Questions Created)", timeout=15000
             ),
-            "Generation is marked complete with five questions ready.",
+            "The generation status shows that all five questions are ready.",
         )
         await asyncio.sleep(5)
 

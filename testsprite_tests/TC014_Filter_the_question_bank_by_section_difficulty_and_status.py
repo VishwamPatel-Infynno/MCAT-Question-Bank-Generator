@@ -41,42 +41,37 @@ async def run_test():
         except Exception:
             pass
 
-        # -> Open the Question Bank view using the visible navigation tab.
-        # Question Bank button
-        elem = page.get_by_role("button", name="Question Bank", exact=True)
+        # -> Open the question repository using the visible 'Browse Question Bank' button.
+        # Browse Question Bank button
+        elem = page.get_by_role("button", name="Browse Question Bank")
         await elem.click(timeout=10000)
 
-        # -> Select the “Bio / Biochem” section filter and verify the question list updates.
-        # Bio / Biochem button
-        elem = page.get_by_role("button", name="Bio / Biochem")
+        # -> Filter the question bank to the Chem / Phys section and inspect the resulting list.
+        # Chem / Phys button
+        elem = page.get_by_role("button", name="Chem / Phys")
         await elem.click(timeout=10000)
 
-        # -> Apply the “Medium” difficulty filter and verify the displayed questions reflect that selection.
+        # -> Select the “Medium” difficulty filter and check that the question list reflects that choice.
         # Medium button
         elem = page.get_by_role("button", name="Medium")
         await elem.click(timeout=10000)
 
-        # -> Apply the “AI Validated” status filter and verify the displayed questions match the selected filters.
-        # AI Validated button
-        elem = page.get_by_role("button", name="AI Validated", exact=True)
+        # -> Select the “Approved” status filter and verify the resulting question list matches all three selected filters.
+        # Approved button
+        elem = page.get_by_role("button", name="Approved")
         await elem.click(timeout=10000)
 
         # --> Assertions to verify final state
 
-        # --> The filtered question list shows Bio / Biochem questions at Medium difficulty.
+        # --> The displayed results are narrowed to Chem / Phys questions at Medium difficulty with Approved status.
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: Verify the filtered list shows Bio / Biochem questions.
+        # Assert: Verify the displayed question matches the selected section, difficulty, and status filters.
         (
             await expect(page.locator("#root").nth(0)).to_contain_text(
-                "Biological and Biochemical Foundations", timeout=15000
+                "Chemical and Physical Foundations of Biological Systems \u2022 Protons, neutrons, and electrons \u2022 medium 95 /100 MCAT 129 Skill 2 Approved",
+                timeout=15000,
             ),
-            "Verify the filtered list shows Bio / Biochem questions.",
-        )
-        # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: Verify the filtered list shows Medium-difficulty questions.
-        (
-            await expect(page.locator("#root").nth(0)).to_contain_text("medium", timeout=15000),
-            "Verify the filtered list shows Medium-difficulty questions.",
+            "Verify the displayed question matches the selected section, difficulty, and status filters.",
         )
         await asyncio.sleep(5)
 

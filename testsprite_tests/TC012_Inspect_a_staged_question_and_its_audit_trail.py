@@ -41,81 +41,103 @@ async def run_test():
         except Exception:
             pass
 
-        # -> Open the question-generation form using “Get Started - Create Questions.”
+        # -> Open the question generator using “Get Started - Create Questions.”
         # Get Started - Create Questions button
         elem = page.get_by_role("button", name="Get Started - Create Questions")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected exam section to the unit-selection step.
+        # -> Continue from the selected exam section to choose the question’s unit.
         # Continue to Unit button
         elem = page.get_by_role("button", name="Continue to Unit")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected Chemistry unit to choose a topic.
+        # -> Continue to topic selection using the visible “Continue to Topic” control.
         # Continue to Topic button
         elem = page.get_by_role("button", name="Continue to Topic")
         await elem.click(timeout=10000)
 
-        # -> Select the “Atomic number and mass number” topic concept and verify the selection updates.
-        # Atomic number and mass number button
-        elem = page.get_by_role("button", name="Atomic number and mass number")
-        await elem.click(timeout=10000)
-
-        # -> Continue from the selected topic to the question-level settings.
+        # -> Continue from the selected topic and concept to the question-level settings.
         # Continue to Level button
         elem = page.get_by_role("button", name="Continue to Level")
         await elem.click(timeout=10000)
 
-        # -> Continue from the challenge-level and question-format settings to the traps configuration.
+        # -> Choose Independent MCQ and Live Mini-Set so the workflow produces questions on the staged batch desk.
+        # Independent MCQ Standalone discrete single-choice... button
+        elem = page.get_by_role("button", name="Independent MCQ Standalone")
+        await elem.click(timeout=10000)
+
+        # -> Choose Independent MCQ and Live Mini-Set so the workflow produces questions on the staged batch desk.
+        # 🎯 Live Mini-Set (5 Qs) Staged Batch Desk... button
+        elem = page.get_by_role("button", name="🎯 Live Mini-Set (5 Qs)")
+        await elem.click(timeout=10000)
+
+        # -> Continue from the calibration screen to the trap-selection step.
         # Continue to Traps button
         elem = page.get_by_role("button", name="Continue to Traps")
         await elem.click(timeout=10000)
 
-        # -> Continue from the cognitive traps settings to the visuals step.
+        # -> Continue from Cognitive Traps & Reasoning Skills to the Visuals step.
         # Continue to Visuals button
         elem = page.get_by_role("button", name="Continue to Visuals")
         await elem.click(timeout=10000)
 
-        # -> Review the current question-generation configuration using “Review Configuration.”
+        # -> Review the question-generation configuration using the visible “Review Configuration” control.
         # Review Configuration button
         elem = page.get_by_role("button", name="Review Configuration")
         await elem.click(timeout=10000)
 
-        # -> Switch the question-generation scope to “1 Q (Live)” and verify the review summary updates.
-        # 1 Q (Live) button
-        elem = page.get_by_role("button", name="Q (Live)")
+        # -> Start generating the configured 5-question set using “Generate 5-Question Set (Live).”
+        # Generate 5-Question Set (Live) button
+        elem = page.get_by_role("button", name="Generate 5-Question Set (Live)")
         await elem.click(timeout=10000)
 
-        # -> Generate one live question and inspect the generated-question view.
-        # Generate Single Question (Live) button
-        elem = page.get_by_role("button", name="Generate Single Question (")
+        # -> Open “Detailed View” for the first generated question to reveal its full content.
+        # Detailed View button
+        elem = page.locator("div:nth-child(5) > button").first
         await elem.click(timeout=10000)
 
-        # -> Open “AI Creation Steps” and verify that the audit trail’s reasoning details are displayed.
+        # -> Open the “AI Creation Steps” tab to review the generated question’s audit reasoning.
         # AI Creation Steps button
         elem = page.get_by_role("button", name="AI Creation Steps")
         await elem.click(timeout=10000)
 
-        # -> Open the “Stage Outcome JSON Inspector” to check whether the generated question’s audit reasoning is displayed.
-        # Stage Outcome JSON Inspector (Inspect live... button
-        elem = page.get_by_role("button", name="Stage Outcome JSON Inspector")
-        await elem.click(timeout=10000)
-
-        # -> Select the “Quality Audit” stage in the expanded inspector and verify that audit reasoning is displayed.
-        # Quality Audit button
-        elem = page.get_by_role("button", name="Quality Audit")
-        await elem.click(timeout=10000)
-
         # --> Assertions to verify final state
 
-        # --> The Quality Audit reasoning is visible in the stage inspector.
+        # --> The generated question’s full details are visible.
+        await (
+            page.locator("div:nth-child(2) > div:nth-child(3)")
+            .first.nth(0)
+            .scroll_into_view_if_needed()
+        )
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: The Quality Audit reasoning is visible in the inspector.
+        # Assert: The expanded generated question details are visible.
         (
-            await expect(page.get_by_role("main").nth(0)).to_contain_text(
-                "strengths", timeout=15000
-            ),
-            "The Quality Audit reasoning is visible in the inspector.",
+            await expect(
+                page.locator("div:nth-child(2) > div:nth-child(3)").first.nth(0)
+            ).to_be_visible(timeout=15000),
+            "The expanded generated question details are visible.",
+        )
+
+        # --> The AI Creation Steps audit view displays the question’s stage payload.
+        await (
+            page.get_by_role("main")
+            .locator("div")
+            .filter(has_text="Stage Outcome JSON Inspector(")
+            .nth(4)
+            .nth(0)
+            .scroll_into_view_if_needed()
+        )
+        # Assert-outcome: not verified — the export-time check could not be evaluated
+        # Assert: The AI Creation Steps audit payload is visible.
+        (
+            await expect(
+                page.get_by_role("main")
+                .locator("div")
+                .filter(has_text="Stage Outcome JSON Inspector(")
+                .nth(4)
+                .nth(0)
+            ).to_be_visible(timeout=15000),
+            "The AI Creation Steps audit payload is visible.",
         )
         await asyncio.sleep(5)
 

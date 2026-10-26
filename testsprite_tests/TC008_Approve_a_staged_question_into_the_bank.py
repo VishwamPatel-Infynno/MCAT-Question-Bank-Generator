@@ -41,79 +41,69 @@ async def run_test():
         except Exception:
             pass
 
-        # -> Open the question creation form using “Get Started - Create Questions.”
+        # -> Open the question creation flow using “Get Started - Create Questions” and inspect the generator form.
         # Get Started - Create Questions button
         elem = page.get_by_role("button", name="Get Started - Create Questions")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected Chemistry & Physics exam section to the Unit step.
+        # -> Continue from “Choose Exam Section” to the Unit selection step.
         # Continue to Unit button
         elem = page.get_by_role("button", name="Continue to Unit")
         await elem.click(timeout=10000)
 
-        # -> Continue to the Topic step using the visible “Continue to Topic” control.
+        # -> Continue to the topic-selection step and inspect the available topic controls.
         # Continue to Topic button
         elem = page.get_by_role("button", name="Continue to Topic")
         await elem.click(timeout=10000)
 
-        # -> Select a target subtopic concept on the Topic step and verify the selection before continuing.
-        # Atomic number and mass number button
-        elem = page.get_by_role("button", name="Atomic number and mass number")
-        await elem.click(timeout=10000)
-
-        # -> Continue to the Level step and inspect the available difficulty choices.
+        # -> Continue from topic selection to the level step and inspect its controls.
         # Continue to Level button
         elem = page.get_by_role("button", name="Continue to Level")
         await elem.click(timeout=10000)
 
-        # -> Choose “Quick Single Item (1 Q)” as the generation scope for a single-question review.
+        # -> Set the generation scope to “Quick Single Item (1 Q)” and inspect the updated generator state.
         # ⚡ Quick Single Item (1 Q) Live Workspace... button
         elem = page.get_by_role("button", name="⚡ Quick Single Item (1 Q)")
         await elem.click(timeout=10000)
 
-        # -> Continue from the Level step to the Traps setup screen.
+        # -> Continue from the Level & Format step to the Traps step.
         # Continue to Traps button
         elem = page.get_by_role("button", name="Continue to Traps")
         await elem.click(timeout=10000)
 
-        # -> Continue to the Visuals step using the visible “Continue to Visuals” button.
+        # -> Continue from Cognitive Traps & Reasoning Skills to the Visuals step.
         # Continue to Visuals button
         elem = page.get_by_role("button", name="Continue to Visuals")
         await elem.click(timeout=10000)
 
-        # -> Open the Review step by selecting “Review Configuration.”
+        # -> Open the configuration review using “Review Configuration.”
         # Review Configuration button
         elem = page.get_by_role("button", name="Review Configuration")
         await elem.click(timeout=10000)
 
-        # -> Start generating one question with “Generate Single Question (Live).”
+        # -> Generate one MCAT question using “Generate Single Question (Live)” and inspect the resulting question state.
         # Generate Single Question (Live) button
         elem = page.get_by_role("button", name="Generate Single Question (")
         await elem.click(timeout=10000)
 
-        # -> Scroll down through the staged question to find its approval and save controls.
+        # -> Scroll down through the staged question to locate its approval and save controls.
         await page.mouse.wheel(0, 300)
 
-        # -> Save the staged question to the question bank and verify the on-screen confirmation and that the staged question is removed.
+        # -> Approve the staged question with “Save to Question Bank” and check the resulting confirmation.
         # Save to Question Bank A button
         elem = page.get_by_role("button", name="Save to Question Bank A")
         await elem.click(timeout=10000)
 
-        # -> Open “AI Validated” and check whether the approved question is still present in the staged list.
-        # AI Validated 468 button
-        elem = page.get_by_role("button", name="AI Validated")
-        await elem.click(timeout=10000)
-
         # --> Assertions to verify final state
 
-        # --> A success confirmation stated “Saved in Question Bank” after the question was approved.
+        # --> The approved question is shown as saved in the question bank rather than awaiting review.
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: The success confirmation should state that the question was saved in the Question Bank.
+        # Assert: The approved question is shown as saved in the question bank.
         (
-            await expect(page.locator("#root").nth(0)).to_contain_text(
-                "Saved in Question Bank", timeout=15000
+            await expect(page.get_by_role("main").nth(0)).to_contain_text(
+                "Saved in Bank", timeout=15000
             ),
-            "The success confirmation should state that the question was saved in the Question Bank.",
+            "The approved question is shown as saved in the question bank.",
         )
         await asyncio.sleep(5)
 

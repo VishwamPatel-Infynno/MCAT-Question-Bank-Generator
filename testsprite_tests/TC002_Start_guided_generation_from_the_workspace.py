@@ -41,47 +41,52 @@ async def run_test():
         except Exception:
             pass
 
-        # -> Open the question generator using “Get Started - Create Questions.”
+        # -> Open the question generator using “Get Started - Create Questions” and inspect its configuration fields.
         # Get Started - Create Questions button
         elem = page.get_by_role("button", name="Get Started - Create Questions")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected Chemistry & Physics section to the unit-selection step.
+        # -> Continue with the selected Chemistry & Physics section and inspect the available unit choices.
         # Continue to Unit button
         elem = page.get_by_role("button", name="Continue to Unit")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected major syllabus unit to the topic-selection step.
+        # -> Continue to the topic step and inspect the available topic choices.
         # Continue to Topic button
         elem = page.get_by_role("button", name="Continue to Topic")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected topic and concept to the level settings.
+        # -> Continue to the level configuration and inspect the available difficulty choices.
         # Continue to Level button
         elem = page.get_by_role("button", name="Continue to Level")
         await elem.click(timeout=10000)
 
-        # -> Select “Live Mini-Set (5 Qs)” so the run uses the staged batch desk.
+        # -> Select Independent MCQ as the question format and confirm the selection updates.
+        # Independent MCQ Standalone discrete single-choice... button
+        elem = page.get_by_role("button", name="Independent MCQ Standalone")
+        await elem.click(timeout=10000)
+
+        # -> Choose the “Live Mini-Set (5 Qs)” generation mode for a staged run.
         # 🎯 Live Mini-Set (5 Qs) Staged Batch Desk... button
         elem = page.get_by_role("button", name="🎯 Live Mini-Set (5 Qs)")
         await elem.click(timeout=10000)
 
-        # -> Continue from Level/Format to the Traps configuration screen.
+        # -> Continue from the Level settings to configure the remaining question-generation options.
         # Continue to Traps button
         elem = page.get_by_role("button", name="Continue to Traps")
         await elem.click(timeout=10000)
 
-        # -> Continue from the Cognitive Traps & Reasoning Skills screen to Visuals.
+        # -> Continue from Cognitive Traps & Reasoning Skills to the Visuals configuration step.
         # Continue to Visuals button
         elem = page.get_by_role("button", name="Continue to Visuals")
         await elem.click(timeout=10000)
 
-        # -> Open the configuration review for the Live Mini-Set run.
+        # -> Review the configured question-generation settings using “Review Configuration.”
         # Review Configuration button
         elem = page.get_by_role("button", name="Review Configuration")
         await elem.click(timeout=10000)
 
-        # -> Start the staged run using “Generate 5-Question Set (Live)” and check the resulting generation status.
+        # -> Start the configured five-question live generation run using “Generate 5-Question Set (Live)” and verify the pipeline and staged-question status.
         # Generate 5-Question Set (Live) button
         elem = page.get_by_role("button", name="Generate 5-Question Set (Live)")
         await elem.click(timeout=10000)
@@ -105,19 +110,23 @@ async def run_test():
             "The live generation pipeline is active.",
         )
 
-        # --> Question slots are being prepared for the staged five-question run.
+        # --> A staged question slot is present while the questions are being prepared.
         await (
-            page.locator("div:nth-child(2) > div:nth-child(2) > div")
-            .first.nth(0)
+            page.get_by_text(
+                "Question 1•mediumSingle Choice MCQDirect Question95/100A researcher measures"
+            )
+            .nth(0)
             .scroll_into_view_if_needed()
         )
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: A staged question slot is being prepared.
+        # Assert: A staged question slot is present.
         (
             await expect(
-                page.locator("div:nth-child(2) > div:nth-child(2) > div").first.nth(0)
+                page.get_by_text(
+                    "Question 1•mediumSingle Choice MCQDirect Question95/100A researcher measures"
+                ).nth(0)
             ).to_be_visible(timeout=15000),
-            "A staged question slot is being prepared.",
+            "A staged question slot is present.",
         )
         await asyncio.sleep(5)
 

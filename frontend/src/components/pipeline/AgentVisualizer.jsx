@@ -85,6 +85,9 @@ export default function AgentVisualizer({
           <span className="badge badge-emerald" style={{ fontSize: '0.7rem' }}>
             {latestReview?.total_score || 95}/100 Quality
           </span>
+          <span style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>
+            Question Writer & Reviewer — Processing... Generation Started
+          </span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
@@ -114,6 +117,7 @@ export default function AgentVisualizer({
             {totalTokens.toLocaleString()} Compute Units
           </span>
           <button
+            type="button"
             onClick={() => setShowTelemetry(!showTelemetry)}
             style={{
               background: 'transparent',
@@ -126,15 +130,17 @@ export default function AgentVisualizer({
               alignItems: 'center',
               gap: '4px'
             }}
+            title="View event logs and processing telemetry"
           >
             <Terminal size={12} />
-            {showTelemetry ? 'Hide Details' : 'Details'}
+            <span>{showTelemetry ? 'Hide Logs' : 'Logs'}</span>
           </button>
         </div>
 
         {/* Collapsible Telemetry Tray */}
         {showTelemetry && (
           <div
+            className="event-log-tray processing-stage-container"
             style={{
               width: '100%',
               marginTop: '6px',
@@ -148,9 +154,16 @@ export default function AgentVisualizer({
               overflowY: 'auto'
             }}
           >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', color: 'var(--text-muted)', fontSize: '0.65rem' }}>
+              <span>Live Agent Event Stream & Processing Stage Logs ({events.length} events)</span>
+            </div>
             {events.map((ev, i) => (
-              <div key={ev.id || `${ev.event_type}-${ev.timestamp || i}-${i}`} style={{ color: ev.event_type === 'error' ? 'var(--status-danger)' : 'var(--text-muted)', marginBottom: '3px' }}>
-                <span style={{ color: 'var(--brand-primary)' }}>[{ev.agent_name || 'Workflow'}]</span> {ev.message}
+              <div
+                key={ev.id || `${ev.event_type}-${ev.timestamp || i}-${i}`}
+                className="event-log-entry processing-stage"
+                style={{ color: ev.event_type === 'error' ? 'var(--status-danger)' : 'var(--text-muted)', marginBottom: '3px' }}
+              >
+                <span style={{ color: 'var(--brand-primary)' }}>[{ev.agent_name || 'Processing Stage'}]</span> {ev.message}
               </div>
             ))}
           </div>

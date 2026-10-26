@@ -1,6 +1,7 @@
 import asyncio
 
 from playwright import async_api
+from playwright.async_api import expect
 
 
 async def run_test():
@@ -40,7 +41,7 @@ async def run_test():
         except Exception:
             pass
 
-        # -> Open the question generator using “Get Started - Create Questions” and inspect its available setup fields.
+        # -> Open the question creation flow using “Get Started - Create Questions.”
         # Get Started - Create Questions button
         elem = page.get_by_role("button", name="Get Started - Create Questions")
         await elem.click(timeout=10000)
@@ -50,50 +51,84 @@ async def run_test():
         elem = page.get_by_role("button", name="Continue to Unit")
         await elem.click(timeout=10000)
 
-        # -> Continue to the topic-selection step using “Continue to Topic.”
+        # -> Continue to the topic-selection step using the visible “Continue to Topic” button.
         # Continue to Topic button
         elem = page.get_by_role("button", name="Continue to Topic")
         await elem.click(timeout=10000)
 
-        # -> Continue to the Level step using the visible “Continue to Level” control.
+        # -> Continue from the selected topic and subtopic to the Level step.
         # Continue to Level button
         elem = page.get_by_role("button", name="Continue to Level")
         await elem.click(timeout=10000)
 
-        # -> Continue from the Level and format screen to configure question traps.
+        # -> Select the visible Foundational difficulty option before continuing the generator setup.
+        # Foundational (~500 MCAT) Direct clues and... button
+        elem = page.get_by_role("button", name="Foundational (~500 MCAT)")
+        await elem.click(timeout=10000)
+
+        # -> Select “Quick Single Item (1 Q)” to enable the live generation workspace and conduit telemetry.
+        # ⚡ Quick Single Item (1 Q) Live Workspace... button
+        elem = page.get_by_role("button", name="⚡ Quick Single Item (1 Q)")
+        await elem.click(timeout=10000)
+
+        # -> Continue to the Traps step using the visible “Continue to Traps” button.
         # Continue to Traps button
         elem = page.get_by_role("button", name="Continue to Traps")
         await elem.click(timeout=10000)
 
-        # -> Select the visible “Identify or recognize a scientific concept” subskill on the Cognitive Traps screen.
-        # Identify or recognize a scientific concept button
-        elem = page.get_by_role("button", name="Identify or recognize a")
-        await elem.click(timeout=10000)
-
-        # -> Continue to the Visuals setup stage using the “Continue to Visuals” control.
+        # -> Continue from Cognitive Traps & Reasoning Skills to the Visuals step using “Continue to Visuals.”
         # Continue to Visuals button
         elem = page.get_by_role("button", name="Continue to Visuals")
         await elem.click(timeout=10000)
 
-        # -> Open the configuration review screen using “Review Configuration.”
+        # -> Open the configuration review using “Review Configuration.”
         # Review Configuration button
         elem = page.get_by_role("button", name="Review Configuration")
         await elem.click(timeout=10000)
 
-        # -> Select the “1 Q (Live)” generation scope so the run can expose live progress, then inspect the updated review screen.
-        # 1 Q (Live) button
-        elem = page.get_by_role("button", name="Q (Live)")
-        await elem.click(timeout=10000)
-
-        # -> Start the live question generation with “Generate Single Question (Live)” and inspect the active run for progress and event logs.
+        # -> Start live question generation using “Generate Single Question (Live)” and inspect the resulting pipeline status.
         # Generate Single Question (Live) button
         elem = page.get_by_role("button", name="Generate Single Question (")
         await elem.click(timeout=10000)
 
-        # --> Test passed — verified by AI agent
-        frame = context.pages[-1]
-        current_url = await frame.evaluate("() => window.location.href")
-        assert current_url is not None, "Test completed successfully"
+        # -> Return to the generation status and Logs control to verify whether live telemetry and event entries are visible.
+        await page.mouse.wheel(0, 300)
+
+        # -> Open the visible “Logs” panel and verify whether it displays event entries and live pipeline telemetry.
+        # Logs button
+        elem = page.get_by_role("button", name="Logs")
+        await elem.click(timeout=10000)
+
+        # --> Assertions to verify final state
+
+        # --> The live pipeline event stream is displayed.
+        await (
+            page.get_by_text(
+                "Live Agent Event Stream & Processing Stage Logs (13 events)[Passage Writer]"
+            )
+            .nth(0)
+            .scroll_into_view_if_needed()
+        )
+        # Assert-outcome: not verified — the export-time check could not be evaluated
+        # Assert: The live pipeline event stream is visible.
+        (
+            await expect(
+                page.get_by_text(
+                    "Live Agent Event Stream & Processing Stage Logs (13 events)[Passage Writer]"
+                ).nth(0)
+            ).to_be_visible(timeout=15000),
+            "The live pipeline event stream is visible.",
+        )
+
+        # --> The active agent stage is visible during processing.
+        # Assert-outcome: not verified — the export-time check could not be evaluated
+        # Assert: The active agent stage is shown in the generation status.
+        (
+            await expect(page.get_by_role("main").nth(0)).to_contain_text(
+                "Question Writer & Reviewer", timeout=15000
+            ),
+            "The active agent stage is shown in the generation status.",
+        )
         await asyncio.sleep(5)
 
     finally:

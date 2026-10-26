@@ -41,91 +41,71 @@ async def run_test():
         except Exception:
             pass
 
-        # -> Open the Question Generator to configure a batch of questions.
-        # Question Generator button
-        elem = page.get_by_role("button", name="Question Generator")
-        await elem.click(timeout=10000)
-
-        # -> Open the Question Generator and inspect its visible configuration fields.
-        # Question Generator button
-        elem = page.get_by_role("button", name="Question Generator")
-        await elem.click(timeout=10000)
-
-        # -> Open the question creation form using the visible “Get Started - Create Questions” button.
+        # -> Open the question generator using “Get Started - Create Questions.”
         # Get Started - Create Questions button
         elem = page.get_by_role("button", name="Get Started - Create Questions")
         await elem.click(timeout=10000)
 
-        # -> Select the Biology & Biochemistry exam section in the section-selection step.
-        # Biology & Biochem Biological and Biochemical... button
-        elem = page.get_by_role("button", name="Biology & Biochem Biological")
+        # -> Continue from the selected Chemistry & Physics section to the unit-selection step.
+        # Continue to Unit button
+        elem = page.get_by_role("button", name="Continue to Unit")
         await elem.click(timeout=10000)
 
-        # -> Continue to the topic-selection step using the wizard’s “Continue to Topic” control.
+        # -> Continue to the topic-selection step using the selected chemistry unit.
         # Continue to Topic button
         elem = page.get_by_role("button", name="Continue to Topic")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected topic and concept to the question-level configuration.
+        # -> Continue from the selected subtopic to the question-level settings.
         # Continue to Level button
         elem = page.get_by_role("button", name="Continue to Level")
         await elem.click(timeout=10000)
 
-        # -> Continue to the Traps step using the wizard’s visible continue control.
+        # -> Continue from the level and format settings to the trap-selection step.
         # Continue to Traps button
         elem = page.get_by_role("button", name="Continue to Traps")
         await elem.click(timeout=10000)
 
-        # -> Continue from Cognitive Traps & Reasoning Skills to the Visuals step.
+        # -> Select the visible “Identify or recognize a scientific concept” subskill and inspect the updated Cognitive Traps screen.
+        # Identify or recognize a scientific concept button
+        elem = page.get_by_role("button", name="Identify or recognize a")
+        await elem.click(timeout=10000)
+
+        # -> Advance from Cognitive Traps to the Visuals step using “Continue to Visuals.”
         # Continue to Visuals button
         elem = page.get_by_role("button", name="Continue to Visuals")
         await elem.click(timeout=10000)
 
-        # -> Open the review screen with the visible “Review Configuration” button.
+        # -> Open the review screen by selecting “Review Configuration.”
         # Review Configuration button
         elem = page.get_by_role("button", name="Review Configuration")
         await elem.click(timeout=10000)
 
-        # -> Click “Launch 50-Question Batch” to start generating the configured question batch.
+        # -> Launch the configured batch with “Launch 50-Question Batch” and inspect the generation progress or staged questions.
         # Launch 50-Question Batch button
         elem = page.get_by_role("button", name="Launch 50-Question Batch")
         await elem.click(timeout=10000)
 
-        # -> Open the Biology batch details for “Membrane structure and function” to find its review and bulk-save controls.
-        # Biological and Biochemical Foundations medium...
-        elem = page.locator("div:nth-child(4) > div:nth-child(2) > div > div").first
-        await elem.click(timeout=10000)
-
-        # -> Open the “AI Validated” view to locate the generated questions and the bulk approval action.
-        # AI Validated 468 button
+        # -> Open the AI Validated section and inspect whether staged questions can be approved and saved in bulk.
+        # AI Validated 150 button
         elem = page.get_by_role("button", name="AI Validated")
         await elem.click(timeout=10000)
 
-        # -> Click “Approve All Validated” to save all staged validated questions to the Question Bank.
-        # Approve All Validated ( 468 ) button
-        elem = page.get_by_role("button", name="Approve All Validated (468)")
+        # -> Approve all 150 AI-validated questions using the visible “Approve All Validated (150)” bulk action.
+        # Approve All Validated ( 150 ) button
+        elem = page.get_by_role("button", name="Approve All Validated (150)")
         await elem.click(timeout=10000)
 
         # --> Assertions to verify final state
 
-        # --> The bulk approval displays a success confirmation.
+        # --> The AI Validated staging queue is empty.
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: The bulk approval success confirmation is visible.
-        (
-            await expect(page.locator("#root").nth(0)).to_contain_text(
-                "All Validated Questions Approved", timeout=15000
-            ),
-            "The bulk approval success confirmation is visible.",
-        )
-
-        # --> The staged AI-validated question queue is cleared.
-        # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: The AI-validated staging area is clear.
+        # Assert: The AI Validated staging queue should be empty.
         (
             await expect(page.locator("#root").nth(0)).to_contain_text(
                 "No Pending AI Validated Questions", timeout=15000
             ),
-            "The AI-validated staging area is clear.",
+            "The AI Validated staging queue should be empty.",
         )
         await asyncio.sleep(5)
 

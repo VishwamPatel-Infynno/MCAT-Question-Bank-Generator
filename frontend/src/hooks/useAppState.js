@@ -68,8 +68,8 @@ export function useAppState() {
     cancelGeneration();
     showToast({
       type: 'info',
-      title: 'Generation Stopped',
-      message: 'Generation stopped. Workflow execution cancelled.'
+      title: 'Generation Cancelled',
+      message: 'Generation cancelled. Workflow execution stopped and returned to idle.'
     });
   }, [cancelGeneration, showToast]);
 

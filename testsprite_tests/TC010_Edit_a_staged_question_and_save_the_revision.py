@@ -1,5 +1,4 @@
 import asyncio
-import re
 
 from playwright import async_api
 from playwright.async_api import expect
@@ -42,37 +41,42 @@ async def run_test():
         except Exception:
             pass
 
-        # -> Open the question creation flow using “Get Started - Create Questions.”
+        # -> Open the question creation workflow by selecting “Get Started - Create Questions.”
         # Get Started - Create Questions button
         elem = page.get_by_role("button", name="Get Started - Create Questions")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected exam section to choose a unit.
+        # -> Continue from the selected Chemistry & Physics section to choose the unit.
         # Continue to Unit button
         elem = page.get_by_role("button", name="Continue to Unit")
         await elem.click(timeout=10000)
 
-        # -> Continue to topic selection using the visible “Continue to Topic” control.
+        # -> Continue with the selected General Chemistry unit to choose a topic.
         # Continue to Topic button
         elem = page.get_by_role("button", name="Continue to Topic")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected topic and concept to the difficulty settings.
+        # -> Continue from the selected Atomic Structure concept to choose the question level.
         # Continue to Level button
         elem = page.get_by_role("button", name="Continue to Level")
         await elem.click(timeout=10000)
 
-        # -> Choose “Live Mini-Set (5 Qs)” so the generated questions are staged for review.
+        # -> Choose Independent MCQ as the question format.
+        # Independent MCQ Standalone discrete single-choice... button
+        elem = page.get_by_role("button", name="Independent MCQ Standalone")
+        await elem.click(timeout=10000)
+
+        # -> Select the “Live Mini-Set (5 Qs)” staged batch desk option.
         # 🎯 Live Mini-Set (5 Qs) Staged Batch Desk... button
         elem = page.get_by_role("button", name="🎯 Live Mini-Set (5 Qs)")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected Live Mini-Set setting to configure the question traps.
+        # -> Continue to the traps configuration using the visible “Continue to Traps” button.
         # Continue to Traps button
         elem = page.get_by_role("button", name="Continue to Traps")
         await elem.click(timeout=10000)
 
-        # -> Continue from the cognitive traps settings to the visual configuration stage.
+        # -> Continue from the cognitive-traps setup to the visual configuration screen.
         # Continue to Visuals button
         elem = page.get_by_role("button", name="Continue to Visuals")
         await elem.click(timeout=10000)
@@ -82,55 +86,52 @@ async def run_test():
         elem = page.get_by_role("button", name="Review Configuration")
         await elem.click(timeout=10000)
 
-        # -> Generate the configured five-question live set and inspect the staged questions when generation completes.
+        # -> Start generating the staged five-question set using “Generate 5-Question Set (Live).”
         # Generate 5-Question Set (Live) button
         elem = page.get_by_role("button", name="Generate 5-Question Set (Live)")
         await elem.click(timeout=10000)
 
-        # -> Open the first staged question’s “Detailed View” to inspect its editing controls.
+        # -> Open the first generated question’s detailed view to find its editing controls.
         # Detailed View button
-        elem = page.locator("div:nth-child(6) > button").first
+        elem = page.locator("div:nth-child(5) > button").first
         await elem.click(timeout=10000)
 
-        # -> Open the staged question’s “Quick Edit” controls to make a content revision.
+        # -> Open the first question’s “Quick Edit” form to inspect its editable fields.
         # Quick Edit E button
         elem = page.get_by_role("button", name="Quick Edit E")
         await elem.click(timeout=10000)
 
-        # -> Revise the text of the first answer choice in Quick Edit and check that the change appears before saving.
-        # text field
-        elem = page.locator("div").filter(has_text=re.compile(r"^A13w$")).get_by_role("textbox")
+        # -> Append a short revision marker to the first staged question’s text in Quick Edit Mode.
+        # A researcher measures the rate of an enzymatic... text area
+        elem = page.get_by_text("[Revised for review]A")
         await elem.wait_for(state="visible", timeout=10000)
-        await elem.fill(
-            "Both the x-intercept and the y-intercept shift to significantly higher absolute values (revised)."
-        )
+        await elem.fill(" [Revised for review]")
 
-        # -> Save the revised answer choice and verify the question remains available for review.
+        # -> Save the edited staged question and confirm the updated text remains available for review.
         # Save button
         elem = page.get_by_role("button", name="Save", exact=True)
         await elem.click(timeout=10000)
 
         # --> Assertions to verify final state
 
-        # --> The revised answer choice remains visible in the staged question.
+        # --> The saved question retains the revision marker “[Revised for review].”
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: The revised answer choice remains visible.
+        # Assert: The saved question should retain the revision marker.
         (
             await expect(page.get_by_role("main").nth(0)).to_contain_text(
-                "Both the x-intercept and the y-intercept shift to significantly higher absolute values (revised).",
-                timeout=15000,
+                "[Revised for review]", timeout=15000
             ),
-            "The revised answer choice remains visible.",
+            "The saved question should retain the revision marker.",
         )
 
-        # --> The staged question remains available for review.
+        # --> The revised staged question remains ready for review.
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: The staged question is marked ready for review.
+        # Assert: The staged question should remain marked Ready for Review.
         (
             await expect(page.get_by_role("main").nth(0)).to_contain_text(
                 "Ready for Review", timeout=15000
             ),
-            "The staged question is marked ready for review.",
+            "The staged question should remain marked Ready for Review.",
         )
         await asyncio.sleep(5)
 

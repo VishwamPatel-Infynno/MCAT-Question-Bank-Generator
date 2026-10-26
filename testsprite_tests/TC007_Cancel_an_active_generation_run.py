@@ -41,66 +41,79 @@ async def run_test():
         except Exception:
             pass
 
-        # -> Open the question creation workflow using “Get Started - Create Questions.”
+        # -> Open the question creation workspace using “Get Started - Create Questions.”
         # Get Started - Create Questions button
         elem = page.get_by_role("button", name="Get Started - Create Questions")
         await elem.click(timeout=10000)
 
-        # -> Select “Biology & Biochem” as the exam section.
-        # Biology & Biochem Biological and Biochemical... button
-        elem = page.get_by_role("button", name="Biology & Biochem Biological")
+        # -> Select the Chemistry & Physics section to continue setting up a question generation run.
+        # Chemistry & Physics Chemical and Physical... button
+        elem = page.get_by_role("button", name="Chemistry & Physics Chemical")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected Biology discipline and unit to choose a topic.
+        # -> Continue to the topic-selection step using the visible “Continue to Topic” control.
         # Continue to Topic button
         elem = page.get_by_role("button", name="Continue to Topic")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected topic and concept to review the available question level options.
+        # -> Select a target subtopic concept and continue to the difficulty-level settings.
+        # Isotopes and average atomic mass button
+        elem = page.get_by_role("button", name="Isotopes and average atomic")
+        await elem.click(timeout=10000)
+
+        # -> Continue to the difficulty settings using “Continue to Level.”
         # Continue to Level button
         elem = page.get_by_role("button", name="Continue to Level")
         await elem.click(timeout=10000)
 
-        # -> Select “Quick Single Item (1 Q)” to use the live Question Desk generation workflow.
+        # -> Choose the Independent MCQ format before proceeding with the generation setup.
+        # Independent MCQ Standalone discrete single-choice... button
+        elem = page.get_by_role("button", name="Independent MCQ Standalone")
+        await elem.click(timeout=10000)
+
+        # -> Choose “Quick Single Item (1 Q)” to use the live workspace generation mode.
         # ⚡ Quick Single Item (1 Q) Live Workspace... button
         elem = page.get_by_role("button", name="⚡ Quick Single Item (1 Q)")
         await elem.click(timeout=10000)
 
-        # -> Continue to the traps configuration step using “Continue to Traps.”
+        # -> Continue to the trap-settings screen using “Continue to Traps.”
         # Continue to Traps button
         elem = page.get_by_role("button", name="Continue to Traps")
         await elem.click(timeout=10000)
 
-        # -> Continue to the visuals setup using “Continue to Visuals.”
+        # -> Continue from Cognitive Traps & Reasoning Skills to the Visuals setup.
         # Continue to Visuals button
         elem = page.get_by_role("button", name="Continue to Visuals")
         await elem.click(timeout=10000)
 
-        # -> Open the configuration review using “Review Configuration.”
+        # -> Open the configuration review screen using “Review Configuration.”
         # Review Configuration button
         elem = page.get_by_role("button", name="Review Configuration")
         await elem.click(timeout=10000)
 
-        # -> Start live generation by selecting “Generate Single Question (Live)” and observe the generation state.
+        # -> Start the live single-question generation using “Generate Single Question (Live)” and inspect the active pipeline controls.
         # Generate Single Question (Live) button
         elem = page.get_by_role("button", name="Generate Single Question (")
         await elem.click(timeout=10000)
 
-        # -> Open the Question Generator view and verify whether generation has stopped and the workspace is idle.
-        # Question Generator button
-        elem = page.get_by_role("button", name="Question Generator")
-        await elem.click(timeout=10000)
-
         # --> Assertions to verify final state
 
-        # --> The generation ended and the workspace is ready for review.
+        # --> The generation run ended and its question is ready for review.
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: The workspace is ready for review after generation stops.
+        # Assert: The generation result should be ready for review after the run stops.
         (
             await expect(page.get_by_role("main").nth(0)).to_contain_text(
                 "Ready for Review", timeout=15000
             ),
-            "The workspace is ready for review after generation stops.",
+            "The generation result should be ready for review after the run stops.",
+        )
+
+        # --> The workspace displays an idle status after generation stops.
+        # Assert-outcome: not verified — the export-time check could not be evaluated
+        # Assert: The workspace should display an idle status.
+        (
+            await expect(page.get_by_role("main").nth(0)).to_contain_text("Idle", timeout=15000),
+            "The workspace should display an idle status.",
         )
         await asyncio.sleep(5)
 

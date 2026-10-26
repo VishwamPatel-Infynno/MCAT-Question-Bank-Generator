@@ -40,12 +40,17 @@ async def run_test():
         except Exception:
             pass
 
-        # -> Open the Question Bank view from the top navigation.
+        # -> Open the Question Bank view and inspect the listed questions and their available actions.
         # Question Bank button
         elem = page.get_by_role("button", name="Question Bank", exact=True)
         await elem.click(timeout=10000)
 
-        # -> Select the first question’s “Delete question” control and inspect the confirmation prompt.
+        # -> Open the deletion confirmation for the first listed question.
+        # Delete question button
+        elem = page.locator(".btn-danger").first
+        await elem.click(timeout=10000)
+
+        # -> Delete one visible question and inspect whether the bank list updates and displays confirmation feedback.
         # Delete question button
         elem = page.locator(".btn-danger").first
         await elem.click(timeout=10000)

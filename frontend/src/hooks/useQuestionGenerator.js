@@ -14,17 +14,25 @@ export function useQuestionGenerator() {
   const [latestReview, setLatestReview] = useState(null);
   const [perQuestionState, setPerQuestionState] = useState({});
   const abortControllerRef = useRef(null);
+  const isCancelledRef = useRef(false);
 
   const cancelGeneration = useCallback(() => {
+    isCancelledRef.current = true;
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
     setIsGenerating(false);
     setActiveAgent('Idle');
+    setActiveQuestion(null);
+    setStagedQuestions([]);
+    setEvents([]);
+    setBatchProgress(null);
+    setRejectedData(null);
   }, []);
 
   const startGeneration = useCallback((payload) => {
+    isCancelledRef.current = false;
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -70,6 +78,7 @@ export function useQuestionGenerator() {
     generateQuestionStream(
       payload,
       (evt) => {
+        if (isCancelledRef.current) return;
         setEvents((prev) => [...prev, evt]);
         if (evt.agent_name && evt.agent_name !== 'System') {
           setActiveAgent(evt.agent_name);
@@ -193,6 +202,10 @@ export function useQuestionGenerator() {
         if (err?.isAborted) {
           setIsGenerating(false);
           setActiveAgent('Idle');
+          setActiveQuestion(null);
+          setStagedQuestions([]);
+          setEvents([]);
+          setBatchProgress(null);
           return;
         }
         console.error('Workflow error:', err);
@@ -200,6 +213,7 @@ export function useQuestionGenerator() {
         setActiveAgent('Error');
       },
       (finalData) => {
+        if (isCancelledRef.current) return;
         abortControllerRef.current = null;
         setIsGenerating(false);
         setActiveAgent('Completed');

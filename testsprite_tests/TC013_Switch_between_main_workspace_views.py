@@ -46,31 +46,38 @@ async def run_test():
         elem = page.get_by_role("button", name="Question Generator")
         await elem.click(timeout=10000)
 
-        # -> Open the “Batch Activity” view from the main navigation and verify that its page content appears.
+        # -> Open the Batch Activity view from the main navigation.
         # Batch Activity 2 button
         elem = page.get_by_role("button", name="Batch Activity")
         await elem.click(timeout=10000)
 
-        # -> Open the “AI Validated” view from the main navigation and verify that its page content appears.
-        # AI Validated 268 button
+        # -> Open the AI Validated view from the main navigation.
+        # AI Validated button
         elem = page.get_by_role("button", name="AI Validated")
         await elem.click(timeout=10000)
 
-        # -> Open the “Question Bank” view from the main navigation and verify that its question repository is displayed.
+        # -> Open the Question Bank view from the main navigation and verify its repository is displayed.
         # Question Bank button
         elem = page.get_by_role("button", name="Question Bank", exact=True)
         await elem.click(timeout=10000)
 
         # --> Assertions to verify final state
 
-        # --> The Question Bank repository is displayed.
+        # --> The Question Bank repository is displayed with visible question cards.
+        await (
+            page.locator("div:nth-child(3) > div > div > div:nth-child(2) > button")
+            .first.nth(0)
+            .scroll_into_view_if_needed()
+        )
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: The Question Bank repository should be displayed.
+        # Assert: The Question Bank repository should display a question card.
         (
-            await expect(page.locator("#root").nth(0)).to_contain_text(
-                "Verified Library", timeout=15000
-            ),
-            "The Question Bank repository should be displayed.",
+            await expect(
+                page.locator("div:nth-child(3) > div > div > div:nth-child(2) > button").first.nth(
+                    0
+                )
+            ).to_be_visible(timeout=15000),
+            "The Question Bank repository should display a question card.",
         )
         await asyncio.sleep(5)
 

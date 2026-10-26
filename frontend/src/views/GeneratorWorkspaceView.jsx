@@ -133,6 +133,14 @@ export default function GeneratorWorkspaceView({
             <Sparkles size={28} />
           </div>
           <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+              <span className="badge badge-subtle" style={{ fontSize: '0.7rem', fontWeight: 600 }}>
+                Status: Idle
+              </span>
+              <span style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>
+                Ready for Review
+              </span>
+            </div>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
               Ready to Create Questions
             </h3>

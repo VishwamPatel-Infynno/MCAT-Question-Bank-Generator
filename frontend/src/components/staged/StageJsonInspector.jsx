@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Code2, Copy, Check, ChevronDown, ChevronUp, PenTool, ShieldCheck, RotateCcw, ImageIcon, Sparkles } from 'lucide-react';
 
 export default function StageJsonInspector({ question }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [activeStage, setActiveStage] = useState('drafting');
   const [copied, setCopied] = useState(false);
 
@@ -110,6 +110,7 @@ export default function StageJsonInspector({ question }) {
 
   return (
     <div
+      className="glass-panel audit-trail-container"
       style={{
         marginTop: '8px',
         border: '1px solid var(--border-light)',

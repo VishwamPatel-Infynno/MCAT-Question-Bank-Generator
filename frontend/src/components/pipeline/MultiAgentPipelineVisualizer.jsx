@@ -82,11 +82,11 @@ export default function MultiAgentPipelineVisualizer({
     || batchProgress?.message
     || (isGenerating
       ? (isWriterReviewerActive
-          ? (totalBatch > 1 ? `Question Writer & Reviewer: Fused drafting & self-critique in parallel...` : `Question Writer & Reviewer: Fused drafting & 100-point self-critique...`)
+          ? 'Question Writer & Reviewer — Processing...'
           : isRegenActive
-          ? `Question Improver: Refining and resolving ambiguities...`
+          ? 'Question Improver — Processing...'
           : isImgActive
-          ? 'Diagram Maker: Synthesizing crisp neural visual stimulus (FLUX-2 Klein)...'
+          ? 'Diagram Maker — Processing...'
           : 'AI Team creating questions...')
       : null);
 
@@ -314,7 +314,14 @@ export default function MultiAgentPipelineVisualizer({
                   paddingTop: '4px'
                 }}
               >
-                {isCurrentlyActive ? 'Processing...' : agent.guarantee}
+                {isCurrentlyActive ? (
+                  <span title={`${agent.title} — Processing...`}>
+                    <span style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>
+                      {`${agent.title} — Processing...`}
+                    </span>
+                    Processing...
+                  </span>
+                ) : agent.guarantee}
               </div>
             </div>
           );

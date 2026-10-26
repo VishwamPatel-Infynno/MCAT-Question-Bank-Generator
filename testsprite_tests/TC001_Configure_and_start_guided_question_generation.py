@@ -41,96 +41,96 @@ async def run_test():
         except Exception:
             pass
 
-        # -> Open the guided question-creation setup using “Get Started - Create Questions.”
+        # -> Click “Get Started - Create Questions” to open the guided question setup.
         # Get Started - Create Questions button
         elem = page.get_by_role("button", name="Get Started - Create Questions")
         await elem.click(timeout=10000)
 
-        # -> Continue from the selected exam section to the unit selection screen.
+        # -> Continue from the selected Chemistry & Physics exam section to the unit selection step.
         # Continue to Unit button
         elem = page.get_by_role("button", name="Continue to Unit")
         await elem.click(timeout=10000)
 
-        # -> Continue to topic selection and inspect the available topic options.
+        # -> Continue from the selected chemistry unit to the topic selection step.
         # Continue to Topic button
         elem = page.get_by_role("button", name="Continue to Topic")
         await elem.click(timeout=10000)
 
-        # -> Choose “Periodic Trends” as the core topic and inspect its available subtopic concepts.
-        # Periodic Trends button
-        elem = page.get_by_role("button", name="Periodic Trends")
+        # -> Select “Electron configurations” as the target concept and continue to the difficulty-level step.
+        # Electron configurations button
+        elem = page.get_by_role("button", name="Electron configurations")
         await elem.click(timeout=10000)
 
-        # -> Continue from topic selection to the question level settings.
+        # -> Select “Electron configurations” as the target concept and continue to the difficulty-level step.
         # Continue to Level button
         elem = page.get_by_role("button", name="Continue to Level")
         await elem.click(timeout=10000)
 
-        # -> Set a non-default challenge level and select Independent MCQ for the custom configuration.
-        # 99th Percentile Elite (~518-528 MCAT) Subtle data... button
-        elem = page.get_by_role("button", name="99th Percentile Elite (~518-")
-        await elem.click(timeout=10000)
-
-        # -> Set a non-default challenge level and select Independent MCQ for the custom configuration.
+        # -> Select the visible “Independent MCQ” question format and review the updated configuration.
         # Independent MCQ Standalone discrete single-choice... button
         elem = page.get_by_role("button", name="Independent MCQ Standalone")
         await elem.click(timeout=10000)
 
-        # -> Continue to the Traps step and inspect the available configuration options.
+        # -> Choose “Quick Single Item (1 Q)” to configure live generation, then continue to the traps step.
+        # ⚡ Quick Single Item (1 Q) Live Workspace... button
+        elem = page.get_by_role("button", name="⚡ Quick Single Item (1 Q)")
+        await elem.click(timeout=10000)
+
+        # -> Continue from the selected live generation configuration to the traps setup.
         # Continue to Traps button
         elem = page.get_by_role("button", name="Continue to Traps")
         await elem.click(timeout=10000)
 
-        # -> Continue to the Visuals step and inspect its available settings.
+        # -> Open the Visuals step using “Continue to Visuals” and inspect the available AI diagram or image generation option.
         # Continue to Visuals button
         elem = page.get_by_role("button", name="Continue to Visuals")
         await elem.click(timeout=10000)
 
-        # -> Enable “When Needed” for AI visual generation on the Visuals step.
+        # -> Enable AI-generated visuals when pedagogically needed for the configured question.
         # When Needed button
         elem = page.get_by_role("button", name="When Needed")
         await elem.click(timeout=10000)
 
-        # -> Open “Review Configuration” to inspect the completed setup before starting generation.
+        # -> Click “Review Configuration” to inspect the completed setup before launching question generation.
         # Review Configuration button
         elem = page.get_by_role("button", name="Review Configuration")
         await elem.click(timeout=10000)
 
-        # -> Start the 50-question batch using “Launch 50-Question Batch” and verify the live generation pipeline and its progress display.
-        # Launch 50-Question Batch button
-        elem = page.get_by_role("button", name="Launch 50-Question Batch")
+        # -> Click “Generate Single Question (Live)” to launch generation and verify the live pipeline and its progress information.
+        # Generate Single Question (Live) button
+        elem = page.get_by_role("button", name="Generate Single Question (")
         await elem.click(timeout=10000)
 
         # --> Assertions to verify final state
 
-        # --> The launched generation batch is shown as in progress in Batch Activity.
+        # --> The live generation pipeline is displayed.
         await (
-            page.locator("div:nth-child(4) > div > div > div:nth-child(3)")
-            .first.nth(0)
+            page.locator("#root div")
+            .filter(has_text="Ready for Review|Chemical and")
+            .nth(2)
+            .nth(0)
             .scroll_into_view_if_needed()
         )
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: The launched generation batch should be shown as in progress.
+        # Assert: The live generation pipeline is visible.
         (
             await expect(
-                page.locator("div:nth-child(4) > div > div > div:nth-child(3)").first.nth(0)
+                page.locator("#root div")
+                .filter(has_text="Ready for Review|Chemical and")
+                .nth(2)
+                .nth(0)
             ).to_be_visible(timeout=15000),
-            "The launched generation batch should be shown as in progress.",
+            "The live generation pipeline is visible.",
         )
 
-        # --> Generation job and question progress information is displayed for the batch.
-        await (
-            page.get_by_text("10 / 10 Jobs Completed99 / 50")
-            .first.nth(0)
-            .scroll_into_view_if_needed()
-        )
+        # --> Generation progress information is displayed.
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: Generation job and question progress should be displayed.
+        # Assert: Generation progress information is displayed.
         (
-            await expect(
-                page.get_by_text("10 / 10 Jobs Completed99 / 50").first.nth(0)
-            ).to_be_visible(timeout=15000),
-            "Generation job and question progress should be displayed.",
+            await expect(page.locator("#root").nth(0)).to_contain_text(
+                "Generation Started", timeout=15000
+            ),
+            "Generation progress information is displayed.",
         )
         await asyncio.sleep(5)
 

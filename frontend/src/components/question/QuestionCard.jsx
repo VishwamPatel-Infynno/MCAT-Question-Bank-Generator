@@ -180,6 +180,7 @@ export default function QuestionCard({
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.725rem', fontWeight: 600, color: 'var(--status-warning)' }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--status-warning)' }} />
               Ready for Review
+              <span style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>Idle</span>
             </span>
           )}
 

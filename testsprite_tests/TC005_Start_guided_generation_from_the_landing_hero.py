@@ -48,17 +48,19 @@ async def run_test():
 
         # --> Assertions to verify final state
 
-        # --> The guided generation wizard opened at the exam-section step.
+        # --> The guided generation wizard is open at Step 1, “Choose Exam Section,” with exam-section choices available.
         await (
-            page.get_by_role("button", name="Continue to Unit").nth(0).scroll_into_view_if_needed()
+            page.get_by_role("button", name="Chemistry & Physics Chemical")
+            .nth(0)
+            .scroll_into_view_if_needed()
         )
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: The guided generation wizard's Continue to Unit control is visible.
+        # Assert: The guided generation wizard displays an exam-section choice.
         (
-            await expect(page.get_by_role("button", name="Continue to Unit").nth(0)).to_be_visible(
-                timeout=15000
-            ),
-            "The guided generation wizard's Continue to Unit control is visible.",
+            await expect(
+                page.get_by_role("button", name="Chemistry & Physics Chemical").nth(0)
+            ).to_be_visible(timeout=15000),
+            "The guided generation wizard displays an exam-section choice.",
         )
         await asyncio.sleep(5)
 
