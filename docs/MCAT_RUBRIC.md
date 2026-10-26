@@ -2,7 +2,7 @@
 
 Engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
 
-This document specifies the psychometric standards, 100-point quality rubric, cognitive distractor trap engineering principles, and pacing guidelines governing the **Infynno MCAT Question Bank Generator v2.0**.
+This document specifies the psychometric standards, 100-point quality rubric, cognitive distractor trap engineering principles, AAMC reasoning skills, calibrated scaled score mapping, and pacing guidelines governing the **Infynno MCAT Question Bank Generator v2.0**.
 
 ---
 
@@ -25,12 +25,18 @@ The MCAT evaluates problem-solving, critical thinking, and knowledge of natural,
 
 ## 2. AAMC Scientific Inquiry & Reasoning Skills (SIRS)
 
-All generated questions explicitly test one of the official four AAMC Scientific Inquiry and Reasoning Skills:
+All generated questions explicitly test one of the official four AAMC Scientific Inquiry and Reasoning Skills (or CARS reasoning skills):
 
+### Natural, Behavioral & Social Sciences (SIRS)
 1. **Skill 1: Knowledge of Scientific Concepts and Principles** — Recognizing, recalling, and defining scientific phenomena, models, and relationships.
 2. **Skill 2: Scientific Reasoning and Problem Solving** — Formulating hypotheses, applying conceptual models to novel clinical scenarios, and evaluating scientific solutions.
 3. **Skill 3: Reasoning About the Design and Execution of Research** — Evaluating experimental variables, positive/negative controls, ethical standards, and instrumentation validity.
 4. **Skill 4: Data-Based and Statistical Reasoning** — Reading tables, dose-response curves, gel electrophoresis assays, bar charts, and evaluating statistical significance ($p < 0.05$).
+
+### Critical Analysis and Reasoning Skills (CARS)
+1. **Foundations of Comprehension** — Understanding the literal meaning and main ideas of complex philosophical and social science passages.
+2. **Reasoning Within the Text** — Identifying assumptions, evaluating evidence, and understanding rhetorical tone and logical connections within the passage.
+3. **Reasoning Beyond the Text** — Applying passage arguments to novel external scenarios and assessing the impact of new information on the author's thesis.
 
 ---
 
@@ -77,7 +83,7 @@ Official MCAT distractors are **never trivial or obviously wrong**; they are del
 
 | Score Range | Descriptor | Criteria |
 | :---: | :--- | :--- |
-| **23 - 25** | *Exceptional Traps* | All 3 distractors are highly plausible, scientifically coherent, and target distinct cognitive traps. Options exhibit symmetric length and grammatical parallelism. |
+| **23 - 25** | *Exceptional Traps* | All 3 distractors are highly plausible, scientifically coherent, and target distinct cognitive traps. Options exhibit symmetric length and grammatical parallelism ($\pm 15\%$). |
 | **19 - 22** | *Strong Distractors* | Options represent genuine misconceptions with strong plausibility; minor length variance. |
 | **14 - 18** | *Mediocre Distractors* | One distractor is easily eliminated by basic common sense; trap mechanisms are weak. |
 | **0 - 13** | *Defective Options* | Distractors are silly, obviously absurd, or mathematically incoherent. |
@@ -110,13 +116,30 @@ The engine applies an authoritative taxonomy of 11 psychological traps:
 5. **Partial Match**: Contains true scientific facts that fail to address the specific question stem.
 6. **Half-Truth**: First half of the option is scientifically accurate, but the conclusion is subtly inverted.
 7. **Unwarranted Assumption**: Relies on external assumptions not supported by the experimental passage.
-8. **Calculation Trap**: Intermediate calculation error, inverted reciprocal, or wrong unit prefix ($10^{-3}$ vs $10^{-6}$).
+8. **Calculation Formula Trap**: Intermediate calculation error, inverted reciprocal, or wrong unit prefix ($10^{-3}$ vs $10^{-6}$).
 9. **Out of Scope**: Introduces facts completely outside the tested scope or curriculum domain.
 10. **False Dichotomy**: Presumes an all-or-nothing binary between two biological mechanisms when both operate synergistically.
 11. **Over-generalisation**: Generalizes results observed in an isolated enzyme to an entire metabolic pathway or organism.
 
 ---
 
-## 5. Strict Quality Gate Benchmark ($\ge 90$ Points)
+## 5. Calibrated AAMC Scaled Score Mapping
 
-Any drafted question scoring $< 90$ points is automatically rejected by the Strict Quality Gate and routed through autonomous remediation. Items failing after maximum allowed cycles are discarded and never committed to the permanent database repository.
+Internal 100-point psychometric audit scores are mathematically calibrated to the official AAMC scaled score ranges:
+- **Individual Section Scale**: `118` to `132` (Median: `125`)
+- **Composite Examination Scale**: `472` to `528` (Median: `500`)
+
+| 100-Point Audit Score | AAMC Section Scaled Score | Percentile Rank | Classification |
+| :---: | :---: | :---: | :--- |
+| **98 - 100** | **132** | **99th+ Percentile** | Elite / Perfect Calibration |
+| **96 - 97** | **131** | **98th - 99th Percentile** | Exceptional Standard Bank |
+| **94 - 95** | **130** | **96th - 97th Percentile** | Outstanding / Competitive MD |
+| **92 - 93** | **129** | **92nd - 95th Percentile** | Superior Psychometric Validity |
+| **91** | **128** | **87th - 91st Percentile** | Minimum Accepted Standard |
+| **$\le$ 90** | **$\le$ 127** | **$<$ 86th Percentile** | **Fails Quality Gate (Remediation Required)** |
+
+---
+
+## 6. Strict Quality Gate Benchmark ($> 90$ Points)
+
+Any drafted question scoring $\le 90$ points is automatically rejected by the Strict Quality Gate and routed through autonomous remediation. Items failing after maximum allowed cycles (3 iterations) are discarded and never committed to the permanent database repository.

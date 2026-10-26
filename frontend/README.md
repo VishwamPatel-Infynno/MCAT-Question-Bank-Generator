@@ -10,12 +10,16 @@ Built with **React 19**, **Vite 8**, **Oxlint**, and a custom dark-glass precisi
 
 The frontend provides an intuitive, real-time command canvas for AAMC MCAT question generation, AI team tracking, and question bank management:
 
-- **Question Setup Panel**: 5-step guided workflow for selecting official AAMC sections (Chemical and Physical Foundations, Critical Analysis and Reasoning Skills [CARS], Biological and Biochemical Foundations, Psychological, Social, and Biological Foundations), syllabus subtopics, difficulty calibration, reading material stimuli, and cognitive distractor traps.
+- **Progressive 7-Step Guided Wizard**: Step-by-step authoring workflow for selecting official AAMC sections (Chemical and Physical Foundations, Critical Analysis and Reasoning Skills [CARS], Biological and Biochemical Foundations, Psychological, Social, and Biological Foundations), syllabus disciplines, major units, topics, subtopics, difficulty calibration, reading material stimuli, and cognitive distractor traps.
+- **3 Calibrated Generation Scopes**:
+  - **Quick Single Item (1 Q)**: Real-time SSE streaming into the interactive review desk (~15-25s) with live telemetry and inline editing.
+  - **Live Mini-Set (5 Qs)**: Parallel drafting on a shared passage or discrete set (~35-50s) staged in the interactive multi-slot desk.
+  - **Full Mock Section (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
 - **Live AI Team with Fused Draft-and-Critique**: Animated live tracker displaying the AI pipeline milestones (**Question Writer & Reviewer** with fused 100-pt self-critique for ~40% faster generation, **Question Improver** with smart status indicators, and **Diagram & Chart Maker**) with electric conduit telemetry.
 - **Staged Batch Review & Approval**: Interactive batch staging deck allowing educators to inspect, edit, discard, or approve multiple generated items before saving to the database.
 - **Question Quality & Cost Breakdown**: Comprehensive 100-point 4-pillar quality check with itemized token tracking and micro-dollar cost calculations.
 - **Export & Print Studio**: Professional modal for exporting PDF Exam Papers (with candidate headers and page breaks), Study Packs, CSV, and JSON bundles.
-- **Enterprise Question Bank**: High-speed searchable, filterable repository with multi-format export and copy-to-clipboard actions.
+- **Enterprise Question Bank**: High-speed searchable, filterable repository with multi-format export, lifecycle status management, and copy-to-clipboard actions.
 
 ---
 
@@ -23,7 +27,7 @@ The frontend provides an intuitive, real-time command canvas for AAMC MCAT quest
 
 ```
 frontend/src/
-├── views/                        # Top-level application view screens
+├── views/                        # Top-level application view screens (code-split)
 │   ├── index.js                  # Views barrel export
 │   ├── GeneratorWorkspaceView.jsx# Interactive exam generation & pipeline workspace
 │   ├── QuestionBankView.jsx      # Verified Question Bank view & repository table
@@ -44,13 +48,14 @@ frontend/src/
 │   │   ├── Footer.jsx            # Infynno Solutions LLP attribution & resource footer
 │   │   └── Navbar.jsx            # Header with branding, navigation tabs, status, and theme toggle
 │   ├── modals/
-│   │   └── ExportPrintModal.jsx  # Exam Paper (PDF), Study Pack, CSV and JSON export modal
+│   │   ├── ExportPrintModal.jsx  # Exam Paper (PDF), Study Pack, CSV and JSON export modal
+│   │   └── ExportPaperPreview.jsx# Live print layout previewer
 │   ├── pipeline/
 │   │   ├── AgentVisualizer.jsx   # Live generating telemetry & compact stepper
 │   │   ├── MultiAgentPipelineVisualizer.jsx # 3-Milestone pipeline architecture & conduit visualizer
 │   │   └── RejectionCard.jsx     # Diagnostic display when score fails threshold
 │   ├── question/
-│   │   ├── MentorExplanationView.jsx # Warm conversational tutor explanation with trap breakdowns
+│   │   ├── MentorExplanationView.jsx # 3-card mentor explanation view (Intuition, Distractors, Trap)
 │   │   ├── QuestionCard.jsx      # Interactive student practice & review card
 │   │   ├── QuestionDraftingSkeleton.jsx # Pulse skeleton for question creation
 │   │   ├── QuestionInlineEditor.jsx # In-place authoring & remediation editor
@@ -84,12 +89,14 @@ frontend/src/
 │       ├── wizardConstants.js    # Re-exports and presets for wizard steps
 │       └── steps/                # Progressive 7-step subcomponents (WizardStep1Section through WizardStep7Review)
 ├── constants/
+│   ├── index.js                  # Constants barrel export
 │   ├── config.js                 # Pricing models, image parameters, token rates
 │   ├── mcat.js                   # MCAT sections, pacing specs, icons, and fallback topics
 │   ├── mcatTaxonomy.json         # AAMC-aligned foundational concepts and skills
 │   └── mcatTraps.js              # AAMC cognitive trap definitions and defense strategies
 ├── hooks/
 │   ├── index.js                  # Barrel export for custom hooks
+│   ├── useAppState.js            # Centralized view routing & global event broker
 │   ├── useGeneratorForm.js       # Form state & validation logic
 │   ├── useKeyboardShortcuts.js   # Global hotkeys (⌘↵ to generate, A to approve, D to discard, T to toggle theme)
 │   ├── useQuestionBank.js        # Debounced search, sorting, and bank fetching
@@ -133,7 +140,7 @@ pnpm preview
 
 The frontend uses an enterprise precision design system. For exhaustive tokens, typography hierarchies, component contracts, and accessibility specifications, consult the authoritative guide:
 
-👉 **[UI/UX Design System Specification (DESIGN.md)](../DESIGN.md)**
+👉 **[UI/UX Design System Specification (DESIGN.md)](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/DESIGN.md)**
 
 - **Brand Violet**: `#4F30B9`
 - **Brand Blue**: `#335ACF`

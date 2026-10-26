@@ -21,11 +21,14 @@ Most off-the-shelf generative AI setups produce flawed test questions for four r
 ### How Infynno Engineered the Solution
 The **Infynno MCAT Question Bank Generator v2.0** solves these challenges with five core pillars:
 
-- **Strict 5-Question Batch Standard**: Every generation run produces **exactly 5 questions**—not more, not fewer—ensuring predictable workflow volume and standard mock test chunking.
-- **Binary Passage Architecture**: In a single run, the studio generates either:
-  - **Passage-Based Set**: 1 comprehensive scientific or rhetoric passage linked to **all 5 questions**; OR
-  - **Independent Discretes**: **All 5 questions** are standalone stems with zero stimulus text.
-- **CARS Pure Passage Standard**: For **Critical Analysis and Reasoning Skills (CARS)**, the system strictly enforces 100% passage-based sets (5 questions per passage), locking discrete mode out in accordance with AAMC regulations.
+- **Calibrated Multi-Tier Generation Scopes**:
+  - **Quick Single Item (1 Q)**: Real-time SSE streaming into the interactive review desk (~15-25s) with live telemetry and inline editing.
+  - **Live Mini-Set (5 Qs)**: Rapid parallel drafting on a shared passage or discrete set (~35-50s) staged in the interactive multi-slot desk.
+  - **Full Mock Section (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
+- **Binary Passage Architecture**: In a generation run, the studio generates either:
+  - **Passage-Based Set**: 1 comprehensive scientific or rhetoric passage linked to all questions in the set; OR
+  - **Independent Discretes**: Standalone scientific stems with zero stimulus text.
+- **CARS Pure Passage Standard**: For **Critical Analysis and Reasoning Skills (CARS)**, the system strictly enforces 100% passage-based sets, locking discrete mode out in accordance with AAMC regulations.
 - **Fused Draft-and-Critique Cognitive Engine**: Authors the scenario, symmetric options, and mentor explanation while simultaneously self-scoring the item across a standardized 100-point rubric in a single unified round-trip, cutting latency by 35-45%.
 - **Autonomous Remediation & Strict Quality Gate (>90 Points)**: Items scoring $\le 90$ undergo up to three cycles of independent auditing and remediation. Unrepaired items are discarded and never committed to the database.
 
@@ -37,30 +40,31 @@ The platform is engineered around the official syllabus, cognitive traps, and pa
 
 | Section Code | Official Section Name | Total Qs | Time Limit | Target Pacing | Core Focus & Purity Rules |
 | :---: | :--- | :---: | :---: | :---: | :--- |
-| **chem_phys** | **Chemical and Physical Foundations of Biological Systems** | 59 | 95 mins | **~96s / question** | General chemistry, organic chemistry, physics, thermodynamics, enzymatic kinetics. Supports Passage Set (5 Qs) or Discretes (5 Qs). |
-| **cars** | **Critical Analysis and Reasoning Skills** | 53 | 90 mins | **~101s / question** | Humanities and social science rhetoric, authorial tone, thesis extraction. **Strictly 100% Passage-Based (5 Qs linked to 1 passage; Discretes forbidden).** |
-| **bio_biochem** | **Biological and Biochemical Foundations of Living Systems** | 59 | 95 mins | **~96s / question** | Molecular genetics, metabolic pathways, microbiology, organ physiology. Supports Passage Set (5 Qs) or Discretes (5 Qs). |
-| **psych_soc** | **Psychological, Social, and Biological Foundations of Behavior** | 59 | 95 mins | **~96s / question** | Cognitive psychology, healthcare sociodemographics, sensory perception. Supports Passage Set (5 Qs) or Discretes (5 Qs). |
+| **chem_phys** | **Chemical and Physical Foundations of Biological Systems** | 59 | 95 mins | **~96s / question** | General chemistry, organic chemistry, physics, thermodynamics, enzymatic kinetics. Supports Passage Sets or Discretes. |
+| **cars** | **Critical Analysis and Reasoning Skills** | 53 | 90 mins | **~101s / question** | Humanities and social science rhetoric, authorial tone, thesis extraction. **Strictly 100% Passage-Based (Discretes forbidden).** |
+| **bio_biochem** | **Biological and Biochemical Foundations of Living Systems** | 59 | 95 mins | **~96s / question** | Molecular genetics, metabolic pathways, microbiology, organ physiology. Supports Passage Sets or Discretes. |
+| **psych_soc** | **Psychological, Social, and Biological Foundations of Behavior** | 59 | 95 mins | **~96s / question** | Cognitive psychology, healthcare sociodemographics, sensory perception. Supports Passage Sets or Discretes. |
 
 ---
 
-## 3. End-to-End User Experience & 5-Step Guided Wizard
+## 3. End-to-End User Experience & 7-Step Guided Wizard
 
-The workstation provides an interactive **5-Step Guided Wizard** docked beside the full-width workspace:
+The workstation provides an interactive **7-Step Guided Wizard** docked beside the full-width workspace, organizing decisions into 1-2 focused choices per step:
 
 ```
-[ Step 1: Section ] ──> [ Step 2: Topic ] ──> [ Step 3: Difficulty & Batch (Fixed 5) ] ──> [ Step 4: Stimulus ] ──> [ Step 5: Review & Launch ]
+[ Step 1: Section ] ──> [ Step 2: Discipline & Unit ] ──> [ Step 3: Topic & Concept ] ──> [ Step 4: Level & Scope ] ──> [ Step 5: Traps & Skills ] ──> [ Step 6: Visuals & Prompt ] ──> [ Step 7: Review & Launch ]
 ```
 
-1. **Step 1: Choose MCAT Section**: Select from the 4 official AAMC sections. Selecting CARS automatically primes the wizard for 100% passage-based operation.
-2. **Step 2: Choose Syllabus Subtopic**: Select from curated high-yield curriculum domains or enter custom targets.
-3. **Step 3: Difficulty & Fixed 5-Question Batch Architecture**:
-   - **Batch Quantity**: Locked to **Exactly 5 Questions** (Official MCAT Standard).
-   - **Binary Passage Mode**:
-     - *Passage-Based Set*: Generates 1 comprehensive shared stimulus passage linked to all 5 questions.
-     - *Independent Discretes*: Generates 5 standalone scientific stems with direct question stems (auto-disabled with alert banner for CARS).
-4. **Step 4: Stimulus & Diagram Studio**: Configure optional SVG vector diagrams (e.g., reaction coordinates, metabolic cycles, Western blot assays) and select distractor traps.
-5. **Step 5: Review & Launch**: Inspect the unified configuration summary and trigger real-time SSE streaming.
+1. **Step 1: Choose MCAT Section**: Select from the 4 official AAMC sections. Selecting CARS automatically primes the wizard for 100% passage-based operation and disables image generation.
+2. **Step 2: Choose Discipline & Major Unit**: Select discipline and major unit based on the official AAMC syllabus.
+3. **Step 3: Select Topic & Granular Concept**: Select targeted topic and granular subtopic concept.
+4. **Step 4: Calibrate Level, Scope & Question Format**:
+   - **Generation Scope**: Select Quick Single Item (1 Q), Live Mini-Set (5 Qs), or Full Mock Section (50 Qs).
+   - **Challenge Level**: Foundational, Standard MCAT, or Top Percentile.
+   - **Binary Passage Mode**: Passage-Based Set vs Independent Discretes.
+5. **Step 5: Cognitive Traps & Reasoning Skills**: Calibrate specific AAMC cognitive distractor traps paired with official AAMC SIRS skills (Skill 1-4) or CARS reasoning skills.
+6. **Step 6: Figures & Clinical Guidance**: Configure optional SVG vector diagrams (reaction coordinates, metabolic cycles, Western blot assays), autonomous AI visual generation, and custom prompt directives.
+7. **Step 7: Review & Launch**: Inspect the unified configuration summary with quick scope switcher pills and trigger real-time SSE streaming or background batch generation.
 
 ---
 
@@ -103,7 +107,7 @@ graph TD
 - Repairs identified distractor weaknesses, equalizes option lengths, and sharpens pedagogical proofs.
 - Loops up to 3 cycles before triggering the deterministic rejection circuit breaker.
 
-### 4.4 Strict Quality Gate Benchmark ($\ge 90$ Points)
+### 4.4 Strict Quality Gate Benchmark ($> 90$ Points)
 - Any item unable to achieve $> 90$ points after 3 cycles is completely rejected and excluded from the Question Bank.
 
 ---
@@ -129,3 +133,8 @@ $$\text{Total Cost} = \left(\frac{\text{Input Tokens}}{1{,}000{,}000} \times \$0
 
 - **Predictable Micro-Costs**: An audited 5-question batch typically costs **between $0.006 and $0.012 USD** in total inference.
 - **Repository Observability**: The Question Bank header displays accumulated input tokens, output tokens, total execution time, and cumulative investment across the entire repository.
+- **Dedicated Application Views**: Seamlessly navigate between:
+  1. **Generator Workspace**: Interactive exam generation & pipeline workspace.
+  2. **AI Validated Bank**: High-quality items (>90 points) awaiting one-click educator publishing.
+  3. **Question Bank**: Primary verified repository with search, filtering, and export.
+  4. **Batch Activity**: Real-time monitor tracking background 50-question mock runs.

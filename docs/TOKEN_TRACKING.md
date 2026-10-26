@@ -12,7 +12,7 @@ The primary LLM driving the multi-agent system is **DeepSeek-V4.1-Flash-1017**, 
 
 - **Model Identifier**: `deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017`
 - **Context Window**: 1,024,000 tokens (1M)
-- **Inference Speed**: ~85-125 tokens/second
+- **Inference Speed**: ~110-140 tokens/second
 
 ### Official DeepInfra Rate Card
 
@@ -49,6 +49,7 @@ def calculate_token_cost(prompt_tokens: int, completion_tokens: int) -> float:
 | **Independent Reviewer Audit Pass** | 380 | 210 | $0.00003724 | $0.00006174 | **$0.00009898** |
 | **Re-Generator Remediation** | 510 | 390 | $0.00004998 | $0.00011466 | **$0.00016464** |
 | **2-Cycle Full Question Lifecycle** | 1,720 | 1,130 | $0.00016856 | $0.00033222 | **$0.00050078** |
+| **Full Mock Section (50 Questions)** | ~40,000 | ~28,000 | ~$0.00392 | ~$0.00823 | **~$0.01215** |
 | **1 Million Input Tokens** | 1,000,000 | 0 | $0.09800 | $0.00000 | **$0.09800** |
 | **1 Million Output Tokens** | 0 | 1,000,000 | $0.00000 | $0.29400 | **$0.29400** |
 
@@ -59,7 +60,7 @@ def calculate_token_cost(prompt_tokens: int, completion_tokens: int) -> float:
 For visual question stimuli, the system integrates **`black-forest-labs/FLUX-2-klein-4b`** hosted on **DeepInfra**:
 
 - **Model Identifier**: `black-forest-labs/FLUX-2-klein-4b`
-- **Architecture**: Compact rectified-flow transformer from the Flux 2 family, delivering superior prompt adherence, clean white-background test illustrations, and sub-2.0s generation times.
+- **Architecture**: Compact rectified-flow transformer delivering prompt adherence, clean white-background test illustrations, and sub-2.0s generation times.
 
 ### Official DeepInfra Image Pricing Formula
 
@@ -108,7 +109,7 @@ graph TD
     end
 ```
 
-### 3.1 Data Structures
+### 4.1 Data Structures
 
 #### `TokenUsage` Schema ([`app/schemas/token.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/schemas/token.py#L9-L15))
 ```python
@@ -133,7 +134,7 @@ class TokenUsage(BaseModel):
 
 ---
 
-## 4. PostgreSQL Persistence & Repository Metrics
+## 5. PostgreSQL Persistence & Repository Metrics
 
 Each question persisted in PostgreSQL stores both aggregate summary metrics and the full granular per-cycle audit breakdown:
 
@@ -147,7 +148,7 @@ Each question persisted in PostgreSQL stores both aggregate summary metrics and 
 | `token_usage_details` | `JSONB` | Granular array of `agent_usage_breakdown` objects |
 
 ### Repository-Wide Aggregation
-When the client calls `GET /api/questions`, the backend calculates the repository totals in real time:
+When the client calls `GET /api/questions`, the backend queries repository totals via [`question_repository.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/repositories/question_repository.py):
 
 ```python
 total_tokens = sum(q.total_tokens or 0 for q in questions)
@@ -158,39 +159,37 @@ This delivers global repository cost and token totals directly to the Question B
 
 ---
 
-## 5. UI Observability & User Experience
+## 6. UI Observability & User Experience
 
-Token and cost data is surfaced across 4 distinct user interfaces in the frontend across both Dark and Light themes:
+Token and cost data is surfaced across all 4 top-level views and specialized domain components in the frontend:
 
-### 1. Multi-Agent Pipeline Stepper (`MultiAgentPipelineVisualizer.jsx` / `AgentVisualizer.jsx`)
-- **3-Milestone Live Stepper**: Tracks live computational usage across the three specialized milestones: `Question Writer & Reviewer`, `Question Improver`, and `Diagram & Chart Maker`.
+### 1. Multi-Agent Pipeline Stepper ([`MultiAgentPipelineVisualizer.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/pipeline/MultiAgentPipelineVisualizer.jsx))
+- **3-Milestone Live Stepper**: Tracks live computational usage across `Question Writer & Reviewer`, `Question Improver`, and `Diagram & Chart Maker`.
 - **Cumulative Header Badge**: Displays running totals during live generation:
   `🪙 2,850 tokens • $0.00053`
-- **Per-Agent Step Badges**: Each agent node shows its specific cycle tokens, cost, and smart completion state:
-  `450 tok • $0.00015`
+- **Per-Agent Step Badges**: Each agent node shows its specific cycle tokens, cost, and status.
 
-### 2. Formatted Question Card (`QuestionCard.jsx`)
+### 2. Formatted Question Card ([`QuestionCard.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/question/QuestionCard.jsx))
 - Displays an emerald/cyan metadata chip in the question header:
   `🪙 2,850 tokens • $0.00053`
-  giving the user instant visibility into the generation cost of the currently displayed question.
+  giving instant visibility into the generation cost of the displayed question.
 
-### 3. Psychometric Review & Cost Audit Modal (`ReviewAuditView.jsx`)
+### 3. Psychometric Review & Cost Audit Modal ([`ReviewAuditView.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/question/ReviewAuditView.jsx))
 - **Summary Metric Cards**: 4-card grid showing Prompt Tokens, Completion Tokens, Total Tokens, and Accumulated Cost.
-- **Granular Breakdown Table**: Itemizes every LLM request:
-  - Agent Node (`Question Writer & Reviewer`, `Question Improver`, `Diagram & Chart Maker`, or fallback `Quality Reviewer`)
-  - Execution Cycle / Iteration
-  - Prompt Tokens (priced @ $0.098)
-  - Completion Tokens (priced @ $0.294)
-  - Total Tokens
-  - Micro-dollar Cost ($0.000XX)
+- **Granular Breakdown Table**: Itemizes every LLM request with prompt tokens ($0.098 rate), completion tokens ($0.294 rate), total tokens, and micro-dollar cost.
 
-### 4. Question Bank Repository (`QuestionBank.jsx`)
+### 4. Question Bank Repository ([`QuestionBankView.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/views/QuestionBankView.jsx))
 - **Repository Stat Metric**: Displays total accumulated tokens and total expenditure for the entire database:
   `14,250 ($0.0027)`
 - **Table Row Chips**: Each question row includes a compact chip:
   `🪙 2,850 tok • $0.00053`
 
-### 5. Staged Batch Review Deck (`StagedBatchReview.jsx`)
-- Displays cumulative batch token consumption and aggregate batch cost before admin approval.
+### 5. Staged Batch Review Deck ([`StagedBatchReview.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/staged/StagedBatchReview.jsx))
+- Displays cumulative batch token consumption and aggregate batch cost before admin approval via [`BatchProgressHeader.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/staged/BatchProgressHeader.jsx).
 - Allows educators to inspect individual slot cards with their respective token weights and reviewer scores.
 
+### 6. AI Validated Quality Bank ([`AiValidatedQuestionsView.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/views/AiValidatedQuestionsView.jsx))
+- Header stats bar displays total AI-validated items and total cost of verified inventory.
+
+### 7. Batch Activity Monitor ([`BatchActivityView.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/views/BatchActivityView.jsx))
+- Aggregates running token totals across parallel jobs for 50-question background mock runs.

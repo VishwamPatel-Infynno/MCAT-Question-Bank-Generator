@@ -38,6 +38,8 @@ cp .env.example .env
 | `DEEPINFRA_API_KEY` | `string` | `""` | DeepInfra API authorization key |
 | `GEMINI_API_KEY` | `string` | `""` | Optional Google Gemini API key |
 | `OPENAI_API_KEY` | `string` | `""` | Optional OpenAI API key |
+| `ANTHROPIC_API_KEY` | `string` | `""` | Optional Anthropic API key |
+| `GROQ_API_KEY` | `string` | `""` | Optional Groq API key |
 | `MAX_REGENERATION_ATTEMPTS`| `integer`| `3` | Maximum remediation loops before Quality Gate reject |
 | `PASSING_SCORE_THRESHOLD` | `integer`| `90` | Minimum score required to pass psychometric gate |
 | `COST_PER_MILLION_INPUT_TOKENS` | `float` | `0.098` | Input token price ($0.098 / 1M tokens) |
@@ -86,7 +88,7 @@ pip install -r backend/requirements.txt
 PYTHONPATH=backend uvicorn app.main:app --port 8000 --reload
 ```
 
-The backend will initialize the database tables automatically on startup (`init_db()`). Verify by opening:
+The backend initializes database tables automatically on startup (`init_db()`). Verify by opening:
 - Health check: [http://localhost:8000/api/health](http://localhost:8000/api/health)
 - Interactive OpenAPI docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 
@@ -124,12 +126,12 @@ The repository maintains an uncompromising **Zero-Defect Quality Policy** enforc
 
 ### 5.1 Backend Verification Suite
 
-Run the complete 31-test unit & integration suite using `pytest`:
+Run the complete 41-test deterministic unit & integration suite using `pytest`:
 
 ```bash
 source .venv/bin/activate
 
-# 1. Run all 31 backend unit and contract tests (100% pass guarantee)
+# 1. Run all 41 backend unit and contract tests (100% pass guarantee)
 PYTHONPATH=backend pytest backend/tests -v -k "not live_e2e"
 
 # 2. Run Python linting and code quality checks
@@ -142,7 +144,7 @@ This verifies:
 - Strict Quality Gate halt and rejection payload generation when score $\le 90$.
 - Programmatic SVG vector diagram rendering and XML validation.
 - PostgreSQL 16 CRUD persistence, native JSONB columns, and B-Tree indexes.
-- Batch generation schema parsing and manager combination matrix propagation.
+- Batch generation schema parsing and background runner job tracking.
 - Deterministic token cost calculation and multi-agent state accumulation.
 
 #### Live Multi-Agent E2E Verification
@@ -165,7 +167,9 @@ pnpm build
 
 ### 5.3 Database Seeding & Mock Practice Questions
 
-To instantly populate the database with authentic, high-quality MCAT practice questions across all 4 sections (complete with rubrics and evolution histories):
+To ensure a clean, deterministic state upon initial development startup, auto-seeding mock questions on server launch is disabled by default.
+
+To explicitly populate the database with authentic, high-quality MCAT practice questions across all 4 sections (complete with rubrics and evolution histories):
 
 ```bash
 source .venv/bin/activate

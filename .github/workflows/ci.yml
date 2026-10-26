@@ -91,7 +91,7 @@ jobs:
           COST_PER_MILLION_OUTPUT_TOKENS: 0.294
           PASSING_SCORE_THRESHOLD: 90
         run: |
-          PYTHONPATH=backend pytest backend/tests/test_backend.py backend/tests/test_database_structure.py -v --tb=short
+          PYTHONPATH=backend pytest backend/tests -v -k "not live_e2e" --tb=short
 
   frontend-build:
     name: Frontend Production Build

@@ -127,7 +127,7 @@ Psychological, Social & Biological (PS)  -> Royal Violet  (#a855f7 / #7c3aed)
   2. **Live Mini-Set (5 Qs)**: Parallel drafting on a shared passage or discrete set (~35-50s) staged in the interactive multi-slot desk.
   3. **Full Mock Section (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
 - **Step 5: Cognitive Traps & Reasoning Skills**: Deliberate AAMC distractor trap calibration (e.g., Extreme Language, Correlation vs Causation, Formula Trap) paired with official AAMC SIRS and CARS skills.
-- **Step 6: Visual Stimulus & Custom Guidance**: Programmatic SVG vector diagram generation, student misconception engineering, and custom prompt directives.
+- **Step 6: Visual Stimulus & Custom Guidance**: Programmatic SVG vector diagram generation, autonomous AI image generation toggle, and custom prompt directives.
 - **Step 7: Review & Multi-Agent Launch**: End-to-end parameter audit with quick scope switcher pills and dynamic launch action.
 
 ### 4.2 Multi-Agent Conduit Telemetry (`MultiAgentPipelineVisualizer.jsx`)
@@ -140,7 +140,7 @@ Psychological, Social & Biological (PS)  -> Royal Violet  (#a855f7 / #7c3aed)
 
 ### 4.3 Editorial Review Desk (`QuestionCard.jsx`, `StagedBatchReview.jsx`)
 - **Top Metadata Strip**: Displays section badge, difficulty chip, dual score pills (AAMC Scaled Score `118-132` + 100-pt Audit Score), AAMC Skill badge (SIRS 1-4 / CARS 1-3), cumulative token/cost telemetry, and a dedicated **Primary Cognitive Trap Badge Chip** (`rgba(139, 92, 246, 0.12)` background, purple border, `Tag` icon).
-- **Option Badges**: Standard 4 circular `A`, `B`, `C`, `D` pills (plus Roman numeral combos I, II, III) that highlight emerald on correct answers and crimson on incorrect distractors with clear checkmark/cross indicators.
+- **Option Badges**: Standard 4 circular `A`, `B`, `C`, `D` pills that highlight emerald on correct answers and crimson on incorrect distractors with clear checkmark/cross indicators.
 - **Distractor Rationalization Drawers**: Collapsible cards detailing the exact psychometric reason why each wrong option constitutes a realistic cognitive trap.
 - **Inline Editor**: Live editable fields allowing educators to adjust stem text, key letters, or explanation proofs before committing to the question bank.
 
@@ -167,8 +167,14 @@ Renders pedagogical rationales across three distinct, beautifully styled visual 
   - Tokens: Background `rgba(139, 92, 246, 0.06)` (dark) / `#f5f3ff` (light), border `rgba(139, 92, 246, 0.25)` (dark) / `#ddd6fe` (light), text `--status-purple` (`#8b5cf6`), `Zap` & `ShieldCheck` icons.
   - Content: Spotlights the dominant MCAT trap from the 11-trap taxonomy (`MCAT_TRAP_DEFINITIONS`), detailing the precise psychological **Error Mechanism** and providing an actionable **Student Defense Strategy** for test day.
 - **Top Metadata Trap Badging**:
-  - `QuestionCard.jsx` and `QuestionBank.jsx` render a persistent purple badge chip in the card header: background `rgba(139, 92, 246, 0.12)`, text `#a78bfa` (dark) / `#6d28d9` (light), border `rgba(139, 92, 246, 0.3)`.
+  - `QuestionCard.jsx` and `QuestionBankTable.jsx` render a persistent purple badge chip in the card header: background `rgba(139, 92, 246, 0.12)`, text `#a78bfa` (dark) / `#6d28d9` (light), border `rgba(139, 92, 246, 0.3)`.
 - **Responsive Modes**: Supports `isCompact=true` for staged review decks and full expanded mode for in-depth editorial analysis.
+
+### 4.7 Top-Level Application Views (`views/`)
+1. **Generator Workspace View (`GeneratorWorkspaceView.jsx`)**: Coordinates the 7-step guided wizard dock alongside the single-canvas live generation desk, telemetry pipelines, and staged review decks.
+2. **AI Validated Questions View (`AiValidatedQuestionsView.jsx`)**: Dedicated review deck for items generated in background batches that passed the >90 quality threshold, supporting one-click individual or bulk publishing into the primary Question Bank.
+3. **Question Bank View (`QuestionBankView.jsx`)**: Full-featured searchable, filterable repository table featuring multi-format CSV/JSON exports, bulk deletion, lifecycle status updates, and repository-wide token analytics.
+4. **Batch Activity View (`BatchActivityView.jsx`)**: Live and historical monitor displaying running batch jobs, per-job question counts, status indicators, and background worker progress.
 
 ---
 

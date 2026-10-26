@@ -2,13 +2,13 @@
 
 Engineered by **[Infynno Solutions LLP](https://infynno.com/)** (*"Infinite Innovations"*).
 
-This document details the software architecture, multi-agent design patterns, state management, database schema, and frontend systems powering the **Infynno MCAT Question Bank Generator v2.0**.
+This document details the software architecture, multi-agent design patterns, state management, database schema, background batch execution services, and frontend systems powering the **Infynno MCAT Question Bank Generator v2.0**.
 
 ---
 
 ## 1. High-Level Architecture Overview
 
-The system is constructed as an asynchronous, event-driven multi-agent workflow coordinated by **LangGraph** and served via **FastAPI** with **Server-Sent Events (SSE)** to a high-performance **React 19** frontend featuring an interactive **5-Step Guided Question Wizard** and a dedicated full-width **Generation & Review Workspace**.
+The system is constructed as an asynchronous, event-driven multi-agent workflow coordinated by **LangGraph** and served via **FastAPI** with **Server-Sent Events (SSE)** to a high-performance **React 19** frontend featuring an interactive **7-Step Guided Question Wizard**, a dedicated full-width **Generation & Review Workspace**, and an enterprise **Batch Execution Engine**.
 
 ```mermaid
 graph TD
@@ -92,15 +92,15 @@ The system coordinates specialized autonomous engines with a deterministic quali
 ### 3.1 Fused Draft-and-Critique Cognitive Engine (`fused_generator_node` / `generator.py`)
 - **Mission**: Primary workflow entry point. Synthesizes a high-yield clinical or scientific scenario for the selected AAMC MCAT section with 4 distinct options (A, B, C, D) and immediately conducts an internal 100-point self-critique within a single LLM round-trip.
 - **Core Prompt Strategy**:
-  - Uses subtest-specific rules (e.g., categorical syllogisms for Decision Making, Venn reasoning for Abstract Reasoning, GMC Good Medical Practice guidance for Situational Judgement).
-  - Explicitly crafts 1 definitive correct key and 3 sophisticated distractors representing realistic cognitive biases or calculation traps.
+  - Uses section-specific rules (e.g., enzyme kinetics and thermodynamics for Chem/Phys, rhetorical thesis and authorial intent for CARS, molecular pathways and biochemical regulation for Bio/Biochem, and behavioral theories and sociological stratification for Psych/Soc).
+  - Explicitly crafts 1 definitive correct key and 3 sophisticated distractors representing realistic cognitive biases, arithmetic sign inversions, or calculation traps.
   - **Option Symmetry & Anti-Guessability Engine**: Enforces strict word count parity (all options within $\pm 15\%$ or 2-4 words of each other), parallel grammatical syntax, and balanced epistemic qualification.
   - **Anti-AI Punctuation Standard**: Strictly forbids em dashes (`—`), en dashes (`–`), or double hyphens (`--`); enforces standard single hyphens (`-`).
   - **3-Part Structured Mentor Explanations**: Generates a rigorous 3-card explanation layout:
     1. *Why Option [Key] is Correct*: Establishes core intuition and step-by-step mathematical or deductive proof.
     2. *Why Other Options are Incorrect*: Itemized distractor cards dissecting why each wrong choice fails and why students are tempted.
     3. *Primary Cognitive Trap Spotlight*: Dedicated spotlight with exact Trap classification, Error Mechanism, and actionable Student Defense Strategy.
-  - **Automatic (Smart AI Choice) Cognitive Trap Engine**: When `primary_trap` is `"Automatic"`, the generator evaluates the drafted item and dynamically selects the best-fit trap from the 11 official MCAT trap types (`Scope_Shift`, `Keyword_Trap`, `Extreme_Language`, `Correlation_vs_Causation`, `Partial_Match`, `Half_Truth`, `Unwarranted_Assumption`, `Calculation_Trap`, `Out_of_Scope`, `False_Dichotomy`, `Over_generalisation`). The chosen trap is recorded in `draft.primary_trap` and persisted across the workflow.
+  - **Automatic (Smart AI Choice) Cognitive Trap Engine**: When `primary_trap` is `"Automatic"`, the generator evaluates the drafted item and dynamically selects the best-fit trap from the 11 official MCAT trap types (`Scope_Shift`, `Keyword_Trap`, `Extreme_Language`, `Correlation_vs_Causation`, `Partial_Match`, `Half_Truth`, `Unwarranted_Assumption`, `Calculation_Formula_Trap`, `Out_of_Scope`, `False_Dichotomy`, `Over_generalisation`). The chosen trap is recorded in `draft.primary_trap` and persisted across the workflow.
   - **Fallback Trap Detection**: If `primary_trap` is omitted or unpopulated, `generator.py` and `nodes.py` run regex taxonomy matching against the explanation text to extract and assign the trap automatically.
   - **Immediate Self-Critique Object**: Evaluates Authenticity, Clarity, Distractor Traps, and Explanation Rigor.
 - **Routing Optimization**:
@@ -137,10 +137,11 @@ The system coordinates specialized autonomous engines with a deterministic quali
   - **Diagnostic Payload**: Transmits full rejection telemetry and history via SSE for audit inspection.
 
 ### 3.5 Infynno Visual & Vector Engine (`image_generator.py`)
-- **Mission**: Generates visual stimuli for questions requiring graphical diagrams (mandatory for Abstract Reasoning; optional for Decision Making and Quantitative Reasoning).
+- **Mission**: Generates visual stimuli for questions requiring graphical diagrams (e.g., metabolic cycles, enzyme kinetics, gel electrophoresis assays, optics diagrams; strictly disabled for CARS).
+- **Autonomous AI Routing**: Supports autonomous AI-driven stimulus synthesis when `allow_ai_images` is enabled and deemed pedagogically necessary.
 - **Hybrid Visual Engine**:
-  - *Programmatic SVG Renderer*: Generates clean, crisp, scalable vector graphics for Venn diagrams, geometric transformation grids, and statistical bar charts.
-  - *FLUX-2-klein-4b Neural Visual Engine*: State-of-the-art rectified-flow transformer (`black-forest-labs/FLUX-2-klein-4b`) hosted on DeepInfra for photorealistic clinical illustrations with dynamic provider cost extraction and a flat $0.014 unit baseline rate.
+  - *Programmatic SVG Renderer*: Generates clean, crisp, scalable vector graphics for reaction mechanisms, cell transport, coordinate grids, and statistical bar charts.
+  - *FLUX-2-klein-4b Neural Visual Engine*: State-of-the-art rectified-flow transformer (`black-forest-labs/FLUX-2-klein-4b`) hosted on DeepInfra for photorealistic scientific illustrations with dynamic provider cost extraction and a flat $0.014 unit baseline rate.
 
 ---
 
@@ -183,58 +184,69 @@ At each node execution, token consumption from the LLM response is unpacked and 
 
 ---
 
-## 5. Real-Time Streaming Pipeline (SSE)
+## 5. Background Batch Execution Service (`batch_runner.py`)
 
-Communication between the FastAPI orchestrator and the web client uses **Server-Sent Events (SSE)** via `StreamingResponse`.
+For large-scale question synthesis (e.g. **Full Mock Section [50 Questions]**), the backend utilizes an asynchronous worker pool managed by [`backend/app/services/batch_runner.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/services/batch_runner.py):
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor Client as Web Browser
-    participant API as FastAPI Orchestrator
-    participant Graph as LangGraph Nodes
-    participant DB as PostgreSQL 16
+graph TD
+    Client[Web Client] -->|POST /api/batches/start| API[Batches API Endpoint]
+    API --> Runner[launch_background_batch]
+    
+    Runner --> BatchDB[Create Batch Record in DB]
+    Runner --> JobDB[Create 10 Job Records in DB]
+    Runner --> BackgroundTask[Spawn Async Background Worker Pool]
+    
+    API -->> Client|202 Accepted + Batch/Job UUIDs| Client
 
-    Client->>API: POST /api/generate (SSE Request)
-    API-->>Client: HTTP 200 text/event-stream
-    API-->>Client: event: workflow_start
-
-    Note over API,Graph: Milestone 01: Fused Drafting & 100-pt Audit (~40% Faster)
-    API->>Graph: Execute fused_generator_node
-    Graph-->>API: Draft + 100-pt ReviewScore + TokenUsage
-    API-->>Client: event: agent_complete (Question Writer & Reviewer, score/100, latest_usage)
-
-    alt Self-Score > 90 (Fused Pass: Reviewer LLM Bypassed)
-        Note over Graph: Quality Standard Met (> 90). Immediate bypass.
-    else Self-Score <= 90 (Remediation Required)
-        Note over API,Graph: Milestone 02: Question Improver Remediation Loop
-        loop Remediation & Audit Loop (up to 3 cycles)
-            API-->>Client: event: agent_start (Question Improver)
-            API->>Graph: Execute regenerator_node
-            Graph-->>API: Refined Draft + TokenUsage
-            API-->>Client: event: agent_complete (Question Improver)
-            API->>Graph: Execute reviewer_node
-            Graph-->>API: ReviewScore + TokenUsage
-            API-->>Client: event: agent_complete (Reviewer, score/100)
-            alt Score <= 90 & Cycle == 3
-                API->>Graph: Execute reject_node
-                API-->>Client: event: workflow_rejected (Quality Gate Diagnostic)
-                Note over Client,API: Workflow Terminated. Not saved to DB.
-            end
-        end
+    subgraph "Parallel Worker Execution (10 Jobs x 5 Qs = 50 Total)"
+        BackgroundTask --> Job1[Job 1: 5 Qs]
+        BackgroundTask --> Job2[Job 2: 5 Qs]
+        BackgroundTask --> Job3[Job 3: 5 Qs]
+        BackgroundTask --> Job4[Job 4: 5 Qs]
+        BackgroundTask --> JobDots[...]
+        BackgroundTask --> Job10[Job 10: 5 Qs]
+        
+        Job1 --> Workflow1[Multi-Agent LangGraph]
+        Job2 --> Workflow2[Multi-Agent LangGraph]
+        Job3 --> Workflow3[Multi-Agent LangGraph]
+        Job4 --> Workflow4[Multi-Agent LangGraph]
+        Job10 --> Workflow10[Multi-Agent LangGraph]
     end
 
-    opt Milestone 03: If Visual Stimulus Required (AR or Diagram Option)
-        API->>Graph: Execute image_node
-        Graph-->>API: SVG Vector Code / AI Image URL
-        API-->>Client: event: agent_complete (Diagram & Chart Maker)
-    end
-
-    API->>Graph: Execute finalize_node
-    Graph->>DB: INSERT / UPDATE questions table
-    DB-->>Graph: Committed
-    API-->>Client: event: workflow_complete (Final Question + Total Cost & Tokens)
+    Workflow1 --> PersistQ[(Save Questions to DB with status=ai_validated)]
+    Workflow2 --> PersistQ
+    Workflow3 --> PersistQ
+    Workflow4 --> PersistQ
+    Workflow10 --> PersistQ
+    
+    PersistQ --> UpdateBatch[Update Batch & Job status to completed]
 ```
+
+### 5.1 Question Lifecycle State Machine
+Every question in the system progresses through an explicit lifecycle state:
+
+```mermaid
+stateDiagram-v2
+    [*] --> ai_validated: Background Batch Generation (Score > 90)
+    [*] --> staged: Real-Time SSE Single / Mini-Batch Generation
+    
+    staged --> in_bank: Admin Approves Candidate
+    staged --> discarded: Admin Discards Candidate
+    
+    ai_validated --> in_bank: Educator Approves Validated Question
+    ai_validated --> discarded: Educator Discards Validated Question
+    
+    in_bank --> discarded: Bulk / Single Delete or Archive
+    discarded --> in_bank: Restore Question
+    
+    below_threshold --> discarded: Automatic Rejection Gate Halt
+```
+
+- **`ai_validated`**: Background batch questions that cleared the 90+ quality gate and await educator review in the AI Validated bank.
+- **`in_bank`**: Formally approved questions published in the primary searchable Question Bank repository.
+- **`below_threshold`**: Drafts that failed to achieve >90 after 3 remediation cycles (discarded before DB persistence, or flagged).
+- **`discarded`**: Archived or rejected items removed from active question banks.
 
 ---
 
@@ -247,11 +259,13 @@ The persistence tier runs on **PostgreSQL 16** managed through **SQLAlchemy 2.0 
 ```mermaid
 erDiagram
     PASSAGES ||--o{ QUESTIONS : "contains (1:N)"
+    BATCHES ||--o{ JOBS : "contains (1:N)"
     BATCHES ||--o{ QUESTIONS : "groups (1:N)"
+    JOBS ||--o{ QUESTIONS : "produces (1:N)"
 
     PASSAGES {
         VARCHAR(64) id PK "Unique UUID4 passage identifier"
-        VARCHAR(64) section "MCAT section enum"
+        VARCHAR(64) section "MCAT section enum (chem_phys, cars, bio_biochem, psych_soc)"
         VARCHAR(128) subtopic "Categorized syllabus topic"
         TEXT passage_text "Shared clinical or academic reading passage"
         TEXT visual_stimulus_svg "Programmatic SVG diagram"
@@ -266,8 +280,19 @@ erDiagram
         VARCHAR(64) section "MCAT section enum"
         VARCHAR(128) subtopic "Categorized syllabus topic"
         VARCHAR(32) difficulty "easy | medium | hard"
-        INTEGER total_questions "Total items requested in batch"
+        INTEGER total_questions "Total items requested in batch (e.g. 50)"
         INTEGER staged_questions "Items verified and staged"
+        VARCHAR(32) status "in_progress | completed | failed"
+        VARCHAR(64) created_at "ISO-8601 UTC timestamp"
+    }
+
+    JOBS {
+        VARCHAR(64) id PK "Unique UUID4 job identifier"
+        VARCHAR(64) batch_id FK "Reference to parent BATCHES"
+        INTEGER job_index "Sequential index (1 to 10)"
+        VARCHAR(32) status "pending | in_progress | completed | failed"
+        INTEGER questions_target "Target items for this job (e.g. 5)"
+        INTEGER questions_completed "Completed items count"
         VARCHAR(64) created_at "ISO-8601 UTC timestamp"
     }
 
@@ -275,15 +300,19 @@ erDiagram
         VARCHAR(64) id PK "Unique UUID4 identifier"
         VARCHAR(64) passage_id FK "Optional reference to PASSAGES"
         VARCHAR(64) batch_id FK "Optional reference to BATCHES"
+        VARCHAR(64) job_id FK "Optional reference to JOBS"
         VARCHAR(64) section "MCAT section enum"
         VARCHAR(128) section_label "Human-readable subtest name"
         VARCHAR(128) subtopic "Categorized syllabus topic"
         VARCHAR(32) difficulty "easy | medium | hard"
+        VARCHAR(32) status "in_bank | ai_validated | below_threshold | discarded"
+        INTEGER mcat_scaled_score "Calibrated scaled score (118-132)"
+        VARCHAR(128) aamc_skill "AAMC SIRS (Skill 1-4) or CARS Skill"
         TEXT stimulus_text "Clinical passage or context scenario"
         TEXT question_stem "Core question prompt"
-        JSONB options "Array of 4 options [{id, text}]"
+        JSONB options "Array of strictly 4 options [{id, text}]"
         VARCHAR(8) correct_answer_id "A | B | C | D"
-        TEXT explanation "Step-by-step cognitive rationale"
+        TEXT explanation "3-part structured cognitive rationale"
         TEXT image_url "Optional external diagram URL"
         TEXT image_svg "Programmatic inline SVG markup"
         TEXT image_description "Accessibility alt text"
@@ -300,8 +329,8 @@ erDiagram
         VARCHAR(64) run_id "Execution run UUID4"
         VARCHAR(128) subcategory "Matrix subcategory taxonomy"
         VARCHAR(128) content_domain "Matrix domain (Science, Ethics)"
-        VARCHAR(128) question_type "Passage_MCQ, True_False_Cant_Tell"
-        VARCHAR(64) interaction_type "single_choice, multi_choice, drag_drop"
+        VARCHAR(128) question_type "Passage_Based_Set, Independent_Discrete"
+        VARCHAR(64) interaction_type "single_choice"
         VARCHAR(128) primary_trap "Cognitive distractor trap classification"
         VARCHAR(16) passage_required "Yes or No"
         INTEGER passage_questions "Passage question count"
@@ -311,14 +340,6 @@ erDiagram
         VARCHAR(64) created_at "ISO-8601 UTC timestamp"
     }
 ```
-
-### 6.2 Key Database Features
-- **3-Table Normalized Architecture**: Separates shared reading passages (`PASSAGES`), batch generation records (`BATCHES`), and item-level question records (`QUESTIONS`) with automatic foreign key cascades.
-- **Hybrid Full-Text Search (FTS)**: Built-in `tsv_content` tsvector column with GIN index on `questions` enabling sub-millisecond lexical search with ILIKE substring fallback.
-- **Native JSONB Storage**: Flexible storage for option lists, reviewer rubrics, evolution histories, and granular per-agent token tracking.
-- **B-Tree Indexes**: Placed on `section`, `subtopic`, `difficulty`, `combination_id`, `run_id`, `batch_id`, `passage_id`, and `created_at` for rapid filtering and sorting.
-- **Connection Pooling**: Managed via `async_sessionmaker` with `pool_size=10`, `max_overflow=20`, and `pool_pre_ping=True` to prevent stale connection drops.
-- **Automatic Schema Migration**: Built-in `init_db()` automatically runs non-destructive `ALTER TABLE questions ADD COLUMN IF NOT EXISTS ...` ensuring zero downtime across updates.
 
 ---
 
@@ -343,7 +364,7 @@ graph TD
 
 ### 7.1 Export Modes
 1. **Official Exam Paper (PDF / Print)**:
-   - Formatted for classroom and mock exam printing with candidate name/date header, official pacing instructions (~14s to ~64s per item), and clean typographic separation.
+   - Formatted for classroom and mock exam printing with candidate name/date header, official pacing instructions (~96s to ~101s per item), and clean typographic separation.
    - Enforces `.page-break { break-before: page; }` CSS print rules to ensure reading passages and question options never split awkwardly across page folds.
 2. **Comprehensive Study Pack (PDF / Print)**:
    - Includes reading stimulus, question stem, answer key, and the complete step-by-step cognitive proof and distractor trap analysis.
@@ -352,128 +373,94 @@ graph TD
 4. **JSON Relational Bundle**:
    - Serializes question items including full 4-pillar review rubrics, per-agent token tracking telemetry, and evolution histories.
 
-### 7.2 Pedagogical Explanation & Cognitive Trap Engine Architecture
-
-The explanation subsystem provides structured, multi-tier cognitive deconstruction rather than monolithic markdown text blocks:
-
-```mermaid
-graph TD
-    Raw[Raw Explanation Text + Options] --> Parser[parseExplanationStructure Engine]
-    TrapProp[primary_trap Prop] --> Resolver{Trap Defined?}
-    Resolver -->|Yes| Taxonomy[MCAT_TRAP_DEFINITIONS Taxonomy]
-    Resolver -->|No / Null| AutoDetect[Regex Taxonomy Matcher]
-    AutoDetect --> Taxonomy
-    
-    Parser --> Card1["Card 1: Why Option [Key] is Correct<br>(Emerald / CheckCircle2 / Proof)"]
-    Parser --> Card2["Card 2: Why Other Options are Incorrect<br>(Amber / AlertTriangle / Itemized Distractors)"]
-    Parser --> Card3["Card 3: Primary Cognitive Trap Spotlight<br>(Purple / Zap / Mechanism & Defense Strategy)"]
-    Taxonomy --> Card3
-```
-
-1. **Component Contract (`MentorExplanationView.jsx`)**:
-   - Accepts `explanation` (string), `isCompact` (boolean), `options` (array of `{id, text}`), `correctAnswerId` (string), and `primaryTrap` (string).
-   - The parser isolates the three distinct semantic cards, eliminating ambiguous text blocks and stripping redundant legacy headings.
-2. **Itemized Distractor Parsing**:
-   - Detects individual distractor entries (e.g. `Option A: ...`, `Option B: ...`) and matches them with active option choices to render distinct, styled sub-cards with option letter badges and specific counter-evidence.
-3. **The 11-Trap Taxonomy Dictionary (`MCAT_TRAP_DEFINITIONS`)**:
-   - Stores standardized titles, clinical descriptions, error mechanisms, and student defense tips for all 11 MCAT traps:
-     `Scope_Shift`, `Keyword_Trap`, `Extreme_Language`, `Correlation_vs_Causation`, `Partial_Match`, `Half_Truth`, `Unwarranted_Assumption`, `Calculation_Trap`, `Out_of_Scope`, `False_Dichotomy`, `Over_generalisation`.
-4. **Top Metadata Trap Badging**:
-   - Both `QuestionCard.jsx` (review workspace) and `QuestionBank.jsx` (repository table) display a dedicated purple badge chip in the header strip alongside subtest, difficulty, quality score, and token telemetry, enabling instant psychometric identification.
-
 ---
 
-## 8. Codebase Directory Structure & Modular Layers
+## 8. Frontend Domain-Driven Architecture
 
-The codebase follows enterprise software engineering practices, separating responsibilities into clean, decoupled layers across backend, frontend, and design systems.
-
-### 8.1 Backend Modular Layers
-
-```
-backend/app/
-├── core/                # Configuration & Settings
-│   └── config.py        # Pydantic SettingsConfigDict, gateway defaults, token costs
-├── db/                  # Database connectivity & session lifecycle
-│   ├── base.py          # Declarative Base
-│   └── session.py       # Async engine, connection pool, init_db, health checks
-├── models/              # SQLAlchemy 2.0 ORM Entities
-│   ├── question.py      # QuestionModel with JSONB columns & B-Tree indexes
-│   ├── passage.py       # PassageModel for shared reading passage stimuli
-│   └── batch.py         # BatchModel for multi-question generation runs
-├── repositories/        # Data Access Layer (DAL)
-│   ├── question_repository.py # Clean async CRUD operations, FTS search & token aggregations
-│   ├── batch_repository.py    # Staged batch run queries & persistence
-│   └── passage_repository.py  # Shared stimulus reading passage queries
-├── schemas/             # Pydantic Domain Transfer Schemas
-│   ├── mcat.py          # MCAT sections & subtopic taxonomy
-│   ├── token.py         # TokenUsage & TokenCostAccumulator schemas
-│   ├── question.py      # QuestionOption, QuestionDraft, Question
-│   └── workflow.py      # GenerationRequest, ReviewScore, WorkflowEvent
-├── agents/              # Multi-Agent Logic & System Prompts
-│   ├── base.py          # LiteLLM execution & token calculations
-│   ├── prompts.py       # Centralized system prompts & rubrics
-│   ├── mock_fixtures.py # Mock fallback questions & heuristic rubrics
-│   ├── generator.py     # Question Generator Agent
-│   ├── reviewer.py      # Question Reviewer Agent (100-pt rubric)
-│   ├── regenerator.py   # Question Re-Generator Agent
-│   └── image_generator.py # Programmatic SVG & AI visual generator (FLUX-2-klein-4b)
-├── workflow/            # LangGraph Orchestration Engine
-│   ├── engine.py        # Core asynchronous workflow runner & event emitters
-│   ├── nodes.py         # Discrete agent worker nodes (Generator, Reviewer, etc.)
-│   ├── routes.py        # Deterministic conditional edge routing (Quality Gate)
-│   ├── graph.py         # StateGraph builder and compiled graph
-│   └── state.py         # AgentWorkflowState typed dict
-├── api/                 # Modular API Routers
-│   ├── router.py        # Central API v1 router aggregator
-│   └── v1/
-│       ├── generation.py # SSE streaming question generator endpoint
-│       ├── questions.py  # Question Bank CRUD, Admin Approval & JSON/CSV exports
-│       ├── passages.py   # Passage stimulus listing & grouped question retrieval
-│       ├── batches.py    # Batch execution tracking & grouped retrieval
-│       ├── config.py     # Read-only runtime engine configuration & pricing
-│       └── health.py     # Database connectivity & system health checks
-└── main.py              # FastAPI application entrypoint with security headers & CORS
-```
-
-### 8.2 Frontend Domain-Driven Architecture
+The frontend follows an enterprise domain-driven component architecture split into top-level views, specialized domain components, and centralized hooks:
 
 ```
 frontend/src/
-├── constants/           # Centralized application constants & AAMC taxonomy
-│   ├── index.js         # Unified barrel export for constants
-│   ├── mcat.js          # MCAT sections, pacing targets, icons & fallback taxonomy
-│   ├── mcatTraps.js     # 25-trap cognitive distractor taxonomy & regex matchers
-│   └── config.js        # Model options & pricing constants
-├── utils/               # Pure helper utilities
-│   ├── index.js         # Unified barrel export for utils
-│   ├── exportUtils.js   # A4 HTML print document builder, CSV & JSON serializers
-│   ├── formatters.js    # Time, word count, token & currency formatters
-│   └── trapHelpers.js   # Cognitive trap resolution & text detectors
-├── hooks/               # Custom stateful React hooks
-│   ├── index.js         # Barrel export for custom hooks
-│   ├── useAppState.js          # Centralized view routing & global event broker
-│   ├── useGeneratorForm.js     # Form state, validation & preset handlers
-│   ├── useQuestionGenerator.js # SSE streaming multi-agent orchestrator hook
-│   ├── useQuestionBank.js      # CRUD, filtering, clipboard & repository stats hook
-│   ├── useKeyboardShortcuts.js # Keyboard shortcuts (⌘↵, A, D, T, /, Esc)
-│   └── useTheme.js             # Dual-theme engine (dark / light with localStorage)
-├── components/          # Domain-organized UI components
-│   ├── index.js         # Barrel exports for clean component imports
-│   ├── layout/          # Layout components (Navbar, Footer)
-│   ├── wizard/          # Progressive 7-Step Guided Wizard (HeroLanding, GuidedWizard, IndependentDiagramControls, WizardStep1-7)
-│   ├── pipeline/        # AI Pipeline (AgentVisualizer, MultiAgentPipelineVisualizer, RejectionCard)
-│   ├── question/        # Review Desk (QuestionCard, QuestionScorecardTab, QuestionInlineEditor, StagedBatchReview, StagedBatchGrid, StagedDetailedView, StagedQuestionSlotCard, StagedSlotSkeleton, MentorExplanationView, ReviewAuditView, SharedPassageCard, StageJsonInspector, VisualStimulusViewer)
-│   ├── bank/            # Repository table, filter chips, pagination, export (QuestionBank, QuestionBankFilters, QuestionBankTable)
-│   ├── batch/           # Batch Activity & job monitor (BatchActivityView, BatchCard, BatchJobCard, BatchStatsHeader, BatchFiltersBar)
-│   ├── validated/       # Dedicated AI Validated (>90) quality bank (AiValidatedQuestionsView, AiValidatedQuestionCard, AiValidatedFiltersBar, AiValidatedStatsBar)
-│   ├── modals/          # Dialog modals (ExportPrintModal, ExportPaperPreview)
-│   └── common/          # Common primitives (CustomSelect, InfynnoLogo, NumberStepper, Toast)
+├── views/                        # Top-level application view screens (code-split)
+│   ├── index.js                  # Views barrel export
+│   ├── GeneratorWorkspaceView.jsx# Interactive exam generation & pipeline workspace
+│   ├── QuestionBankView.jsx      # Verified Question Bank view & repository table
+│   ├── AiValidatedQuestionsView.jsx # Dedicated AI Validated (>90) quality bank
+│   └── BatchActivityView.jsx     # Live & historical batch monitoring dashboard
+├── components/
+│   ├── index.js                  # Centralized barrel export for all components
+│   ├── wizard/                   # Progressive 7-Step Guided Question Wizard
+│   │   ├── GuidedWizard.jsx      # Central wizard controller
+│   │   ├── HeroLanding.jsx       # Welcome landing hero header
+│   │   ├── IndependentDiagramControls.jsx # Standalone diagram requirements selector
+│   │   ├── wizardConstants.js    # Presets, difficulty tiers, and step configs
+│   │   └── steps/                # Step 1 through Step 7 modular step components
+│   ├── pipeline/                 # Real-time multi-agent visualizer
+│   │   ├── AgentVisualizer.jsx   # Live generating telemetry & compact stepper
+│   │   ├── MultiAgentPipelineVisualizer.jsx # 3-Milestone pipeline visualizer with electric conduits
+│   │   └── RejectionCard.jsx     # Diagnostic display when score fails threshold
+│   ├── staged/                   # Staged batch review deck
+│   │   ├── StagedBatchReview.jsx # Multi-question batch confirmation desk
+│   │   ├── StagedBatchGrid.jsx   # Grid of staged batch question slots
+│   │   ├── StagedDetailedView.jsx# Expanded single question review panel
+│   │   ├── StagedQuestionSlotCard.jsx # Individual question slot reviewer card
+│   │   ├── StagedSlotSkeleton.jsx# Slot loading pulse skeleton
+│   │   ├── BatchProgressHeader.jsx # Staged batch progress telemetry header
+│   │   └── StageJsonInspector.jsx# Deep stage outcome JSON inspector modal
+│   ├── question/                 # Question presentation & editing
+│   │   ├── QuestionCard.jsx      # Interactive student practice & review card
+│   │   ├── QuestionScorecardTab.jsx # 100-point rubric breakdown accordion
+│   │   ├── QuestionInlineEditor.jsx # In-place authoring & remediation editor
+│   │   ├── MentorExplanationView.jsx # 3-card mentor explanation view
+│   │   ├── ReviewAuditView.jsx   # 100-point rubric breakdown & token cost modal
+│   │   ├── SharedPassageCard.jsx # Shared reading passage stimulus display card
+│   │   └── VisualStimulusViewer.jsx # SVG & neural visual diagram renderer
+│   ├── bank/                     # Question Bank repository
+│   │   ├── QuestionBankFilters.jsx # Section, difficulty, and search filter controls
+│   │   └── QuestionBankTable.jsx # Tabular question rows, batch selection, and actions
+│   ├── batch/                    # Batch monitoring components
+│   │   ├── BatchCard.jsx         # Summary status card for generation batches
+│   │   ├── BatchFiltersBar.jsx   # Section, status, and search filters
+│   │   ├── BatchJobCard.jsx      # Per-question job card with lifecycle status
+│   │   ├── BatchQuestionItem.jsx # Staged question item with review modal
+│   │   └── BatchStatsHeader.jsx  # High-level aggregate batch statistics
+│   ├── validated/                # AI Validated bank components
+│   │   ├── AiValidatedCard.jsx   # Card with direct bank approval actions
+│   │   ├── AiValidatedFiltersBar.jsx # Filters for AI-validated questions
+│   │   └── AiValidatedStatsBar.jsx # Quick-action statistics header
+│   ├── modals/                   # Dialog modals
+│   │   ├── ExportPrintModal.jsx  # Exam Paper (PDF), Study Pack, CSV and JSON export modal
+│   │   └── ExportPaperPreview.jsx# Live print layout previewer
+│   ├── layout/                   # Global layout
+│   │   ├── Navbar.jsx            # Header with branding, navigation tabs, and theme toggle
+│   │   └── Footer.jsx            # Infynno Solutions LLP attribution & resource footer
+│   └── common/                   # Shared UI primitives
+│       ├── CustomSelect.jsx      # Accessible custom dropdown select primitive
+│       ├── FormattedText.jsx     # Inline markdown & cognitive trap chip highlighter
+│       ├── InfynnoLogo.jsx       # Official corporate vector logo primitive
+│       ├── NumberStepper.jsx     # Accessible numerical stepper primitive
+│       └── Toast.jsx             # Floating toast notification system
+├── constants/
+│   ├── config.js                 # Pricing models, image parameters, token rates
+│   ├── mcat.js                   # MCAT sections, pacing specs, icons, and fallback topics
+│   ├── mcatTaxonomy.json         # AAMC-aligned foundational concepts and skills
+│   └── mcatTraps.js              # AAMC cognitive trap definitions and defense strategies
+├── hooks/
+│   ├── useAppState.js            # Centralized view routing & global event broker
+│   ├── useGeneratorForm.js       # Form state & validation logic
+│   ├── useKeyboardShortcuts.js   # Global hotkeys (⌘↵, A, D, T, /, Esc)
+│   ├── useQuestionBank.js        # Debounced search, sorting, and bank fetching
+│   ├── useQuestionGenerator.js   # SSE streaming, batch progress, and state management
+│   └── useTheme.js               # Dual-theme engine (dark / light with localStorage)
 ├── services/
-│   └── api.js           # SSE event reader, candidate approval & REST API client
-├── index.css            # Enterprise CSS tokens, conduit animations, dual-theme styling
-└── main.jsx             # React 19 application root
+│   └── api.js                    # FastAPI client & SSE stream reader
+├── utils/                        # Pure utility helpers
+│   ├── exportUtils.js            # A4 HTML print document builder, CSV & JSON serializers
+│   ├── formatters.js             # Time, word count, token & currency formatters
+│   ├── trapHelpers.js            # Cognitive trap resolution & text detectors
+│   └── explanationHelpers.js     # Structured explanation parser
+├── index.css                     # Enterprise CSS design tokens, conduit animations, dual-theme styling
+└── main.jsx                      # React 19 application root
 ```
 
 For complete UI design tokens, color scales, typography guidelines, and component contracts, consult [`DESIGN.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/DESIGN.md).
-
-

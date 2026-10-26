@@ -9,7 +9,7 @@ Built with **Python 3.11+**, **FastAPI**, **LangGraph**, **LiteLLM**, **SQLAlche
 
 ## 1. Architecture & Modular Layer Separation
 
-The backend is engineered with clear separation of concerns across presentation, orchestration, domain logic, and persistence:
+The backend is engineered with clear separation of concerns across presentation, orchestration, domain logic, persistence, and background worker services:
 
 ```
 backend/app/
@@ -17,9 +17,10 @@ backend/app/
 │   ├── router.py        # Central API v1 router aggregator
 │   └── v1/
 │       ├── generation.py # SSE streaming multi-agent orchestrator endpoint
-│       ├── questions.py  # Question Bank CRUD, review approval, CSV/JSON exports
+│       ├── questions.py  # Question Bank CRUD, review approval, status updates, CSV/JSON exports
 │       ├── passages.py   # Shared clinical stimulus passages endpoints
-│       ├── batches.py    # Multi-question batch execution run endpoints
+│       ├── batches.py    # Multi-question batch execution run endpoints & background launcher
+│       ├── taxonomy.py   # AAMC syllabus hierarchy & dependent taxonomy tree endpoints
 │       ├── config.py     # Read-only runtime engine configuration & pricing
 │       └── health.py     # Database connectivity & system health checks
 ├── workflow/            # Orchestration Layer (LangGraph Engine)
@@ -29,21 +30,25 @@ backend/app/
 │   ├── graph.py         # StateGraph builder and compilation pipeline
 │   └── state.py         # AgentWorkflowState typed dictionary
 ├── agents/              # Cognitive Reasoning & Synthesis Layer
-│   ├── generator.py     # Initial clinical question synthesis agent
+│   ├── generator.py     # Fused clinical question synthesis & self-critique agent
 │   ├── reviewer.py      # 100-point 4-pillar psychometric auditor agent
 │   ├── regenerator.py   # Autonomous remediation agent (<= 90 score trigger)
-│   ├── image_generator.py # FLUX-2-klein-4b neural visual & SVG generator
+│   ├── image_generator.py # FLUX-2-klein-4b neural visual & SVG vector generator
 │   ├── prompts.py       # Centralized system prompts, pacing rules & rubrics
 │   ├── mock_fixtures.py # Deterministic fallback fixtures for offline resilience
 │   └── base.py          # LiteLLM execution wrapper & sub-micro-cent token cost engine
+├── services/            # Background Worker & Asynchronous Services
+│   └── batch_runner.py  # Background pool managing 10 parallel jobs x 5 questions (50 total)
 ├── repositories/        # Data Access Layer (DAL)
 │   ├── question_repository.py # Clean CRUD, hybrid full-text search & token analytics
 │   ├── batch_repository.py    # Staged batch run queries & persistence
+│   ├── job_repository.py      # Background worker job state tracking
 │   └── passage_repository.py  # Shared stimulus reading passage queries
 ├── models/              # Persistence Layer (SQLAlchemy 2.0 ORM Entities)
 │   ├── question.py      # QuestionModel with JSONB columns & B-Tree indexes
 │   ├── passage.py       # PassageModel for multi-item shared reading stimuli
-│   └── batch.py         # BatchModel for multi-question generation runs
+│   ├── batch.py         # BatchModel for multi-question generation runs
+│   └── job.py           # JobModel for tracking individual background batch jobs
 ├── schemas/             # Domain Transfer Layer (Pydantic V2)
 │   ├── mcat.py          # MCAT sections & subtopic taxonomy
 │   ├── token.py         # TokenUsage & TokenCostAccumulator schemas
@@ -86,9 +91,9 @@ graph TD
 
 - **Fused Draft-and-Critique Entry Point**: Drafts question and generates immediate 100-point self-critique in a single pass (`fused_generator_node`), cutting round-trip latency by 35-45% and bypassing the separate reviewer when score $> 90$.
 - **Passing Threshold**: A question candidate must score **$> 90$** out of 100 on the standardized rubric to be approved for publication.
-- **Option Symmetry & Anti-Guessability**: Generator and Reviewer enforce $\pm 15\%$ word count parity across all options, parallel grammar, and balanced qualifiers to eliminate test-wiseness guessing cues.
+- **Option Symmetry & Anti-Guessability**: Generator and Reviewer enforce $\pm 15\%$ word count parity across all 4 options ($A, B, C, D$), parallel grammar, and balanced qualifiers to eliminate test-wiseness guessing cues.
 - **Anti-AI Formatting Standard**: Strictly forbids em dashes, en dashes, or double hyphens; standard single hyphens (`-`) only.
-- **Conversational Mentor Explanations**: Structured in dual sections: intuitive step-by-step strategy + itemized distractor trap refutation.
+- **3-Part Structured Mentor Explanations**: Renders pedagogical explanations across three specialized visual cards: Core Intuition & Proof, Itemized Distractor Analysis, and Primary Cognitive Trap Spotlight.
 - **Autonomous Remediation**: If score $\le 90$, the Remediation node (`regenerator.py`) digests the exact weaknesses and distractor recommendations, attempting repairs for up to 3 cycles.
 - **Strict Quality Gate**: If score remains $\le 90$ after 3 attempts, the candidate is discarded immediately, preserving question bank integrity.
 
@@ -148,7 +153,7 @@ PYTHONPATH=backend uvicorn app.main:app --port 8000 --reload
 Run the deterministic backend test suite covering endpoints, schemas, database operations, workflow routing, and token cost formulas:
 
 ```bash
-# Run all unit and integration tests (31 passed)
+# Run all unit and integration tests (41 passed)
 source .venv/bin/activate
 pytest backend/tests -v -k "not live_e2e"
 

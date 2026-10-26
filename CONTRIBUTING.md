@@ -45,7 +45,7 @@ pnpm dev
 Before submitting any code changes, ensure all verification suites pass with zero defects:
 
 ```bash
-# 1. Backend pytest suite (31 unit & integration tests)
+# 1. Backend pytest suite (41 unit & integration tests)
 PYTHONPATH=backend pytest backend/tests -v -k "not live_e2e"
 
 # 2. Backend Python linter
@@ -71,9 +71,10 @@ pnpm build
    - Business/Agent Logic: `backend/app/agents/`
    - Data Access Layer: `backend/app/repositories/`
    - Database Entities: `backend/app/models/`
-   - Frontend: Feature-based component directories (`wizard/`, `pipeline/`, `question/`, `bank/`, `layout/`, `modals/`, `common/`) with centralized hooks and constants.
+   - Background Services: `backend/app/services/`
+   - Frontend: Top-level views (`views/`) with feature-based component directories (`wizard/`, `pipeline/`, `question/`, `staged/`, `bank/`, `batch/`, `validated/`, `layout/`, `modals/`, `common/`) and centralized hooks/constants.
 4. **3-Step AI Pipeline & Cognitive Fusion**: Milestone 01 fuses item authoring and 100-point rubric self-critique (`Question Writer & Reviewer`) into a single pass (~40% faster). Only drafts scoring $\le 90$ trigger Milestone 02 remediation (`Question Improver`), while Milestone 03 renders visual stimuli (`Diagram & Chart Maker`).
-5. **Option Symmetry & Anti-AI Standard**: Enforce $\pm 15\%$ option length parity and single hyphens (`-`) only; em dashes (`—`) and en dashes (`–`) are strictly forbidden across prompts and generation output.
+5. **Option Symmetry & Anti-AI Standard**: Enforce $\pm 15\%$ option length parity across strictly 4 options ($A, B, C, D$) and single hyphens (`-`) only; em dashes (`—`) and en dashes (`–`) are strictly forbidden across prompts and generation output.
 
 ---
 

@@ -15,15 +15,16 @@ For deep-dive technical specifications, architecture diagrams, API schemas, and 
 
 | Document | Description |
 | :--- | :--- |
-| **[Client System & Workflow Guide (docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)](docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)** | **Primary Client Deliverable**: End-to-end operational walkthrough, 3-step autonomous pipeline, >90 quality gate, mentor explanations, token cost transparency, and empirical verification. |
+| **[Central Documentation Hub (docs/README.md)](docs/README.md)** | **Master Documentation Index**: Complete sitemap, role-based navigation paths, architectural overview, and cross-functional guide directory. |
+| **[Client System & Workflow Guide (docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)](docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)** | **Primary Client Deliverable**: End-to-end operational walkthrough, 7-step wizard, 3 generation scopes (1, 5, 50 Qs), >90 quality gate, mentor explanations, and token transparency. |
 | **[UI/UX Design System (DESIGN.md)](DESIGN.md)** | Authoritative design tokens, dual obsidian/alabaster themes, typography scale, component contracts, accessibility criteria (WCAG AA), and micro-animations. |
-| **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 3-step pipeline specifications, Strict Quality Gate, SSE pipeline, batch routing, and PostgreSQL 16 ERD. |
-| **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation, batch generation schemas, SSE event stream contracts, filter parameters, and cURL examples. |
+| **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 3-step pipeline specifications, Strict Quality Gate, background batch runner, SSE pipeline, and PostgreSQL 16 ERD. |
+| **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation (22 endpoints), batch generation schemas, SSE event stream contracts, filter parameters, and cURL examples. |
 | **[Token Usage & Cost Tracking](docs/TOKEN_TRACKING.md)** | High-throughput rate card ($0.098 in / $0.294 out per 1M tokens), exact mathematical cost formulas, multi-agent accumulation, and UI observability. |
 | **[Installation, Setup & Deployment](docs/SETUP_AND_CONFIG.md)** | Step-by-step setup, Docker PostgreSQL 16 guide, environment variables reference, production deployment, linters, and troubleshooting. |
 | **[MCAT Psychometric Rubric & Standards](docs/MCAT_RUBRIC.md)** | Official 4 AAMC sections pacing (~96s to ~101s), 100-point 4-pillar evaluation rubric, $> 90$ quality benchmark, calibrated scaled score (118-132), and cognitive distractor trap engineering. |
-| **[Backend Developer Guide](backend/README.md)** | Layer separation, modular workflow engine (`engine.py`, `nodes.py`, `routes.py`), repositories, testing, and seeding scripts. |
-| **[Frontend Workstation Guide](frontend/README.md)** | Modern React 19 architecture, component directory, hooks, scripts, and local development instructions. |
+| **[Backend Developer Guide](backend/README.md)** | Layer separation, modular workflow engine (`engine.py`, `nodes.py`, `routes.py`), services, repositories, testing, and seeding scripts. |
+| **[Frontend Workstation Guide](frontend/README.md)** | Modern React 19 architecture, component directory, top-level views, hooks, scripts, and local development instructions. |
 
 ---
 
@@ -131,7 +132,7 @@ pnpm dev
 Run the full backend test suite covering schemas, routing logic, strict quality gates, SVG & FLUX synthesis, database operations, and token calculations:
 
 ```bash
-# Run backend deterministic test suite (31 passed)
+# Run backend deterministic test suite (41 passed)
 source .venv/bin/activate
 pytest backend/tests -v -k "not live_e2e"
 
@@ -160,8 +161,9 @@ Question Bank Generator/
 ├── docker-compose.yml           # PostgreSQL 16 container definition
 ├── .env.example                 # Environment variables template
 ├── docs/                        # Comprehensive Documentation Suite
+│   ├── README.md                # Master Documentation Index & role-based sitemap
 │   ├── ARCHITECTURE.md          # Multi-agent architecture & LangGraph StateGraph
-│   ├── API.md                   # Complete REST & SSE API specification
+│   ├── API.md                   # Complete REST & SSE API specification (22 endpoints)
 │   ├── TOKEN_TRACKING.md        # Inference pricing & mathematical cost engine
 │   ├── SETUP_AND_CONFIG.md      # Installation, deployment & troubleshooting
 │   └── MCAT_RUBRIC.md           # 100-point psychometric rubric & authoring standards
