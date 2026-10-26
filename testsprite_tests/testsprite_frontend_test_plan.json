@@ -1,0 +1,1233 @@
+[
+  {
+    "id": "TC001",
+    "title": "Configure and start guided question generation",
+    "description": "This verifies that the user can complete the guided setup and launch the live generation pipeline with a custom configuration.",
+    "category": "Guided Question Generator Wizard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the start generating action"
+      },
+      {
+        "type": "action",
+        "description": "Select an exam section"
+      },
+      {
+        "type": "action",
+        "description": "Select a topic or subtopic"
+      },
+      {
+        "type": "action",
+        "description": "Select a question type"
+      },
+      {
+        "type": "action",
+        "description": "Set a difficulty level"
+      },
+      {
+        "type": "action",
+        "description": "Adjust the batch size"
+      },
+      {
+        "type": "action",
+        "description": "Toggle AI diagram or image generation"
+      },
+      {
+        "type": "action",
+        "description": "Click the generate questions action"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the live generation pipeline is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify generation progress information is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Start guided generation from the workspace",
+    "description": "This verifies that a user can configure the generator and start a new staged question run from the main workspace.",
+    "category": "Generation Pipeline Streaming and Live Workspace",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Select a section"
+      },
+      {
+        "type": "action",
+        "description": "Select a topic"
+      },
+      {
+        "type": "action",
+        "description": "Select a question type"
+      },
+      {
+        "type": "action",
+        "description": "Select a difficulty"
+      },
+      {
+        "type": "action",
+        "description": "Start generation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the live generation pipeline is active"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify staged questions are being prepared"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Complete a generation run and review the results",
+    "description": "This verifies that a full generation run completes and the user can review the completed batch summary and generated questions.",
+    "category": "Generation Pipeline Streaming and Live Workspace",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Select a section"
+      },
+      {
+        "type": "action",
+        "description": "Select a topic"
+      },
+      {
+        "type": "action",
+        "description": "Select a question type"
+      },
+      {
+        "type": "action",
+        "description": "Select a difficulty"
+      },
+      {
+        "type": "action",
+        "description": "Start generation"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the generation to complete"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a completed batch summary is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify generated question output is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "View live generation progress and logs",
+    "description": "This verifies that a running generation exposes live stage progress and event logs while the pipeline is active.",
+    "category": "Generation Pipeline Streaming and Live Workspace",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Select a section"
+      },
+      {
+        "type": "action",
+        "description": "Select a topic"
+      },
+      {
+        "type": "action",
+        "description": "Select a question type"
+      },
+      {
+        "type": "action",
+        "description": "Select a difficulty"
+      },
+      {
+        "type": "action",
+        "description": "Start generation"
+      },
+      {
+        "type": "action",
+        "description": "Expand the event stream logs"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify live pipeline telemetry is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify active agent stage updates are visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Start guided generation from the landing hero",
+    "description": "This verifies that the user can open the guided generation wizard from the landing page entry point.",
+    "category": "Hero Landing and Quick Presets",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the start generating action"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the guided generation wizard is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Review the completed generation output",
+    "description": "This verifies that after generation completes the user can review the staged questions produced by the pipeline.",
+    "category": "Guided Question Generator Wizard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the start generating action"
+      },
+      {
+        "type": "action",
+        "description": "Select an exam section"
+      },
+      {
+        "type": "action",
+        "description": "Select a topic or subtopic"
+      },
+      {
+        "type": "action",
+        "description": "Select a question type"
+      },
+      {
+        "type": "action",
+        "description": "Select a difficulty level"
+      },
+      {
+        "type": "action",
+        "description": "Click the generate questions action"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify staged questions are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the generation is marked complete"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Cancel an active generation run",
+    "description": "This verifies that a user can stop an in-progress generation and the live pipeline ends cleanly.",
+    "category": "Generation Pipeline Streaming and Live Workspace",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Select a section"
+      },
+      {
+        "type": "action",
+        "description": "Select a topic"
+      },
+      {
+        "type": "action",
+        "description": "Select a question type"
+      },
+      {
+        "type": "action",
+        "description": "Select a difficulty"
+      },
+      {
+        "type": "action",
+        "description": "Start generation"
+      },
+      {
+        "type": "action",
+        "description": "Cancel generation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the generation stream stops"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the workspace returns to an idle state"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC008",
+    "title": "Approve a staged question into the bank",
+    "description": "This verifies that a user can approve one generated question and save it to the question bank.",
+    "category": "Staged Question Review, Editing, and Approval",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Select a section"
+      },
+      {
+        "type": "action",
+        "description": "Select a topic"
+      },
+      {
+        "type": "action",
+        "description": "Select a question type"
+      },
+      {
+        "type": "action",
+        "description": "Select a difficulty"
+      },
+      {
+        "type": "action",
+        "description": "Start generation"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the generation to complete"
+      },
+      {
+        "type": "action",
+        "description": "Expand a staged question"
+      },
+      {
+        "type": "action",
+        "description": "Approve the question"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a success confirmation is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the approved question is removed from the staged set"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC009",
+    "title": "Start generation with default settings",
+    "description": "This verifies that the user can launch generation without changing optional settings and still begin a valid default request.",
+    "category": "Guided Question Generator Wizard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the start generating action"
+      },
+      {
+        "type": "action",
+        "description": "Select an exam section"
+      },
+      {
+        "type": "action",
+        "description": "Select a topic or subtopic"
+      },
+      {
+        "type": "action",
+        "description": "Select a question type"
+      },
+      {
+        "type": "action",
+        "description": "Select a difficulty level"
+      },
+      {
+        "type": "action",
+        "description": "Click the generate questions action"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the live generation pipeline is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC010",
+    "title": "Edit a staged question and save the revision",
+    "description": "This verifies that a user can edit a generated question and persist the updated revision before approval.",
+    "category": "Staged Question Review, Editing, and Approval",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Select a section"
+      },
+      {
+        "type": "action",
+        "description": "Select a topic"
+      },
+      {
+        "type": "action",
+        "description": "Select a question type"
+      },
+      {
+        "type": "action",
+        "description": "Select a difficulty"
+      },
+      {
+        "type": "action",
+        "description": "Start generation"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the generation to complete"
+      },
+      {
+        "type": "action",
+        "description": "Expand a staged question"
+      },
+      {
+        "type": "action",
+        "description": "Open the edit dialog"
+      },
+      {
+        "type": "action",
+        "description": "Modify the question content"
+      },
+      {
+        "type": "action",
+        "description": "Save the revision"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the revised question is retained"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the staged question remains available for review"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC011",
+    "title": "Approve all staged questions at once",
+    "description": "This verifies that a user can save an entire generated batch to the bank in a single bulk action.",
+    "category": "Staged Question Review, Editing, and Approval",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Select a section"
+      },
+      {
+        "type": "action",
+        "description": "Select a topic"
+      },
+      {
+        "type": "action",
+        "description": "Select a question type"
+      },
+      {
+        "type": "action",
+        "description": "Select a difficulty"
+      },
+      {
+        "type": "action",
+        "description": "Start generation"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the generation to complete"
+      },
+      {
+        "type": "action",
+        "description": "Approve all staged questions"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a success confirmation is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the staged batch is cleared"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC012",
+    "title": "Inspect a staged question and its audit trail",
+    "description": "This verifies that a user can expand a generated question, review its full content, and open the audit trail details.",
+    "category": "Staged Question Review, Editing, and Approval",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Select a section"
+      },
+      {
+        "type": "action",
+        "description": "Select a topic"
+      },
+      {
+        "type": "action",
+        "description": "Select a question type"
+      },
+      {
+        "type": "action",
+        "description": "Select a difficulty"
+      },
+      {
+        "type": "action",
+        "description": "Start generation"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the generation to complete"
+      },
+      {
+        "type": "action",
+        "description": "Expand a staged question"
+      },
+      {
+        "type": "action",
+        "description": "Open the audit trail"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the question details are visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the audit reasoning is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC013",
+    "title": "Switch between main workspace views",
+    "description": "This verifies that the user can move between the Generator, Batches, Validated, and Question Bank views from the main navigation.",
+    "category": "Navigation and Theme Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the Generator tab"
+      },
+      {
+        "type": "action",
+        "description": "Click the Batches tab"
+      },
+      {
+        "type": "action",
+        "description": "Click the Validated tab"
+      },
+      {
+        "type": "action",
+        "description": "Click the Question Bank tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the question bank repository is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC014",
+    "title": "Filter the question bank by section difficulty and status",
+    "description": "This verifies that a user can narrow the repository using the available bank filters.",
+    "category": "Question Bank Explorer and Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the question bank view"
+      },
+      {
+        "type": "action",
+        "description": "Filter by section"
+      },
+      {
+        "type": "action",
+        "description": "Filter by difficulty"
+      },
+      {
+        "type": "action",
+        "description": "Filter by status"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the question list is narrowed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify only questions matching the selected filters are shown"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC015",
+    "title": "Delete a question from the bank",
+    "description": "This verifies that a user can remove a question from the repository and see it disappear from the bank list.",
+    "category": "Question Bank Explorer and Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the question bank view"
+      },
+      {
+        "type": "action",
+        "description": "Delete a question"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the deletion"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the question is removed from the repository list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a deletion confirmation is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC016",
+    "title": "Discard a staged question",
+    "description": "This verifies that a user can remove an unwanted generated question from the staged set.",
+    "category": "Staged Question Review, Editing, and Approval",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Select a section"
+      },
+      {
+        "type": "action",
+        "description": "Select a topic"
+      },
+      {
+        "type": "action",
+        "description": "Select a question type"
+      },
+      {
+        "type": "action",
+        "description": "Select a difficulty"
+      },
+      {
+        "type": "action",
+        "description": "Start generation"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the generation to complete"
+      },
+      {
+        "type": "action",
+        "description": "Expand a staged question"
+      },
+      {
+        "type": "action",
+        "description": "Discard the question"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the discarded question is removed from the staged set"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the remaining staged questions stay available"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC017",
+    "title": "Load a quick preset into the generator",
+    "description": "This verifies that selecting a quick preset populates the generation setup with a preconfigured configuration.",
+    "category": "Hero Landing and Quick Presets",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click a quick preset card"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the guided generation workspace reflects a preconfigured setup"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC018",
+    "title": "Preview a question from the bank",
+    "description": "This verifies that a user can open a bank item and inspect its preview details.",
+    "category": "Question Bank Explorer and Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the question bank view"
+      },
+      {
+        "type": "action",
+        "description": "Open a question preview"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the preview modal is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the question details are visible in the preview"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC019",
+    "title": "Open the question bank and search for questions",
+    "description": "This verifies that a user can open the bank and narrow results using a search query.",
+    "category": "Question Bank Explorer and Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the question bank view"
+      },
+      {
+        "type": "action",
+        "description": "Type a search query into the question search field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify matching questions are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the result list updates to the query"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC020",
+    "title": "Open the question bank from the landing hero",
+    "description": "This verifies that the user can jump directly from the landing page into the question bank view.",
+    "category": "Hero Landing and Quick Presets",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the browse question bank action"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the question bank repository is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC021",
+    "title": "Browse question bank results across pages",
+    "description": "This verifies that a user can move through the bank using pagination and item count controls.",
+    "category": "Question Bank Explorer and Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the question bank view"
+      },
+      {
+        "type": "action",
+        "description": "Change the items per page setting"
+      },
+      {
+        "type": "action",
+        "description": "Go to the next page of results"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a different slice of questions is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify pagination controls reflect the current page"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC022",
+    "title": "View validated questions",
+    "description": "This verifies that a user can open the validated questions view and see the list of high-confidence validated items.",
+    "category": "AI Validated Questions View",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the Validated tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify high-confidence validated questions are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC023",
+    "title": "View the batch activity list",
+    "description": "This verifies that a user can open the batch activity view and see historical generation runs.",
+    "category": "Batch Activity Monitoring",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the Batches tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify batch generation runs are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC024",
+    "title": "Review validated questions and prepare them for approval",
+    "description": "This verifies that a user can open the validated queue, inspect confidence details, and bulk approve items for downstream use.",
+    "category": "Generation Pipeline Streaming and Live Workspace",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Switch to the validated questions view"
+      },
+      {
+        "type": "action",
+        "description": "Open a validated question"
+      },
+      {
+        "type": "action",
+        "description": "Bulk approve validated questions"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify validated question score breakdowns are visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the selected validated questions are marked for approval"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC025",
+    "title": "Open a batch detail view",
+    "description": "This verifies that a user can open a batch run and inspect the detailed record for that generation run.",
+    "category": "Batch Activity Monitoring",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the Batches tab"
+      },
+      {
+        "type": "action",
+        "description": "Open a batch run"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify batch details are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC026",
+    "title": "Export all question bank items in a chosen format",
+    "description": "This verifies that a user can open the question bank export dialog, choose an export format and scope, and start an export for the full bank.",
+    "category": "Question Export",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the Question Bank view"
+      },
+      {
+        "type": "action",
+        "description": "Click the export control"
+      },
+      {
+        "type": "action",
+        "description": "Choose an export format"
+      },
+      {
+        "type": "action",
+        "description": "Select the full bank export scope"
+      },
+      {
+        "type": "action",
+        "description": "Start the export"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an export confirmation or download state is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC027",
+    "title": "Review historical batch activity details",
+    "description": "This verifies that a user can inspect a past generation batch and compare its status and yield with the run output.",
+    "category": "Generation Pipeline Streaming and Live Workspace",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Switch to the batch activity view"
+      },
+      {
+        "type": "action",
+        "description": "Open a batch detail view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify batch progress details are visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the generated question yield is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC028",
+    "title": "Export selected question bank items",
+    "description": "This verifies that a user can select questions in the bank and export only the selected items.",
+    "category": "Question Export",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the Question Bank view"
+      },
+      {
+        "type": "action",
+        "description": "Select one or more questions in the bank"
+      },
+      {
+        "type": "action",
+        "description": "Click the export control"
+      },
+      {
+        "type": "action",
+        "description": "Choose an export format"
+      },
+      {
+        "type": "action",
+        "description": "Select the selected-items export scope"
+      },
+      {
+        "type": "action",
+        "description": "Start the export"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an export confirmation or download state is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC029",
+    "title": "Filter batches to narrow the run list",
+    "description": "This verifies that a user can filter batch activity by status or date and see the list update to a narrower set of runs.",
+    "category": "Batch Activity Monitoring",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the Batches tab"
+      },
+      {
+        "type": "action",
+        "description": "Apply a batch filter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the batch list is narrowed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC030",
+    "title": "Review a batch's generated questions",
+    "description": "This verifies that a user can inspect the generated questions contained in a selected batch run.",
+    "category": "Batch Activity Monitoring",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the Batches tab"
+      },
+      {
+        "type": "action",
+        "description": "Open a batch run"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify generated questions for that batch are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC031",
+    "title": "Select validated questions for a next action",
+    "description": "This verifies that a user can select validated questions in preparation for bulk approval or export.",
+    "category": "AI Validated Questions View",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the Validated tab"
+      },
+      {
+        "type": "action",
+        "description": "Select one or more validated questions"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the selected validated questions are ready for bulk action"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC032",
+    "title": "Inspect validation reasoning for a question",
+    "description": "This verifies that a user can review the validation score breakdown and rubric reasoning for a validated question.",
+    "category": "AI Validated Questions View",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the Validated tab"
+      },
+      {
+        "type": "action",
+        "description": "Open a validated question"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify score breakdown and rubric evaluation details are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC033",
+    "title": "Handle an incomplete generator setup",
+    "description": "This verifies that the user cannot proceed to generation when a required configuration is missing and that validation feedback is shown.",
+    "category": "Guided Question Generator Wizard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the start generating action"
+      },
+      {
+        "type": "action",
+        "description": "Leave the required section unselected"
+      },
+      {
+        "type": "action",
+        "description": "Click the generate questions action"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a configuration validation message is displayed"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC034",
+    "title": "Toggle the interface theme",
+    "description": "This verifies that the user can switch the app appearance between dark and light themes using the global theme control.",
+    "category": "Navigation and Theme Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the theme toggle control"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the interface appearance switches to the alternate theme"
+      },
+      {
+        "type": "action",
+        "description": "Click the theme toggle control"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the interface appearance returns to the original theme"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC035",
+    "title": "Return to the landing hero from the main workspace",
+    "description": "This verifies that the user can return from a workspace view back to the landing hero using the home control or brand logo.",
+    "category": "Navigation and Theme Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the Generator tab"
+      },
+      {
+        "type": "action",
+        "description": "Click the brand logo or home control"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the landing hero is displayed"
+      }
+    ],
+    "priority": "Low"
+  }
+]

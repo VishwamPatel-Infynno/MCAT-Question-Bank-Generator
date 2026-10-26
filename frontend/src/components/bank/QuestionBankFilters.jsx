@@ -33,10 +33,17 @@ const DIFFICULTY_FILTER_OPTIONS = [
   { id: 'hard', label: 'Hard' }
 ];
 
+const STATUS_FILTER_OPTIONS = [
+  { id: '', label: 'All Statuses' },
+  { id: 'in_bank', label: 'Approved' },
+  { id: 'ai_validated', label: 'AI Validated' },
+  { id: 'draft', label: 'Draft' }
+];
+
 /**
  * QuestionBankFilters
  *
- * Renders the search bar, difficulty chips, section pills, sort selector,
+ * Renders the search bar, difficulty chips, status filter, section pills, sort selector,
  * and bulk-selection action bar for the Question Bank.
  */
 export default function QuestionBankFilters({
@@ -47,6 +54,8 @@ export default function QuestionBankFilters({
   setSectionFilter,
   diffFilter,
   setDiffFilter,
+  statusFilter = '',
+  setStatusFilter,
   sortBy,
   setSortBy,
   questions,
@@ -124,6 +133,29 @@ export default function QuestionBankFilters({
               </button>
             );
           })}
+        </div>
+
+        {/* Status Filter Track */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', fontWeight: 500 }}>
+            Status:
+          </span>
+          <div className="pill-track">
+            {STATUS_FILTER_OPTIONS.map(s => {
+              const isActive = (statusFilter || '') === s.id;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setStatusFilter && setStatusFilter(s.id)}
+                  className={`pill-track-btn ${isActive ? 'active' : ''}`}
+                  style={{ padding: '4px 10px', fontSize: '0.74rem' }}
+                >
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Sort Selector */}

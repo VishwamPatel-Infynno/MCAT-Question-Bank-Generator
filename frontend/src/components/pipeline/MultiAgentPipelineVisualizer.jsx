@@ -19,7 +19,8 @@ export default function MultiAgentPipelineVisualizer({
   totalBatch = 1,
   perQuestionState = EMPTY_OBJECT,
   liveStatusMessage = null,
-  batchProgress = null
+  batchProgress = null,
+  onCancel = null
 }) {
   const [elapsedTime, setElapsedTime] = useState('0.0');
   const [showLogs, setShowLogs] = useState(false);
@@ -224,6 +225,28 @@ export default function MultiAgentPipelineVisualizer({
               <CheckCircle2 size={12} />
               <span>Calibrated for 90+ Quality Standard</span>
             </span>
+          )}
+
+          {isGenerating && onCancel && (
+            <button
+              type="button"
+              id="btn-cancel-generation"
+              onClick={onCancel}
+              className="btn-danger"
+              style={{
+                padding: '4px 10px',
+                fontSize: '0.725rem',
+                borderRadius: 'var(--radius-xs)',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                cursor: 'pointer'
+              }}
+              title="Stop and cancel generation workflow"
+            >
+              <span>Stop Generation</span>
+            </button>
           )}
 
           {events.length > 0 && (

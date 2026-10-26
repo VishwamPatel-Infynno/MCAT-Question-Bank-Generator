@@ -171,6 +171,7 @@ export default function AgentVisualizer({
       perQuestionState={perQuestionState}
       liveStatusMessage={liveStatusMessage}
       batchProgress={batchProgress}
+      onCancel={onCancel}
     />
   );
 }

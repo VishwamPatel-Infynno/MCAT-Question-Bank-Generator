@@ -7,6 +7,7 @@ export function useQuestionBank() {
   const [loading, setLoading] = useState(true);
   const [sectionFilter, setSectionFilter] = useState('');
   const [diffFilter, setDiffFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'score_desc' | 'score_asc' | 'difficulty'
@@ -33,7 +34,7 @@ export function useQuestionBank() {
           section: sectionFilter || undefined,
           difficulty: diffFilter || undefined,
           search: debouncedSearch || undefined,
-          status: 'in_bank'
+          status: statusFilter || undefined
         },
         controller.signal
       )
@@ -58,7 +59,7 @@ export function useQuestionBank() {
       isCancelled = true;
       controller.abort();
     };
-  }, [sectionFilter, diffFilter, debouncedSearch, refreshCount]);
+  }, [sectionFilter, diffFilter, statusFilter, debouncedSearch, refreshCount]);
 
   const loadQuestions = useCallback(() => {
     setLoading(true);
@@ -122,6 +123,8 @@ export function useQuestionBank() {
     setSectionFilter,
     diffFilter,
     setDiffFilter,
+    statusFilter,
+    setStatusFilter,
     searchQuery,
     setSearchQuery,
     sortBy,

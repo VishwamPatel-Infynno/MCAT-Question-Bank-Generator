@@ -209,7 +209,9 @@ async def _execute_batch_workflow(batch_id: str, req: GenerationRequest) -> None
         # Finalize batch state
         b = await get_batch_by_id(batch_id)
         if b:
-            if b.completed_jobs == b.total_jobs:
+            if (b.completed_jobs == b.total_jobs) or (
+                (b.actual_count or 0) >= (b.target_count or 0) and (b.actual_count or 0) > 0
+            ):
                 b.status = "completed"
             elif (b.completed_jobs or 0) > 0:
                 b.status = "partially_completed"

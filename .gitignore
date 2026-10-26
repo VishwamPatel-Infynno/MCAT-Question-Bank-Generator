@@ -63,3 +63,5 @@ Thumbs.db
 .system_generated/
 .playwright-mcp/
 skill-creator/
+testsprite_tests/tmp/
+testsprite_tests/tmp/config.json

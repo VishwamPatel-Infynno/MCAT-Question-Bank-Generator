@@ -68,8 +68,8 @@ export function useAppState() {
     cancelGeneration();
     showToast({
       type: 'info',
-      title: 'Generation Cancelled',
-      message: 'Workflow execution stopped.'
+      title: 'Generation Stopped',
+      message: 'Generation stopped. Workflow execution cancelled.'
     });
   }, [cancelGeneration, showToast]);
 
@@ -250,8 +250,8 @@ export function useAppState() {
       setSavedQuestionIds(prev => new Set([...prev, ...questionsToSave.map(item => item.id)]));
       showToast({
         type: 'success',
-        title: 'Questions Saved',
-        message: `${questionsToSave.length} question(s) saved to your Question Bank.`
+        title: 'Success - Questions Saved',
+        message: `Successfully saved ${questionsToSave.length} question(s) to your Question Bank.`
       });
     } catch (err) {
       console.error('Failed to batch save questions:', err);

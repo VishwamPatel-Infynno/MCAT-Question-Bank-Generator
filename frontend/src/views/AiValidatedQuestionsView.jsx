@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   CheckCircle2,
-  ArrowRight
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
+import CustomSelect from '../components/common/CustomSelect';
 import {
   fetchQuestions,
   fetchQuestionCounts,
@@ -28,6 +31,10 @@ export default function AiValidatedQuestionsView({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionInProgress, setActionInProgress] = useState(false);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -104,6 +111,26 @@ export default function AiValidatedQuestionsView({
     );
   }, [questions, searchQuery]);
 
+  // Pagination calculation
+  const filterKey = `${searchQuery}|${sectionFilter}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (prevFilterKey !== filterKey) {
+    setPrevFilterKey(filterKey);
+    setCurrentPage(1);
+  }
+
+  const totalPages = pageSize === -1 ? 1 : Math.max(1, Math.ceil(filteredQuestions.length / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedQuestions = useMemo(() => {
+    if (pageSize === -1) return filteredQuestions;
+    const start = (safeCurrentPage - 1) * pageSize;
+    return filteredQuestions.slice(start, start + pageSize);
+  }, [filteredQuestions, safeCurrentPage, pageSize]);
+
+  const startIndex = filteredQuestions.length === 0 ? 0 : (pageSize === -1 ? 1 : (safeCurrentPage - 1) * pageSize + 1);
+  const endIndex = pageSize === -1 ? filteredQuestions.length : Math.min(safeCurrentPage * pageSize, filteredQuestions.length);
+
   // Toggle single selection
   const handleToggleSelect = (id) => {
     setSelectedIds(prev =>
@@ -132,7 +159,7 @@ export default function AiValidatedQuestionsView({
       if (onShowToast) {
         onShowToast({
           type: 'success',
-          title: 'Question Moved to Bank',
+          title: 'Success - Question Saved to Bank',
           message: 'Question is now available in your Question Bank.'
         });
       }
@@ -182,8 +209,8 @@ export default function AiValidatedQuestionsView({
       if (onShowToast) {
         onShowToast({
           type: 'success',
-          title: 'Bulk Saved to Bank',
-          message: `${count} question(s) placed into Question Bank.`
+          title: 'Success - Saved to Bank',
+          message: `Successfully placed ${count} question(s) into Question Bank.`
         });
       }
       setSelectedIds([]);
@@ -379,23 +406,102 @@ export default function AiValidatedQuestionsView({
         </div>
       ) : (
         /* Questions List */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {filteredQuestions.map((q, idx) => (
-            <AiValidatedQuestionCard
-              key={q.id}
-              question={q}
-              index={idx}
-              isSelected={selectedIds.includes(q.id)}
-              onToggleSelect={handleToggleSelect}
-              isPassageExpanded={Boolean(expandedPassageIds[q.id])}
-              onTogglePassage={togglePassage}
-              onOpenAudit={onOpenAudit}
-              onMoveToBank={handleMoveToBankSingle}
-              onDiscard={handleDiscardSingle}
-              actionInProgress={actionInProgress}
-            />
-          ))}
-        </div>
+        <>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {paginatedQuestions.map((q, idx) => (
+              <AiValidatedQuestionCard
+                key={q.id}
+                question={q}
+                index={(safeCurrentPage - 1) * pageSize + idx}
+                isSelected={selectedIds.includes(q.id)}
+                onToggleSelect={handleToggleSelect}
+                isPassageExpanded={Boolean(expandedPassageIds[q.id])}
+                onTogglePassage={togglePassage}
+                onOpenAudit={onOpenAudit}
+                onMoveToBank={handleMoveToBankSingle}
+                onDiscard={handleDiscardSingle}
+                actionInProgress={actionInProgress}
+              />
+            ))}
+          </div>
+
+          {/* Pagination Bar */}
+          {filteredQuestions.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 18px',
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-md)',
+                marginTop: '16px',
+                flexWrap: 'wrap',
+                gap: '12px'
+              }}
+            >
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                Showing <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{startIndex}-{endIndex}</strong> of <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{filteredQuestions.length}</strong> validated questions
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  <span>Show</span>
+                  <CustomSelect
+                    id="select-validated-page-size"
+                    label="Questions per page"
+                    size="sm"
+                    value={pageSize}
+                    onChange={(newSize) => { setPageSize(Number(newSize)); setCurrentPage(1); }}
+                    options={[
+                      { value: 10, label: '10' },
+                      { value: 15, label: '15' },
+                      { value: 25, label: '25' },
+                      { value: 50, label: '50' },
+                      { value: -1, label: 'All' }
+                    ]}
+                    searchable={false}
+                    style={{ width: '75px' }}
+                  />
+                  <span>per page</span>
+                </div>
+
+                {pageSize !== -1 && totalPages > 1 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={safeCurrentPage === 1}
+                      className="btn-secondary"
+                      style={{ padding: '5px 10px', fontSize: '0.76rem', gap: '4px' }}
+                      aria-label="Previous Page"
+                    >
+                      <ChevronLeft size={13} />
+                      <span>Prev</span>
+                    </button>
+
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', padding: '0 6px', fontWeight: 500 }}>
+                      Page {safeCurrentPage} of {totalPages}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={safeCurrentPage >= totalPages}
+                      className="btn-secondary"
+                      style={{ padding: '5px 10px', fontSize: '0.76rem', gap: '4px' }}
+                      aria-label="Next Page"
+                    >
+                      <span>Next</span>
+                      <ChevronRight size={13} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
