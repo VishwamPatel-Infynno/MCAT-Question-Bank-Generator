@@ -51,7 +51,7 @@ export default function ExportPrintModal({
 
   useEffect(() => {
     if (hasActiveFilters) {
-      fetchQuestions().then(res => {
+      fetchQuestions({ status: 'in_bank' }).then(res => {
         if (res?.questions) setFetchedAll(res.questions);
       }).catch(() => {});
     }

@@ -15,8 +15,6 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
     setSectionFilter,
     diffFilter,
     setDiffFilter,
-    statusFilter,
-    setStatusFilter,
     searchQuery,
     setSearchQuery,
     sortBy,
@@ -34,20 +32,19 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
 
-  const hasActiveFilters = Boolean(searchQuery.trim() || sectionFilter || diffFilter || statusFilter);
+  const hasActiveFilters = Boolean(searchQuery.trim() || sectionFilter || diffFilter);
 
   const handleClearAllFilters = () => {
     setSearchQuery('');
     setSectionFilter('');
     setDiffFilter('');
-    setStatusFilter('');
   };
 
   // ─── Pagination ────────────────────────────────────────────────────────────
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
 
-  const filterKey = `${searchQuery}|${sectionFilter}|${diffFilter}|${statusFilter}|${sortBy}`;
+  const filterKey = `${searchQuery}|${sectionFilter}|${diffFilter}|${sortBy}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (prevFilterKey !== filterKey) {
     setPrevFilterKey(filterKey);
@@ -199,8 +196,6 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
         setSectionFilter={setSectionFilter}
         diffFilter={diffFilter}
         setDiffFilter={setDiffFilter}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
         sortBy={sortBy}
         setSortBy={setSortBy}
         questions={questions}

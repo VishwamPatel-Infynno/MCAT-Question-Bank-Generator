@@ -34,9 +34,30 @@ async def list_questions(
     run_id: str | None = Query(None),
     batch_id: str | None = Query(None),
     passage_id: str | None = Query(None),
-    status: str | None = Query(None),
+    status: str | None = Query("in_bank"),
 ):
     """Lists saved questions from the Question Bank repository along with aggregated metrics."""
+    # Normalize when called directly as a Python function (unit tests)
+    from fastapi.params import Query as QueryParam
+
+    if isinstance(status, QueryParam):
+        status = status.default
+    if isinstance(search, QueryParam):
+        search = search.default
+    if isinstance(section, QueryParam):
+        section = section.default
+    if isinstance(difficulty, QueryParam):
+        difficulty = difficulty.default
+    if isinstance(combination_id, QueryParam):
+        combination_id = combination_id.default
+    if isinstance(run_id, QueryParam):
+        run_id = run_id.default
+    if isinstance(batch_id, QueryParam):
+        batch_id = batch_id.default
+    if isinstance(passage_id, QueryParam):
+        passage_id = passage_id.default
+
+    effective_status = None if status == "all" else (status or "in_bank")
     questions = await get_questions(
         section=section,
         difficulty=difficulty,
@@ -45,11 +66,11 @@ async def list_questions(
         run_id=run_id,
         batch_id=batch_id,
         passage_id=passage_id,
-        status=status,
+        status=effective_status,
     )
     dumped = [q.model_dump() for q in questions]
 
-    metrics = await get_repository_metrics()
+    metrics = await get_repository_metrics(status=effective_status)
 
     return {
         "questions": dumped,
@@ -171,7 +192,12 @@ async def update_single_status(question_id: str, payload: dict):
 @router.get("/export")
 async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
     """Exports Question Bank in JSON or CSV format including manager matrix fields and UUIDs."""
-    questions = await get_questions()
+    from fastapi.params import Query as QueryParam
+
+    if isinstance(format, QueryParam):
+        format = format.default
+
+    questions = await get_questions(status="in_bank")
 
     if format == "json":
         data = [q.model_dump() for q in questions]

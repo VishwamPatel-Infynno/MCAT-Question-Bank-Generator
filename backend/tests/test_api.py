@@ -644,14 +644,49 @@ async def test_question_status_lifecycle_and_counts():
     assert any(q.id == uid2 for q in below_qs)
     assert not any(q.id == uid1 for q in below_qs)
 
+    # Verify list_questions endpoint defaults strictly to in_bank
+    from app.api.v1.questions import export_questions, list_questions
+
+    default_list = await list_questions()
+    default_ids = [q["id"] for q in default_list["questions"]]
+    assert uid1 not in default_ids, (
+        "Unapproved ai_validated question must not appear in default Question Bank list!"
+    )
+    assert uid2 not in default_ids, (
+        "below_threshold question must not appear in default Question Bank list!"
+    )
+
+    # Verify list_questions with status="ai_validated"
+    validated_list = await list_questions(status="ai_validated")
+    validated_ids = [q["id"] for q in validated_list["questions"]]
+    assert uid1 in validated_ids
+    assert uid2 not in validated_ids
+
+    # Verify list_questions with status="all"
+    all_list = await list_questions(status="all")
+    all_ids = [q["id"] for q in all_list["questions"]]
+    assert uid1 in all_ids
+    assert uid2 in all_ids
+
     # Test counts
     counts = await get_question_status_counts()
     assert counts["ai_validated"] >= 1
     assert counts["below_threshold"] >= 1
 
-    # Update single status (e.g. promote to in_bank)
+    # Update single status (e.g. promote to in_bank from ai_validated screen)
     res_single = await update_question_status(uid1, "in_bank")
     assert res_single is True
+
+    # Now verify it immediately appears in the default Question Bank list and in exports
+    bank_list_after_approval = await list_questions()
+    approved_bank_ids = [q["id"] for q in bank_list_after_approval["questions"]]
+    assert uid1 in approved_bank_ids, "Approved question must appear in Question Bank list!"
+
+    export_res = await export_questions()
+    export_body = json.loads(export_res.body)
+    export_ids = [q["id"] for q in export_body]
+    assert uid1 in export_ids, "Approved question must appear in Question Bank export!"
+    assert uid2 not in export_ids, "Unapproved question must never appear in Question Bank export!"
 
     bank_qs = await get_questions(status="in_bank")
     assert any(q.id == uid1 for q in bank_qs)
@@ -663,6 +698,11 @@ async def test_question_status_lifecycle_and_counts():
     discarded_qs = await get_questions(status="discarded")
     assert any(q.id == uid1 for q in discarded_qs)
     assert any(q.id == uid2 for q in discarded_qs)
+
+    # Once discarded, it must no longer appear in default Question Bank list
+    bank_list_after_discard = await list_questions()
+    discarded_check_ids = [q["id"] for q in bank_list_after_discard["questions"]]
+    assert uid1 not in discarded_check_ids, "Discarded question must not appear in Question Bank!"
 
     # Cleanup
     await delete_question(uid1)

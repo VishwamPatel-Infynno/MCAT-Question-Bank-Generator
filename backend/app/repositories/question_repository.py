@@ -305,7 +305,7 @@ async def save_questions_batch(questions: list[Question]) -> list[str]:
     return saved_ids
 
 
-async def get_repository_metrics() -> dict[str, Any]:
+async def get_repository_metrics(status: str | None = None) -> dict[str, Any]:
     """Computes repository-wide metrics via native SQL aggregation with zero Python memory overhead."""
     async with async_session_factory() as session:
         stmt = select(
@@ -313,6 +313,8 @@ async def get_repository_metrics() -> dict[str, Any]:
             func.coalesce(func.sum(QuestionModel.total_tokens), 0).label("total_tokens"),
             func.coalesce(func.sum(QuestionModel.cost_usd), 0.0).label("total_cost_usd"),
         )
+        if status and status != "all":
+            stmt = stmt.where(QuestionModel.status == status)
         res = await session.execute(stmt)
         row = res.one()
         return {
@@ -351,7 +353,7 @@ async def get_questions(
             stmt = stmt.where(QuestionModel.job_id == job_id)
         if passage_id:
             stmt = stmt.where(QuestionModel.passage_id == passage_id)
-        if status:
+        if status and status != "all":
             stmt = stmt.where(QuestionModel.status == status)
 
         if search:

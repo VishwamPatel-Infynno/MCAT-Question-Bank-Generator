@@ -11,8 +11,7 @@ import {
   Trash2,
   Image as ImageIcon,
   AlertTriangle,
-  CheckCircle2,
-  Sparkles
+  CheckCircle2
 } from 'lucide-react';
 import VisualStimulusViewer from '../question/VisualStimulusViewer';
 import SharedPassageCard from '../question/SharedPassageCard';
@@ -138,15 +137,9 @@ export default function QuestionBankTable({
                       </span>
                     )}
 
-                    {q.status === 'ai_validated' ? (
-                      <span className="badge badge-cyan" style={{ fontSize: '0.625rem', padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <Sparkles size={10} /> AI Validated
-                      </span>
-                    ) : (
-                      <span className="badge badge-emerald" style={{ fontSize: '0.625rem', padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <CheckCircle2 size={10} /> Approved
-                      </span>
-                    )}
+                    <span className="badge badge-emerald" style={{ fontSize: '0.625rem', padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                      <CheckCircle2 size={10} /> Approved
+                    </span>
                     {q.passage_id ? (
                       <span className="badge badge-cyan" style={{ fontSize: '0.625rem', padding: '1px 6px' }}>
                         Passage Set

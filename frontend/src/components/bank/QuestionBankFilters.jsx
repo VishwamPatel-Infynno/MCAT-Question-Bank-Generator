@@ -7,7 +7,8 @@ import {
   CheckSquare,
   Square,
   RotateCcw,
-  Sparkles
+  Sparkles,
+  CheckCircle2
 } from 'lucide-react';
 import CustomSelect from '../common/CustomSelect';
 
@@ -33,12 +34,6 @@ const DIFFICULTY_FILTER_OPTIONS = [
   { id: 'hard', label: 'Hard' }
 ];
 
-const STATUS_FILTER_OPTIONS = [
-  { id: '', label: 'All Statuses' },
-  { id: 'in_bank', label: 'Approved' },
-  { id: 'ai_validated', label: 'AI Validated' }
-];
-
 /**
  * QuestionBankFilters
  *
@@ -53,8 +48,6 @@ export default function QuestionBankFilters({
   setSectionFilter,
   diffFilter,
   setDiffFilter,
-  statusFilter = '',
-  setStatusFilter,
   sortBy,
   setSortBy,
   questions,
@@ -134,27 +127,24 @@ export default function QuestionBankFilters({
           })}
         </div>
 
-        {/* Status Filter Track */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', fontWeight: 500 }}>
-            Status:
-          </span>
-          <div className="pill-track">
-            {STATUS_FILTER_OPTIONS.map(s => {
-              const isActive = (statusFilter || '') === s.id;
-              return (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setStatusFilter && setStatusFilter(s.id)}
-                  className={`pill-track-btn ${isActive ? 'active' : ''}`}
-                  style={{ padding: '4px 10px', fontSize: '0.74rem' }}
-                >
-                  {s.label}
-                </button>
-              );
-            })}
-          </div>
+        {/* Verified Approved Library Tag */}
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '3px 10px',
+            borderRadius: 'var(--radius-sm)',
+            background: 'rgba(16, 185, 129, 0.08)',
+            border: '1px solid rgba(16, 185, 129, 0.25)',
+            fontSize: '0.72rem',
+            color: 'var(--status-success)',
+            fontWeight: 600
+          }}
+          title="All questions in this bank have been reviewed and approved into the repository"
+        >
+          <CheckCircle2 size={12} color="var(--status-success)" />
+          <span>Approved Bank</span>
         </div>
 
         {/* Sort Selector */}

@@ -7,7 +7,7 @@ export function useQuestionBank() {
   const [loading, setLoading] = useState(true);
   const [sectionFilter, setSectionFilter] = useState('');
   const [diffFilter, setDiffFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('in_bank');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'score_desc' | 'score_asc' | 'difficulty'
@@ -34,7 +34,7 @@ export function useQuestionBank() {
           section: sectionFilter || undefined,
           difficulty: diffFilter || undefined,
           search: debouncedSearch || undefined,
-          status: statusFilter || undefined
+          status: statusFilter || 'in_bank'
         },
         controller.signal
       )

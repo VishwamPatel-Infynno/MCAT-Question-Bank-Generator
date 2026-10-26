@@ -4,7 +4,8 @@ import {
   ToastContainer,
   HeroLanding,
   GuidedWizard,
-  Footer
+  Footer,
+  ErrorBoundary
 } from './components';
 import GeneratorWorkspaceView from './views/GeneratorWorkspaceView';
 import { useAppState } from './hooks';
@@ -177,47 +178,53 @@ export default function App() {
         )}
 
         {activeTab === 'batches' && (
-          <Suspense fallback={<LazyLoadingSpinner label="Loading Batch Activity Monitor..." />}>
-            <BatchActivityView
-              onOpenAudit={(q) => setAuditQuestion(q)}
-              onNavigateToBank={() => setActiveTab('bank')}
-              onNavigateToValidated={() => setActiveTab('validated')}
-              onNavigateToWizard={() => {
-                setActiveTab('generator');
-                setViewMode('wizard');
-              }}
-              onShowToast={showToast}
-            />
-          </Suspense>
+          <ErrorBoundary fallbackLabel="Batch Activity Monitor">
+            <Suspense fallback={<LazyLoadingSpinner label="Loading Batch Activity Monitor..." />}>
+              <BatchActivityView
+                onOpenAudit={(q) => setAuditQuestion(q)}
+                onNavigateToBank={() => setActiveTab('bank')}
+                onNavigateToValidated={() => setActiveTab('validated')}
+                onNavigateToWizard={() => {
+                  setActiveTab('generator');
+                  setViewMode('wizard');
+                }}
+                onShowToast={showToast}
+              />
+            </Suspense>
+          </ErrorBoundary>
         )}
 
         {activeTab === 'validated' && (
-          <Suspense fallback={<LazyLoadingSpinner label="Loading AI Validated Questions..." />}>
-            <AiValidatedQuestionsView
-              onOpenAudit={(q) => setAuditQuestion(q)}
-              onNavigateToBank={() => setActiveTab('bank')}
-              onNavigateToBatches={() => setActiveTab('batches')}
-              onNavigateToWizard={() => {
-                setActiveTab('generator');
-                setViewMode('wizard');
-              }}
-              onShowToast={showToast}
-              onRefreshCounts={refreshCounts}
-            />
-          </Suspense>
+          <ErrorBoundary fallbackLabel="AI Validated Questions">
+            <Suspense fallback={<LazyLoadingSpinner label="Loading AI Validated Questions..." />}>
+              <AiValidatedQuestionsView
+                onOpenAudit={(q) => setAuditQuestion(q)}
+                onNavigateToBank={() => setActiveTab('bank')}
+                onNavigateToBatches={() => setActiveTab('batches')}
+                onNavigateToWizard={() => {
+                  setActiveTab('generator');
+                  setViewMode('wizard');
+                }}
+                onShowToast={showToast}
+                onRefreshCounts={refreshCounts}
+              />
+            </Suspense>
+          </ErrorBoundary>
         )}
 
         {activeTab === 'bank' && (
-          <Suspense fallback={<LazyLoadingSpinner label="Loading Question Bank..." />}>
-            <QuestionBankView
-              onSelectQuestion={handleSelectFromBank}
-              onShowToast={showToast}
-              onNavigateToWizard={() => {
-                setActiveTab('generator');
-                setViewMode('wizard');
-              }}
-            />
-          </Suspense>
+          <ErrorBoundary fallbackLabel="Question Bank">
+            <Suspense fallback={<LazyLoadingSpinner label="Loading Question Bank..." />}>
+              <QuestionBankView
+                onSelectQuestion={handleSelectFromBank}
+                onShowToast={showToast}
+                onNavigateToWizard={() => {
+                  setActiveTab('generator');
+                  setViewMode('wizard');
+                }}
+              />
+            </Suspense>
+          </ErrorBoundary>
         )}
 
       </main>

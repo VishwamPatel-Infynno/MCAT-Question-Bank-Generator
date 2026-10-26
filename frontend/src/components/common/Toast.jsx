@@ -55,23 +55,49 @@ export function ToastItem({ toast, onDismiss }) {
         </div>
       </div>
 
-      <button
-        onClick={() => onDismiss(toast.id)}
-        style={{
-          background: 'transparent',
-          border: 'none',
-          color: 'var(--text-muted)',
-          cursor: 'pointer',
-          padding: '4px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: '4px',
-          transition: 'color var(--transition-fast)'
-        }}
-      >
-        <X size={14} />
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {toast.action && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              toast.action.onClick?.();
+              onDismiss(toast.id);
+            }}
+            className="btn-primary"
+            style={{
+              padding: '4px 10px',
+              fontSize: '0.72rem',
+              fontWeight: 600,
+              borderRadius: 'var(--radius-xs)',
+              whiteSpace: 'nowrap',
+              cursor: 'pointer'
+            }}
+          >
+            {toast.action.label}
+          </button>
+        )}
+
+        <button
+          onClick={() => onDismiss(toast.id)}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--text-muted)',
+            cursor: 'pointer',
+            padding: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '4px',
+            transition: 'color var(--transition-fast)'
+          }}
+          title="Dismiss notification"
+          aria-label="Dismiss notification"
+        >
+          <X size={14} />
+        </button>
+      </div>
     </div>
   );
 }

@@ -160,9 +160,11 @@ export default function AiValidatedQuestionsView({
         onShowToast({
           type: 'success',
           title: 'Success - Question Saved to Bank',
-          message: 'Question is now available in your Question Bank.'
+          message: 'Question is now available in your Question Bank.',
+          action: onNavigateToBank ? { label: 'View in Bank', onClick: onNavigateToBank } : undefined
         });
       }
+      if (onRefreshCounts) onRefreshCounts();
       loadData(true);
     } catch (err) {
       console.error('Error promoting question:', err);
@@ -187,6 +189,7 @@ export default function AiValidatedQuestionsView({
           message: 'Question has been marked as discarded.'
         });
       }
+      if (onRefreshCounts) onRefreshCounts();
       loadData(true);
     } catch (err) {
       console.error('Error discarding question:', err);
@@ -210,10 +213,12 @@ export default function AiValidatedQuestionsView({
         onShowToast({
           type: 'success',
           title: 'Success - Saved to Bank',
-          message: `Successfully placed ${count} question(s) into Question Bank.`
+          message: `Successfully placed ${count} question(s) into Question Bank.`,
+          action: onNavigateToBank ? { label: 'View in Bank', onClick: onNavigateToBank } : undefined
         });
       }
       setSelectedIds([]);
+      if (onRefreshCounts) onRefreshCounts();
       loadData(true);
     } catch (err) {
       console.error('Bulk move failed:', err);
@@ -241,6 +246,7 @@ export default function AiValidatedQuestionsView({
         });
       }
       setSelectedIds([]);
+      if (onRefreshCounts) onRefreshCounts();
       loadData(true);
     } catch (err) {
       console.error('Bulk discard failed:', err);
@@ -265,9 +271,11 @@ export default function AiValidatedQuestionsView({
         onShowToast({
           type: 'success',
           title: 'All Validated Questions Approved',
-          message: `${count} question(s) moved to Question Bank.`
+          message: `${count} question(s) moved to Question Bank.`,
+          action: onNavigateToBank ? { label: 'View in Bank', onClick: onNavigateToBank } : undefined
         });
       }
+      if (onRefreshCounts) onRefreshCounts();
       loadData(true);
     } catch (err) {
       console.error('Approve all validated failed:', err);
