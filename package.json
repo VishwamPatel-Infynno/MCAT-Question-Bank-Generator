@@ -8,6 +8,7 @@
     "build": "pnpm --dir frontend run build",
     "lint": "pnpm --dir frontend run lint",
     "lint:backend": "ruff check backend/",
+    "format": "ruff format .",
     "format:check": "ruff format --check .",
     "test": "pnpm run test:backend",
     "test:backend": "PYTHONPATH=backend pytest backend/tests",

@@ -226,7 +226,8 @@ export function useAppState() {
     generatorForm.formData,
     startGeneration,
     showToast,
-    refreshActiveBatches
+    refreshActiveBatches,
+    isLaunchingBatch
   ]);
 
   // ─── Approve / Discard Handlers ────────────────────────────────────────────

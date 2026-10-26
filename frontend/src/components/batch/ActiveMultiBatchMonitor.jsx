@@ -3,7 +3,6 @@ import {
   Layers,
   Zap,
   Square,
-  AlertTriangle,
   Coins,
   Cpu
 } from 'lucide-react';

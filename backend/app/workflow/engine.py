@@ -665,7 +665,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         )
 
                         if question_passed:
-                            is_passage_item_check = is_single_passage_set and idx < effective_passage_count
+                            is_passage_item_check = (
+                                is_single_passage_set and idx < effective_passage_count
+                            )
 
                             # If this is a passage question and the passage has a visual stimulus diagram, attach reference
                             if is_passage_item_check and (
