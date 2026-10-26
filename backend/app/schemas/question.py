@@ -43,7 +43,7 @@ class QuestionDraft(BaseModel):
     )
     question_stem: str = Field(..., description="The direct question or prompt to solve")
     options: list[OptionChoice] = Field(
-        ..., min_length=4, max_length=5, description="4 choices (A, B, C, D)"
+        ..., min_length=4, max_length=4, description="4 choices (A, B, C, D)"
     )
     correct_answer_id: str = Field(
         ..., description="Key option id e.g. 'A', or comma-joined keys e.g. 'A, C'"

@@ -145,24 +145,18 @@ export default function StagedBatchReview({
     return stagedQuestions.filter((q) => selectedIds.has(q.id) && !savedIds.has(q.id)).length;
   }, [stagedQuestions, selectedIds, savedIds]);
 
-  const { singleCount, multiCount, passageCount, avgScore } = useMemo(() => {
+  const { singleCount, passageCount, avgScore } = useMemo(() => {
     let single = 0,
-      multi = 0,
       passage = 0,
       scoreSum = 0;
     stagedQuestions.forEach((q) => {
-      const isMulti =
-        q.interaction_type === 'multi_choice' ||
-        (Array.isArray(q.correct_answer_ids) && q.correct_answer_ids.length > 1);
-      if (isMulti) multi++;
-      else single++;
+      single++;
       const wordCount = q.stimulus_text ? q.stimulus_text.trim().split(/\s+/).length : 0;
       if (q.passage_required === 'Yes' || wordCount >= 180) passage++;
       scoreSum += q.final_score || 95;
     });
     return {
       singleCount: single,
-      multiCount: multi,
       passageCount: passage,
       avgScore: totalCompleted > 0 ? (scoreSum / totalCompleted).toFixed(1) : '95.0'
     };
@@ -317,7 +311,6 @@ export default function StagedBatchReview({
         effectiveTotal={effectiveTotal}
         isSaving={isSaving}
         singleCount={singleCount}
-        multiCount={multiCount}
         passageCount={passageCount}
         isPassageSet={isPassageSet}
         isMixedBatch={isMixedBatch}

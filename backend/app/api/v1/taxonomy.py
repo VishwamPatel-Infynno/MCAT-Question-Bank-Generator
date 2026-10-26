@@ -30,7 +30,7 @@ def _build_rich_sections_payload():
         code = MCAT_SECTION_CODES[sec]
         tree = get_section_tree(sec)
         subjects = tree.get("subjects", []) if tree else []
-        # Flatten all subtopics across all topics in all units in all subjects for fallback compatibility
+        # Flatten subtopics across all topics for fast section-level lookups and UI filters
         all_subtopics = []
         for subj in subjects:
             for unit in subj.get("units", []):

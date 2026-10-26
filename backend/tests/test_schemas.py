@@ -28,12 +28,10 @@ async def test_schemas_validation():
     assert len(draft.options) == 4
     assert draft.correct_answer_id == "B"
 
-    # Test batch limit <= 10 constraint
+    # Test batch limit <= 50 constraint
     valid_batch_req = GenerationRequest(
         section=MCATSection.CHEM_PHYS,
         questions_to_generate=10,
-        single_choice_count=5,
-        multi_choice_count=5,
     )
     assert valid_batch_req.questions_to_generate == 10
 

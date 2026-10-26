@@ -375,7 +375,7 @@ async def test_binary_passage_and_independent_batches(monkeypatch):
             events_a.append(json.loads(line[6:]))
 
     complete_a = next(e for e in events_a if e["event_type"] == "workflow_complete")
-    assert complete_a["data"]["is_mixed_set"] is False
+    assert complete_a["data"]["passage_mode"] == "single_passage"
     qs_a = complete_a["data"]["questions"]
     assert len(qs_a) == 5
     shared_pid = complete_a["data"]["passage_id"]
@@ -401,7 +401,7 @@ async def test_binary_passage_and_independent_batches(monkeypatch):
             events_b.append(json.loads(line[6:]))
 
     complete_b = next(e for e in events_b if e["event_type"] == "workflow_complete")
-    assert complete_b["data"]["is_mixed_set"] is False
+    assert complete_b["data"]["passage_mode"] == "independent"
     qs_b = complete_b["data"]["questions"]
     assert len(qs_b) == 5
     for q in qs_b:
@@ -529,9 +529,11 @@ async def test_passage_set_with_passage_level_visual_stimulus(monkeypatch):
             },
         )
 
-    from app.workflow import graph
+    from app.workflow import engine as workflow_engine
+    from app.workflow import nodes as workflow_nodes
 
-    monkeypatch.setattr(graph, "generate_image_stimulus", mock_passage_img)
+    monkeypatch.setattr(workflow_nodes, "generate_image_stimulus", mock_passage_img)
+    monkeypatch.setattr(workflow_engine, "generate_image_stimulus", mock_passage_img)
 
     req = GenerationRequest(
         section=MCATSection.CHEM_PHYS,

@@ -236,7 +236,6 @@ async def test_manager_dependent_taxonomy_integration():
         questions_to_generate=3,
     )
     assert req.questions_to_generate == 3
-    assert req.single_choice_count == 3
     assert req.subject == "General Chemistry"
     assert req.subskill == "Identify or recognize a scientific concept"
 

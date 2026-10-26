@@ -81,29 +81,11 @@ class GenerationRequest(BaseModel):
         le=50,
         description="Quantity to generate in MCAT batch (1 to 50 questions)",
     )
-    single_choice_count: int | None = Field(
-        5, ge=0, le=50, description="Number of single-choice items in batch (default: 5)"
-    )
-    multi_choice_count: int | None = Field(
-        0, ge=0, le=50, description="Number of multi-choice items in batch (default: 0)"
-    )
     passage_count: int | None = Field(
         None, ge=0, le=50, description="Number of passage-type items in batch"
     )
     passage_question_count: int | None = Field(
         5, ge=0, le=50, description="Number of questions linked to the shared passage"
-    )
-    passage_single_count: int | None = Field(
-        None, ge=0, le=50, description="Single choice count under shared passage"
-    )
-    passage_multi_count: int | None = Field(
-        None, ge=0, le=50, description="Multi choice count under shared passage"
-    )
-    independent_single_count: int | None = Field(
-        0, ge=0, le=50, description="Single choice count for independent questions"
-    )
-    independent_multi_count: int | None = Field(
-        0, ge=0, le=50, description="Multi choice count for independent questions"
     )
     auto_save: bool = Field(
         False,
@@ -169,47 +151,6 @@ class GenerationRequest(BaseModel):
                 f"MCAT question generation requires 1 to 50 questions per run (received {self.questions_to_generate})."
             )
 
-        if self.questions_to_generate == 1:
-            if self.section in (MCATSection.CARS, "cars", "CARS"):
-                self.passage_mode = "single_passage"
-                self.passage_required = "Yes"
-                self.passage_question_count = 1
-                self.passage_count = 1
-                self.passage_single_count = 1
-                self.passage_multi_count = 0
-                self.single_choice_count = 1
-                self.multi_choice_count = 0
-                return self
-
-            is_independent = (
-                self.passage_mode == "independent"
-                or str(self.passage_required).lower() in ("no", "false", "0")
-                or (self.passage_question_count == 0 and not self.shared_stimulus)
-            )
-            if is_independent:
-                self.passage_mode = "independent"
-                self.passage_required = "No"
-                self.passage_question_count = 0
-                self.passage_count = 0
-                self.passage_single_count = 0
-                self.passage_multi_count = 0
-                self.independent_single_count = 1
-                self.independent_multi_count = 0
-                self.single_choice_count = 1
-                self.multi_choice_count = 0
-            else:
-                self.passage_mode = "single_passage"
-                self.passage_required = "Yes"
-                self.passage_question_count = 1
-                self.passage_count = 1
-                self.passage_single_count = 1
-                self.passage_multi_count = 0
-                self.independent_single_count = 0
-                self.independent_multi_count = 0
-                self.single_choice_count = 1
-                self.multi_choice_count = 0
-            return self
-
         total_q = self.questions_to_generate or 5
 
         # Rule 1: CARS is ALWAYS 100% passage-based (all linked to passage)
@@ -218,16 +159,9 @@ class GenerationRequest(BaseModel):
             self.passage_required = "Yes"
             self.passage_question_count = total_q
             self.passage_count = total_q
-            self.passage_single_count = total_q
-            self.passage_multi_count = 0
-            self.independent_single_count = 0
-            self.independent_multi_count = 0
-            self.single_choice_count = total_q
-            self.multi_choice_count = 0
             return self
 
-        # Rule 2: Science sections - binary choice:
-        # Either Mode B: Independent Discretes (All questions standalone)
+        # Rule 2: Science sections - binary choice (all passage-linked or all independent discretes)
         is_independent = (
             self.passage_mode == "independent"
             or str(self.passage_required).lower() in ("no", "false", "0")
@@ -239,24 +173,11 @@ class GenerationRequest(BaseModel):
             self.passage_required = "No"
             self.passage_question_count = 0
             self.passage_count = 0
-            self.passage_single_count = 0
-            self.passage_multi_count = 0
-            self.independent_single_count = total_q
-            self.independent_multi_count = 0
-            self.single_choice_count = total_q
-            self.multi_choice_count = 0
         else:
-            # Mode A: Passage-Based Set (All questions linked to 1 passage)
             self.passage_mode = "single_passage"
             self.passage_required = "Yes"
             self.passage_question_count = total_q
             self.passage_count = total_q
-            self.passage_single_count = total_q
-            self.passage_multi_count = 0
-            self.independent_single_count = 0
-            self.independent_multi_count = 0
-            self.single_choice_count = total_q
-            self.multi_choice_count = 0
 
         return self
 

@@ -105,7 +105,7 @@ async def test_fused_generator_node_passing_and_routing():
 @pytest.mark.asyncio
 async def test_fused_workflow_bypasses_reviewer_when_self_critique_passed(monkeypatch):
     """Verifies that if the fused generator self-scores > 90, the separate Reviewer agent node is bypassed."""
-    import app.workflow.graph as graph_mod
+    import app.workflow.nodes as nodes_mod
     from app.core.config import config
     from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
     from app.schemas.token import TokenUsage
@@ -146,7 +146,7 @@ async def test_fused_workflow_bypasses_reviewer_when_self_critique_passed(monkey
     async def mock_fused_gen(_r):
         return passing_draft, passing_review, mock_usage
 
-    monkeypatch.setattr(graph_mod, "generate_question_with_self_critique", mock_fused_gen)
+    monkeypatch.setattr(nodes_mod, "generate_question_with_self_critique", mock_fused_gen)
 
     req = GenerationRequest(
         section=MCATSection.BIO_BIOCHEM,

@@ -8,12 +8,12 @@
 export function extractDistractorLines(rawText) {
   if (!rawText) return [];
 
-  const OPTION_PREFIX_REGEX = /^(?:[-•*]\s*)?((?:Options?|Choices?|Distractors?|Statements?)\s+[A-E](?:\s*(?:and|&|,)\s*(?:(?:Options?|Choices?|Distractors?|Statements?)\s+)?[A-E])*(?:\s*(?:\([^)\n]{2,40}\)|\[[^\]\n]{2,40}\]))?)(?:\s*[:\-–—;,]\s*|\s+)(.*)/is;
-  const SOLO_OPTION_REGEX = /^(?:[-•*]\s*)?((?:Options?|Choices?|Distractors?|Statements?)\s+[A-E](?:\s*(?:and|&|,)\s*(?:(?:Options?|Choices?|Distractors?|Statements?)\s+)?[A-E])*(?:\s*(?:\([^)\n]{2,40}\)|\[[^\]\n]{2,40}\]))?)\s*$/i;
+  const OPTION_PREFIX_REGEX = /^(?:[-•*]\s*)?((?:Options?|Choices?|Distractors?|Statements?)\s+[A-D](?:\s*(?:and|&|,)\s*(?:(?:Options?|Choices?|Distractors?|Statements?)\s+)?[A-D])*(?:\s*(?:\([^)\n]{2,40}\)|\[[^\]\n]{2,40}\]))?)(?:\s*[:\-–—;,]\s*|\s+)(.*)/is;
+  const SOLO_OPTION_REGEX = /^(?:[-•*]\s*)?((?:Options?|Choices?|Distractors?|Statements?)\s+[A-D](?:\s*(?:and|&|,)\s*(?:(?:Options?|Choices?|Distractors?|Statements?)\s+)?[A-D])*(?:\s*(?:\([^)\n]{2,40}\)|\[[^\]\n]{2,40}\]))?)\s*$/i;
 
   // Split either by newlines or by option item boundary
   const chunks = rawText
-    .split(/(?:\r?\n+)|(?<=[.!?])\s+(?=(?:[-•*]\s*)?(?:Options?|Choices?|Distractors?|Statements?)\s+[A-E]\b)/i)
+    .split(/(?:\r?\n+)|(?<=[.!?])\s+(?=(?:[-•*]\s*)?(?:Options?|Choices?|Distractors?|Statements?)\s+[A-D]\b)/i)
     .map(line => line.trim())
     .filter(Boolean);
 

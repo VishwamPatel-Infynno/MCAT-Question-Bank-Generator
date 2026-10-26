@@ -34,7 +34,6 @@ export function generateExamCsv(questions = []) {
     'Option B',
     'Option C',
     'Option D',
-    'Option E',
     'Correct Answer',
     'Explanation',
     'Primary Trap',
@@ -68,7 +67,6 @@ export function generateExamCsv(questions = []) {
       escapeCsv(opts['B'] || ''),
       escapeCsv(opts['C'] || ''),
       escapeCsv(opts['D'] || ''),
-      escapeCsv(opts['E'] || ''),
       escapeCsv(
         Array.isArray(q.correct_answer_ids) && q.correct_answer_ids.length > 0
           ? q.correct_answer_ids.join(', ')

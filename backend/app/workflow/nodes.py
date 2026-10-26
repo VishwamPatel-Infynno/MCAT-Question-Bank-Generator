@@ -1,5 +1,4 @@
 import logging
-import sys
 from typing import Any
 
 from app.agents.generator import (
@@ -28,13 +27,6 @@ from app.workflow.state import AgentWorkflowState
 logger = logging.getLogger(__name__)
 
 
-def _resolve_fn(name: str, fallback: Any) -> Any:
-    """Resolves an agent function dynamically from app.workflow.graph if patched during testing."""
-    graph_mod = sys.modules.get("app.workflow.graph")
-    if graph_mod and hasattr(graph_mod, name):
-        return getattr(graph_mod, name)
-    return fallback
-
 
 async def fused_generator_node(state: AgentWorkflowState) -> dict[str, Any]:
     """
@@ -46,10 +38,7 @@ async def fused_generator_node(state: AgentWorkflowState) -> dict[str, Any]:
     """
     req = GenerationRequest(**state["request"])
     logger.info("Executing Fused Question Generator & Self-Critique Agent...")
-    fused_gen_fn = _resolve_fn(
-        "generate_question_with_self_critique", generate_question_with_self_critique
-    )
-    draft, self_review, usage = await fused_gen_fn(req)
+    draft, self_review, usage = await generate_question_with_self_critique(req)
 
     agent_entry = {
         "agent": "Question Generator",
@@ -111,8 +100,7 @@ async def fused_generator_node(state: AgentWorkflowState) -> dict[str, Any]:
 async def generator_node(state: AgentWorkflowState) -> dict[str, Any]:
     req = GenerationRequest(**state["request"])
     logger.info("Executing Question Generator Agent...")
-    gen_fn = _resolve_fn("generate_question", generate_question)
-    draft, usage = await gen_fn(req)
+    draft, usage = await generate_question(req)
 
     agent_entry = {
         "agent": "Question Generator",
@@ -156,8 +144,7 @@ async def reviewer_node(state: AgentWorkflowState) -> dict[str, Any]:
     iteration = state.get("iteration_count", 1)
 
     logger.info(f"Executing Question Reviewer Agent (Iteration {iteration})...")
-    rev_fn = _resolve_fn("review_question", review_question)
-    review, usage = await rev_fn(draft, req, iteration)
+    review, usage = await review_question(draft, req, iteration)
 
     agent_entry = {
         "agent": "Question Reviewer",
@@ -212,8 +199,7 @@ async def regenerator_node(state: AgentWorkflowState) -> dict[str, Any]:
     logger.info(
         f"Executing Question Re-Generator Agent (Score {review.total_score} <= 90 -> Iteration {next_iteration})..."
     )
-    regen_fn = _resolve_fn("regenerate_question", regenerate_question)
-    new_draft, usage = await regen_fn(draft, review, req, next_iteration)
+    new_draft, usage = await regenerate_question(draft, review, req, next_iteration)
     new_draft, _ = balance_and_shuffle_options(new_draft)
     reg_symmetry = calculate_option_symmetry(new_draft.options, new_draft.correct_answer_ids)
 
@@ -304,8 +290,7 @@ async def image_node(state: AgentWorkflowState) -> dict[str, Any]:
     draft = QuestionDraft(**state["current_draft"])
 
     logger.info("Executing Image Generator Agent...")
-    img_fn = _resolve_fn("generate_image_stimulus", generate_image_stimulus)
-    img_url, img_svg, img_desc, usage = await img_fn(draft, req)
+    img_url, img_svg, img_desc, usage = await generate_image_stimulus(draft, req)
 
     # Accumulate image generation cost and itemized breakdown
     current_cost = state.get("total_cost_usd", 0.0)

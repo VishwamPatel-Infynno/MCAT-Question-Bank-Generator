@@ -105,9 +105,9 @@ async def test_image_node_workflow_accumulation(monkeypatch):
             },
         )
 
-    from app.workflow import graph
+    from app.workflow import nodes as workflow_nodes
 
-    monkeypatch.setattr(graph, "generate_image_stimulus", mock_gen_img)
+    monkeypatch.setattr(workflow_nodes, "generate_image_stimulus", mock_gen_img)
 
     req = GenerationRequest(
         section=MCATSection.CHEM_PHYS, difficulty=Difficulty.MEDIUM, require_image=True
@@ -174,7 +174,6 @@ async def test_visual_stimulus_persistence_in_finalize_node():
 async def test_autonomous_ai_determined_image_workflow(monkeypatch):
     """Verifies that image generation strictly follows autonomous AI determination when enabled, and is bypassed when disabled or in CARS."""
     import app.agents.generator as gen_mod
-    from app.workflow import graph
 
     monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
     monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
@@ -195,7 +194,11 @@ async def test_autonomous_ai_determined_image_workflow(monkeypatch):
             {"agent_name": "Image Generator", "cost_usd": 0.014},
         )
 
-    monkeypatch.setattr(graph, "generate_image_stimulus", mock_flux_gen)
+    from app.workflow import engine as workflow_engine
+    from app.workflow import nodes as workflow_nodes
+
+    monkeypatch.setattr(workflow_nodes, "generate_image_stimulus", mock_flux_gen)
+    monkeypatch.setattr(workflow_engine, "generate_image_stimulus", mock_flux_gen)
 
     # 1. allow_ai_images=False: Image generation bypassed even if draft requests it
     req_disabled = GenerationRequest(

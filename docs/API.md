@@ -271,7 +271,7 @@ All questions generated or retrieved comply with the 3-part explanation and cogn
 2. **Primary Trap Resolution**:
    - When requests specify `primary_trap: "Automatic"` (the recommended default), the generator agent intelligently identifies and populates `primary_trap` from the official MCAT trap types based on the drafted distractors.
    - When requests supply an explicit trap (e.g. `"Calculation_Formula_Trap"`), the generator specifically engineers that trap into the draft.
-   - For legacy questions where `primary_trap` is `null`, the backend workflow nodes and frontend `MentorExplanationView.jsx` employ automatic regex matching against the explanation text to extract and badge the active trap without breaking legacy layouts.
+   - For questions where `primary_trap` is not explicitly set, the backend workflow nodes and frontend `MentorExplanationView.jsx` employ automatic regex matching against the explanation text to extract and badge the active trap.
 
 ---
 

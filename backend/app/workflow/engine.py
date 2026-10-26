@@ -36,29 +36,23 @@ def _build_batch_worker_request(
     total_qty: int,
     batch_id: str | None,
     effective_passage_count: int,
-    p_single: int,
-    ind_single: int,
     shared_passage_id: str | None,
     shared_passage_text: str | None,
-) -> tuple[GenerationRequest, str, bool, str, bool]:
+) -> tuple[GenerationRequest, str, bool, str]:
     """
     Builds an isolated GenerationRequest for an individual question worker within a batch,
-    resolving whether the question is passage-linked or independent, and whether it is single or multi-choice.
+    resolving whether the question is passage-linked or independent (strictly single-choice MCAT format).
     """
     item_run_id = str(uuid.uuid4()) if total_qty > 1 else req.run_id
     is_passage_item = idx < effective_passage_count
+    item_interaction = "single_choice"
 
     if is_passage_item:
-        is_item_single = idx < p_single
-        item_interaction = "single_choice" if is_item_single else "multi_choice"
         item_passage = "Yes"
         item_passage_mode = "single_passage"
         item_passage_id = shared_passage_id
         item_stimulus = shared_passage_text
     else:
-        rel_idx = idx - effective_passage_count
-        is_item_single = rel_idx < ind_single
-        item_interaction = "single_choice" if is_item_single else "multi_choice"
         item_passage = "No"
         item_passage_mode = "independent"
         item_passage_id = None
@@ -76,7 +70,7 @@ def _build_batch_worker_request(
             "shared_stimulus": item_stimulus,
         }
     )
-    return item_req, item_run_id, is_passage_item, item_interaction, is_item_single
+    return item_req, item_run_id, is_passage_item, item_interaction
 
 
 def _determine_item_diagram_requirement(
@@ -257,13 +251,6 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         is_single_passage_set = True
         independent_count = 0
 
-    is_mixed_set = False
-    p_multi = 0
-    p_single = effective_passage_count
-    ind_multi = 0
-    ind_single = independent_count
-    total_batch_multi = 0
-    total_batch_single = total_qty
 
     shared_passage_id = req.passage_id or (str(uuid.uuid4()) if is_single_passage_set else None)
     shared_passage_text = req.shared_stimulus
@@ -403,19 +390,12 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 or f"Scientific clinical diagram for: {shared_passage_text[:120]}",
             )
 
-            import sys
-
-            gen_img_fn = generate_image_stimulus
-            graph_mod = sys.modules.get("app.workflow.graph")
-            if graph_mod and hasattr(graph_mod, "generate_image_stimulus"):
-                gen_img_fn = graph_mod.generate_image_stimulus
-
             (
                 shared_passage_image_url,
                 shared_passage_image_svg,
                 shared_passage_image_desc,
                 p_img_usage,
-            ) = await gen_img_fn(p_draft, req)
+            ) = await generate_image_stimulus(p_draft, req)
 
             if p_img_usage and p_img_usage.get("cost_usd"):
                 passage_cost += p_img_usage["cost_usd"]
@@ -449,21 +429,13 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             message=start_msg,
             data={
                 "total_questions": total_qty,
-                "single_count": total_batch_single,
-                "multi_count": total_batch_multi,
+                "single_count": total_qty,
                 "passage_count": effective_passage_count,
                 "passage_question_count": effective_passage_count,
                 "independent_question_count": independent_count,
-                "passage_single_count": p_single,
-                "passage_multi_count": p_multi,
-                "independent_single_count": ind_single,
-                "independent_multi_count": ind_multi,
-                "is_mixed_set": is_mixed_set,
                 "batch_id": batch_id,
                 "passage_id": shared_passage_id,
-                "passage_mode": "mixed_set"
-                if is_mixed_set
-                else ("single_passage" if is_single_passage_set else "independent"),
+                "passage_mode": "single_passage" if is_single_passage_set else "independent",
                 "shared_passage": shared_passage_text if is_single_passage_set else None,
                 "shared_passage_image_svg": shared_passage_image_svg
                 if is_single_passage_set
@@ -491,15 +463,13 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
         async def _worker(idx: int) -> None:
             async with semaphore:
-                item_req, item_run_id, is_passage_item, item_interaction, is_item_single = (
+                item_req, item_run_id, is_passage_item, item_interaction = (
                     _build_batch_worker_request(
                         req=req,
                         idx=idx,
                         total_qty=total_qty,
                         batch_id=batch_id,
                         effective_passage_count=effective_passage_count,
-                        p_single=p_single,
-                        ind_single=ind_single,
                         shared_passage_id=shared_passage_id,
                         shared_passage_text=shared_passage_text,
                     )
@@ -548,7 +518,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 gen_evt = make_event(
                     event_type="agent_start",
                     agent_name="Question Writer & Reviewer",
-                    message=f"Drafting and auditing question {idx + 1}/{total_qty} ({'Single Choice' if is_item_single else 'Multi-Choice'})...",
+                    message=f"Drafting and auditing question {idx + 1}/{total_qty} (Single Choice)...",
                     data={
                         "index": idx + 1,
                         "total": total_qty,
@@ -711,9 +681,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         for usage_list in outcomes_usage:
             all_agent_usage.extend(usage_list)
 
-        if is_mixed_set:
-            complete_msg = f"Mixed Batch generated! {len(all_staged_questions)} questions ({effective_passage_count} linked to shared passage, {independent_count} independent) staged for Review. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
-        elif is_single_passage_set and total_qty > 1:
+        if is_single_passage_set and total_qty > 1:
             complete_msg = f"Passage Set generated! {len(all_staged_questions)} questions linked to shared reading passage staged for Review. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
         elif total_qty > 1:
             complete_msg = f"Parallel batch generation completed! {len(all_staged_questions)} of {total_qty} questions staged for User Confirmation. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
@@ -729,10 +697,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 "question": all_staged_questions[0] if all_staged_questions else None,
                 "batch_id": batch_id,
                 "passage_id": shared_passage_id if is_single_passage_set else None,
-                "passage_mode": "mixed_set"
-                if is_mixed_set
-                else ("single_passage" if is_single_passage_set else "independent"),
-                "is_mixed_set": is_mixed_set,
+                "passage_mode": "single_passage" if is_single_passage_set else "independent",
                 "passage_question_count": effective_passage_count,
                 "independent_question_count": independent_count,
                 "shared_passage": shared_passage_text if is_single_passage_set else None,
