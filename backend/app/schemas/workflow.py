@@ -15,6 +15,10 @@ class GenerationRequest(BaseModel):
         default=None,
         description="AAMC Scientific Inquiry & Reasoning Skill (SIRS) or CARS skill classification",
     )
+    allow_ai_images: bool = Field(
+        default=False,
+        description="Whether AI is permitted to generate visual stimuli (diagrams/charts) when deemed pedagogically necessary",
+    )
     require_image: bool = False
     image_question_indices: list[int] | None = Field(
         default=None,
@@ -124,12 +128,12 @@ class GenerationRequest(BaseModel):
 
     @property
     def requires_visual_stimulus(self) -> bool:
-        """Determines whether visual image/diagram stimulus generation is required."""
+        """Determines whether visual image/diagram stimulus generation is permitted/required."""
         if self.section in (MCATSection.CARS, "CARS", "cars"):
             return False
         if self.visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
             return True
-        if self.require_image or self.require_passage_image:
+        if self.allow_ai_images or self.require_image or self.require_passage_image:
             return True
         return bool(self.image_question_indices)
 

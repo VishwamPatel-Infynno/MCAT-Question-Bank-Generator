@@ -69,6 +69,8 @@ export default function GuidedWizard({
   const imageQuestionIndices = form.imageQuestionIndices || [];
   const requirePassageImage = form.requirePassageImage || false;
   const setRequirePassageImage = generatorForm?.setRequirePassageImage;
+  const allowAiImages = Boolean(form.allowAiImages ?? form.requireImage);
+  const setAllowAiImages = generatorForm?.setAllowAiImages || ((v) => update('allowAiImages', v));
   const customPrompt = form.customPrompt || '';
   const setCustomPrompt = (v) => update('customPrompt', v);
 
@@ -371,15 +373,10 @@ export default function GuidedWizard({
         {/* Step 6: Visual Stimulus & Custom Guidance (2 Decisions) */}
         {step === 6 && (
           <WizardStep6VisualsPrompt
+            selectedSection={selectedSection}
             passageMode={passageMode}
-            requirePassageImage={requirePassageImage}
-            setRequirePassageImage={setRequirePassageImage}
-            numIndependentQs={numIndependentQs}
-            activeQuestionImagesCount={activeQuestionImagesCount}
-            indSingleTotal={indSingleTotal}
-            indSingleIndices={indSingleIndices}
-            activeSingleImageCount={activeSingleImageCount}
-            setSingleImageCount={setSingleImageCount}
+            allowAiImages={allowAiImages}
+            setAllowAiImages={setAllowAiImages}
             likelyMistakePattern={likelyMistakePattern}
             setLikelyMistakePattern={(v) => update('likelyMistakePattern', v)}
             customMistakePattern={customMistakePattern}
@@ -392,6 +389,7 @@ export default function GuidedWizard({
         {/* Step 7: Review & Multi-Agent Launch */}
         {step === 7 && (
           <WizardStep7Review
+            selectedSection={selectedSection}
             sectionMeta={sectionMeta}
             pacing={pacing}
             setStep={setStep}
@@ -404,6 +402,7 @@ export default function GuidedWizard({
             totalQuestions={totalQuestions}
             setTotalQuestions={setGenerationTotal}
             questionType={questionType}
+            allowAiImages={allowAiImages}
             totalImagesCount={totalImagesCount}
             hasPassageImage={hasPassageImage}
             activeQuestionImagesCount={activeQuestionImagesCount}

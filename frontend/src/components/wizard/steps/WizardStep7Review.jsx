@@ -2,6 +2,7 @@ import React from 'react';
 import { Edit3, Sparkles, Zap } from 'lucide-react';
 
 export default function WizardStep7Review({
+  selectedSection = 'chem_phys',
   sectionMeta,
   pacing,
   setStep,
@@ -14,6 +15,7 @@ export default function WizardStep7Review({
   totalQuestions = 50,
   setTotalQuestions,
   questionType = 'PASSAGE_BASED_MCQ',
+  allowAiImages = false,
   totalImagesCount = 0,
   hasPassageImage = false,
   activeQuestionImagesCount = 0,
@@ -205,12 +207,21 @@ export default function WizardStep7Review({
             <div className="wizard-summary-label">Visual Stimuli & Guidance</div>
             <div className="wizard-summary-value" style={{ marginTop: '4px', flexWrap: 'wrap' }}>
               <span>
-                {totalImagesCount > 0
-                  ? `${totalImagesCount} ${totalImagesCount === 1 ? 'Diagram' : 'Diagrams'} (High-Resolution)`
-                  : 'No Visual Stimuli (Text Only)'}
+                {selectedSection === 'cars'
+                  ? 'Disabled (Strict AAMC CARS: Text-Only)'
+                  : allowAiImages
+                  ? 'AI-Determined When Needed'
+                  : 'Disabled (Text-Only Items)'}
               </span>
-              {hasPassageImage && <span className="badge-minimal">Passage Diagram</span>}
-              {activeQuestionImagesCount > 0 && <span className="badge-minimal">{activeQuestionImagesCount} Q-Diagrams</span>}
+              {selectedSection === 'cars' ? (
+                <span className="badge-minimal" style={{ color: 'var(--amber-warning, #f59e0b)' }}>CARS Standard</span>
+              ) : allowAiImages ? (
+                <span className="badge-minimal" style={{ color: 'var(--brand-primary)', borderColor: 'var(--brand-primary)' }}>
+                  Autonomous $0.014 / img on-demand
+                </span>
+              ) : (
+                <span className="badge-minimal">$0.00 Image Cost</span>
+              )}
               {(likelyMistakePattern || customMistakePattern) && (
                 <>
                   <span style={{ color: 'var(--text-muted)' }}>&bull;</span>

@@ -28,6 +28,7 @@ export const DEFAULT_GENERATOR_FORM = {
   likelyMistakePattern: '',
   customMistakePattern: '',
   requireImage: false,
+  allowAiImages: false,
   imageMode: 'none', // 'none' | 'all' | 'specific'
   imageQuestionIndices: [], // 1-based question numbers e.g. [1, 2]
   requirePassageImage: false,
@@ -229,6 +230,17 @@ export function useGeneratorForm(initialValues = {}) {
     });
   }, []);
 
+  const setAllowAiImages = useCallback((allowed) => {
+    const val = Boolean(allowed);
+    setFormData(prev => ({
+      ...prev,
+      allowAiImages: val,
+      requireImage: val,
+      requirePassageImage: val,
+      imageMode: val ? 'all' : 'none'
+    }));
+  }, []);
+
   return {
     formData,
     setFormData,
@@ -242,6 +254,7 @@ export function useGeneratorForm(initialValues = {}) {
     setSingleImageCount,
     setMultiImageCount,
     setRequirePassageImage,
+    setAllowAiImages,
     resetForm,
     setGenerationTotal
   };

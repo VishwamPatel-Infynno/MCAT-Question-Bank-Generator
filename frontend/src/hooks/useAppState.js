@@ -145,20 +145,12 @@ export function useAppState() {
       customMistakePattern,
       contentDomains,
       contentDomain,
+      allowAiImages,
       requireImage,
-      imageMode,
-      imageQuestionIndices,
-      requirePassageImage,
       customPrompt
     } = generatorForm.formData;
 
-    let effectiveImageIndices = [];
-    if (imageMode === 'all') {
-      effectiveImageIndices = Array.from({ length: totalQuestions }, (_, i) => i + 1);
-    } else if (imageMode === 'specific') {
-      effectiveImageIndices = (imageQuestionIndices || []).filter(idx => idx <= totalQuestions);
-    }
-    const hasAnyImage = effectiveImageIndices.length > 0 || requirePassageImage || requireImage;
+    const isVisualsPermitted = Boolean(allowAiImages || requireImage);
 
     const payload = {
       section: selectedSection,
@@ -186,10 +178,10 @@ export function useAppState() {
       likely_mistake_pattern: customMistakePattern || likelyMistakePattern || undefined,
       content_domains: contentDomains && contentDomains.length > 0 ? contentDomains : undefined,
       content_domain: contentDomain || (contentDomains && contentDomains.length > 0 ? contentDomains.join(', ') : undefined),
-      require_image: hasAnyImage,
-      visual_type: hasAnyImage ? 'AI_FLUX_Image' : 'None',
-      image_question_indices: imageMode !== 'none' ? effectiveImageIndices : [],
-      require_passage_image: Boolean(requirePassageImage),
+      allow_ai_images: isVisualsPermitted,
+      require_image: isVisualsPermitted,
+      visual_type: isVisualsPermitted ? 'AI_FLUX_Image' : 'None',
+      require_passage_image: isVisualsPermitted,
       custom_prompt: customPrompt.trim() || undefined
     };
 

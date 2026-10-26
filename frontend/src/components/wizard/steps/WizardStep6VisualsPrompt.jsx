@@ -1,27 +1,23 @@
 import React, { useState } from 'react';
 import {
   Image as ImageIcon,
-  Lightbulb
+  Lightbulb,
+  Sparkles,
+  Lock,
+  CheckCircle2,
+  Info
 } from 'lucide-react';
-import IndependentDiagramControls from '../IndependentDiagramControls';
 import {
   DEFAULT_IMAGE_MODEL,
   IMAGE_PRICING,
   LIKELY_MISTAKE_PATTERNS
 } from '../../../constants';
 
-const EMPTY_ARRAY = [];
-
 export default function WizardStep6VisualsPrompt({
+  selectedSection = 'chem_phys',
   passageMode = 'single_passage',
-  requirePassageImage = false,
-  setRequirePassageImage,
-  numIndependentQs = 0,
-  activeQuestionImagesCount = 0,
-  indSingleTotal = 0,
-  indSingleIndices = EMPTY_ARRAY,
-  activeSingleImageCount = 0,
-  setSingleImageCount,
+  allowAiImages = false,
+  setAllowAiImages,
   likelyMistakePattern = '',
   setLikelyMistakePattern,
   customMistakePattern = '',
@@ -31,15 +27,16 @@ export default function WizardStep6VisualsPrompt({
 }) {
   const [isCustomMistake, setIsCustomMistake] = useState(Boolean(customMistakePattern));
 
+  const isCars = selectedSection === 'cars';
   const imageUnitRate = IMAGE_PRICING[DEFAULT_IMAGE_MODEL]?.baseRate ?? 0.014;
-  const imagePriceLabel = `$${imageUnitRate.toFixed(3)} / img`;
+  const imagePriceLabel = `$${imageUnitRate.toFixed(3)} / image`;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div className="wizard-heading-group">
         <h2 className="wizard-step-title">Visual Stimulus & Custom Pedagogical Focus</h2>
         <p className="wizard-step-subtitle">
-          Configure optional scientific figures, targeted student mistake patterns, and custom clinical vignette requirements.
+          Configure autonomous scientific diagrams, targeted student mistake patterns, and custom clinical vignette requirements.
         </p>
       </div>
 
@@ -48,58 +45,158 @@ export default function WizardStep6VisualsPrompt({
         <div className="wizard-decision-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="wizard-decision-num">1</span>
-            <span className="wizard-decision-title">Scientific Figures & Diagrams</span>
+            <span className="wizard-decision-title">AI Visual Stimulus (Diagrams & Figures)</span>
           </div>
-          <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
-            Optional Stimulus
-          </span>
+          {isCars ? (
+            <span className="badge-minimal" style={{ fontSize: '0.72rem', color: 'var(--amber-warning, #f59e0b)', borderColor: 'var(--amber-warning, #f59e0b)' }}>
+              CARS: Text-Only Standard
+            </span>
+          ) : (
+            <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
+              Autonomous AI Discretion
+            </span>
+          )}
         </div>
 
-        {passageMode === 'single_passage' ? (
-          /* Passage Mode Diagram Control */
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-light)' }}>
-            <div>
-              <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '3px' }}>
-                Shared Passage Scientific Figure
-              </div>
-              <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                Generate an experimental chart, pathway diagram, or clinical figure for the reading passage ({imagePriceLabel} via DeepInfra).
-              </div>
+        {isCars ? (
+          /* CARS Mode: Strictly Text-Only Notice */
+          <div
+            style={{
+              padding: '16px 18px',
+              borderRadius: 'var(--radius-sm)',
+              background: 'var(--bg-surface-elevated)',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px'
+            }}
+          >
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                background: 'rgba(245, 158, 11, 0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--amber-warning, #f59e0b)',
+                flexShrink: 0
+              }}
+            >
+              <Lock size={16} />
             </div>
-
-            <div className="pill-track" style={{ width: '220px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-              <button
-                type="button"
-                id="btn-wizard-p-diag-no"
-                onClick={() => setRequirePassageImage?.(false)}
-                className={`pill-track-btn ${!requirePassageImage ? 'active' : ''}`}
-                style={{ width: '100%', padding: '7px 12px', fontSize: '0.78rem' }}
-              >
-                No Diagram
-              </button>
-              <button
-                type="button"
-                id="btn-wizard-p-diag-yes"
-                onClick={() => setRequirePassageImage?.(true)}
-                className={`pill-track-btn ${requirePassageImage ? 'active' : ''}`}
-                style={{ width: '100%', padding: '7px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-              >
-                <ImageIcon size={13} />
-                <span>+1 Diagram</span>
-              </button>
+            <div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                Strict AAMC CARS Standard (Figures Prohibited)
+              </div>
+              <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                Official AAMC Critical Analysis and Reasoning Skills passages and questions are strictly 100% text-based humanities and social sciences. Figures, data tables, and diagrams are locked out to protect examination fidelity.
+              </div>
             </div>
           </div>
         ) : (
-          /* Independent Mode Diagram Controls */
-          <div style={{ padding: '16px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-light)' }}>
-            <IndependentDiagramControls
-              numIndependentQs={numIndependentQs}
-              activeQuestionImagesCount={activeQuestionImagesCount}
-              indSingleTotal={indSingleTotal}
-              indSingleIndices={indSingleIndices}
-              activeSingleImageCount={activeSingleImageCount}
-              setSingleImageCount={setSingleImageCount}
-            />
+          /* Science Mode: Unified AI-Determined Diagram Toggle */
+          <div
+            style={{
+              padding: '18px 20px',
+              borderRadius: 'var(--radius-sm)',
+              background: 'var(--bg-surface-elevated)',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 300px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    AI-Determined Visuals When Needed
+                  </span>
+                  <span
+                    className="badge-minimal"
+                    style={{
+                      fontSize: '0.68rem',
+                      color: allowAiImages ? 'var(--brand-primary)' : 'var(--text-muted)',
+                      borderColor: allowAiImages ? 'var(--brand-primary)' : 'var(--border-light)'
+                    }}
+                  >
+                    {allowAiImages ? 'AI Active' : 'Off'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                  {passageMode === 'single_passage'
+                    ? 'When enabled, the AI evaluates whether your shared passage study (e.g. enzyme kinetics, metabolic pathway, or assay data) requires a scientific figure, and generates it on-demand.'
+                    : 'When enabled, the AI evaluates each independent item and generates an illustrative figure (e.g. ray diagram, electric circuit, Lineweaver-Burk plot) only when pedagogically essential.'}
+                </div>
+              </div>
+
+              {/* Toggle Pill Track */}
+              <div
+                className="pill-track"
+                style={{
+                  width: '280px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  flexShrink: 0
+                }}
+              >
+                <button
+                  type="button"
+                  id="btn-wizard-ai-visuals-off"
+                  onClick={() => setAllowAiImages?.(false)}
+                  className={`pill-track-btn ${!allowAiImages ? 'active' : ''}`}
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '0.78rem' }}
+                >
+                  Disabled
+                </button>
+                <button
+                  type="button"
+                  id="btn-wizard-ai-visuals-on"
+                  onClick={() => setAllowAiImages?.(true)}
+                  className={`pill-track-btn ${allowAiImages ? 'active' : ''}`}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    fontSize: '0.78rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Sparkles size={13} />
+                  <span>When Needed</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Sub-card with pricing & status indicator */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 14px',
+                borderRadius: 'var(--radius-xs)',
+                background: allowAiImages ? 'rgba(79, 70, 229, 0.05)' : 'var(--bg-surface-subtle)',
+                border: `1px dashed ${allowAiImages ? 'rgba(79, 70, 229, 0.3)' : 'var(--border-light)'}`,
+                fontSize: '0.74rem'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: allowAiImages ? 'var(--brand-primary)' : 'var(--text-muted)' }}>
+                {allowAiImages ? <CheckCircle2 size={14} /> : <Info size={14} />}
+                <span>
+                  {allowAiImages
+                    ? 'AI Discretion Enabled: Only generated if scientifically necessary.'
+                    : 'Text-Only Mode: All generated items will be strictly textual with zero diagram costs.'}
+                </span>
+              </div>
+              <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
+                {allowAiImages ? `${imagePriceLabel} (billed only when generated)` : '$0.00 image cost'}
+              </span>
+            </div>
           </div>
         )}
       </div>

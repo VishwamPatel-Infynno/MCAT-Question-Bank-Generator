@@ -92,6 +92,7 @@ def _determine_item_diagram_requirement(
     req_data = state["request"]
     sec_raw = req_data.get("section", "")
     section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)
+    allow_ai_images = req_data.get("allow_ai_images", False)
     explicit_image = req_data.get("require_image", False)
     visual_type = req_data.get("visual_type", "None")
 
@@ -101,11 +102,17 @@ def _determine_item_diagram_requirement(
     if is_passage_item:
         # Passage question items share the passage diagram; they never have internal images
         return False
-    if req_img_indices is not None:
-        # Granular question-level selection for independent/standalone items
+
+    # Check if visual generation is permitted at all
+    visuals_permitted = allow_ai_images or explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image")
+    if not visuals_permitted:
+        return False
+
+    # If explicit question indices were specified, honor them (legacy support)
+    if req_img_indices is not None and len(req_img_indices) > 0:
         return (idx + 1) in req_img_indices
-    if explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
-        return True
+
+    # Autonomous AI determination for independent items
     return bool(state.get("current_draft", {}).get("image_needed", False))
 
 
@@ -292,6 +299,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
     all_agent_usage = []
     tasks: list[asyncio.Task] = []
 
+    passage_image_needed = False
+    passage_image_prompt = None
+
     try:
         # If Single Passage Set mode, generate the shared reading passage first if not already provided
         if is_single_passage_set and not shared_passage_text:
@@ -310,7 +320,12 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             )
             yield f"data: {passage_start_evt.model_dump_json()}\n\n"
 
-            shared_passage_text, passage_usage = await generate_passage_stimulus(req)
+            (
+                shared_passage_text,
+                passage_usage,
+                passage_image_needed,
+                passage_image_prompt,
+            ) = await generate_passage_stimulus(req)
             passage_tokens = passage_usage.total_tokens
             passage_prompt_tokens = passage_usage.prompt_tokens
             passage_completion_tokens = passage_usage.completion_tokens
@@ -350,7 +365,15 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             req.section != MCATSection.CARS
             and (
                 req.require_passage_image
-                or (req.require_image and req.image_question_indices is None)
+                or (
+                    req.require_image
+                    and not req.allow_ai_images
+                    and req.image_question_indices is None
+                )
+                or (
+                    (req.allow_ai_images or req.require_image)
+                    and passage_image_needed
+                )
                 or req.visual_type in ("SVG_Diagram", "AI_FLUX_Image")
             )
         )
@@ -381,7 +404,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 correct_answer_id="A",
                 explanation="Shared passage visual stimulus reference",
                 image_needed=True,
-                image_prompt_or_type=req.custom_prompt
+                image_prompt_or_type=passage_image_prompt
+                or req.custom_prompt
                 or f"Scientific clinical diagram for: {shared_passage_text[:120]}",
             )
 

@@ -95,6 +95,22 @@ Do NOT write a new passage. Formulate your question stem, options, correct key, 
     if req.custom_prompt:
         user_prompt += f"\nCustom Focus Context: {req.custom_prompt}"
 
+    # Visual stimulus discretion instruction
+    allow_visuals = (req.allow_ai_images or req.require_image) and req.section not in (MCATSection.CARS, "CARS", "cars")
+    if allow_visuals and not req.is_passage_active:
+        user_prompt += (
+            "\nVISUAL DIAGRAM AUTONOMOUS DISCRETION:\n"
+            "- Visual stimuli are ENABLED on-demand. If this question inherently requires an experimental diagram, "
+            "optical ray diagram, electrical circuit, metabolic pathway, Lineweaver-Burk plot, or reaction mechanism to solve, "
+            "set 'image_needed': true and provide a detailed scientific visual description in 'image_prompt_or_type'.\n"
+            "- If the question is purely conceptual, numerical, or fully solvable from text alone, strictly set 'image_needed': false and 'image_prompt_or_type': null."
+        )
+    elif not allow_visuals:
+        user_prompt += (
+            "\nVISUAL DIAGRAM RESTRICTION:\n"
+            "- Visual stimuli are DISABLED. Strictly set 'image_needed': false and 'image_prompt_or_type': null."
+        )
+
     user_prompt += (
         "\nANTI-GUESSABILITY & OPTION SYMMETRY MANDATE:\n"
         "- All options MUST have roughly equal length and word count (strictly within ±15% or 2-4 words of each other).\n"
@@ -207,17 +223,16 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
         likely_mistake_pattern=req.likely_mistake_pattern,
         image_needed=(
             False
-            if (req.section in (MCATSection.CARS, "CARS", "cars") and not req.require_image)
-            else data.get(
-                "image_needed",
-                req.requires_visual_stimulus,
-            )
+            if (req.section in (MCATSection.CARS, "CARS", "cars") or not (req.allow_ai_images or req.require_image))
+            else bool(data.get("image_needed", False))
         ),
         image_prompt_or_type=data.get("image_prompt_or_type"),
     )
 
 
-async def generate_passage_stimulus(req: GenerationRequest) -> tuple[str, TokenUsage]:
+async def generate_passage_stimulus(
+    req: GenerationRequest,
+) -> tuple[str, TokenUsage, bool, str | None]:
     """Generates a standalone, publication-caliber AAMC MCAT academic/experimental reading passage."""
     section_val = req.section.value if hasattr(req.section, "value") else str(req.section)
     section_name = MCAT_SECTION_LABELS.get(req.section, section_val)
@@ -230,8 +245,34 @@ async def generate_passage_stimulus(req: GenerationRequest) -> tuple[str, TokenU
 
     is_cars = req.section in (MCATSection.CARS, "CARS", "cars")
     target_length = "500 to 600 words" if is_cars else "320 to 450 words"
+    allow_visuals = (req.allow_ai_images or req.require_image) and not is_cars
 
-    prompt = f"""Generate a high-yield, authentic AAMC MCAT Reading Passage for {section_name}.
+    if allow_visuals:
+        prompt = f"""Generate a high-yield, authentic AAMC MCAT Reading Passage for {section_name}.
+Content Domain: {domain}
+Topic Focus: {topic}
+Difficulty Calibration: {req.difficulty.value}
+Target Length: {target_length}.
+
+STANDARDS FOR AAMC MCAT PASSAGES:
+1. Formal, intellectual scholarly register using precise American English scientific or academic vocabulary.
+2. Structured in 3 to 5 coherent paragraphs.
+3. Substantive experimental or biomedical study detailing a research hypothesis, experimental methods (e.g. assays, Western blots, kinetic measurements), observed quantitative data or findings, and conclusions.
+4. Provides rich material for multiple distinct reasoning questions evaluating AAMC skills.
+5. VISUAL STIMULUS DETERMINATION:
+   - Carefully evaluate whether this passage requires an experimental data diagram, biochemical pathway chart, Lineweaver-Burk plot, or medical figure to be fully understood and tested.
+   - If an image/diagram is genuinely needed or high-yield for this study, set "image_needed": true and specify a clear description of the visual stimulus in "image_prompt".
+   - If the passage is self-contained and does NOT require a visual diagram, set "image_needed": false and "image_prompt": null.
+
+OUTPUT FORMAT:
+Respond ONLY with a valid JSON object matching this exact structure:
+{{
+  "passage_text": "The full 3 to 5 paragraph reading passage text...",
+  "image_needed": false,
+  "image_prompt": null
+}}"""
+    else:
+        prompt = f"""Generate a high-yield, authentic AAMC MCAT Reading Passage for {section_name}.
 Content Domain: {domain}
 Topic Focus: {topic}
 Difficulty Calibration: {req.difficulty.value}
@@ -264,7 +305,23 @@ STANDARDS FOR AAMC MCAT PASSAGES:
             lines = cleaned.split("\n")
             cleaned = "\n".join(lines[1:-1] if lines[-1].strip().startswith("```") else lines[1:])
         cleaned = cleaned.strip('" \n')
-        return cleaned, usage
+
+        passage_text = cleaned
+        image_needed = False
+        image_prompt = None
+
+        if allow_visuals:
+            try:
+                data = safe_json_loads(cleaned)
+                if isinstance(data, dict) and "passage_text" in data:
+                    passage_text = str(data["passage_text"]).strip()
+                    image_needed = bool(data.get("image_needed", False))
+                    image_prompt = data.get("image_prompt")
+            except Exception:
+                image_needed = False
+                image_prompt = None
+
+        return passage_text, usage, image_needed, image_prompt
     except Exception as e:
         logger.warning(
             f"Passage generation LLM failed or not configured, using authentic fallback passage: {e}"
@@ -317,7 +374,13 @@ STANDARDS FOR AAMC MCAT PASSAGES:
             total_tokens=mock_p_tokens + mock_c_tokens,
             cost_usd=calculate_token_cost(mock_p_tokens, mock_c_tokens),
         )
-        return fallback_passage, mock_usage
+        fallback_image_needed = bool(allow_visuals and not is_cars)
+        fallback_image_prompt = (
+            "Lineweaver-Burk and Michaelis-Menten plot of PFK-1 allosteric regulation by ATP and F2,6BP"
+            if fallback_image_needed
+            else None
+        )
+        return fallback_passage, mock_usage, fallback_image_needed, fallback_image_prompt
 
 
 async def generate_question(req: GenerationRequest) -> tuple[QuestionDraft, TokenUsage]:

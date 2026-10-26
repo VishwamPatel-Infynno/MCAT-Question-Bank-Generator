@@ -1780,3 +1780,81 @@ async def test_question_status_lifecycle_and_counts():
     # Cleanup
     await delete_question(uid1)
     await delete_question(uid2)
+
+
+@pytest.mark.asyncio
+async def test_autonomous_ai_determined_image_workflow(monkeypatch):
+    """Verifies that image generation strictly follows autonomous AI determination when enabled, and is bypassed when disabled or in CARS."""
+    from app.workflow import graph
+
+    import app.agents.generator as gen_mod
+
+    async def mock_fail_call_llm(*args, **kwargs):
+        raise RuntimeError("Fast unit test fallback")
+
+    monkeypatch.setattr(gen_mod, "call_llm", mock_fail_call_llm)
+
+    images_generated = []
+
+    async def mock_flux_gen(*args, **kwargs):
+        images_generated.append(True)
+        return (
+            "data:image/jpeg;base64,mock_flux",
+            None,
+            "Autonomous diagram description",
+            {"agent_name": "Image Generator", "cost_usd": 0.014},
+        )
+
+    monkeypatch.setattr(graph, "generate_image_stimulus", mock_flux_gen)
+
+    # 1. allow_ai_images=False: Image generation bypassed even if draft requests it
+    req_disabled = GenerationRequest(
+        section=MCATSection.CHEM_PHYS,
+        difficulty=Difficulty.MEDIUM,
+        questions_to_generate=1,
+        passage_mode="independent",
+        passage_required="No",
+        allow_ai_images=False,
+    )
+    events_disabled = []
+    async for chunk in run_workflow_stream(req_disabled):
+        line = chunk.strip()
+        if line.startswith("data: "):
+            events_disabled.append(json.loads(line[6:]))
+    assert not any(e.get("agent_name") == "Diagram & Chart Maker" for e in events_disabled)
+    assert len(images_generated) == 0
+
+    # 2. CARS with allow_ai_images=True: Strictly NO images generated
+    req_cars = GenerationRequest(
+        section=MCATSection.CARS,
+        difficulty=Difficulty.MEDIUM,
+        questions_to_generate=1,
+        passage_mode="single_passage",
+        allow_ai_images=True,
+    )
+    events_cars = []
+    async for chunk in run_workflow_stream(req_cars):
+        line = chunk.strip()
+        if line.startswith("data: "):
+            events_cars.append(json.loads(line[6:]))
+    assert not any(e.get("agent_name") == "Diagram & Chart Maker" for e in events_cars)
+    assert len(images_generated) == 0
+
+    # 3. Chem/Phys with allow_ai_images=True: Generates image when AI flags image_needed=True
+    req_enabled = GenerationRequest(
+        section=MCATSection.CHEM_PHYS,
+        difficulty=Difficulty.MEDIUM,
+        questions_to_generate=1,
+        passage_mode="single_passage",
+        passage_required="Yes",
+        allow_ai_images=True,
+    )
+    events_enabled = []
+    async for chunk in run_workflow_stream(req_enabled):
+        line = chunk.strip()
+        if line.startswith("data: "):
+            events_enabled.append(json.loads(line[6:]))
+    img_evts = [e for e in events_enabled if e.get("agent_name") == "Diagram & Chart Maker" and e.get("event_type") == "agent_complete"]
+    assert len(img_evts) == 1
+    assert len(images_generated) == 1
+
