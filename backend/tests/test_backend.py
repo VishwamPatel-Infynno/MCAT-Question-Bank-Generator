@@ -183,7 +183,7 @@ async def test_strict_ai_image_generator(monkeypatch):
     # 2. Valid API key & mocked FLUX call -> returns image_url, img_svg is strictly None
     monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "mock_key")
 
-    async def mock_call_flux(*args, **kwargs):
+    async def mock_call_flux(*_args, **_kwargs):
         return "data:image/jpeg;base64,mock_flux_binary"
 
     from app.agents import image_generator
@@ -235,7 +235,7 @@ def test_flux_image_cost_formula():
 async def test_image_node_workflow_accumulation(monkeypatch):
     """Verifies that image_node accurately accumulates usage into workflow state with AI image model."""
 
-    async def mock_gen_img(*args, **kwargs):
+    async def mock_gen_img(*_args, **_kwargs):
         return (
             "data:image/jpeg;base64,mock_flux",
             None,
@@ -967,7 +967,7 @@ async def test_generate_question_with_self_critique_structure(monkeypatch):
         prompt_tokens=420, completion_tokens=310, total_tokens=730, cost_usd=0.001
     )
 
-    async def mock_call_llm(*args, **kwargs):
+    async def mock_call_llm(*_args, **_kwargs):
         return fused_json, mock_usage
 
     monkeypatch.setattr(gen_mod, "call_llm", mock_call_llm)
@@ -1062,7 +1062,7 @@ async def test_fused_workflow_bypasses_reviewer_when_self_critique_passed(monkey
         prompt_tokens=400, completion_tokens=300, total_tokens=700, cost_usd=0.001
     )
 
-    async def mock_fused_gen(r):
+    async def mock_fused_gen(_r):
         return passing_draft, passing_review, mock_usage
 
     monkeypatch.setattr(graph_mod, "generate_question_with_self_critique", mock_fused_gen)
@@ -1336,7 +1336,7 @@ async def test_passage_set_with_passage_level_visual_stimulus(monkeypatch):
     monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
     monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
 
-    async def mock_passage_img(*args, **kwargs):
+    async def mock_passage_img(*_args, **_kwargs):
         return (
             "data:image/jpeg;base64,mock_passage_flux",
             None,
@@ -1409,7 +1409,7 @@ async def test_smart_ai_trap_and_explanation_breakdown(monkeypatch):
     from app.schemas.workflow import GenerationRequest
     from app.workflow.graph import run_workflow
 
-    async def mock_fail_call_llm(*args, **kwargs):
+    async def mock_fail_call_llm(*_args, **_kwargs):
         raise RuntimeError("Fast fallback to mock draft in unit test")
 
     monkeypatch.setattr(gen_mod, "call_llm", mock_fail_call_llm)
@@ -1785,18 +1785,17 @@ async def test_question_status_lifecycle_and_counts():
 @pytest.mark.asyncio
 async def test_autonomous_ai_determined_image_workflow(monkeypatch):
     """Verifies that image generation strictly follows autonomous AI determination when enabled, and is bypassed when disabled or in CARS."""
+    import app.agents.generator as gen_mod
     from app.workflow import graph
 
-    import app.agents.generator as gen_mod
-
-    async def mock_fail_call_llm(*args, **kwargs):
+    async def mock_fail_call_llm(*_args, **_kwargs):
         raise RuntimeError("Fast unit test fallback")
 
     monkeypatch.setattr(gen_mod, "call_llm", mock_fail_call_llm)
 
     images_generated = []
 
-    async def mock_flux_gen(*args, **kwargs):
+    async def mock_flux_gen(*_args, **_kwargs):
         images_generated.append(True)
         return (
             "data:image/jpeg;base64,mock_flux",
@@ -1857,4 +1856,36 @@ async def test_autonomous_ai_determined_image_workflow(monkeypatch):
     img_evts = [e for e in events_enabled if e.get("agent_name") == "Diagram & Chart Maker" and e.get("event_type") == "agent_complete"]
     assert len(img_evts) == 1
     assert len(images_generated) == 1
+
+    # 4. Verify route_after_fused_generation and route_after_review with autonomous discretion
+    from app.workflow.routes import route_after_fused_generation, route_after_review
+
+    state_needed = {
+        "request": req_enabled.model_dump(),
+        "fused_self_passed": True,
+        "current_draft": {"image_needed": True},
+    }
+    assert route_after_fused_generation(state_needed) == "image_generator"
+
+    state_not_needed = {
+        "request": req_enabled.model_dump(),
+        "fused_self_passed": True,
+        "current_draft": {"image_needed": False},
+    }
+    assert route_after_fused_generation(state_not_needed) == "finalize"
+
+    state_review_needed = {
+        "request": req_enabled.model_dump(),
+        "current_review": {"total_score": 95},
+        "current_draft": {"image_needed": True},
+    }
+    assert route_after_review(state_review_needed) == "image_generator"
+
+    state_review_not_needed = {
+        "request": req_enabled.model_dump(),
+        "current_review": {"total_score": 95},
+        "current_draft": {"image_needed": False},
+    }
+    assert route_after_review(state_review_not_needed) == "finalize"
+
 

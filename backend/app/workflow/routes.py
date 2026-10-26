@@ -7,6 +7,15 @@ from app.workflow.state import AgentWorkflowState
 logger = logging.getLogger(__name__)
 
 
+def _is_image_required(req: GenerationRequest, draft: dict) -> bool:
+    """Evaluates whether an image is required based on section restrictions, autonomous AI discretion, or explicit flags."""
+    if req.section in (MCATSection.CARS, "CARS", "cars"):
+        return False
+    if req.allow_ai_images:
+        return bool(draft.get("image_needed", False))
+    return req.requires_visual_stimulus or bool(draft.get("image_needed", False))
+
+
 def route_after_fused_generation(state: AgentWorkflowState) -> str:
     """Routes to finalize (or image_generator) if fused self-score > 90; else to reviewer."""
     fused_passed = state.get("fused_self_passed", False)
@@ -18,10 +27,8 @@ def route_after_fused_generation(state: AgentWorkflowState) -> str:
 
     req_raw = state["request"]
     req = req_raw if isinstance(req_raw, GenerationRequest) else GenerationRequest(**req_raw)
-    requires_image = req.requires_visual_stimulus or (
-        req.section != MCATSection.CARS
-        and bool(state.get("current_draft", {}).get("image_needed", False))
-    )
+    current_draft = state.get("current_draft") or {}
+    requires_image = _is_image_required(req, current_draft)
 
     if requires_image:
         logger.info("Fused draft passed (> 90). Routing to Image Generator.")
@@ -54,10 +61,8 @@ def route_after_review(state: AgentWorkflowState) -> str:
     # Passing score (> 90): check if image generation is required
     req_raw = state["request"]
     req = req_raw if isinstance(req_raw, GenerationRequest) else GenerationRequest(**req_raw)
-    requires_image = req.requires_visual_stimulus or (
-        req.section != MCATSection.CARS
-        and bool(state.get("current_draft", {}).get("image_needed", False))
-    )
+    current_draft = state.get("current_draft") or {}
+    requires_image = _is_image_required(req, current_draft)
 
     if requires_image:
         logger.info(f"Score {score} > {threshold}. Routing to Image Generator.")

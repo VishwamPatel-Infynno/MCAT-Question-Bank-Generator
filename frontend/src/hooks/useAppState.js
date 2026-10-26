@@ -179,9 +179,9 @@ export function useAppState() {
       content_domains: contentDomains && contentDomains.length > 0 ? contentDomains : undefined,
       content_domain: contentDomain || (contentDomains && contentDomains.length > 0 ? contentDomains.join(', ') : undefined),
       allow_ai_images: isVisualsPermitted,
-      require_image: isVisualsPermitted,
+      require_image: false,
       visual_type: isVisualsPermitted ? 'AI_FLUX_Image' : 'None',
-      require_passage_image: isVisualsPermitted,
+      require_passage_image: false,
       custom_prompt: customPrompt.trim() || undefined
     };
 

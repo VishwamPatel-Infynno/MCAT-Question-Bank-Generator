@@ -128,12 +128,12 @@ class GenerationRequest(BaseModel):
 
     @property
     def requires_visual_stimulus(self) -> bool:
-        """Determines whether visual image/diagram stimulus generation is permitted/required."""
+        """Determines whether visual image/diagram stimulus generation is explicitly required."""
         if self.section in (MCATSection.CARS, "CARS", "cars"):
             return False
-        if self.visual_type in ("SVG_Diagram", "AI_FLUX_Image"):
+        if self.visual_type in ("SVG_Diagram", "AI_FLUX_Image") and not self.allow_ai_images:
             return True
-        if self.allow_ai_images or self.require_image or self.require_passage_image:
+        if self.require_image or self.require_passage_image:
             return True
         return bool(self.image_question_indices)
 

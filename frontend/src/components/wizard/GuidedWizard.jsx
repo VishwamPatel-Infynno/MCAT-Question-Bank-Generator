@@ -64,37 +64,13 @@ export default function GuidedWizard({
   const setQuestionType = (v) => update('questionType', v);
   const passageMode = form.passageMode || 'single_passage';
   const setPrimaryTrap = (v) => update('primaryTrap', v);
-  const imageMode = form.imageMode || 'none';
-  const setSingleImageCount = generatorForm?.setSingleImageCount;
-  const imageQuestionIndices = form.imageQuestionIndices || [];
-  const requirePassageImage = form.requirePassageImage || false;
-  const setRequirePassageImage = generatorForm?.setRequirePassageImage;
   const allowAiImages = Boolean(form.allowAiImages ?? form.requireImage);
   const setAllowAiImages = generatorForm?.setAllowAiImages || ((v) => update('allowAiImages', v));
   const customPrompt = form.customPrompt || '';
   const setCustomPrompt = (v) => update('customPrompt', v);
 
-  const isPassageSet = passageMode === 'single_passage';
   const sectionMeta = SECTION_METADATA[selectedSection] || SECTION_METADATA.chem_phys;
   const pacing = PACING_INFO[selectedSection] || PACING_INFO.chem_phys;
-
-  // Number of passage questions vs independent questions
-  const numPassageQs = passageMode === 'single_passage' ? totalQuestions : 0;
-  const numIndependentQs = passageMode === 'single_passage' ? 0 : totalQuestions;
-
-  const independentIndices = Array.from({ length: totalQuestions }, (_, i) => i + 1).slice(numPassageQs);
-
-  const indSingleTotal = passageMode === 'independent' ? totalQuestions : 0;
-  const indSingleIndices = independentIndices.slice(0, indSingleTotal);
-
-  const activeSingleImageIndices = (imageQuestionIndices || []).filter(i => indSingleIndices.includes(i));
-  const activeSingleImageCount = activeSingleImageIndices.length;
-
-  const activeQuestionImagesCount = imageMode === 'all'
-    ? independentIndices.length
-    : activeSingleImageCount;
-  const hasPassageImage = isPassageSet && Boolean(requirePassageImage);
-  const totalImagesCount = activeQuestionImagesCount + (hasPassageImage ? 1 : 0);
 
   // Section Selection handler
   const handleSelectSection = (sectionId) => {
@@ -403,9 +379,6 @@ export default function GuidedWizard({
             setTotalQuestions={setGenerationTotal}
             questionType={questionType}
             allowAiImages={allowAiImages}
-            totalImagesCount={totalImagesCount}
-            hasPassageImage={hasPassageImage}
-            activeQuestionImagesCount={activeQuestionImagesCount}
             COGNITIVE_TRAPS={COGNITIVE_TRAPS}
             primaryTrap={primaryTrap}
             selectedSkill={selectedSkill}

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Image as ImageIcon,
   Lightbulb,
   Sparkles,
   Lock,

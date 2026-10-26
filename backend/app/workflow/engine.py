@@ -361,22 +361,22 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         shared_passage_image_svg: str | None = None
         shared_passage_image_desc: str | None = None
 
-        requires_passage_image = bool(
-            req.section != MCATSection.CARS
-            and (
-                req.require_passage_image
-                or (
-                    req.require_image
-                    and not req.allow_ai_images
-                    and req.image_question_indices is None
-                )
-                or (
-                    (req.allow_ai_images or req.require_image)
-                    and passage_image_needed
-                )
-                or req.visual_type in ("SVG_Diagram", "AI_FLUX_Image")
+        if req.allow_ai_images:
+            requires_passage_image = bool(
+                req.section != MCATSection.CARS and passage_image_needed
             )
-        )
+        else:
+            requires_passage_image = bool(
+                req.section != MCATSection.CARS
+                and (
+                    req.require_passage_image
+                    or (
+                        req.require_image
+                        and req.image_question_indices is None
+                    )
+                    or req.visual_type in ("SVG_Diagram", "AI_FLUX_Image")
+                )
+            )
 
         # Generate shared visual stimulus diagram for the passage if required
         if is_single_passage_set and requires_passage_image and shared_passage_text:
