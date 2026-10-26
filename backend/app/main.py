@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
     configure_logging()
     logger.info("Initializing Infynno MCAT Question Bank Generator backend...")

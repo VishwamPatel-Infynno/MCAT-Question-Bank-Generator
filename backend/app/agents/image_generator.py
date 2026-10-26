@@ -22,6 +22,7 @@ def calculate_flux_image_cost(
     For FLUX-2-klein-4b: Flat $0.0140 per image (scaled by resolution).
     For iters > 0 / step-based: $0.0005 * (width / 1024) * (height / 1024) * iters.
     """
+    _ = model  # Reserved for future per-model rate overrides
     w = width if width is not None else config.IMAGE_WIDTH
     h = height if height is not None else config.IMAGE_HEIGHT
 

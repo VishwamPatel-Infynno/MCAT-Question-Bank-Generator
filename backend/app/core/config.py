@@ -36,6 +36,7 @@ class Settings(BaseSettings):
         - FLUX-2-klein-4b (flat rate): Flat $0.014 per image (at 1024x1024 base unit)
         - Step-based (iters > 0): rate * (width / 1024) * (height / 1024) * iters
         """
+        _ = model  # Reserved for future per-model rate overrides
         w = width if width is not None else self.IMAGE_WIDTH
         h = height if height is not None else self.IMAGE_HEIGHT
 

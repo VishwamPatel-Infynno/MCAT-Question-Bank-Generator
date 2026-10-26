@@ -363,7 +363,7 @@ def _build_raw_mock_draft(req: GenerationRequest) -> QuestionDraft:
 
 
 def evaluate_heuristically(
-    draft: QuestionDraft, req: GenerationRequest, iteration: int
+    draft: QuestionDraft, _req: GenerationRequest, iteration: int
 ) -> ReviewScore:
     """Provides authentic mock evaluation for test suites and offline resilience."""
     if iteration == 1:
@@ -412,7 +412,7 @@ def evaluate_heuristically(
 
 
 def improve_draft_heuristically(
-    draft: QuestionDraft, review: ReviewScore, iteration: int
+    draft: QuestionDraft, _review: ReviewScore, iteration: int
 ) -> QuestionDraft:
     """Enhances draft for offline mock remediation cycles."""
     enhanced_explanation = (

@@ -1,9 +1,11 @@
 import React from 'react';
 
+const EMPTY_QUESTIONS = [];
+
 export default function ExportPaperPreview({
   previewRef,
   paperMode = 'student',
-  exportQuestions = [],
+  exportQuestions = EMPTY_QUESTIONS,
   timeAllowed = ''
 }) {
   return (
@@ -135,7 +137,7 @@ export default function ExportPaperPreview({
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                     <strong style={{ color: '#0f172a' }}>Q{idx + 1}:</strong>
                     <span style={{ background: '#10b981', color: '#ffffff', fontWeight: 700, padding: '1px 6px', borderRadius: '3px', fontSize: '0.7rem' }}>
-                      Correct: {q.correct_answer_ids ? q.correct_answer_ids.join(', ') : (q.correct_answer || 'A')}
+                      Correct: {Array.isArray(q.correct_answer_ids) && q.correct_answer_ids.length > 0 ? q.correct_answer_ids.join(', ') : (q.correct_answer_id || 'A')}
                     </span>
                     {q.primary_trap && (
                       <span style={{ color: '#64748b', fontSize: '0.7rem' }}>Trap: {q.primary_trap}</span>

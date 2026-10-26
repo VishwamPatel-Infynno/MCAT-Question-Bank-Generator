@@ -38,6 +38,16 @@ export default function BatchActivityView({
   // Auto-refresh control
   const [autoRefresh, setAutoRefresh] = useState(true);
   const pollTimerRef = useRef(null);
+  const expandedBatchIdRef = useRef(expandedBatchId);
+  const onShowToastRef = useRef(onShowToast);
+
+  useEffect(() => {
+    expandedBatchIdRef.current = expandedBatchId;
+  }, [expandedBatchId]);
+
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
 
   // Load batch list
   const loadBatches = useCallback(async (isSilent = false) => {
@@ -48,20 +58,21 @@ export default function BatchActivityView({
       setActiveCount(data.active_running_batches || 0);
 
       // If an expanded batch is currently in progress, re-fetch its detail as well
-      if (expandedBatchId) {
-        const currentExp = data.batches?.find((b) => b.id === expandedBatchId);
+      const currExpandedId = expandedBatchIdRef.current;
+      if (currExpandedId) {
+        const currentExp = data.batches?.find((b) => b.id === currExpandedId);
         if (currentExp && currentExp.status === 'in_progress') {
-          fetchBatchDetail(expandedBatchId)
+          fetchBatchDetail(currExpandedId)
             .then((detail) => {
-              setBatchDetails((prev) => ({ ...prev, [expandedBatchId]: detail }));
+              setBatchDetails((prev) => ({ ...prev, [currExpandedId]: detail }));
             })
             .catch(() => {});
         }
       }
     } catch (err) {
       console.error('Failed to load batches:', err);
-      if (!isSilent && onShowToast) {
-        onShowToast({
+      if (!isSilent && onShowToastRef.current) {
+        onShowToastRef.current({
           type: 'error',
           title: 'Failed to Refresh',
           message: 'Could not connect to database to fetch batch logs.'
@@ -71,21 +82,36 @@ export default function BatchActivityView({
       setLoading(false);
       if (!isSilent) setRefreshing(false);
     }
-  }, [expandedBatchId, onShowToast]);
+  }, []);
 
-  // Initial load
+  // Initial load on mount
   useEffect(() => {
-    const timer = setTimeout(() => {
-      loadBatches(false);
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    let ignore = false;
+    async function init() {
+      try {
+        const data = await fetchBatches();
+        if (!ignore) {
+          setBatches(data.batches || []);
+          setActiveCount(data.active_running_batches || 0);
+        }
+      } catch (err) {
+        console.error('Failed to load batches:', err);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+    init();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const hasActiveBatches = activeCount > 0 || batches.some((b) => b.status === 'in_progress');
 
   // Auto-polling effect (every 3 seconds if active batches or expanded batch is running)
   useEffect(() => {
     if (!autoRefresh) return;
 
-    const hasActiveBatches = activeCount > 0 || batches.some((b) => b.status === 'in_progress');
     const intervalMs = hasActiveBatches ? 3000 : 8000;
 
     pollTimerRef.current = setInterval(() => {
@@ -95,7 +121,7 @@ export default function BatchActivityView({
     return () => {
       if (pollTimerRef.current) clearInterval(pollTimerRef.current);
     };
-  }, [autoRefresh, activeCount, batches, loadBatches]);
+  }, [autoRefresh, hasActiveBatches, loadBatches]);
 
   // Handle batch expansion
   const handleToggleExpandBatch = async (batchId) => {

@@ -6,11 +6,13 @@ import {
   CheckCircle2
 } from 'lucide-react';
 
+const DEFAULT_DIFFICULTY_TIERS = [];
+
 export default function WizardStep4LevelFormat({
   selectedSection = 'chem_phys',
   difficulty = 'medium',
   setDifficulty,
-  DIFFICULTY_TIERS = [],
+  DIFFICULTY_TIERS = DEFAULT_DIFFICULTY_TIERS,
   passageMode = 'single_passage',
   handlePassageModeChange,
   questionType = 'PASSAGE_BASED_MCQ',

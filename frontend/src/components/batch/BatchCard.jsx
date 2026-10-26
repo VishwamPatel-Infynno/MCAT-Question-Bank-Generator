@@ -86,6 +86,8 @@ function getStatusBadge(status) {
   }
 }
 
+const EMPTY_JOB_IDS = {};
+
 export default function BatchCard({
   batch,
   isExpanded,
@@ -93,7 +95,7 @@ export default function BatchCard({
   onDeleteBatch,
   detail,
   loadingDetail,
-  expandedJobIds = {},
+  expandedJobIds = EMPTY_JOB_IDS,
   onToggleJob,
   onNavigateToBank,
   onNavigateToValidated,

@@ -1,7 +1,7 @@
 import logging
 
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from app.db.base import Base
 from app.models.batch import GenerationBatchModel  # noqa: F401 - Registered for Base.metadata
@@ -12,7 +12,7 @@ from app.models.question import QuestionModel  # noqa: F401 - Registered for Bas
 logger = logging.getLogger(__name__)
 
 
-async def init_db_schema(engine: AsyncEngine, session_factory: async_sessionmaker):
+async def init_db_schema(engine: AsyncEngine):
     """Initializes PostgreSQL tables, verifies schema columns, backfills passages/batches, and ensures FTS indexes."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

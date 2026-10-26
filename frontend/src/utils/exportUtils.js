@@ -69,7 +69,11 @@ export function generateExamCsv(questions = []) {
       escapeCsv(opts['C'] || ''),
       escapeCsv(opts['D'] || ''),
       escapeCsv(opts['E'] || ''),
-      escapeCsv(q.correct_answer_ids ? q.correct_answer_ids.join(', ') : (q.correct_answer || '')),
+      escapeCsv(
+        Array.isArray(q.correct_answer_ids) && q.correct_answer_ids.length > 0
+          ? q.correct_answer_ids.join(', ')
+          : (q.correct_answer_id || '')
+      ),
       escapeCsv(q.explanation || ''),
       escapeCsv(q.primary_trap || ''),
       q.final_score || 0
@@ -174,7 +178,11 @@ export function generateExamHtmlDoc(questions = [], { paperMode = 'student' } = 
             <tr>
               <td style="text-align: center; font-weight: 700;">Q${idx + 1}</td>
               <td style="text-align: center;">
-                <span class="correct-badge">${q.correct_answer_ids ? q.correct_answer_ids.join(', ') : (q.correct_answer || 'A')}</span>
+                <span class="correct-badge">${
+                  Array.isArray(q.correct_answer_ids) && q.correct_answer_ids.length > 0
+                    ? q.correct_answer_ids.join(', ')
+                    : (q.correct_answer_id || 'A')
+                }</span>
               </td>
               <td style="font-size: 11px; color: #475569;">${q.primary_trap || 'None'}</td>
               <td style="font-size: 11.5px; line-height: 1.5;">${q.explanation || 'No explanation recorded.'}</td>

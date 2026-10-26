@@ -20,7 +20,7 @@ async_session_factory = async_sessionmaker(bind=engine, class_=AsyncSession, exp
 async def init_db():
     """Coordinates database schema creation, DDL migrations, and table verification."""
     logger.info("Initializing PostgreSQL schema and tables...")
-    await init_db_schema(engine, async_session_factory)
+    await init_db_schema(engine)
 
 
 async def check_db_health() -> dict[str, Any]:

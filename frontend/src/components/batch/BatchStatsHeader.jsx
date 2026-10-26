@@ -1,7 +1,9 @@
 import React from 'react';
 import { Layers, Zap, ShieldCheck } from 'lucide-react';
 
-export default function BatchStatsHeader({ batches = [], activeCount = 0 }) {
+const EMPTY_BATCHES = [];
+
+export default function BatchStatsHeader({ batches = EMPTY_BATCHES, activeCount = 0 }) {
   const totalQuestionsAuthored = batches.reduce((acc, b) => acc + (b.actual_count || 0), 0);
 
   return (

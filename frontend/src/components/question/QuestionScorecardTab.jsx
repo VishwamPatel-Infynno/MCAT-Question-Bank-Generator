@@ -9,7 +9,9 @@ import React from 'react';
  * - question: object - The question instance containing final_score and review_rubric
  * - pillars: Array<{ label: string, score: number, max: number, color: string }>
  */
-export default function QuestionScorecardTab({ question, pillars = [] }) {
+const EMPTY_PILLARS = [];
+
+export default function QuestionScorecardTab({ question, pillars = EMPTY_PILLARS }) {
   if (!question) return null;
 
   return (

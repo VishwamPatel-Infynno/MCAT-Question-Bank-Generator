@@ -1,8 +1,10 @@
 import React from 'react';
 import { ShieldCheck, RefreshCw, Database } from 'lucide-react';
 
+const EMPTY_COUNTS = {};
+
 export default function AiValidatedStatsBar({
-  counts = {},
+  counts = EMPTY_COUNTS,
   questionsCount = 0,
   refreshing = false,
   onRefresh,

@@ -45,3 +45,6 @@ markers = [
     "live_e2e: End-to-end integration tests requiring a running backend and live LLM API credentials",
 ]
 addopts = "-m 'not live_e2e'"
+filterwarnings = [
+    "ignore::UserWarning:pydantic.*",
+]
