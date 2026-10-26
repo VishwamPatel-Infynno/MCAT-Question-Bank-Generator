@@ -1,16 +1,25 @@
 import pytest
 from app.db.session import init_db
 from app.main import app
+from app.services.batch_runner import cancel_all_background_batches
 from httpx import ASGITransport, AsyncClient
 
 
 @pytest.fixture(autouse=True)
 async def ensure_db():
     await init_db()
+    yield
+    await cancel_all_background_batches()
 
 
 @pytest.mark.asyncio
-async def test_batch_and_jobs_lifecycle():
+async def test_batch_and_jobs_lifecycle(monkeypatch):
+    # Mock background execution to test REST/DB lifecycle without spawning live generation workers
+    async def mock_execute(b_id, req):
+        pass
+
+    monkeypatch.setattr("app.services.batch_runner._execute_batch_workflow", mock_execute)
+
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         # 1. Start a 50-question background batch

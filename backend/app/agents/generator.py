@@ -96,7 +96,11 @@ Do NOT write a new passage. Formulate your question stem, options, correct key, 
         user_prompt += f"\nCustom Focus Context: {req.custom_prompt}"
 
     # Visual stimulus discretion instruction
-    allow_visuals = (req.allow_ai_images or req.require_image) and req.section not in (MCATSection.CARS, "CARS", "cars")
+    allow_visuals = (req.allow_ai_images or req.require_image) and req.section not in (
+        MCATSection.CARS,
+        "CARS",
+        "cars",
+    )
     if allow_visuals and not req.is_passage_active:
         user_prompt += (
             "\nVISUAL DIAGRAM AUTONOMOUS DISCRETION:\n"
@@ -223,7 +227,10 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
         likely_mistake_pattern=req.likely_mistake_pattern,
         image_needed=(
             False
-            if (req.section in (MCATSection.CARS, "CARS", "cars") or not (req.allow_ai_images or req.require_image))
+            if (
+                req.section in (MCATSection.CARS, "CARS", "cars")
+                or not (req.allow_ai_images or req.require_image)
+            )
             else bool(data.get("image_needed", False))
         ),
         image_prompt_or_type=data.get("image_prompt_or_type"),

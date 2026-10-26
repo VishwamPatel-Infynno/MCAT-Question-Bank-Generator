@@ -47,7 +47,7 @@ class GenerationRequest(BaseModel):
         None, description="e.g. Passage_Based_Set, Independent_Discrete"
     )
     interaction_type: str | None = Field(
-        "single_choice", description="single_choice (standard 4-choice AAMC), multi_choice"
+        "single_choice", description="single_choice (standard 4-choice AAMC)"
     )
     primary_trap: str | None = Field(None, description="e.g. Out_of_Scope, Distortion_Opposite")
     passage_required: str | bool | None = Field(None, description="Yes or No")

@@ -24,8 +24,6 @@ async def test_database_schema_initialization():
 @pytest.mark.asyncio
 async def test_passage_auto_sync_and_retrieval():
     """Verify that saving a question with passage_id auto-creates and updates the passage in the passages table."""
-    await init_db()
-
     passage_uuid = f"test-passage-{uuid.uuid4()}"
     stimulus = (
         "This is a detailed MCAT stimulus text about cognitive biomechanics and memory retrieval."
@@ -73,8 +71,6 @@ async def test_passage_auto_sync_and_retrieval():
 @pytest.mark.asyncio
 async def test_batch_auto_sync_and_atomic_aggregation():
     """Verify saving questions via save_questions_batch aggregates count, tokens, and cost on GenerationBatchModel."""
-    await init_db()
-
     batch_uuid = f"test-batch-{uuid.uuid4()}"
     q1 = Question(
         id=f"test-q1-{uuid.uuid4()}",
@@ -133,8 +129,6 @@ async def test_batch_auto_sync_and_atomic_aggregation():
 @pytest.mark.asyncio
 async def test_hybrid_full_text_search():
     """Verify full-text search correctly indexes and retrieves questions by distinctive keywords."""
-    await init_db()
-
     unique_keyword = f"quasarastrophysics{uuid.uuid4().hex[:6]}"
     q = Question(
         id=f"test-fts-{uuid.uuid4()}",
@@ -169,8 +163,6 @@ async def test_hybrid_full_text_search():
 @pytest.mark.asyncio
 async def test_api_passages_and_batches():
     """Verify HTTP API endpoints for /api/passages and /api/batches."""
-    await init_db()
-
     passage_id = f"api-p-{uuid.uuid4()}"
     batch_id = f"api-b-{uuid.uuid4()}"
 

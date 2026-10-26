@@ -85,6 +85,13 @@ async def _run_single_job(
                                 if (q_obj.final_score or 0) > 90
                                 else "below_threshold"
                             )
+                            # Check if batch still exists before saving question
+                            curr_b = await get_batch_by_id(batch_id)
+                            if not curr_b:
+                                logger.info(
+                                    f"Batch {batch_id} no longer exists; aborting job {job.id}."
+                                )
+                                return
                             if passage_id_for_job and not q_obj.passage_id:
                                 q_obj.passage_id = passage_id_for_job
                             saved_q = await save_question(q_obj)
@@ -109,6 +116,13 @@ async def _run_single_job(
                                     if (q_obj.final_score or 0) > 90
                                     else "below_threshold"
                                 )
+                                # Check if batch still exists before saving question
+                                curr_b = await get_batch_by_id(batch_id)
+                                if not curr_b:
+                                    logger.info(
+                                        f"Batch {batch_id} no longer exists; aborting job {job.id}."
+                                    )
+                                    return
                                 if passage_id_for_job and not q_obj.passage_id:
                                     q_obj.passage_id = passage_id_for_job
                                 if not any(existing.id == q_obj.id for existing in job_questions):
@@ -156,6 +170,9 @@ async def _run_single_job(
                 f"Job {job.job_number}/10 (ID: {job.id}) completed: generated {len(job_questions)} questions."
             )
 
+        except asyncio.CancelledError:
+            logger.info(f"Job {job.job_number}/10 (ID: {job.id}) was cancelled.")
+            raise
         except Exception as exc:
             logger.error(
                 f"Job {job.job_number}/10 (ID: {job.id}) failed with error: {exc}", exc_info=True
@@ -175,6 +192,7 @@ async def _run_single_job(
 
 async def _execute_batch_workflow(batch_id: str, req: GenerationRequest) -> None:
     """Coordinates the execution of all 10 jobs within a batch using 2-worker concurrency."""
+    tasks: list[asyncio.Task[Any]] = []
     try:
         jobs = await get_jobs_by_batch_id(batch_id)
         if not jobs:
@@ -186,7 +204,7 @@ async def _execute_batch_workflow(batch_id: str, req: GenerationRequest) -> None
         tasks = [
             asyncio.create_task(_run_single_job(batch_id, job, req, semaphore)) for job in jobs
         ]
-        await asyncio.gather(*tasks, return_exceptions=True)
+        await asyncio.gather(*tasks, return_exceptions=False)
 
         # Finalize batch state
         b = await get_batch_by_id(batch_id)
@@ -202,6 +220,13 @@ async def _execute_batch_workflow(batch_id: str, req: GenerationRequest) -> None
                 f"Batch {batch_id} finished execution. Status: {b.status} ({b.completed_jobs}/{b.total_jobs} jobs, {b.actual_count}/{b.target_count} questions)."
             )
 
+    except asyncio.CancelledError:
+        logger.info(f"Batch {batch_id} execution was cancelled; terminating all sub-tasks...")
+        for t in tasks:
+            if not t.done():
+                t.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        raise
     except Exception as e:
         logger.error(f"Fatal error in batch {batch_id} execution: {e}", exc_info=True)
         b = await get_batch_by_id(batch_id)
@@ -211,6 +236,32 @@ async def _execute_batch_workflow(batch_id: str, req: GenerationRequest) -> None
             await save_batch(b)
     finally:
         _active_batch_tasks.pop(batch_id, None)
+
+
+async def cancel_background_batch(batch_id: str) -> bool:
+    """Cancels an active background batch runner task if running."""
+    task = _active_batch_tasks.pop(batch_id, None)
+    if task and not task.done():
+        task.cancel()
+        try:
+            await task
+        except (asyncio.CancelledError, Exception):
+            pass
+        return True
+    return False
+
+
+async def cancel_all_background_batches() -> None:
+    """Cancels all currently active background batch runner tasks."""
+    tasks = list(_active_batch_tasks.values())
+    _active_batch_tasks.clear()
+    for task in tasks:
+        if not task.done():
+            task.cancel()
+            try:
+                await task
+            except (asyncio.CancelledError, Exception):
+                pass
 
 
 async def launch_background_batch(

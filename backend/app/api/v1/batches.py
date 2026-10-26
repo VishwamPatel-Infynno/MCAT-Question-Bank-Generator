@@ -11,7 +11,7 @@ from app.repositories.batch_repository import (
 from app.repositories.job_repository import get_jobs_by_batch_id
 from app.repositories.question_repository import get_questions
 from app.schemas import GenerationBatch, GenerationRequest
-from app.services.batch_runner import launch_background_batch
+from app.services.batch_runner import cancel_background_batch, launch_background_batch
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +92,7 @@ async def get_single_batch(batch_id: str):
 @router.delete("/batches/{batch_id}")
 async def delete_single_batch(batch_id: str):
     """Deletes a generation batch and cascades delete to jobs and questions."""
+    await cancel_background_batch(batch_id)
     deleted = await delete_batch(batch_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Batch not found")

@@ -123,10 +123,6 @@ export async function batchApproveQuestions(questions) {
   return res.json();
 }
 
-export function getExportUrl(format = 'json') {
-  return `${API_BASE}/export?format=${format}`;
-}
-
 export async function generateQuestionStream(payload, onEvent, onError, onComplete, signal = null) {
   try {
     const response = await fetch(`${API_BASE}/generate`, {

@@ -42,7 +42,6 @@ frontend/src/
 │   │   ├── CustomSelect.jsx      # Accessible custom dropdown select primitive
 │   │   ├── FormattedText.jsx     # Inline markdown & cognitive trap chip highlighter
 │   │   ├── InfynnoLogo.jsx       # Official corporate vector logo primitive
-│   │   ├── NumberStepper.jsx     # Accessible numerical stepper primitive
 │   │   └── Toast.jsx             # Floating toast notification system
 │   ├── layout/
 │   │   ├── Footer.jsx            # Infynno Solutions LLP attribution & resource footer

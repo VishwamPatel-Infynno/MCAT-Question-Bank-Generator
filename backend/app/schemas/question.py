@@ -147,9 +147,9 @@ class Question(BaseModel):
         description="Combination UUID4 or custom manager code",
     )
     content_domain: str | None = Field(None, description="e.g. Science, Healthcare")
-    question_type: str | None = Field(None, description="e.g. Passage_MCQ, True_False_Cant_Tell")
+    question_type: str | None = Field(None, description="e.g. Passage_MCQ, Independent_Discrete")
     interaction_type: str | None = Field(
-        "single_choice", description="single_choice, multi_choice, drag_drop"
+        "single_choice", description="single_choice (standard 4-choice AAMC)"
     )
     primary_trap: str | None = Field(None, description="e.g. Keyword_Trap, Partial_Match")
     passage_required: str | None = Field(None, description="Yes or No")

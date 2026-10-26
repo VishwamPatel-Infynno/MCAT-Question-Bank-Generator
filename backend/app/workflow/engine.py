@@ -251,7 +251,6 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         is_single_passage_set = True
         independent_count = 0
 
-
     shared_passage_id = req.passage_id or (str(uuid.uuid4()) if is_single_passage_set else None)
     shared_passage_text = req.shared_stimulus
     passage_tokens = 0
@@ -346,9 +345,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         shared_passage_image_desc: str | None = None
 
         if req.allow_ai_images:
-            requires_passage_image = bool(
-                req.section != MCATSection.CARS and passage_image_needed
-            )
+            requires_passage_image = bool(req.section != MCATSection.CARS and passage_image_needed)
         else:
             requires_passage_image = bool(
                 req.section != MCATSection.CARS

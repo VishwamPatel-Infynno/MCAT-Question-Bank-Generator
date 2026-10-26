@@ -27,7 +27,6 @@ from app.workflow.state import AgentWorkflowState
 logger = logging.getLogger(__name__)
 
 
-
 async def fused_generator_node(state: AgentWorkflowState) -> dict[str, Any]:
     """
     Fused Draft-and-Critique node:
