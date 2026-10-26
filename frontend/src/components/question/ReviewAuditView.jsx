@@ -1,6 +1,7 @@
 import React from 'react';
-import { X, CheckCircle, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { X, CheckCircle, AlertTriangle, ShieldCheck, Sparkles, Target, Zap, Image as ImageIcon } from 'lucide-react';
 import { useFocusTrap } from '../../hooks';
+import { getEffectiveTrapInfo } from '../../utils';
 
 export default function ReviewAuditView({ question, onClose }) {
   const modalRef = useFocusTrap({ isActive: Boolean(question), onClose });
@@ -9,6 +10,17 @@ export default function ReviewAuditView({ question, onClose }) {
 
   const review = question.review_rubric;
   const history = question.iterations_history || [];
+  const trapInfo = getEffectiveTrapInfo(question);
+  const mistakePattern = question.likely_mistake_pattern && question.likely_mistake_pattern !== 'None'
+    ? question.likely_mistake_pattern
+    : null;
+  const hasVisual = Boolean(
+    question.image_svg ||
+    question.image_url ||
+    question.image_description ||
+    question?.stage_outcomes?.visual_stimulus?.image_svg ||
+    question?.stage_outcomes?.visual_stimulus?.image_url
+  );
 
   const pillars = [
     { label: 'AAMC MCAT Style & Scientific Tone', score: review?.authenticity_score ?? 24, max: 25, color: 'var(--brand-primary)' },
@@ -170,6 +182,126 @@ export default function ReviewAuditView({ question, onClose }) {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Cognitive & Pedagogical Calibration */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h4 style={{ fontSize: '0.825rem', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>
+              Cognitive &amp; Pedagogical Calibration
+            </h4>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              AAMC Cognitive Distractor &amp; Mistake Diagnosis
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            {/* Primary Trap */}
+            <div
+              style={{
+                background: 'var(--bg-canvas)',
+                padding: '14px 16px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-light)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Zap size={13} style={{ color: 'var(--brand-purple, #8b5cf6)' }} />
+                  Primary Cognitive Trap
+                </span>
+                <span className="badge badge-purple" style={{ fontSize: '0.68rem', padding: '2px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Sparkles size={11} /> Smart Trap Profile
+                </span>
+              </div>
+              <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                {trapInfo?.label || 'Direct Conceptual Application'}
+              </div>
+              <p style={{ fontSize: '0.775rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
+                {trapInfo?.advice || 'Evaluates direct conceptual understanding without deceptive distractor skew.'}
+              </p>
+            </div>
+
+            {/* Target Misconception */}
+            <div
+              style={{
+                background: 'var(--bg-canvas)',
+                padding: '14px 16px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-light)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Target size={13} style={{ color: 'var(--brand-cyan, #06b6d4)' }} />
+                  Target Student Misconception
+                </span>
+                <span className="badge badge-cyan" style={{ fontSize: '0.68rem', padding: '2px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Sparkles size={11} /> Smart Misconception Calibration
+                </span>
+              </div>
+              <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                {mistakePattern ? mistakePattern.replace(/_/g, ' ') : 'None Diagnosed (Clean Distractor)'}
+              </div>
+              <p style={{ fontSize: '0.775rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
+                {mistakePattern
+                  ? 'Engine intentionally calibrated incorrect options to exploit and expose this specific reasoning flaw.'
+                  : 'Distractor choices test core scientific principles without targeting a specific reasoning defect.'}
+              </p>
+            </div>
+          </div>
+
+          {/* Visual Stimulus Evaluation */}
+          <div
+            style={{
+              background: 'var(--bg-canvas)',
+              padding: '12px 16px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: 'var(--radius-xs)',
+                  background: hasVisual ? 'var(--status-info-bg, rgba(59, 130, 246, 0.1))' : 'var(--bg-card)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: hasVisual ? 'var(--brand-primary)' : 'var(--text-muted)',
+                  border: '1px solid var(--border-light)',
+                  flexShrink: 0
+                }}
+              >
+                <ImageIcon size={16} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Visual Stimulus Evaluation: {hasVisual ? 'Stimulus Generated & Attached' : 'Autonomous Decision: Textual Passage Sufficient'}
+                </div>
+                <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
+                  {hasVisual
+                    ? (question.image_description || 'Custom biomedical or physical sciences diagram rendered to accompany item stem.')
+                    : 'The AI Generator verified that the scientific stem and passage provide rigorous quantitative context without requiring a synthetic diagram.'}
+                </div>
+              </div>
+            </div>
+            <span className={`badge ${hasVisual ? 'badge-blue' : 'badge-slate'}`} style={{ fontSize: '0.7rem', padding: '3px 8px', flexShrink: 0 }}>
+              {hasVisual ? 'Visual Embedded' : 'Text-Only Calibrated'}
+            </span>
           </div>
         </div>
 

@@ -441,13 +441,14 @@ def improve_draft_heuristically(
         explanation=enhanced_explanation,
         primary_trap=draft.primary_trap,
         aamc_skill=draft.aamc_skill,
+        likely_mistake_pattern=draft.likely_mistake_pattern,
         image_needed=draft.image_needed,
         image_prompt_or_type=draft.image_prompt_or_type,
     )
 
 
 def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
-    """Provides high-caliber, authentic fallback AAMC MCAT questions with resolved primary_trap."""
+    """Provides high-caliber, authentic fallback AAMC MCAT questions with resolved primary_trap and likely_mistake_pattern."""
     draft = _build_raw_mock_draft(req)
 
     # Determine or auto-detect primary trap
@@ -472,5 +473,19 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
                     detected = trap_key
                     break
             draft.primary_trap = detected or "Distortion_Opposite"
+
+    # Determine or auto-detect student misconception / likely mistake pattern
+    if req.likely_mistake_pattern and req.likely_mistake_pattern not in ("Automatic", ""):
+        if req.likely_mistake_pattern == "None":
+            draft.likely_mistake_pattern = None
+        else:
+            draft.likely_mistake_pattern = req.likely_mistake_pattern
+    else:
+        # Automatic (Smart AI Choice)
+        draft.likely_mistake_pattern = (
+            "Confuses external justification with intrinsic attitude alignment"
+            if "dissonance" in (draft.question_stem or "").lower()
+            else "Uses initial instead of final reference concentration in equilibrium expression"
+        )
 
     return draft

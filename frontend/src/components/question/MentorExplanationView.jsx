@@ -30,7 +30,8 @@ export default function MentorExplanationView({
   isCompact = false,
   _options = EMPTY_ARRAY,
   correctAnswerId = '',
-  primaryTrap = null
+  primaryTrap = null,
+  likelyMistakePattern = null
 }) {
   const parsed = useMemo(() => {
     if (!explanation) {
@@ -367,6 +368,51 @@ export default function MentorExplanationView({
           <div style={{ fontSize: isCompact ? '0.76rem' : '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
             <strong style={{ color: 'var(--text-primary)' }}>Anti-Trap Strategy: </strong>
             {parsed.resolvedTrap.advice}
+          </div>
+        </div>
+      )}
+
+      {/* Card 4: Diagnosed Student Misconception / Likely Mistake Pattern */}
+      {likelyMistakePattern && (
+        <div
+          style={{
+            background: 'rgba(245, 158, 11, 0.06)',
+            border: '1px solid rgba(245, 158, 11, 0.28)',
+            borderRadius: 'var(--radius-sm)',
+            padding: isCompact ? '10px 12px' : '12px 14px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 700, color: 'var(--status-warning, #d97706)' }}>
+              <AlertTriangle size={14} />
+              <span>Target Student Misconception &bull; {likelyMistakePattern}</span>
+            </div>
+
+            <span
+              style={{
+                fontSize: '0.65rem',
+                background: 'rgba(245, 158, 11, 0.15)',
+                border: '1px solid rgba(245, 158, 11, 0.35)',
+                color: 'var(--status-warning, #d97706)',
+                padding: '1px 6px',
+                borderRadius: '3px',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px'
+              }}
+            >
+              <Sparkles size={9} />
+              Smart Misconception Calibration
+            </span>
+          </div>
+
+          <div style={{ fontSize: isCompact ? '0.76rem' : '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+            <strong style={{ color: 'var(--text-primary)' }}>Remediation Defense: </strong>
+            Students frequently commit this exact error when working under strict AAMC timing pressure. Double-check foundational assumptions, formula boundary conditions, and sign/unit conventions before finalizing your choice.
           </div>
         </div>
       )}

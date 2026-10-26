@@ -278,3 +278,51 @@ def get_section_tree(section_val: str | MCATSection) -> dict | None:
         if s.get("id") == sec_code:
             return s
     return None
+
+
+def normalize_primary_trap(trap_str: str | None) -> str | None:
+    """Normalizes any primary distractor trap string to an official AAMC taxonomy ID."""
+    if not trap_str or trap_str in ("Automatic", "None", ""):
+        return None
+    clean = str(trap_str).strip()
+    if clean in PRIMARY_TRAPS:
+        return clean
+    up = clean.upper().replace(" ", "_").replace("-", "_")
+    if up in PRIMARY_TRAPS:
+        return up
+    legacy_map = {
+        "OUT_OF_SCOPE": "UNSUPPORTED_INFERENCE",
+        "DISTORTION_OPPOSITE": "PASSAGE_CONTRADICTION",
+        "OUTSIDE_KNOWLEDGE_IN_CARS": "UNSUPPORTED_INFERENCE",
+        "EXTREME_LANGUAGE": "OVERGENERALIZATION",
+        "CALCULATION_FORMULA_TRAP": "FORMULA_MISAPPLICATION",
+        "HALF_RIGHT_FALSE_PREMISE": "ANSWER_CHOICE_CONFLATION",
+        "KEYWORD_TRAP": "DISTRACTOR_OVERINTERPRETATION",
+        "PARTIAL_MATCH": "EXCEPTION_OVERLOOKED",
+        "HALF_TRUTH": "ANSWER_CHOICE_CONFLATION",
+        "UNWARRANTED_ASSUMPTION": "ASSUMPTION_MISSED",
+        "CALCULATION_TRAP": "FORMULA_MISAPPLICATION",
+    }
+    if up in legacy_map:
+        return legacy_map[up]
+    clean_lower = clean.lower().replace("_", " ").replace("-", " ")
+    for item in PRIMARY_TRAPS_DETAILED:
+        val = item.get("value", "").lower()
+        if val == clean_lower or clean_lower in val:
+            return item.get("id")
+    return up
+
+
+def normalize_mistake_pattern(pattern_str: str | None) -> str | None:
+    """Normalizes a student misconception to an official AAMC pattern value or preserves clean custom string."""
+    if not pattern_str or pattern_str in ("Automatic", "None", ""):
+        return None
+    clean = str(pattern_str).strip()
+    up = clean.upper().replace(" ", "_").replace("-", "_")
+    for item in LIKELY_MISTAKE_PATTERNS:
+        if item.get("id") == up or item.get("id") == clean:
+            return item.get("value", clean)
+        val = item.get("value", "").lower()
+        if clean.lower() == val or clean.lower() in val:
+            return item.get("value", clean)
+    return clean

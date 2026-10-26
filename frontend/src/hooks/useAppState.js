@@ -170,7 +170,7 @@ export function useAppState() {
       interaction_type: 'single_choice',
       passage_required: passageRequired,
       primary_trap: primaryTrap || 'Automatic',
-      likely_mistake_pattern: customMistakePattern || likelyMistakePattern || undefined,
+      likely_mistake_pattern: customMistakePattern || likelyMistakePattern || 'Automatic',
       content_domains: contentDomains && contentDomains.length > 0 ? contentDomains : undefined,
       content_domain: contentDomain || (contentDomains && contentDomains.length > 0 ? contentDomains.join(', ') : undefined),
       allow_ai_images: isVisualsPermitted,

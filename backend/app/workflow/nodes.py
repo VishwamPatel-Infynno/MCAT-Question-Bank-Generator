@@ -38,7 +38,10 @@ async def fused_generator_node(state: AgentWorkflowState) -> dict[str, Any]:
     """
     req = GenerationRequest(**state["request"])
     logger.info("Executing Fused Question Generator & Self-Critique Agent...")
-    draft, self_review, usage = await generate_question_with_self_critique(req)
+    diversity_context = state.get("diversity_context")
+    draft, self_review, usage = await generate_question_with_self_critique(
+        req, diversity_context=diversity_context
+    )
 
     agent_entry = {
         "agent": "Question Generator",
@@ -100,7 +103,8 @@ async def fused_generator_node(state: AgentWorkflowState) -> dict[str, Any]:
 async def generator_node(state: AgentWorkflowState) -> dict[str, Any]:
     req = GenerationRequest(**state["request"])
     logger.info("Executing Question Generator Agent...")
-    draft, usage = await generate_question(req)
+    diversity_context = state.get("diversity_context")
+    draft, usage = await generate_question(req, diversity_context=diversity_context)
 
     agent_entry = {
         "agent": "Question Generator",
@@ -418,8 +422,16 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
     effective_trap = (
         getattr(draft, "primary_trap", None)
         or (req.primary_trap if req.primary_trap != "Automatic" else None)
-        or "Scope_Shift"
+        or "SCOPE_SHIFT"
     )
+    if req.likely_mistake_pattern == "None":
+        effective_mistake = None
+    else:
+        effective_mistake = getattr(draft, "likely_mistake_pattern", None) or (
+            req.likely_mistake_pattern
+            if req.likely_mistake_pattern not in ("Automatic", "")
+            else None
+        )
 
     outcomes["final_payload"] = {
         "id": draft.question_stem[:12],  # placeholder until final_q created below
@@ -432,6 +444,7 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
         "question_type": req.question_type,
         "interaction_type": req.interaction_type or "single_choice",
         "primary_trap": effective_trap,
+        "likely_mistake_pattern": effective_mistake,
         "passage_required": str(req.passage_required) if req.passage_required is not None else None,
         "passage_mode": req.passage_mode or "single_passage",
         "passage_id": req.passage_id,
@@ -488,8 +501,7 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
         unit=req.unit or getattr(draft, "unit", None),
         topic=req.topic or getattr(draft, "topic", None),
         subskill=req.subskill or getattr(draft, "subskill", None),
-        likely_mistake_pattern=req.likely_mistake_pattern
-        or getattr(draft, "likely_mistake_pattern", None),
+        likely_mistake_pattern=effective_mistake,
         stage_outcomes=outcomes,
         option_symmetry=symmetry,
     )

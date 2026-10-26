@@ -559,6 +559,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         outcomes_completion_tokens: list[int] = [0] * total_qty
         outcomes_costs: list[float] = [0.0] * total_qty
         outcomes_usage: list[list[dict[str, Any]]] = [[] for _ in range(total_qty)]
+        shared_used_traps: list[str] = []
+        shared_used_mistakes: list[str] = []
 
         async def _worker(idx: int) -> None:
             max_worker_retries = 2
@@ -576,6 +578,19 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                                 shared_passage_text=shared_passage_text,
                             )
                         )
+
+                        diversity_context = None
+                        if total_qty > 1:
+                            parts = [f"Item {idx + 1} of {total_qty} in this question set."]
+                            if shared_used_traps:
+                                parts.append(
+                                    f"Previously calibrated traps: {', '.join(shared_used_traps[-4:])}. Please select a complementary AAMC trap for variety."
+                                )
+                            if shared_used_mistakes:
+                                parts.append(
+                                    f"Previously targeted misconceptions: {', '.join(shared_used_mistakes[-3:])}. Diversify the targeted misconception."
+                                )
+                            diversity_context = " ".join(parts)
 
                         if total_qty > 1:
                             worker_msg = (
@@ -614,6 +629,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             "total_cost_usd": 0.0,
                             "agent_usage_breakdown": [],
                             "stage_outcomes": {},
+                            "diversity_context": diversity_context,
                         }
 
                         # Step 1: Question Writer & Reviewer (Fused Authoring & 100-pt Audit)
@@ -634,6 +650,14 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
                         gen_res = await fused_generator_node(state)
                         state.update(gen_res)
+
+                        cur_draft = state.get("current_draft") or {}
+                        c_trap = cur_draft.get("primary_trap")
+                        c_mistake = cur_draft.get("likely_mistake_pattern")
+                        if c_trap and c_trap not in shared_used_traps:
+                            shared_used_traps.append(c_trap)
+                        if c_mistake and c_mistake not in shared_used_mistakes:
+                            shared_used_mistakes.append(c_mistake)
 
                         gen_usage = state.get("latest_usage", {})
                         self_score = (state.get("current_review") or {}).get("total_score", 95)

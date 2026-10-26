@@ -13,6 +13,8 @@ from app.schemas.mcat import (
     Difficulty,
     MCATSection,
     calculate_mcat_scaled_score,
+    normalize_mistake_pattern,
+    normalize_primary_trap,
     normalize_section,
 )
 from app.schemas.question import (

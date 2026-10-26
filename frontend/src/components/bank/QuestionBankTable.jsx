@@ -11,7 +11,8 @@ import {
   Trash2,
   Image as ImageIcon,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  Target
 } from 'lucide-react';
 import VisualStimulusViewer from '../question/VisualStimulusViewer';
 import SharedPassageCard from '../question/SharedPassageCard';
@@ -163,6 +164,25 @@ export default function QuestionBankTable({
                         </span>
                       );
                     })()}
+
+                    {q.likely_mistake_pattern && (
+                      <span
+                        className="badge"
+                        style={{
+                          fontSize: '0.62rem',
+                          padding: '1px 6px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          background: 'rgba(245, 158, 11, 0.12)',
+                          color: 'var(--status-warning, #d97706)',
+                          border: '1px solid rgba(245, 158, 11, 0.3)'
+                        }}
+                        title={`Targeted Student Misconception: ${q.likely_mistake_pattern}`}
+                      >
+                        <Target size={10} /> Misconception: {q.likely_mistake_pattern}
+                      </span>
+                    )}
                   </div>
 
                   {/* Question Stem */}
@@ -299,6 +319,7 @@ export default function QuestionBankTable({
                       options={q.options}
                       correctAnswerId={q.correct_answer_id}
                       primaryTrap={q.primary_trap}
+                      likelyMistakePattern={q.likely_mistake_pattern}
                     />
                   </div>
                 )}

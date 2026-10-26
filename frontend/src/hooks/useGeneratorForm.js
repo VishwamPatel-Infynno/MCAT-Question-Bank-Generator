@@ -25,7 +25,7 @@ export const DEFAULT_GENERATOR_FORM = {
   interactionType: 'single_choice',
   passageRequired: 'Yes',
   primaryTrap: 'Automatic',
-  likelyMistakePattern: '',
+  likelyMistakePattern: 'Automatic',
   customMistakePattern: '',
   requireImage: false,
   allowAiImages: false,

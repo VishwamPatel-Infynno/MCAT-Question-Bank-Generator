@@ -15,7 +15,8 @@ import {
   ShieldCheck,
   Scale,
   Image as ImageIcon,
-  AlertTriangle
+  AlertTriangle,
+  Target
 } from 'lucide-react';
 import StageJsonInspector from '../staged/StageJsonInspector';
 import VisualStimulusViewer from './VisualStimulusViewer';
@@ -223,6 +224,25 @@ export default function QuestionCard({
               title={`Primary Cognitive Trap: ${effectiveTrapInfo.label}`}
             >
               <AlertTriangle size={11} /> Trap: {effectiveTrapInfo.label}
+            </span>
+          )}
+
+          {question.likely_mistake_pattern && (
+            <span
+              className="badge"
+              style={{
+                fontSize: '0.675rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontWeight: 600,
+                background: 'rgba(245, 158, 11, 0.12)',
+                color: 'var(--status-warning, #d97706)',
+                border: '1px solid rgba(245, 158, 11, 0.3)'
+              }}
+              title={`Targeted Student Misconception: ${question.likely_mistake_pattern}`}
+            >
+              <Target size={11} /> Misconception: {question.likely_mistake_pattern}
             </span>
           )}
 
@@ -593,6 +613,7 @@ export default function QuestionCard({
                   options={question.options}
                   correctAnswerId={question.correct_answer_id}
                   primaryTrap={question.primary_trap || effectiveTrapInfo?.key}
+                  likelyMistakePattern={question.likely_mistake_pattern}
                 />
               )}
             </div>

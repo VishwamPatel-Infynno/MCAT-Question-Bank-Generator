@@ -8,7 +8,8 @@ import {
   ChevronUp,
   Image as ImageIcon,
   BookOpen,
-  AlertTriangle
+  AlertTriangle,
+  Target
 } from 'lucide-react';
 import { MCAT_SECTION_LABELS } from '../../constants/mcat';
 import { getEffectiveTrapInfo } from '../../utils';
@@ -92,6 +93,24 @@ export default function AiValidatedQuestionCard({
               title={`Primary Cognitive Trap: ${trapInfo.label}`}
             >
               <AlertTriangle size={10} /> Trap: {trapInfo.label}
+            </span>
+          )}
+          {q.likely_mistake_pattern && (
+            <span
+              className="badge"
+              style={{
+                fontSize: '0.675rem',
+                padding: '1px 6px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: 'rgba(245, 158, 11, 0.12)',
+                color: 'var(--status-warning, #d97706)',
+                border: '1px solid rgba(245, 158, 11, 0.3)'
+              }}
+              title={`Targeted Student Misconception: ${q.likely_mistake_pattern}`}
+            >
+              <Target size={10} /> Misconception: {q.likely_mistake_pattern}
             </span>
           )}
           {q.image_svg && (

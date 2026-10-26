@@ -173,7 +173,11 @@ export default function WizardStep7Review({
             <div className="wizard-summary-label">Cognitive Trap & Reasoning Skill</div>
             <div className="wizard-summary-value" style={{ marginTop: '4px', flexWrap: 'wrap' }}>
               <span className="badge badge-purple" style={{ fontSize: '0.76rem' }}>
-                <Zap size={11} style={{ marginRight: '4px', display: 'inline' }} />
+                {primaryTrap === 'Automatic' ? (
+                  <Sparkles size={11} style={{ marginRight: '4px', display: 'inline', color: 'var(--brand-primary)' }} />
+                ) : (
+                  <Zap size={11} style={{ marginRight: '4px', display: 'inline' }} />
+                )}
                 {trapLabel}
               </span>
               {(selectedSkill || selectedSubskill) && (
@@ -219,11 +223,28 @@ export default function WizardStep7Review({
               ) : (
                 <span className="badge-minimal">$0.00 Image Cost</span>
               )}
-              {(likelyMistakePattern || customMistakePattern) && (
+              {customMistakePattern ? (
                 <>
                   <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    Mistake: <em>{customMistakePattern || likelyMistakePattern}</em>
+                    Misconception: <em>{customMistakePattern}</em>
+                  </span>
+                </>
+              ) : likelyMistakePattern === 'None' ? (
+                <>
+                  <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    Misconception: None (Standard Distractors)
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
+                  <span className="badge badge-amber" style={{ fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <Sparkles size={10} />
+                    {likelyMistakePattern && likelyMistakePattern !== 'Automatic'
+                      ? `Misconception: ${likelyMistakePattern}`
+                      : 'Misconception: Smart AI Choice'}
                   </span>
                 </>
               )}

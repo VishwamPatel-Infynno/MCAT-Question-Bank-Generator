@@ -143,7 +143,7 @@ async def test_fused_workflow_bypasses_reviewer_when_self_critique_passed(monkey
         prompt_tokens=400, completion_tokens=300, total_tokens=700, cost_usd=0.001
     )
 
-    async def mock_fused_gen(_r):
+    async def mock_fused_gen(_r, *args, **kwargs):
         return passing_draft, passing_review, mock_usage
 
     monkeypatch.setattr(nodes_mod, "generate_question_with_self_critique", mock_fused_gen)

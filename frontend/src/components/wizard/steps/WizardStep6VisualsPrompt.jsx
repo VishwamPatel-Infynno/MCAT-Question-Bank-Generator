@@ -255,19 +255,29 @@ export default function WizardStep6VisualsPrompt({
               />
             ) : (
               <select
-                value={likelyMistakePattern || ''}
+                value={likelyMistakePattern || 'Automatic'}
                 onChange={(e) => setLikelyMistakePattern?.(e.target.value)}
                 className="input-field"
                 style={{ width: '100%', fontSize: '0.8rem' }}
               >
-                <option value="">None / Smart AI Choice (Automatic)</option>
-                {LIKELY_MISTAKE_PATTERNS.map((mp) => (
-                  <option key={mp.id} value={mp.id}>
-                    {mp.label}
-                  </option>
-                ))}
+                <option value="Automatic">✨ Automatic (Smart AI Choice - Autonomous Student Misconception Diagnosis)</option>
+                <option value="None">None (Standard distractor design without specific mistake focus)</option>
+                <optgroup label="Preset AAMC Student Mistake Patterns">
+                  {LIKELY_MISTAKE_PATTERNS.map((mp) => (
+                    <option key={mp.id} value={mp.id}>
+                      {mp.label}
+                    </option>
+                  ))}
+                </optgroup>
               </select>
             )}
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+              {isCustomMistake
+                ? 'The AI will craft a dedicated distractor specifically tailored to attract students who commit this custom mistake.'
+                : (likelyMistakePattern === 'None')
+                ? 'Standard distractor fallacies will be generated without targeting any single student misconception.'
+                : 'Smart AI will analyze the passage, equations, and question stem to autonomously diagnose the exact reasoning error students are most prone to make.'}
+            </div>
           </div>
 
           {/* Custom Prompt / Scenario */}

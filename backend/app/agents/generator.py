@@ -5,7 +5,12 @@ from app.agents.mock_fixtures import evaluate_heuristically, get_mock_draft
 from app.agents.option_balancer import balance_and_shuffle_options
 from app.agents.prompts import FUSED_GENERATOR_SYSTEM_PROMPT, GENERATOR_SYSTEM_PROMPT
 from app.core.config import config
-from app.schemas.mcat import MCAT_SECTION_LABELS, MCATSection
+from app.schemas.mcat import (
+    MCAT_SECTION_LABELS,
+    MCATSection,
+    normalize_mistake_pattern,
+    normalize_primary_trap,
+)
 from app.schemas.question import OptionChoice, QuestionDraft, ReviewScore
 from app.schemas.token import TokenUsage
 from app.schemas.workflow import GenerationRequest
@@ -13,7 +18,11 @@ from app.schemas.workflow import GenerationRequest
 logger = logging.getLogger(__name__)
 
 
-def _build_generator_user_prompt(req: GenerationRequest, fused: bool = False) -> str:
+def _build_generator_user_prompt(
+    req: GenerationRequest,
+    fused: bool = False,
+    diversity_context: str | None = None,
+) -> str:
     section_val = req.section.value if hasattr(req.section, "value") else str(req.section)
     section_name = MCAT_SECTION_LABELS.get(req.section, section_val)
 
@@ -42,12 +51,33 @@ Section: {section_name}"""
         user_prompt += f"\nContent Domain: {req.content_domain}"
     if req.question_type:
         user_prompt += f"\nQuestion Type Format: {req.question_type}"
-    if req.likely_mistake_pattern:
+
+    # Target Student Misconception / Likely Mistake Pattern Calibration
+    if req.likely_mistake_pattern and req.likely_mistake_pattern not in ("Automatic", "None", ""):
         user_prompt += (
             f"\nTarget Student Misconception / Mistake Pattern: {req.likely_mistake_pattern}\n"
             "CRITICAL DISTRACTOR DESIGN: Engineer at least one distractor option specifically designed "
-            "to attract students who commit this exact mistake, and explain this in the distractor breakdown."
+            "to attract students who commit this exact mistake, and explain this in the distractor breakdown. "
+            "Set 'likely_mistake_pattern' to this targeted pattern."
         )
+    elif req.likely_mistake_pattern == "None":
+        user_prompt += (
+            "\nTarget Student Misconception: Standard item format (no specific single misconception targeted). "
+            "Set 'likely_mistake_pattern': null in output JSON."
+        )
+    else:
+        # Default or "Automatic" -> Smart AI Choice
+        user_prompt += (
+            "\nTarget Student Misconception / Mistake Pattern: Automatic (Smart AI Choice)\n"
+            "Analyze the scientific passage, concepts, equations, and question stem to diagnose the most authentic "
+            "student misconception or calculation/conceptual error for this problem (e.g. from official MCAT patterns "
+            "such as USES_WRONG_REFERENCE_VALUE, INVERTS_FRACTION, FORGETS_SQUARE_ROOT, CONFUSES_ENANTIOMERS_DIASTEREOMERS, "
+            "MISREADS_GRAPH_AXES, FAILS_TO_SUBTRACT_BASELINE, CONFUSES_KM_VMAX, DROPS_NEGATIVE_SIGN, etc., or tailored to the concept). "
+            "Engineer at least one distractor specifically targeting this misconception, explain it in the distractor breakdown, "
+            "and populate the 'likely_mistake_pattern' JSON field with your diagnosed pattern."
+        )
+
+    # Primary Cognitive Distractor Trap
     if req.primary_trap and req.primary_trap != "Automatic":
         user_prompt += f"\nPrimary Distractor Trap to Emphasize: {req.primary_trap}"
     else:
@@ -62,6 +92,10 @@ Section: {section_name}"""
             "UNSUPPORTED_INFERENCE, PASSAGE_CONTRADICTION, OVERGENERALIZATION, DISTRACTOR_OVERINTERPRETATION, "
             "ANSWER_CHOICE_CONFLATION) and populate the 'primary_trap' JSON field with your selected trap."
         )
+
+    # Cross-Item Diversity Calibration for multi-question sets / batches
+    if diversity_context:
+        user_prompt += f"\nCROSS-ITEM VARIETY CALIBRATION: {diversity_context}"
 
     # Section-specific CARS warning
     if req.section in (MCATSection.CARS, "CARS", "cars"):
@@ -101,7 +135,7 @@ Do NOT write a new passage. Formulate your question stem, options, correct key, 
         "CARS",
         "cars",
     )
-    if allow_visuals and not req.is_passage_active:
+    if allow_visuals:
         user_prompt += (
             "\nVISUAL DIAGRAM AUTONOMOUS DISCRETION:\n"
             "- Visual stimuli are ENABLED on-demand. If this question inherently requires an experimental diagram, "
@@ -109,7 +143,7 @@ Do NOT write a new passage. Formulate your question stem, options, correct key, 
             "set 'image_needed': true and provide a detailed scientific visual description in 'image_prompt_or_type'.\n"
             "- If the question is purely conceptual, numerical, or fully solvable from text alone, strictly set 'image_needed': false and 'image_prompt_or_type': null."
         )
-    elif not allow_visuals:
+    else:
         user_prompt += (
             "\nVISUAL DIAGRAM RESTRICTION:\n"
             "- Visual stimuli are DISABLED. Strictly set 'image_needed': false and 'image_prompt_or_type': null."
@@ -169,23 +203,43 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
     correct_id_str = ", ".join(keys_list)
 
     # Determine primary trap: model selection, request override, or auto-detect from explanation
-    primary_trap = data.get("primary_trap")
-    if not primary_trap or primary_trap == "Automatic":
+    raw_trap = data.get("primary_trap")
+    normalized_trap = normalize_primary_trap(raw_trap)
+    if not normalized_trap or normalized_trap == "Automatic":
         if req.primary_trap and req.primary_trap != "Automatic":
-            primary_trap = req.primary_trap
+            primary_trap = normalize_primary_trap(req.primary_trap) or req.primary_trap
         else:
             expl = data.get("explanation", "")
             detected = None
             taxonomies = [
-                ("Scope_Shift", r"Scope\s*Shift"),
-                ("Keyword_Trap", r"Keyword\s*(?:Match\s*)?Trap"),
-                ("Extreme_Language", r"Extreme\s*(?:Language|Quantifier|Word)"),
-                ("Correlation_vs_Causation", r"Correlation\s*(?:vs\.?|and)\s*Causation"),
-                ("Partial_Match", r"Partial\s*Match"),
-                ("Half_Truth", r"Half-?Truth"),
-                ("Unwarranted_Assumption", r"Unwarranted\s*Assumption"),
-                ("Calculation_Trap", r"Calculation\s*(?:Trap|Error)"),
-                ("Out_of_Scope", r"Out\s*of\s*Scope"),
+                ("CONCEPT_CONFUSION", r"Concept\s*Confusion"),
+                ("WRONG_BASE", r"Wrong\s*Base|Reference\s*Value"),
+                ("UNIT_CONVERSION", r"Unit\s*Conversion"),
+                ("FORMULA_MISAPPLICATION", r"Formula\s*Misapplication"),
+                ("SIGN_CONVENTION", r"Sign\s*Convention|Direction"),
+                ("PROPORTIONALITY_ERROR", r"Proportionality\s*Error"),
+                ("ASSUMPTION_MISSED", r"Missed\s*Assumption|Assumption\s*Missed"),
+                ("CAUSE_EFFECT_CONFUSION", r"Cause[- ]Effect|Causality"),
+                (
+                    "CORRELATION_CAUSATION",
+                    r"Correlation\s*(?:vs\.?|and|mistaken\s*for)\s*Causation",
+                ),
+                ("CONTROL_GROUP_CONFUSION", r"Control[- ]Group"),
+                ("VARIABLE_CONFUSION", r"Variable\s*Confusion|Independent\s*and\s*Dependent"),
+                ("SAMPLE_SIZE_BIAS", r"Sample\s*Size|Sampling\s*Bias"),
+                ("STATISTICAL_SIGNIFICANCE", r"Statistical\s*Significance|p-value"),
+                ("GRAPH_AXIS_MISREADING", r"Axis\s*Misread|Graph\s*Axis"),
+                ("TABLE_COMPARISON_ERROR", r"Table\s*Comparison"),
+                ("TREND_EXTRAPOLATION", r"Trend\s*Extrapolation"),
+                ("MECHANISM_CONFUSION", r"Mechanism\s*Confusion"),
+                ("EXCEPTION_OVERLOOKED", r"Exception\s*Overlooked|Qualifier"),
+                ("NEGATION_MISREAD", r"Negation|NOT/EXCEPT|LEAST\s*likely"),
+                ("SCOPE_SHIFT", r"Scope\s*Shift"),
+                ("UNSUPPORTED_INFERENCE", r"Unsupported\s*Inference"),
+                ("PASSAGE_CONTRADICTION", r"Passage\s*Contradiction|Directly\s*contradicts"),
+                ("OVERGENERALIZATION", r"Overgeneralization|Extreme\s*(?:Language|Quantifier)"),
+                ("DISTRACTOR_OVERINTERPRETATION", r"Distractor\s*Overinterpretation"),
+                ("ANSWER_CHOICE_CONFLATION", r"Answer\s*Choice\s*Conflation"),
             ]
             import re
 
@@ -193,7 +247,40 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
                 if re.search(pattern, expl, re.IGNORECASE):
                     detected = trap_key
                     break
-            primary_trap = detected or "Scope_Shift"
+            primary_trap = detected or "SCOPE_SHIFT"
+    else:
+        primary_trap = normalized_trap
+
+    # Determine target student misconception / likely mistake pattern
+    raw_mistake = data.get("likely_mistake_pattern")
+    if req.likely_mistake_pattern and req.likely_mistake_pattern not in ("Automatic", ""):
+        if req.likely_mistake_pattern == "None":
+            effective_mistake = None
+        else:
+            effective_mistake = (
+                normalize_mistake_pattern(req.likely_mistake_pattern) or req.likely_mistake_pattern
+            )
+    else:
+        # Automatic (Smart AI Choice)
+        normalized_mistake = normalize_mistake_pattern(raw_mistake)
+        effective_mistake = normalized_mistake or (
+            str(raw_mistake).strip() if raw_mistake else None
+        )
+        if not effective_mistake:
+            expl = data.get("explanation", "")
+            import re
+
+            m_match = re.search(
+                r"(?:misconception|mistake\s*pattern|common\s*error)[:\s]+([^\n.,;]+)",
+                expl,
+                re.IGNORECASE,
+            )
+            if m_match:
+                effective_mistake = m_match.group(1).strip()
+            else:
+                effective_mistake = (
+                    "Confuses closely related concepts or misreads reference baseline"
+                )
 
     # Enforce reading passage vs direct independent question
     if not req.is_passage_active:
@@ -224,7 +311,7 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
         unit=req.unit,
         topic=req.topic,
         subskill=req.subskill,
-        likely_mistake_pattern=req.likely_mistake_pattern,
+        likely_mistake_pattern=effective_mistake,
         image_needed=(
             False
             if (
@@ -390,9 +477,14 @@ STANDARDS FOR AAMC MCAT PASSAGES:
         return fallback_passage, mock_usage, fallback_image_needed, fallback_image_prompt
 
 
-async def generate_question(req: GenerationRequest) -> tuple[QuestionDraft, TokenUsage]:
+async def generate_question(
+    req: GenerationRequest,
+    diversity_context: str | None = None,
+) -> tuple[QuestionDraft, TokenUsage]:
     """Invokes the Question Generator Agent to draft a publication-grade AAMC MCAT question."""
-    user_prompt = _build_generator_user_prompt(req, fused=False)
+    user_prompt = _build_generator_user_prompt(
+        req, fused=False, diversity_context=diversity_context
+    )
 
     try:
         raw_output, usage = await call_llm(
@@ -427,13 +519,14 @@ async def generate_question(req: GenerationRequest) -> tuple[QuestionDraft, Toke
 
 async def generate_question_with_self_critique(
     req: GenerationRequest,
+    diversity_context: str | None = None,
 ) -> tuple[QuestionDraft, ReviewScore | None, TokenUsage]:
     """
     Fused Draft-and-Critique generator:
     Generates the candidate question AND scores it with the 100-point rubric
     in a single LLM round-trip.
     """
-    user_prompt = _build_generator_user_prompt(req, fused=True)
+    user_prompt = _build_generator_user_prompt(req, fused=True, diversity_context=diversity_context)
 
     try:
         raw_output, usage = await call_llm(
