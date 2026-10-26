@@ -67,8 +67,9 @@ async def fused_generator_node(state: AgentWorkflowState) -> dict[str, Any]:
         outcomes["self_critique"] = self_review.model_dump()
         outcomes["quality_audit"] = self_review.model_dump()
 
+    passing_threshold = state.get("passing_threshold") or config.PASSING_SCORE_THRESHOLD
     fused_self_passed = (
-        self_review is not None and self_review.total_score > config.PASSING_SCORE_THRESHOLD
+        self_review is not None and self_review.total_score > passing_threshold
     )
 
     existing_history = list(state.get("iterations_history", []))
@@ -330,9 +331,10 @@ async def reject_node(state: AgentWorkflowState) -> dict[str, Any]:
 
     final_score = review.total_score if review else 0
     iteration = state.get("iteration_count", 1)
+    passing_threshold = state.get("passing_threshold") or config.PASSING_SCORE_THRESHOLD
 
     logger.warning(
-        f"Strict Quality Gate: Question rejected. Score: {final_score}/100 <= {config.PASSING_SCORE_THRESHOLD} after {iteration} attempts. NOT saving to Question Bank repository."
+        f"Strict Quality Gate: Question rejected. Score: {final_score}/100 <= {passing_threshold} after {iteration} attempts. NOT saving to Question Bank repository."
     )
 
     rejection_payload = {
@@ -341,7 +343,7 @@ async def reject_node(state: AgentWorkflowState) -> dict[str, Any]:
         "subtopic": req.subtopic or "Core Syllabus",
         "difficulty": req.difficulty.value,
         "final_score": final_score,
-        "threshold": config.PASSING_SCORE_THRESHOLD,
+        "threshold": passing_threshold,
         "review_rubric": review.model_dump() if review else None,
         "iteration_count": iteration,
         "iterations_history": state.get("iterations_history", []),
@@ -351,7 +353,7 @@ async def reject_node(state: AgentWorkflowState) -> dict[str, Any]:
         "total_completion_tokens": state.get("total_completion_tokens", 0),
         "total_cost_usd": state.get("total_cost_usd", 0.0),
         "agent_usage_breakdown": state.get("agent_usage_breakdown", []),
-        "reason": f"Question scored {final_score}/100, which is less than or equal to the required {config.PASSING_SCORE_THRESHOLD}-point quality benchmark after {iteration} iteration attempts. Generation halted and question discarded from Question Bank.",
+        "reason": f"Question scored {final_score}/100, which is less than or equal to the required {passing_threshold}-point quality benchmark after {iteration} iteration attempts. Generation halted and question discarded from Question Bank.",
     }
 
     return {

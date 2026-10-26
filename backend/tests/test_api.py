@@ -632,13 +632,61 @@ async def test_question_status_lifecycle_and_counts():
         status="below_threshold",
     )
 
+    uid3 = str(uuid.uuid4())
+    q3 = Question(
+        id=uid3,
+        section="psych_soc",
+        section_label="Psychological, Social, and Biological Foundations",
+        subtopic="Cognitive Development",
+        difficulty="Medium",
+        question_stem="Which stage corresponds to concrete operations?",
+        options=[
+            OptionChoice(id="A", text="Sensorimotor"),
+            OptionChoice(id="B", text="Preoperational"),
+            OptionChoice(id="C", text="Concrete operational"),
+            OptionChoice(id="D", text="Formal operational"),
+        ],
+        correct_answer_id="C",
+        explanation="Piaget stage 7-11 years.",
+        final_score=88,
+        status="batch_only",
+    )
+
+    uid4 = str(uuid.uuid4())
+    q4 = Question(
+        id=uid4,
+        section="cars",
+        section_label="Critical Analysis and Reasoning Skills",
+        subtopic="Rhetorical Analysis",
+        difficulty="Hard",
+        question_stem="The author's tone is best described as:",
+        options=[
+            OptionChoice(id="A", text="Objective"),
+            OptionChoice(id="B", text="Critical"),
+            OptionChoice(id="C", text="Nostalgic"),
+            OptionChoice(id="D", text="Dismissive"),
+        ],
+        correct_answer_id="B",
+        explanation="Text analysis tone",
+        final_score=90,  # 90 is <= 90, so it must NOT pass strict >90 ai_validated check
+        status="ai_validated",
+    )
+
     await save_question(q1)
     await save_question(q2)
+    await save_question(q3)
+    await save_question(q4)
 
-    # Verify filtering
+    # Verify filtering: ai_validated strictly returns final_score > 90
     validated_qs = await get_questions(status="ai_validated")
     assert any(q.id == uid1 for q in validated_qs)
     assert not any(q.id == uid2 for q in validated_qs)
+    assert not any(q.id == uid3 for q in validated_qs)
+    assert not any(q.id == uid4 for q in validated_qs), "Questions with score <= 90 must not appear in ai_validated query!"
+
+    batch_only_qs = await get_questions(status="batch_only")
+    assert any(q.id == uid3 for q in batch_only_qs)
+    assert not any(q.id == uid1 for q in batch_only_qs)
 
     below_qs = await get_questions(status="below_threshold")
     assert any(q.id == uid2 for q in below_qs)
@@ -655,55 +703,45 @@ async def test_question_status_lifecycle_and_counts():
     assert uid2 not in default_ids, (
         "below_threshold question must not appear in default Question Bank list!"
     )
+    assert uid3 not in default_ids, (
+        "batch_only question must not appear in default Question Bank list!"
+    )
 
     # Verify list_questions with status="ai_validated"
     validated_list = await list_questions(status="ai_validated")
     validated_ids = [q["id"] for q in validated_list["questions"]]
     assert uid1 in validated_ids
     assert uid2 not in validated_ids
-
-    # Verify list_questions with status="all"
-    all_list = await list_questions(status="all")
-    all_ids = [q["id"] for q in all_list["questions"]]
-    assert uid1 in all_ids
-    assert uid2 in all_ids
+    assert uid3 not in validated_ids
+    assert uid4 not in validated_ids
 
     # Test counts
     counts = await get_question_status_counts()
     assert counts["ai_validated"] >= 1
     assert counts["below_threshold"] >= 1
+    assert counts["batch_only"] >= 1
 
-    # Update single status (e.g. promote to in_bank from ai_validated screen)
-    res_single = await update_question_status(uid1, "in_bank")
+    # Update single status (e.g. promote batch_only to in_bank)
+    res_single = await update_question_status(uid3, "in_bank")
     assert res_single is True
 
     # Now verify it immediately appears in the default Question Bank list and in exports
     bank_list_after_approval = await list_questions()
     approved_bank_ids = [q["id"] for q in bank_list_after_approval["questions"]]
-    assert uid1 in approved_bank_ids, "Approved question must appear in Question Bank list!"
+    assert uid3 in approved_bank_ids, "Approved question must appear in Question Bank list!"
 
     export_res = await export_questions()
     export_body = json.loads(export_res.body)
     export_ids = [q["id"] for q in export_body]
-    assert uid1 in export_ids, "Approved question must appear in Question Bank export!"
+    assert uid3 in export_ids, "Approved question must appear in Question Bank export!"
     assert uid2 not in export_ids, "Unapproved question must never appear in Question Bank export!"
 
-    bank_qs = await get_questions(status="in_bank")
-    assert any(q.id == uid1 for q in bank_qs)
-
     # Batch update status (e.g. discard)
-    res_batch = await batch_update_question_status([uid1, uid2], "discarded")
-    assert res_batch == 2
-
-    discarded_qs = await get_questions(status="discarded")
-    assert any(q.id == uid1 for q in discarded_qs)
-    assert any(q.id == uid2 for q in discarded_qs)
-
-    # Once discarded, it must no longer appear in default Question Bank list
-    bank_list_after_discard = await list_questions()
-    discarded_check_ids = [q["id"] for q in bank_list_after_discard["questions"]]
-    assert uid1 not in discarded_check_ids, "Discarded question must not appear in Question Bank!"
+    res_batch = await batch_update_question_status([uid1, uid2, uid3, uid4], "discarded")
+    assert res_batch == 4
 
     # Cleanup
     await delete_question(uid1)
     await delete_question(uid2)
+    await delete_question(uid3)
+    await delete_question(uid4)

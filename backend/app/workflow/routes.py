@@ -43,7 +43,7 @@ def route_after_review(state: AgentWorkflowState) -> str:
     iteration = state.get("iteration_count", 1)
 
     score = review.get("total_score", 100) if review else 100
-    threshold = config.PASSING_SCORE_THRESHOLD
+    threshold = state.get("passing_threshold") or config.PASSING_SCORE_THRESHOLD
     max_attempts = config.MAX_REGENERATION_ATTEMPTS
 
     # Strict Quality Gate check

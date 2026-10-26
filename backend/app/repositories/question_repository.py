@@ -355,6 +355,8 @@ async def get_questions(
             stmt = stmt.where(QuestionModel.passage_id == passage_id)
         if status and status != "all":
             stmt = stmt.where(QuestionModel.status == status)
+            if status == "ai_validated":
+                stmt = stmt.where(QuestionModel.final_score > 90)
 
         if search:
             search_clean = search.strip()
@@ -467,6 +469,7 @@ async def get_question_status_counts() -> dict[str, int]:
             "in_bank": counts.get("in_bank", 0),
             "discarded": counts.get("discarded", 0),
             "below_threshold": counts.get("below_threshold", 0),
+            "batch_only": counts.get("batch_only", 0),
             "total": sum(counts.values()),
         }
 

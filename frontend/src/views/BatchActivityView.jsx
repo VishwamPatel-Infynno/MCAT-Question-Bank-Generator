@@ -10,7 +10,8 @@ import {
   deleteBatch,
   stopBatch,
   retryBatchJobs,
-  cancelAllBatches
+  cancelAllBatches,
+  updateQuestionStatus
 } from '../services/api';
 import { SECTION_CODE_MAP } from '../constants/mcat';
 import {
@@ -294,6 +295,60 @@ export default function BatchActivityView({
     }
   };
 
+  // Handle saving a question directly to Question Bank
+  const handleSaveQuestionToBank = async (question) => {
+    try {
+      await updateQuestionStatus(question.id, 'in_bank');
+      setBatchDetails((prev) => {
+        const next = { ...prev };
+        for (const [bId, detail] of Object.entries(next)) {
+          if (!detail) continue;
+          let changed = false;
+          const updatedJobs = (detail.jobs || []).map((job) => {
+            const hasQ = (job.questions || []).some((q) => q.id === question.id);
+            if (!hasQ) return job;
+            changed = true;
+            return {
+              ...job,
+              questions: job.questions.map((q) =>
+                q.id === question.id ? { ...q, status: 'in_bank' } : q
+              )
+            };
+          });
+          const updatedQs = (detail.questions || []).map((q) =>
+            q.id === question.id ? { ...q, status: 'in_bank' } : q
+          );
+          if (changed) {
+            next[bId] = {
+              ...detail,
+              jobs: updatedJobs,
+              questions: updatedQs
+            };
+          }
+        }
+        return next;
+      });
+
+      if (onShowToast) {
+        onShowToast({
+          type: 'success',
+          title: 'Saved to Question Bank',
+          message: 'Question promoted directly into your official Question Bank.',
+          action: onNavigateToBank ? { label: 'View in Bank', onClick: onNavigateToBank } : undefined
+        });
+      }
+    } catch (err) {
+      console.error('Failed to move question to bank:', err);
+      if (onShowToast) {
+        onShowToast({
+          type: 'error',
+          title: 'Action Failed',
+          message: err.message || 'Could not move question to bank.'
+        });
+      }
+    }
+  };
+
   // Active batches list for multi-batch monitor
   const activeBatchesList = batches.filter((b) => b.status === 'in_progress');
 
@@ -371,7 +426,7 @@ export default function BatchActivityView({
                 }}
               >
                 Track 50-question background batches, inspect 10 constituent jobs, and monitor
-                multi-batch throughput in real-time.
+                throughput in real-time. Batch activity preserves questions scoring &gt; 85; questions scoring &gt; 90 route to AI Validated.
               </p>
             </div>
           </div>
@@ -543,6 +598,7 @@ export default function BatchActivityView({
               onNavigateToBank={onNavigateToBank}
               onNavigateToValidated={onNavigateToValidated}
               onOpenAudit={onOpenAudit}
+              onSaveToBank={handleSaveQuestionToBank}
             />
           ))}
         </div>

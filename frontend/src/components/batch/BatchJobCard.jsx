@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, ChevronDown, ChevronRight } from 'lucide-react';
+import { FileText, ChevronDown, ChevronRight, Layers } from 'lucide-react';
 import BatchQuestionItem from './BatchQuestionItem';
 
 export default function BatchJobCard({
@@ -8,7 +8,8 @@ export default function BatchJobCard({
   onToggleExpand,
   onNavigateToBank,
   onNavigateToValidated,
-  onOpenAudit
+  onOpenAudit,
+  onSaveToBank
 }) {
   if (!job) return null;
 
@@ -18,10 +19,28 @@ export default function BatchJobCard({
   const isJobFailed = job.status === 'failed';
 
   // Compute status counts for questions in this job
-  const validatedCount = jobQuestions.filter(q => (q.status || (q.final_score > 90 ? 'ai_validated' : 'below_threshold')) === 'ai_validated').length;
-  const inBankCount = jobQuestions.filter(q => q.status === 'in_bank').length;
-  const discardedCount = jobQuestions.filter(q => q.status === 'discarded').length;
-  const belowCount = jobQuestions.filter(q => (q.status || (q.final_score > 90 ? 'ai_validated' : 'below_threshold')) === 'below_threshold').length;
+  const resolveStatus = (q) => {
+    if (q.status) return q.status;
+    const score = q.final_score ?? 95;
+    if (score > 90) return 'ai_validated';
+    if (score > 85) return 'batch_only';
+    return 'below_threshold';
+  };
+
+  const validatedCount = jobQuestions.filter((q) => resolveStatus(q) === 'ai_validated').length;
+  const batchOnlyCount = jobQuestions.filter((q) => resolveStatus(q) === 'batch_only').length;
+  const inBankCount = jobQuestions.filter((q) => resolveStatus(q) === 'in_bank').length;
+  const discardedCount = jobQuestions.filter((q) => resolveStatus(q) === 'discarded').length;
+  const belowCount = jobQuestions.filter((q) => resolveStatus(q) === 'below_threshold').length;
+
+  // Present kept questions (>85) first, then below threshold (<=85)
+  const sortedQuestions = [...jobQuestions].sort((a, b) => {
+    const isKeptA = resolveStatus(a) !== 'below_threshold';
+    const isKeptB = resolveStatus(b) !== 'below_threshold';
+    if (isKeptA && !isKeptB) return -1;
+    if (!isKeptA && isKeptB) return 1;
+    return 0;
+  });
 
   return (
     <div
@@ -132,12 +151,29 @@ export default function BatchJobCard({
               style={{
                 background: 'rgba(79, 48, 185, 0.1)',
                 color: 'var(--brand-primary)',
-                padding: '1px 6px',
+                padding: '2px 7px',
                 borderRadius: '4px',
-                fontWeight: 600
+                fontWeight: 700
               }}
             >
-              {validatedCount} in AI Validated
+              {validatedCount} in AI Validated (&gt;90)
+            </span>
+          )}
+          {batchOnlyCount > 0 && (
+            <span
+              style={{
+                background: 'rgba(51, 90, 207, 0.12)',
+                color: 'var(--brand-primary)',
+                border: '1px solid rgba(51, 90, 207, 0.25)',
+                padding: '2px 7px',
+                borderRadius: '4px',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px'
+              }}
+            >
+              <Layers size={10} /> {batchOnlyCount} Batch Only (86-90)
             </span>
           )}
           {inBankCount > 0 && (
@@ -145,9 +181,9 @@ export default function BatchJobCard({
               style={{
                 background: 'rgba(16, 185, 129, 0.1)',
                 color: 'var(--status-success)',
-                padding: '1px 6px',
+                padding: '2px 7px',
                 borderRadius: '4px',
-                fontWeight: 600
+                fontWeight: 700
               }}
             >
               {inBankCount} in Bank
@@ -158,9 +194,9 @@ export default function BatchJobCard({
               style={{
                 background: 'rgba(244, 63, 94, 0.1)',
                 color: 'var(--status-danger)',
-                padding: '1px 6px',
+                padding: '2px 7px',
                 borderRadius: '4px',
-                fontWeight: 600
+                fontWeight: 700
               }}
             >
               {discardedCount} Discarded
@@ -171,12 +207,13 @@ export default function BatchJobCard({
               style={{
                 background: 'rgba(245, 158, 11, 0.1)',
                 color: '#d97706',
-                padding: '1px 6px',
+                border: '1px solid rgba(245, 158, 11, 0.25)',
+                padding: '2px 7px',
                 borderRadius: '4px',
-                fontWeight: 600
+                fontWeight: 700
               }}
             >
-              {belowCount} Below &le;90
+              {belowCount} Below &le;85
             </span>
           )}
         </div>
@@ -223,7 +260,7 @@ export default function BatchJobCard({
             gap: '10px'
           }}
         >
-          {jobQuestions.map((q, qIdx) => (
+          {sortedQuestions.map((q, qIdx) => (
             <BatchQuestionItem
               key={q.id || qIdx}
               question={q}
@@ -231,6 +268,7 @@ export default function BatchJobCard({
               onNavigateToBank={onNavigateToBank}
               onNavigateToValidated={onNavigateToValidated}
               onOpenAudit={onOpenAudit}
+              onSaveToBank={onSaveToBank}
             />
           ))}
         </div>

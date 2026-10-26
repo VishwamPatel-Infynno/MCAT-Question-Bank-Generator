@@ -616,6 +616,11 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             )
                             await event_queue.put(batch_prog_evt)
 
+                        effective_threshold = (
+                            getattr(item_req, "passing_threshold", None)
+                            or getattr(req, "passing_threshold", None)
+                            or config.PASSING_SCORE_THRESHOLD
+                        )
                         state: AgentWorkflowState = {
                             "request": item_req.model_dump(),
                             "run_id": item_run_id,
@@ -630,6 +635,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             "agent_usage_breakdown": [],
                             "stage_outcomes": {},
                             "diversity_context": diversity_context,
+                            "passing_threshold": effective_threshold,
                         }
 
                         # Step 1: Question Writer & Reviewer (Fused Authoring & 100-pt Audit)

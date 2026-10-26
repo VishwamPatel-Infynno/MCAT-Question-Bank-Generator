@@ -26,3 +26,4 @@ class AgentWorkflowState(TypedDict, total=False):
     run_id: str
     batch_id: str | None
     fused_self_passed: bool
+    passing_threshold: int

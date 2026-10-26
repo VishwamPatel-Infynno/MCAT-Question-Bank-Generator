@@ -68,6 +68,8 @@ async def _run_single_job(
             update={
                 "run_id": job.id,
                 "batch_id": batch_id,
+                "job_id": job.id,
+                "passing_threshold": config.BATCH_PASSING_SCORE_THRESHOLD,
                 "questions_to_generate": 5,
                 "passage_mode": "single_passage" if is_passage_mode else "independent",
                 "passage_required": "Yes" if is_passage_mode else "No",
@@ -99,11 +101,13 @@ async def _run_single_job(
                             q_obj.batch_id = batch_id
                             q_obj.job_id = job.id
                             q_obj.run_id = job.id
-                            q_obj.status = (
-                                "ai_validated"
-                                if (q_obj.final_score or 0) > 90
-                                else "below_threshold"
-                            )
+                            final_score = q_obj.final_score or 0
+                            if final_score > 90:
+                                q_obj.status = "ai_validated"
+                            elif final_score > 85:
+                                q_obj.status = "batch_only"
+                            else:
+                                q_obj.status = "below_threshold"
                             # Check if batch still exists before saving question
                             curr_b = await get_batch_by_id(batch_id)
                             if not curr_b:
@@ -129,11 +133,13 @@ async def _run_single_job(
                                 q_obj.batch_id = batch_id
                                 q_obj.job_id = job.id
                                 q_obj.run_id = job.id
-                                q_obj.status = (
-                                    "ai_validated"
-                                    if (q_obj.final_score or 0) > 90
-                                    else "below_threshold"
-                                )
+                                final_score = q_obj.final_score or 0
+                                if final_score > 90:
+                                    q_obj.status = "ai_validated"
+                                elif final_score > 85:
+                                    q_obj.status = "batch_only"
+                                else:
+                                    q_obj.status = "below_threshold"
                                 curr_b = await get_batch_by_id(batch_id)
                                 if not curr_b:
                                     logger.info(

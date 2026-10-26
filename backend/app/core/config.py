@@ -89,6 +89,7 @@ class Settings(BaseSettings):
     # Multi-Agent Workflow Parameters
     MAX_REGENERATION_ATTEMPTS: int = 3
     PASSING_SCORE_THRESHOLD: int = 90
+    BATCH_PASSING_SCORE_THRESHOLD: int = 85
     DEFAULT_MAX_TOKENS: int = 3000
     REVIEWER_MAX_TOKENS: int = 1800
 

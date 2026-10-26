@@ -162,8 +162,8 @@ async def remove_questions_batch(payload: BatchDeleteRequest):
 
 @router.post("/questions/update-status")
 async def batch_update_status(payload: StatusUpdateRequest):
-    """Bulk update question lifecycle status ('in_bank', 'discarded', 'ai_validated')."""
-    valid_statuses = {"in_bank", "discarded", "ai_validated", "below_threshold"}
+    """Bulk update question lifecycle status ('in_bank', 'discarded', 'ai_validated', 'below_threshold', 'batch_only')."""
+    valid_statuses = {"in_bank", "discarded", "ai_validated", "below_threshold", "batch_only"}
     if payload.status not in valid_statuses:
         raise HTTPException(
             status_code=400,
@@ -178,7 +178,7 @@ async def batch_update_status(payload: StatusUpdateRequest):
 async def update_single_status(question_id: str, payload: dict):
     """Update single question lifecycle status."""
     new_status = payload.get("status")
-    valid_statuses = {"in_bank", "discarded", "ai_validated", "below_threshold"}
+    valid_statuses = {"in_bank", "discarded", "ai_validated", "below_threshold", "batch_only"}
     if not new_status or new_status not in valid_statuses:
         raise HTTPException(
             status_code=400, detail=f"Missing or invalid 'status'. Must be one of {valid_statuses}"

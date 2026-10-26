@@ -116,7 +116,8 @@ export default function BatchCard({
   onToggleJob,
   onNavigateToBank,
   onNavigateToValidated,
-  onOpenAudit
+  onOpenAudit,
+  onSaveToBank
 }) {
   const secColor = getSectionBadgeColor(batch.section);
   const totalJobs = batch.total_jobs || 10;
@@ -447,6 +448,7 @@ export default function BatchCard({
                       onNavigateToBank={onNavigateToBank}
                       onNavigateToValidated={onNavigateToValidated}
                       onOpenAudit={onOpenAudit}
+                      onSaveToBank={onSaveToBank}
                     />
                   ))}
                 </div>

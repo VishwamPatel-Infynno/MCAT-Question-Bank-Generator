@@ -35,6 +35,12 @@ class GenerationRequest(BaseModel):
     batch_id: str | None = Field(
         None, description="Optional batch run UUID4 binding multiple questions"
     )
+    job_id: str | None = Field(
+        None, description="Optional batch job UUID4 binding questions to a specific job"
+    )
+    passing_threshold: int | None = Field(
+        None, description="Quality benchmark passing threshold score (defaults to 90; 85 for batch jobs)"
+    )
 
     # Manager Combination Matrix attributes
     combination_id: str | None = Field(

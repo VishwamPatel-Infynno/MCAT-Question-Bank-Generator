@@ -337,6 +337,26 @@ async def init_db_schema(engine: AsyncEngine):
             )
         )
 
+        # 6. Reconcile question status for two-tier quality thresholds (>90 -> ai_validated, 86-90 -> batch_only, <=85 -> below_threshold)
+        await conn.execute(
+            text(
+                """
+                UPDATE questions
+                SET status = 'batch_only'
+                WHERE status = 'ai_validated' AND final_score > 85 AND final_score <= 90;
+                """
+            )
+        )
+        await conn.execute(
+            text(
+                """
+                UPDATE questions
+                SET status = 'below_threshold'
+                WHERE status = 'ai_validated' AND final_score <= 85;
+                """
+            )
+        )
+
     logger.info(
         "PostgreSQL tables verified / created successfully with passages, batches, matrix columns, FKs, and FTS."
     )

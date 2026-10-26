@@ -1,26 +1,47 @@
 import React from 'react';
-import { CheckCircle2, Image as ImageIcon, Sparkles, XCircle, AlertCircle, Database } from 'lucide-react';
+import {
+  CheckCircle2,
+  Image as ImageIcon,
+  Sparkles,
+  XCircle,
+  AlertCircle,
+  Database,
+  Layers
+} from 'lucide-react';
 
 export default function BatchQuestionItem({
   question,
   index = 0,
   onNavigateToBank,
   onNavigateToValidated,
-  onOpenAudit
+  onOpenAudit,
+  onSaveToBank
 }) {
   if (!question) return null;
 
   // Determine lifecycle status
-  const status = question.status || (question.final_score > 90 ? 'ai_validated' : 'below_threshold');
+  let status = question.status;
+  const finalScore = question.final_score ?? 95;
+  if (!status) {
+    if (finalScore > 90) status = 'ai_validated';
+    else if (finalScore > 85) status = 'batch_only';
+    else status = 'below_threshold';
+  }
+
+  const isBelowThreshold = status === 'below_threshold' || finalScore <= 85;
 
   return (
     <div
       style={{
-        background: 'var(--bg-canvas)',
-        border: '1px solid var(--border-light)',
+        background: isBelowThreshold ? 'var(--bg-surface-subtle)' : 'var(--bg-canvas)',
+        border: isBelowThreshold
+          ? '1px dashed var(--border-medium)'
+          : '1px solid var(--border-light)',
         borderRadius: 'var(--radius-xs)',
         padding: '10px 12px',
-        fontSize: '0.78rem'
+        fontSize: '0.78rem',
+        opacity: isBelowThreshold ? 0.85 : 1,
+        transition: 'all var(--transition-fast)'
       }}
     >
       <div
@@ -33,7 +54,7 @@ export default function BatchQuestionItem({
           gap: '6px'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <span style={{ fontWeight: 800, color: 'var(--brand-primary)', fontSize: '0.75rem' }}>
             Question {index + 1}
           </span>
@@ -73,7 +94,26 @@ export default function BatchQuestionItem({
                 gap: '4px'
               }}
             >
-              <Sparkles size={11} /> In AI Validated
+              <Sparkles size={11} /> In AI Validated (&gt;90)
+            </span>
+          )}
+
+          {status === 'batch_only' && (
+            <span
+              style={{
+                fontSize: '0.675rem',
+                padding: '2px 8px',
+                borderRadius: '10px',
+                background: 'rgba(51, 90, 207, 0.12)',
+                color: 'var(--brand-primary)',
+                border: '1px solid rgba(51, 90, 207, 0.3)',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <Layers size={11} /> Batch Only (86-90)
             </span>
           )}
 
@@ -111,7 +151,7 @@ export default function BatchQuestionItem({
                 gap: '4px'
               }}
             >
-              <AlertCircle size={11} /> Below Threshold (&le;90)
+              <AlertCircle size={11} /> Below Threshold (&le;85)
             </span>
           )}
         </div>
@@ -122,12 +162,28 @@ export default function BatchQuestionItem({
             style={{
               fontSize: '0.65rem',
               padding: '1px 6px',
-              background: (question.final_score || 95) > 90 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-              color: (question.final_score || 95) > 90 ? 'var(--status-success)' : '#d97706',
+              background:
+                finalScore > 90
+                  ? 'rgba(16, 185, 129, 0.12)'
+                  : finalScore > 85
+                    ? 'rgba(51, 90, 207, 0.12)'
+                    : 'rgba(245, 158, 11, 0.12)',
+              color:
+                finalScore > 90
+                  ? 'var(--status-success)'
+                  : finalScore > 85
+                    ? 'var(--brand-primary)'
+                    : '#d97706',
+              border:
+                finalScore > 90
+                  ? '1px solid rgba(16, 185, 129, 0.25)'
+                  : finalScore > 85
+                    ? '1px solid rgba(51, 90, 207, 0.25)'
+                    : '1px solid rgba(245, 158, 11, 0.25)',
               fontWeight: 700
             }}
           >
-            Score {question.final_score || 95}/100
+            Score {finalScore}/100
           </span>
           {question.image_svg && (
             <span
@@ -210,6 +266,25 @@ export default function BatchQuestionItem({
           {question.aamc_skill || question.primary_trap || 'MCAT Standard'}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {status === 'batch_only' && onSaveToBank && (
+            <button
+              type="button"
+              onClick={() => onSaveToBank(question)}
+              className="btn-primary"
+              style={{
+                padding: '3px 9px',
+                fontSize: '0.7rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+              title="Promote question directly to Question Bank"
+            >
+              <Database size={10} />
+              <span>Save to Bank</span>
+            </button>
+          )}
+
           {status === 'ai_validated' && onNavigateToValidated && (
             <button
               type="button"

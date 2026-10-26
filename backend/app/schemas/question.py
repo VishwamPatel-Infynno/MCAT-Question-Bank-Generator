@@ -100,7 +100,7 @@ class Question(BaseModel):
     )
     status: str = Field(
         "in_bank",
-        description="Lifecycle status: 'ai_validated', 'in_bank', 'discarded', 'below_threshold'",
+        description="Lifecycle status: 'ai_validated', 'in_bank', 'discarded', 'below_threshold', 'batch_only'",
     )
     section: str
     section_label: str
@@ -265,4 +265,4 @@ class StatusUpdateRequest(BaseModel):
     """Request body for updating lifecycle status of questions."""
 
     ids: list[str]
-    status: str  # 'in_bank', 'discarded', 'ai_validated', 'below_threshold'
+    status: str  # 'in_bank', 'discarded', 'ai_validated', 'below_threshold', 'batch_only'

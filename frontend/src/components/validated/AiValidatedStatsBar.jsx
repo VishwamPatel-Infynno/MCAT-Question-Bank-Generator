@@ -98,26 +98,32 @@ export default function AiValidatedStatsBar({
           borderTop: '1px solid var(--border-light)'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Pending AI Validated:</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Pending AI Validated (&gt;90):</span>
           <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--status-success)' }}>
             {counts.ai_validated || questionsCount}
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>In Question Bank:</span>
           <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--brand-primary)' }}>
             {counts.in_bank || 0}
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Batch Only (86-90):</span>
+          <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--brand-indigo, #6366f1)' }}>
+            {counts.batch_only || 0}
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Discarded:</span>
           <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-muted)' }}>
             {counts.discarded || 0}
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Below Threshold (&le;90):</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Below Threshold (&le;85):</span>
           <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#f59e0b' }}>
             {counts.below_threshold || 0}
           </span>

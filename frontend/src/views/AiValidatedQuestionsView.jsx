@@ -52,7 +52,8 @@ export default function AiValidatedQuestionsView({
         fetchQuestions({ status: 'ai_validated', section: sectionFilter || undefined }),
         fetchQuestionCounts()
       ]);
-      setQuestions(qsRes.questions || []);
+      const loadedQs = (qsRes.questions || []).filter(q => (q.final_score || 0) > 90);
+      setQuestions(loadedQs);
       setCounts(countsRes || {});
       if (onRefreshCounts) onRefreshCounts();
     } catch (err) {
@@ -79,7 +80,8 @@ export default function AiValidatedQuestionsView({
           fetchQuestionCounts()
         ]);
         if (!ignore) {
-          setQuestions(qsRes.questions || []);
+          const loadedQs = (qsRes.questions || []).filter(q => (q.final_score || 0) > 90);
+          setQuestions(loadedQs);
           setCounts(countsRes || {});
           if (onRefreshCounts) onRefreshCounts();
         }
@@ -99,11 +101,12 @@ export default function AiValidatedQuestionsView({
     };
   }, [sectionFilter, onRefreshCounts]);
 
-  // Filtered in-memory questions by search query
+  // Filtered in-memory questions by search query (strictly preserving score > 90 benchmark)
   const filteredQuestions = useMemo(() => {
-    if (!searchQuery.trim()) return questions;
+    const validQuestions = questions.filter(item => (item.final_score || 0) > 90);
+    if (!searchQuery.trim()) return validQuestions;
     const q = searchQuery.toLowerCase().trim();
-    return questions.filter(item =>
+    return validQuestions.filter(item =>
       (item.question_stem && item.question_stem.toLowerCase().includes(q)) ||
       (item.subtopic && item.subtopic.toLowerCase().includes(q)) ||
       (item.explanation && item.explanation.toLowerCase().includes(q)) ||
