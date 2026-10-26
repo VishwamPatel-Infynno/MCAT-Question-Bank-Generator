@@ -223,6 +223,33 @@ export default function AiValidatedQuestionsView({
     }
   };
 
+  const handleApproveAllValidated = async () => {
+    const allIds = filteredQuestions.map(q => q.id);
+    if (allIds.length === 0) return;
+    const count = allIds.length;
+    setActionInProgress(true);
+    try {
+      await batchUpdateQuestionStatus(allIds, 'in_bank');
+      setQuestions(prev => prev.filter(item => !allIds.includes(item.id)));
+      setSelectedIds([]);
+      if (onShowToast) {
+        onShowToast({
+          type: 'success',
+          title: 'All Validated Questions Approved',
+          message: `${count} question(s) moved to Question Bank.`
+        });
+      }
+      loadData(true);
+    } catch (err) {
+      console.error('Approve all validated failed:', err);
+      if (onShowToast) {
+        onShowToast({ type: 'error', title: 'Action Failed', message: err.message || 'Error updating questions.' });
+      }
+    } finally {
+      setActionInProgress(false);
+    }
+  };
+
   const togglePassage = (id) => {
     setExpandedPassageIds(prev => ({ ...prev, [id]: !prev[id] }));
   };
@@ -254,6 +281,7 @@ export default function AiValidatedQuestionsView({
         actionInProgress={actionInProgress}
         onBulkMoveToBank={handleBulkMoveToBank}
         onBulkDiscard={handleBulkDiscard}
+        onApproveAllValidated={handleApproveAllValidated}
       />
 
       {/* Main Content Area */}

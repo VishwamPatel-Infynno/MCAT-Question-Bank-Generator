@@ -119,11 +119,16 @@ Psychological, Social & Biological (PS)  -> Royal Violet  (#a855f7 / #7c3aed)
 ## 4. Component Design Specifications
 
 ### 4.1 Guided Question Wizard (`GuidedWizard.jsx`)
-- **Step 1: Section & Exam Style**: MCAT section selection (CP, CARS, BB, PS) with official pacing badges (~96s to ~101s per question) and style mix controls.
-- **Step 2: Syllabus Subtopics**: Section-specific subtopic selector spanning general chemistry, organic mechanisms, kinematics, CARS humanities, biochemistry pathways, and behavioral theories.
-- **Step 3: Difficulty & Trap Calibration**: 3 difficulty tiers (Foundational, Standard MCAT, Top Percentile) paired with deliberate AAMC cognitive trap engineering.
-- **Step 4: Reading Material & Stimulus**: Option to generate novel research study passages, experimental figures, or attach shared passage sets (500-650 words).
-- **Step 5: Review & Batch Generation**: Batch size controls (1 to 5 items), diagram generation toggle with dynamic DeepInfra cost preview, and the primary **Generate Questions** action.
+- **Step 1: Section & Exam Style**: Official AAMC section selection (CP, CARS, BB, PS) with authentic pacing badges (~96s to ~101s per question).
+- **Step 2: Discipline & Major Unit**: Discipline breakdown and major unit selection based on the official AAMC syllabus.
+- **Step 3: Topic & High-Yield Concept**: Targeted topic and granular subtopic concept selection.
+- **Step 4: Level, Scope & Question Format**: Calibrated challenge level (Foundational, Standard MCAT, Top Percentile), question format (Passage-Based vs Independent Single-Choice), and 3 calibrated Generation Scopes:
+  1. **Quick Single Item (1 Q)**: Real-time SSE streaming into the interactive Question Desk (~15-25s) with live telemetry and inline editing.
+  2. **Live Mini-Set (5 Qs)**: Parallel drafting on a shared passage or discrete set (~35-50s) staged in the interactive multi-slot desk.
+  3. **Full Mock Section (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
+- **Step 5: Cognitive Traps & Reasoning Skills**: Deliberate AAMC distractor trap calibration (e.g., Extreme Language, Correlation vs Causation, Formula Trap) paired with official AAMC SIRS and CARS skills.
+- **Step 6: Visual Stimulus & Custom Guidance**: Programmatic SVG vector diagram generation, student misconception engineering, and custom prompt directives.
+- **Step 7: Review & Multi-Agent Launch**: End-to-end parameter audit with quick scope switcher pills and dynamic launch action.
 
 ### 4.2 Multi-Agent Conduit Telemetry (`MultiAgentPipelineVisualizer.jsx`)
 - Three connected functional milestones (**Question Writer & Reviewer**, **Question Improver**, **Diagram & Chart Maker**).

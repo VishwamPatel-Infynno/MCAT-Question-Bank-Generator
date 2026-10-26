@@ -209,6 +209,26 @@ export function useGeneratorForm(initialValues = {}) {
     });
   }, []);
 
+  const setGenerationTotal = useCallback((total) => {
+    const validTotal = [1, 5, 50].includes(total) ? total : (total > 5 ? 50 : (total > 1 ? 5 : 1));
+    setFormData(prev => {
+      const isPassage = prev.passageMode === 'single_passage';
+      return {
+        ...prev,
+        totalQuestions: validTotal,
+        singleChoiceCount: validTotal,
+        multiChoiceCount: 0,
+        passageCount: isPassage ? (validTotal === 50 ? 10 : 1) : 0,
+        passageQuestionCount: isPassage ? validTotal : 0,
+        passageSingleCount: isPassage ? validTotal : 0,
+        passageMultiCount: 0,
+        independentSingleCount: isPassage ? 0 : validTotal,
+        independentMultiCount: 0,
+        imageQuestionIndices: (prev.imageQuestionIndices || []).filter(idx => idx <= validTotal)
+      };
+    });
+  }, []);
+
   return {
     formData,
     setFormData,
@@ -222,6 +242,7 @@ export function useGeneratorForm(initialValues = {}) {
     setSingleImageCount,
     setMultiImageCount,
     setRequirePassageImage,
-    resetForm
+    resetForm,
+    setGenerationTotal
   };
 }

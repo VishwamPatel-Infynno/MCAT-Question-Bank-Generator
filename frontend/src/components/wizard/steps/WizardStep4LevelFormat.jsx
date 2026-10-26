@@ -16,7 +16,9 @@ export default function WizardStep4LevelFormat({
   passageMode = 'single_passage',
   handlePassageModeChange,
   questionType = 'PASSAGE_BASED_MCQ',
-  setQuestionType
+  setQuestionType,
+  totalQuestions = 50,
+  setTotalQuestions
 }) {
   const isCars = selectedSection === 'cars';
 
@@ -196,6 +198,120 @@ export default function WizardStep4LevelFormat({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Subtle connector */}
+      <div className="wizard-decision-connector" />
+
+      {/* Decision 3: Generation Scope & Workflow Mode */}
+      <div className="wizard-stacked-decision">
+        <div className="wizard-decision-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="wizard-decision-num">3</span>
+            <span className="wizard-decision-title">Generation Scope & Execution Mode</span>
+          </div>
+          <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
+            {totalQuestions === 50 ? 'Background Batch' : 'Real-Time Live SSE'}
+          </span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
+          {/* Preset 1: Quick Single Item */}
+          <div
+            className={`wizard-tier-card ${totalQuestions === 1 ? 'selected' : ''}`}
+            onClick={() => setTotalQuestions?.(1)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setTotalQuestions?.(1);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1rem' }}>⚡</span>
+                <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Quick Single Item (1 Q)
+                </span>
+              </div>
+              {totalQuestions === 1 && (
+                <CheckCircle2 size={16} style={{ color: 'var(--brand-primary)' }} />
+              )}
+            </div>
+            <div style={{ marginBottom: '6px' }}>
+              <span className="badge badge-emerald" style={{ fontSize: '0.675rem' }}>Live Workspace (~15-25s)</span>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
+              Live real-time stream into the interactive Question Desk with live conduit telemetry and inline editing.
+            </p>
+          </div>
+
+          {/* Preset 2: Live Mini-Set */}
+          <div
+            className={`wizard-tier-card ${totalQuestions === 5 ? 'selected' : ''}`}
+            onClick={() => setTotalQuestions?.(5)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setTotalQuestions?.(5);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1rem' }}>🎯</span>
+                <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Live Mini-Set (5 Qs)
+                </span>
+              </div>
+              {totalQuestions === 5 && (
+                <CheckCircle2 size={16} style={{ color: 'var(--brand-primary)' }} />
+              )}
+            </div>
+            <div style={{ marginBottom: '6px' }}>
+              <span className="badge badge-purple" style={{ fontSize: '0.675rem' }}>Staged Batch Desk (~35-50s)</span>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
+              Parallel drafting linked to a shared reading passage (or 5 discretes) reviewed on the multi-slot staging desk.
+            </p>
+          </div>
+
+          {/* Preset 3: Full Mock Section */}
+          <div
+            className={`wizard-tier-card ${totalQuestions === 50 ? 'selected' : ''}`}
+            onClick={() => setTotalQuestions?.(50)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setTotalQuestions?.(50);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1rem' }}>📚</span>
+                <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Full Mock Section (50 Qs)
+                </span>
+              </div>
+              {totalQuestions === 50 && (
+                <CheckCircle2 size={16} style={{ color: 'var(--brand-primary)' }} />
+              )}
+            </div>
+            <div style={{ marginBottom: '6px' }}>
+              <span className="badge badge-cyan" style={{ fontSize: '0.675rem' }}>Background 10 Jobs (Async)</span>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
+              Enterprise batch generation across 10 concurrent background worker jobs with automatic quality validation.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

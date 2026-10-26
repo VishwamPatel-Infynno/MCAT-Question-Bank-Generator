@@ -13,7 +13,8 @@ export default function AiValidatedFiltersBar({
   selectedCount = 0,
   actionInProgress = false,
   onBulkMoveToBank,
-  onBulkDiscard
+  onBulkDiscard,
+  onApproveAllValidated
 }) {
   return (
     <div
@@ -96,6 +97,28 @@ export default function AiValidatedFiltersBar({
             />
             <span>Select All ({totalFiltered})</span>
           </label>
+        )}
+
+        {selectedCount === 0 && totalFiltered > 0 && onApproveAllValidated && (
+          <button
+            type="button"
+            onClick={onApproveAllValidated}
+            disabled={actionInProgress}
+            className="btn-primary"
+            style={{
+              padding: '6px 14px',
+              fontSize: '0.76rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'var(--status-success)',
+              borderColor: 'var(--status-success)'
+            }}
+            title="Approve all filtered validated questions into the Question Bank"
+          >
+            <Database size={13} />
+            <span>Approve All Validated ({totalFiltered})</span>
+          </button>
         )}
 
         {selectedCount > 0 && (

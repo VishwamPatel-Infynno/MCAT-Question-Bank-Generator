@@ -12,6 +12,7 @@ export default function WizardStep7Review({
   customPrompt,
   difficulty,
   totalQuestions = 50,
+  setTotalQuestions,
   questionType = 'PASSAGE_BASED_MCQ',
   totalImagesCount = 0,
   hasPassageImage = false,
@@ -108,19 +109,53 @@ export default function WizardStep7Review({
           </button>
         </div>
 
-        {/* Row 4: Challenge Level & Format (Step 4) */}
+        {/* Row 4: Challenge Level, Scope & Format (Step 4) */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Challenge Level & Format</div>
-            <div className="wizard-summary-value" style={{ marginTop: '4px', flexWrap: 'wrap' }}>
+            <div className="wizard-summary-label">Challenge Level, Scope & Format</div>
+            <div className="wizard-summary-value" style={{ marginTop: '4px', flexWrap: 'wrap', gap: '8px' }}>
               <span style={{ textTransform: 'capitalize', fontWeight: 600 }}>{difficulty} Difficulty</span>
               <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
-              <span style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>Standard Batch: {totalQuestions} Questions (10 Jobs)</span>
+              <span style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>
+                {totalQuestions === 1
+                  ? 'Quick Single Item (1 Q, Live)'
+                  : totalQuestions === 5
+                  ? 'Live Mini-Set (5 Qs, Staged)'
+                  : `Full Mock Section (${totalQuestions} Qs, 10 Jobs)`}
+              </span>
               <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
               <span className="badge-minimal">
                 {questionType === 'PASSAGE_BASED_MCQ' ? 'Passage-Based MCQ (Single Choice)' : 'Independent MCQ (Single Choice)'}
               </span>
             </div>
+            {setTotalQuestions && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Quick switch scope:</span>
+                {[
+                  { count: 1, label: '1 Q (Live)' },
+                  { count: 5, label: '5 Qs (Staged)' },
+                  { count: 50, label: '50 Qs (Batch)' }
+                ].map(({ count, label }) => (
+                  <button
+                    key={count}
+                    type="button"
+                    onClick={() => setTotalQuestions(count)}
+                    style={{
+                      padding: '3px 8px',
+                      fontSize: '0.7rem',
+                      fontWeight: totalQuestions === count ? 700 : 500,
+                      borderRadius: 'var(--radius-xs)',
+                      background: totalQuestions === count ? 'var(--brand-light)' : 'var(--bg-surface-subtle)',
+                      border: totalQuestions === count ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
+                      color: totalQuestions === count ? 'var(--brand-primary)' : 'var(--text-secondary)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <button
             type="button"
@@ -129,7 +164,7 @@ export default function WizardStep7Review({
             title="Edit Difficulty & Format"
           >
             <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
-            Edit Level
+            Edit Scope
           </button>
         </div>
 

@@ -211,7 +211,7 @@ export default function QuestionCard({
 
           {effectiveTrapInfo && (
             <span
-              className="badge badge-amber"
+              className="badge badge-purple"
               style={{
                 fontSize: '0.675rem',
                 display: 'inline-flex',

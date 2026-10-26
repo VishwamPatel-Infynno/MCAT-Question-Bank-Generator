@@ -7,9 +7,11 @@ import {
   ChevronDown,
   ChevronUp,
   Image as ImageIcon,
-  BookOpen
+  BookOpen,
+  AlertTriangle
 } from 'lucide-react';
 import { MCAT_SECTION_LABELS } from '../../constants/mcat';
+import { getEffectiveTrapInfo } from '../../utils';
 
 export default function AiValidatedQuestionCard({
   question: q,
@@ -24,6 +26,7 @@ export default function AiValidatedQuestionCard({
   actionInProgress = false
 }) {
   const hasPassage = Boolean(q.stimulus_text && q.stimulus_text.trim());
+  const trapInfo = getEffectiveTrapInfo(q);
 
   return (
     <div
@@ -47,7 +50,7 @@ export default function AiValidatedQuestionCard({
           flexWrap: 'wrap'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <input
             type="checkbox"
             checked={isSelected}
@@ -82,6 +85,15 @@ export default function AiValidatedQuestionCard({
           >
             {q.difficulty}
           </span>
+          {trapInfo?.label && (
+            <span
+              className="badge badge-purple"
+              style={{ fontSize: '0.675rem', padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              title={`Primary Cognitive Trap: ${trapInfo.label}`}
+            >
+              <AlertTriangle size={10} /> Trap: {trapInfo.label}
+            </span>
+          )}
           {q.image_svg && (
             <span
               className="badge-minimal"

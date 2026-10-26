@@ -153,7 +153,7 @@ export default function QuestionBankTable({
                       if (!trapInfo?.label) return null;
                       return (
                         <span
-                          className="badge badge-amber"
+                          className="badge badge-purple"
                           style={{ fontSize: '0.62rem', padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
                           title={`Primary Cognitive Trap: ${trapInfo.label}`}
                         >

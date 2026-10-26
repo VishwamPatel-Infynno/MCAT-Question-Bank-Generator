@@ -54,7 +54,8 @@ export default function GuidedWizard({
   const selectedSubskill = form.selectedSubskill || '';
   const questionType = form.questionType || 'PASSAGE_BASED_MCQ';
   const difficulty = form.difficulty || 'medium';
-  const totalQuestions = 50;
+  const totalQuestions = form.totalQuestions || 50;
+  const setGenerationTotal = generatorForm?.setGenerationTotal || ((t) => update('totalQuestions', t));
   const primaryTrap = form.primaryTrap || 'Automatic';
   const likelyMistakePattern = form.likelyMistakePattern || '';
   const customMistakePattern = form.customMistakePattern || '';
@@ -149,7 +150,7 @@ export default function GuidedWizard({
         passageRequired: 'Yes',
         questionType: 'PASSAGE_BASED_MCQ',
         passageQuestionCount: totalQuestions,
-        passageCount: totalQuestions,
+        passageCount: totalQuestions === 50 ? 10 : 1,
         passageSingleCount: totalQuestions,
         passageMultiCount: 0,
         singleChoiceCount: totalQuestions,
@@ -216,7 +217,11 @@ export default function GuidedWizard({
               </span>
             </div>
             <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
-              Standard Batch: {totalQuestions} Questions
+              {totalQuestions === 1
+                ? 'Quick Single (1 Question)'
+                : totalQuestions === 5
+                ? 'Live Mini-Set (5 Questions)'
+                : `Standard Batch: ${totalQuestions} Questions`}
             </span>
           </div>
         </div>
@@ -334,7 +339,7 @@ export default function GuidedWizard({
           />
         )}
 
-        {/* Step 4: Challenge Level & Question Format (2 Decisions) */}
+        {/* Step 4: Challenge Level & Question Format (3 Decisions) */}
         {step === 4 && (
           <WizardStep4LevelFormat
             selectedSection={selectedSection}
@@ -345,6 +350,8 @@ export default function GuidedWizard({
             handlePassageModeChange={handlePassageModeChange}
             questionType={questionType}
             setQuestionType={setQuestionType}
+            totalQuestions={totalQuestions}
+            setTotalQuestions={setGenerationTotal}
           />
         )}
 
@@ -395,6 +402,7 @@ export default function GuidedWizard({
             customPrompt={customPrompt}
             difficulty={difficulty}
             totalQuestions={totalQuestions}
+            setTotalQuestions={setGenerationTotal}
             questionType={questionType}
             totalImagesCount={totalImagesCount}
             hasPassageImage={hasPassageImage}
@@ -451,7 +459,13 @@ export default function GuidedWizard({
           {step === totalSteps ? (
             <>
               <Sparkles size={16} />
-              <span>Launch 50-Question Batch</span>
+              <span>
+                {totalQuestions === 1
+                  ? 'Generate Single Question (Live)'
+                  : totalQuestions === 5
+                  ? 'Generate 5-Question Set (Live)'
+                  : 'Launch 50-Question Batch'}
+              </span>
             </>
           ) : (
             <>
