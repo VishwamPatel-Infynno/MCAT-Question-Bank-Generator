@@ -12,9 +12,6 @@ requires-python = ">=3.11"
 [tool.ruff]
 target-version = "py311"
 line-length = 100
-extend-exclude = [
-    "testsprite_tests",
-]
 
 
 [tool.ruff.lint]

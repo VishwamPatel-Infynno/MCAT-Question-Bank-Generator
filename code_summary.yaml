@@ -36,7 +36,7 @@ features:
   - name: Hero Landing and Quick Presets
     description: Landing hero screen with quick-start action presets, jump to question bank, or start guided generation wizard
     files:
-      - src/components/layout/HeroLanding.jsx
+      - src/components/wizard/HeroLanding.jsx
       - src/views/GeneratorWorkspaceView.jsx
     entry_route: /
     user_interactions:
@@ -50,7 +50,6 @@ features:
     description: Step-by-step form to configure section, subtopic, question type, difficulty, batch size, and AI image toggle before generating questions
     files:
       - src/components/wizard/GuidedWizard.jsx
-      - src/components/wizard/ConfigSidebar.jsx
       - src/hooks/useGeneratorForm.js
     entry_route: /
     user_interactions:
@@ -70,10 +69,10 @@ features:
     description: Real-time agentic execution workspace showing active agents, iteration counts, SSE live logs, and question previews
     files:
       - src/views/GeneratorWorkspaceView.jsx
-      - src/components/pipeline/AgentPipelineDisplay.jsx
-      - src/components/pipeline/LiveEventFeed.jsx
-      - src/components/pipeline/BatchProgressBar.jsx
-      - src/hooks/useGeneratorStream.js
+      - src/components/pipeline/AgentVisualizer.jsx
+      - src/components/pipeline/MultiAgentPipelineVisualizer.jsx
+      - src/components/staged/BatchProgressHeader.jsx
+      - src/hooks/useQuestionGenerator.js
     entry_route: /
     user_interactions:
       - Watch active agent stages update in real time
@@ -88,9 +87,10 @@ features:
   - name: Staged Question Review, Editing, and Approval
     description: Interactive review of newly generated questions with options to view rationales, edit content, approve to bank, or discard
     files:
-      - src/components/staged/StagedQuestionsList.jsx
+      - src/components/staged/StagedBatchGrid.jsx
+      - src/components/staged/StagedBatchReview.jsx
       - src/components/question/QuestionCard.jsx
-      - src/components/modals/EditQuestionModal.jsx
+      - src/components/question/QuestionInlineEditor.jsx
       - src/components/question/ReviewAuditView.jsx
     entry_route: /
     user_interactions:
@@ -112,9 +112,9 @@ features:
     description: Comprehensive repository explorer with search, faceted filtering by section, difficulty, and status, pagination, and deletion
     files:
       - src/views/QuestionBankView.jsx
-      - src/components/bank/BankToolbar.jsx
-      - src/components/bank/BankFilters.jsx
-      - src/components/bank/BankPagination.jsx
+      - src/components/bank/QuestionBankFilters.jsx
+      - src/components/bank/QuestionBankTable.jsx
+      - src/hooks/useQuestionBank.js
     entry_route: /
     user_interactions:
       - Type search query into question search bar
@@ -136,7 +136,8 @@ features:
   - name: Question Export
     description: Export selected or all question bank questions in multiple formats including CSV, JSON, QTI XML, and Markdown/PDF
     files:
-      - src/components/bank/ExportModal.jsx
+      - src/components/modals/ExportPrintModal.jsx
+      - src/components/modals/ExportPaperPreview.jsx
       - src/views/QuestionBankView.jsx
     entry_route: /
     user_interactions:
@@ -153,8 +154,9 @@ features:
     description: Dashboard tracking all previous batch generation runs, completion statuses, question yield, and timestamp logs
     files:
       - src/views/BatchActivityView.jsx
-      - src/components/batch/BatchList.jsx
-      - src/components/batch/BatchDetailModal.jsx
+      - src/components/batch/BatchCard.jsx
+      - src/components/batch/BatchJobCard.jsx
+      - src/components/batch/BatchFiltersBar.jsx
     entry_route: /
     user_interactions:
       - Click Batches tab to view list of batch generation runs
@@ -171,7 +173,8 @@ features:
     description: Dedicated view highlighting questions that met high AI confidence and rubric validation criteria
     files:
       - src/views/AiValidatedQuestionsView.jsx
-      - src/components/validated/ValidatedQuestionCard.jsx
+      - src/components/validated/AiValidatedQuestionCard.jsx
+      - src/components/validated/AiValidatedFiltersBar.jsx
     entry_route: /
     user_interactions:
       - View list of high-confidence validated questions

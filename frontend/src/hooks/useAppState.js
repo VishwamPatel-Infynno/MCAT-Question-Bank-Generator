@@ -1,5 +1,5 @@
 /**
- * useAppState — Central application state and handler hook.
+ * useAppState - Central application state and handler hook.
  *
  * Extracted from App.jsx to enforce single-responsibility: App.jsx now
  * purely assembles the layout while this hook owns all stateful logic,

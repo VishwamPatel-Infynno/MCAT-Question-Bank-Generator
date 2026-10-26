@@ -1,7 +1,8 @@
 import asyncio
-import re
+
 from playwright import async_api
 from playwright.async_api import expect
+
 
 async def run_test():
     pw = None
@@ -19,7 +20,7 @@ async def run_test():
                 "--window-size=1280,720",
                 "--disable-dev-shm-usage",
                 "--ipc=host",
-                "--single-process"
+                "--single-process",
             ],
         )
 
@@ -39,33 +40,38 @@ async def run_test():
             await page.wait_for_load_state("domcontentloaded", timeout=5000)
         except Exception:
             pass
-        
+
         # -> Open the Question Generator view from the main navigation.
         # Question Generator button
         elem = page.get_by_role("button", name="Question Generator")
         await elem.click(timeout=10000)
-        
+
         # -> Open the “Batch Activity” view from the main navigation and verify that its page content appears.
         # Batch Activity 2 button
         elem = page.get_by_role("button", name="Batch Activity")
         await elem.click(timeout=10000)
-        
+
         # -> Open the “AI Validated” view from the main navigation and verify that its page content appears.
         # AI Validated 268 button
         elem = page.get_by_role("button", name="AI Validated")
         await elem.click(timeout=10000)
-        
+
         # -> Open the “Question Bank” view from the main navigation and verify that its question repository is displayed.
         # Question Bank button
         elem = page.get_by_role("button", name="Question Bank", exact=True)
         await elem.click(timeout=10000)
-        
+
         # --> Assertions to verify final state
-        
+
         # --> The Question Bank repository is displayed.
         # Assert-outcome: not verified — the export-time check could not be evaluated
         # Assert: The Question Bank repository should be displayed.
-        await expect(page.locator("#root").nth(0)).to_contain_text("Verified Library", timeout=15000), "The Question Bank repository should be displayed."
+        (
+            await expect(page.locator("#root").nth(0)).to_contain_text(
+                "Verified Library", timeout=15000
+            ),
+            "The Question Bank repository should be displayed.",
+        )
         await asyncio.sleep(5)
 
     finally:
@@ -76,5 +82,5 @@ async def run_test():
         if pw:
             await pw.stop()
 
+
 asyncio.run(run_test())
-    

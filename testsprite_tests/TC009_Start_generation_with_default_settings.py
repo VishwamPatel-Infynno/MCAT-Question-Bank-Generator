@@ -1,7 +1,8 @@
 import asyncio
-import re
+
 from playwright import async_api
 from playwright.async_api import expect
+
 
 async def run_test():
     pw = None
@@ -19,7 +20,7 @@ async def run_test():
                 "--window-size=1280,720",
                 "--disable-dev-shm-usage",
                 "--ipc=host",
-                "--single-process"
+                "--single-process",
             ],
         )
 
@@ -39,53 +40,58 @@ async def run_test():
             await page.wait_for_load_state("domcontentloaded", timeout=5000)
         except Exception:
             pass
-        
+
         # -> Open the question generator using “Get Started - Create Questions” and inspect its initial settings.
         # Get Started - Create Questions button
         elem = page.get_by_role("button", name="Get Started - Create Questions")
         await elem.click(timeout=10000)
-        
+
         # -> Continue from the default exam section and inspect the next wizard step.
         # Continue to Unit button
         elem = page.get_by_role("button", name="Continue to Unit")
         await elem.click(timeout=10000)
-        
+
         # -> Continue with the default discipline and unit selections to inspect the topic step.
         # Continue to Topic button
         elem = page.get_by_role("button", name="Continue to Topic")
         await elem.click(timeout=10000)
-        
+
         # -> Continue from the default topic and concept to inspect the difficulty-level step.
         # Continue to Level button
         elem = page.get_by_role("button", name="Continue to Level")
         await elem.click(timeout=10000)
-        
+
         # -> Continue from the default level and format settings to inspect the Traps step.
         # Continue to Traps button
         elem = page.get_by_role("button", name="Continue to Traps")
         await elem.click(timeout=10000)
-        
+
         # -> Continue from the default Cognitive Traps & Reasoning Skills settings to the Visuals step.
         # Continue to Visuals button
         elem = page.get_by_role("button", name="Continue to Visuals")
         await elem.click(timeout=10000)
-        
+
         # -> Open the Review Configuration step while leaving optional visual and refinement settings unchanged.
         # Review Configuration button
         elem = page.get_by_role("button", name="Review Configuration")
         await elem.click(timeout=10000)
-        
+
         # -> Launch the 50-question batch using the unchanged default settings and verify that the live generation pipeline appears.
         # Launch 50-Question Batch button
         elem = page.get_by_role("button", name="Launch 50-Question Batch")
         await elem.click(timeout=10000)
-        
+
         # --> Assertions to verify final state
-        
+
         # --> The Batch Activity view displays an in-progress generation batch.
         # Assert-outcome: not verified — the export-time check could not be evaluated
         # Assert: The generation batch is shown as in progress.
-        await expect(page.get_by_role("main").nth(0)).to_contain_text("In Progress", timeout=15000), "The generation batch is shown as in progress."
+        (
+            await expect(page.get_by_role("main").nth(0)).to_contain_text(
+                "In Progress", timeout=15000
+            ),
+            "The generation batch is shown as in progress.",
+        )
         await asyncio.sleep(5)
 
     finally:
@@ -96,5 +102,5 @@ async def run_test():
         if pw:
             await pw.stop()
 
+
 asyncio.run(run_test())
-    

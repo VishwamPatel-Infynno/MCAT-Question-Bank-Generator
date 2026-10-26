@@ -36,8 +36,7 @@ const DIFFICULTY_FILTER_OPTIONS = [
 const STATUS_FILTER_OPTIONS = [
   { id: '', label: 'All Statuses' },
   { id: 'in_bank', label: 'Approved' },
-  { id: 'ai_validated', label: 'AI Validated' },
-  { id: 'draft', label: 'Draft' }
+  { id: 'ai_validated', label: 'AI Validated' }
 ];
 
 /**

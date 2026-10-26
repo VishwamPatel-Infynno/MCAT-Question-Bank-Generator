@@ -1,7 +1,7 @@
 import asyncio
-import re
+
 from playwright import async_api
-from playwright.async_api import expect
+
 
 async def run_test():
     pw = None
@@ -19,7 +19,7 @@ async def run_test():
                 "--window-size=1280,720",
                 "--disable-dev-shm-usage",
                 "--ipc=host",
-                "--single-process"
+                "--single-process",
             ],
         )
 
@@ -39,17 +39,17 @@ async def run_test():
             await page.wait_for_load_state("domcontentloaded", timeout=5000)
         except Exception:
             pass
-        
+
         # -> Open the Question Bank view from the top navigation.
         # Question Bank button
         elem = page.get_by_role("button", name="Question Bank", exact=True)
         await elem.click(timeout=10000)
-        
+
         # -> Select the first question’s “Delete question” control and inspect the confirmation prompt.
         # Delete question button
         elem = page.locator(".btn-danger").first
         await elem.click(timeout=10000)
-        
+
         # --> Test passed — verified by AI agent
         frame = context.pages[-1]
         current_url = await frame.evaluate("() => window.location.href")
@@ -64,5 +64,5 @@ async def run_test():
         if pw:
             await pw.stop()
 
+
 asyncio.run(run_test())
-    

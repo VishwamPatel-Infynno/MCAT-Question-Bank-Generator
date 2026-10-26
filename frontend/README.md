@@ -78,20 +78,18 @@ frontend/src/
 │   │   ├── BatchQuestionItem.jsx # Staged question item with review modal
 │   │   └── BatchStatsHeader.jsx  # High-level aggregate batch statistics
 │   ├── validated/
-│   │   ├── AiValidatedCard.jsx   # Card with direct bank approval actions
+│   │   ├── AiValidatedQuestionCard.jsx # Card with direct bank approval actions
 │   │   ├── AiValidatedFiltersBar.jsx # Filters for AI-validated questions
 │   │   └── AiValidatedStatsBar.jsx # Quick-action statistics header
 │   └── wizard/
 │       ├── GuidedWizard.jsx      # Progressive 7-step guided exam generation wizard dock
 │       ├── HeroLanding.jsx       # Welcome landing hero header
-│       ├── IndependentDiagramControls.jsx # Standalone diagram requirements selector
-│       ├── wizardConstants.js    # Re-exports and presets for wizard steps
 │       └── steps/                # Progressive 7-step subcomponents (WizardStep1Section through WizardStep7Review)
 ├── constants/
 │   ├── index.js                  # Constants barrel export
 │   ├── config.js                 # Pricing models, image parameters, token rates
 │   ├── mcat.js                   # MCAT sections, pacing specs, icons, and fallback topics
-│   ├── mcatTaxonomy.json         # AAMC-aligned foundational concepts and skills
+│   ├── mcat_dependent_taxonomy.json # AAMC-aligned foundational concepts and skills
 │   └── mcatTraps.js              # AAMC cognitive trap definitions and defense strategies
 ├── hooks/
 │   ├── index.js                  # Barrel export for custom hooks

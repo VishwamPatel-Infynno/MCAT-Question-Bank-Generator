@@ -1,7 +1,7 @@
 import asyncio
-import re
+
 from playwright import async_api
-from playwright.async_api import expect
+
 
 async def run_test():
     pw = None
@@ -19,7 +19,7 @@ async def run_test():
                 "--window-size=1280,720",
                 "--disable-dev-shm-usage",
                 "--ipc=host",
-                "--single-process"
+                "--single-process",
             ],
         )
 
@@ -39,57 +39,57 @@ async def run_test():
             await page.wait_for_load_state("domcontentloaded", timeout=5000)
         except Exception:
             pass
-        
+
         # -> Open the question generator using “Get Started - Create Questions” and inspect its available setup fields.
         # Get Started - Create Questions button
         elem = page.get_by_role("button", name="Get Started - Create Questions")
         await elem.click(timeout=10000)
-        
+
         # -> Continue from the selected Chemistry & Physics section to the Unit selection step.
         # Continue to Unit button
         elem = page.get_by_role("button", name="Continue to Unit")
         await elem.click(timeout=10000)
-        
+
         # -> Continue to the topic-selection step using “Continue to Topic.”
         # Continue to Topic button
         elem = page.get_by_role("button", name="Continue to Topic")
         await elem.click(timeout=10000)
-        
+
         # -> Continue to the Level step using the visible “Continue to Level” control.
         # Continue to Level button
         elem = page.get_by_role("button", name="Continue to Level")
         await elem.click(timeout=10000)
-        
+
         # -> Continue from the Level and format screen to configure question traps.
         # Continue to Traps button
         elem = page.get_by_role("button", name="Continue to Traps")
         await elem.click(timeout=10000)
-        
+
         # -> Select the visible “Identify or recognize a scientific concept” subskill on the Cognitive Traps screen.
         # Identify or recognize a scientific concept button
         elem = page.get_by_role("button", name="Identify or recognize a")
         await elem.click(timeout=10000)
-        
+
         # -> Continue to the Visuals setup stage using the “Continue to Visuals” control.
         # Continue to Visuals button
         elem = page.get_by_role("button", name="Continue to Visuals")
         await elem.click(timeout=10000)
-        
+
         # -> Open the configuration review screen using “Review Configuration.”
         # Review Configuration button
         elem = page.get_by_role("button", name="Review Configuration")
         await elem.click(timeout=10000)
-        
+
         # -> Select the “1 Q (Live)” generation scope so the run can expose live progress, then inspect the updated review screen.
         # 1 Q (Live) button
         elem = page.get_by_role("button", name="Q (Live)")
         await elem.click(timeout=10000)
-        
+
         # -> Start the live question generation with “Generate Single Question (Live)” and inspect the active run for progress and event logs.
         # Generate Single Question (Live) button
         elem = page.get_by_role("button", name="Generate Single Question (")
         await elem.click(timeout=10000)
-        
+
         # --> Test passed — verified by AI agent
         frame = context.pages[-1]
         current_url = await frame.evaluate("() => window.location.href")
@@ -104,5 +104,5 @@ async def run_test():
         if pw:
             await pw.stop()
 
+
 asyncio.run(run_test())
-    

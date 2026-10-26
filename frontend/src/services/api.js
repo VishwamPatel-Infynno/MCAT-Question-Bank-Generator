@@ -15,7 +15,7 @@ async function assertOk(res, context = 'API call') {
     try {
       const body = await res.clone().json();
       detail = body?.detail || body?.message || '';
-    } catch { /* ignore parse failures — use status code only */ }
+    } catch { /* ignore parse failures - use status code only */ }
     throw new Error(
       `${context} failed (HTTP ${res.status})${detail ? ': ' + detail : ''}`
     );

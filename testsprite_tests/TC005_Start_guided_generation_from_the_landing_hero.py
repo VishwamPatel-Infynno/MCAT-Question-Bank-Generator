@@ -1,7 +1,8 @@
 import asyncio
-import re
+
 from playwright import async_api
 from playwright.async_api import expect
+
 
 async def run_test():
     pw = None
@@ -19,7 +20,7 @@ async def run_test():
                 "--window-size=1280,720",
                 "--disable-dev-shm-usage",
                 "--ipc=host",
-                "--single-process"
+                "--single-process",
             ],
         )
 
@@ -39,19 +40,26 @@ async def run_test():
             await page.wait_for_load_state("domcontentloaded", timeout=5000)
         except Exception:
             pass
-        
+
         # -> Click “Get Started - Create Questions” and verify that the guided generation wizard appears.
         # Get Started - Create Questions button
         elem = page.get_by_role("button", name="Get Started - Create Questions")
         await elem.click(timeout=10000)
-        
+
         # --> Assertions to verify final state
-        
+
         # --> The guided generation wizard opened at the exam-section step.
-        await page.get_by_role("button", name="Continue to Unit").nth(0).scroll_into_view_if_needed()
+        await (
+            page.get_by_role("button", name="Continue to Unit").nth(0).scroll_into_view_if_needed()
+        )
         # Assert-outcome: not verified — the export-time check could not be evaluated
         # Assert: The guided generation wizard's Continue to Unit control is visible.
-        await expect(page.get_by_role("button", name="Continue to Unit").nth(0)).to_be_visible(timeout=15000), "The guided generation wizard's Continue to Unit control is visible."
+        (
+            await expect(page.get_by_role("button", name="Continue to Unit").nth(0)).to_be_visible(
+                timeout=15000
+            ),
+            "The guided generation wizard's Continue to Unit control is visible.",
+        )
         await asyncio.sleep(5)
 
     finally:
@@ -62,5 +70,5 @@ async def run_test():
         if pw:
             await pw.stop()
 
+
 asyncio.run(run_test())
-    
