@@ -55,7 +55,7 @@ Evaluate this question thoroughly and return your 100-point rubric breakdown as 
             system_prompt=REVIEWER_SYSTEM_PROMPT,
             model=req.model_name,
             api_key=req.api_key,
-            temperature=0.3,
+            temperature=config.REVIEWER_TEMPERATURE,
             max_tokens=config.REVIEWER_MAX_TOKENS,
         )
         data = safe_json_loads(raw_output)

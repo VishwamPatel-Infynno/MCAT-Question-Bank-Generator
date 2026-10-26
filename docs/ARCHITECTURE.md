@@ -106,7 +106,7 @@ The system coordinates specialized autonomous engines with a deterministic quali
 - **Routing Optimization**:
   - If self-critique score $> 90$, the workflow sets `fused_self_passed=True` and routes directly to the Visual Engine or Finalize Node, cutting latency by $35-45\%$ and saving ~590 tokens.
   - If self-critique score $\le 90$, the candidate draft is routed to the Remediation Engine and Independent Auditor loop.
-- **Inference Gateway**: High-throughput enterprise reasoning model (~110-140 tok/s, Temperature: `0.7`).
+- **Inference Gateway**: High-throughput enterprise reasoning model (~110-140 tok/s, Temperature: `0.2` for strict instruction adherence).
 
 ### 3.2 Independent Senior Psychometric Auditor (`reviewer.py`)
 - **Mission**: Acts as an impartial Senior Psychometric Auditor, independently evaluating candidate questions whenever the initial draft does not clear the self-critique threshold or after a remediation cycle.
@@ -119,7 +119,7 @@ The system coordinates specialized autonomous engines with a deterministic quali
   - Passing Score: **$> 90$** points ($91 - 100$).
   - Failing Score: **$\le 90$** points ($0 - 90$).
 - **Output**: Returns numerical pillar scores, observed strengths, specific weaknesses, and actionable remediation instructions.
-- **Inference Gateway**: High-throughput enterprise reasoning model (Temperature: `0.3` for objective, deterministic evaluation).
+- **Inference Gateway**: High-throughput enterprise reasoning model (Temperature: `0.1` for objective, deterministic evaluation).
 
 ### 3.3 Autonomous Remediation Engine (`regenerator.py`)
 - **Mission**: Triggered exclusively when the score is $\le 90$. It digests the exact critique, distractor deficiencies, and recommendations to repair the draft.
@@ -127,7 +127,7 @@ The system coordinates specialized autonomous engines with a deterministic quali
   - Fixes borderline ambiguities, equalizes option lengths, and sharpens distractor plausibility.
   - Deepens step-by-step rationales explaining why the key is incontrovertible and why every distractor fails.
   - Re-submits the updated draft back to the Reviewer for re-audit.
-- **Inference Gateway**: High-throughput enterprise reasoning model (Temperature: `0.6`).
+- **Inference Gateway**: High-throughput enterprise reasoning model (Temperature: `0.2` for disciplined remediation).
 
 ### 3.4 Strict Quality Gate (`reject_node` in `app/workflow/nodes.py`)
 - **Mission**: Deterministic circuit breaker. If a candidate draft fails to exceed 90 points after reaching the maximum permitted remediation cycles (`MAX_REGENERATION_ATTEMPTS = 3`), the workflow halts immediately.

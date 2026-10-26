@@ -4,6 +4,7 @@ import {
   RotateCcw,
   PenTool,
   CheckCircle2,
+  ShieldCheck,
   Terminal
 } from 'lucide-react';
 import { LiveStopwatch } from '../common';
@@ -42,6 +43,14 @@ export default function MultiAgentPipelineVisualizer({
         activeAgent === 'Question Reviewer'
       );
 
+  const isBlindSolverActive = isSwarm
+    ? isGenerating && qList.some(q => !q.isComplete && q.stage === 'blind_solving')
+    : (
+        activeAgent === 'Blind-Solver Dual Validation' ||
+        activeAgent === 'Blind Solver' ||
+        activeAgent === 'Blind-Solver Student Agent'
+      );
+
   const isRegenActive = isSwarm
     ? isGenerating && qList.some(q => !q.isComplete && q.stage === 'remediating')
     : (activeAgent === 'Question Improver' || activeAgent === 'Question Re-Generator');
@@ -50,15 +59,20 @@ export default function MultiAgentPipelineVisualizer({
     ? isGenerating && qList.some(q => !q.isComplete && q.stage === 'image')
     : (activeAgent === 'Diagram & Chart Maker' || activeAgent === 'Image Generator');
 
-  // Completion states: in a swarm, a stage is fully completed only when NO question is at or before that stage
+  // Completion states
   const hasWriterReviewerCompleted = isSwarm
-    ? qList.length > 0 && qList.every(q => q.stage !== 'drafting' && (q.stage !== 'queued'))
+    ? qList.length > 0 && qList.every(q => q.stage !== 'drafting' && q.stage !== 'queued')
     : events.some(e =>
         (e.agent_name === 'Question Writer & Reviewer' ||
          e.agent_name === 'Question Writer' ||
          e.agent_name === 'Question Generator') &&
         e.event_type === 'agent_complete'
       );
+
+  const hasBlindSolverCompleted = events.some(e =>
+    (e.agent_name === 'Blind-Solver Dual Validation' || e.agent_name === 'Blind Solver') &&
+    e.event_type === 'agent_complete'
+  );
 
   const hasRegenFired = iterationCount > 1 || events.some(e => e.agent_name === 'Question Improver' || e.agent_name === 'Question Re-Generator');
   const hasImgCompleted = events.some(e => (e.agent_name === 'Diagram & Chart Maker' || e.agent_name === 'Image Generator') && e.event_type === 'agent_complete');
@@ -69,8 +83,10 @@ export default function MultiAgentPipelineVisualizer({
     || (isGenerating
       ? (isWriterReviewerActive
           ? 'Question Writer & Reviewer — Processing...'
+          : isBlindSolverActive
+          ? 'Blind-Solver Dual Validation — Verifying key indisputability...'
           : isRegenActive
-          ? 'Question Improver — Processing...'
+          ? 'Question Improver — Remediating distractor traps...'
           : isImgActive
           ? 'Diagram Maker — Processing...'
           : 'AI Team creating questions...')
@@ -80,8 +96,8 @@ export default function MultiAgentPipelineVisualizer({
     {
       id: 'writer_reviewer',
       stepNum: '01',
-      title: 'Question Writer & Reviewer',
-      subtitle: 'Fused Drafting & 100-pt Audit',
+      title: 'Writer & Reviewer',
+      subtitle: 'Fused Draft & Audit',
       guarantee: isSwarm
         ? 'Parallel Drafting & Instant Audit'
         : (latestReview?.total_score ? `${latestReview.total_score}/100 Quality Score` : 'Draft & Instant Audit (~40% Faster)'),
@@ -91,8 +107,21 @@ export default function MultiAgentPipelineVisualizer({
       isDone: hasWriterReviewerCompleted
     },
     {
-      id: 'regenerator',
+      id: 'blind_solver',
       stepNum: '02',
+      title: 'Blind Solver',
+      subtitle: 'Dual Verification',
+      guarantee: hasBlindSolverCompleted
+        ? 'Indisputable Key (Verified)'
+        : (isBlindSolverActive ? 'Solving Blind (No Key)...' : 'Zero Ambiguity Standard'),
+      icon: ShieldCheck,
+      accentColor: 'var(--status-success)',
+      isActive: isBlindSolverActive,
+      isDone: hasBlindSolverCompleted || (hasWriterReviewerCompleted && !isGenerating)
+    },
+    {
+      id: 'regenerator',
+      stepNum: '03',
       title: 'Question Improver',
       subtitle: 'Polish & Refine',
       guarantee: hasRegenFired
@@ -105,7 +134,7 @@ export default function MultiAgentPipelineVisualizer({
     },
     {
       id: 'image',
-      stepNum: '03',
+      stepNum: '04',
       title: 'Diagram & Chart Maker',
       subtitle: 'Visuals & Figures',
       guarantee: hasImgCompleted

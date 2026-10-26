@@ -110,11 +110,15 @@ async def test_max_tokens_settings_and_config_endpoint():
     settings_data = await get_settings()
     assert settings_data["default_max_tokens"] == 3000
     assert settings_data["reviewer_max_tokens"] == 1800
+    assert settings_data["default_temperature"] == 0.2
+    assert settings_data["generator_temperature"] == 0.2
+    assert settings_data["reviewer_temperature"] == 0.1
+    assert settings_data["blind_solver_temperature"] == 0.1
 
 
 @pytest.mark.asyncio
-async def test_call_llm_effective_max_tokens(monkeypatch):
-    """Verify call_llm uses config.DEFAULT_MAX_TOKENS by default and respects explicit overrides."""
+async def test_call_llm_effective_max_tokens_and_temperature(monkeypatch):
+    """Verify call_llm uses config.DEFAULT_MAX_TOKENS and config.DEFAULT_TEMPERATURE by default and respects explicit overrides."""
     import litellm
     from app.agents.base import call_llm
 
@@ -131,7 +135,7 @@ async def test_call_llm_effective_max_tokens(monkeypatch):
 
     monkeypatch.setattr(litellm, "acompletion", mock_acompletion)
 
-    # 1. Default invocation (max_tokens=None) should use config.DEFAULT_MAX_TOKENS (3000)
+    # 1. Default invocation (max_tokens=None, temperature=None) should use config defaults
     await call_llm(
         prompt="test prompt",
         system_prompt="test system",
@@ -141,14 +145,18 @@ async def test_call_llm_effective_max_tokens(monkeypatch):
     assert len(captured_kwargs) == 1
     assert captured_kwargs[0]["max_tokens"] == config.DEFAULT_MAX_TOKENS
     assert captured_kwargs[0]["max_tokens"] == 3000
+    assert captured_kwargs[0]["temperature"] == config.DEFAULT_TEMPERATURE
+    assert captured_kwargs[0]["temperature"] == 0.2
 
-    # 2. Explicit invocation with custom max_tokens (e.g. config.REVIEWER_MAX_TOKENS = 1800)
+    # 2. Explicit invocation with custom max_tokens & temperature
     await call_llm(
         prompt="test prompt 2",
         system_prompt="test system 2",
         model="deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
         api_key="mock_key",
+        temperature=config.REVIEWER_TEMPERATURE,
         max_tokens=config.REVIEWER_MAX_TOKENS,
     )
     assert len(captured_kwargs) == 2
     assert captured_kwargs[1]["max_tokens"] == 1800
+    assert captured_kwargs[1]["temperature"] == 0.1

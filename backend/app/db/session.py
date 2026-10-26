@@ -9,26 +9,43 @@ from app.db.init_db import init_db_schema
 
 logger = logging.getLogger(__name__)
 
-# Create Async Engine & Sessionmaker
+# Native PostgreSQL 16 engine via asyncpg with production connection pooling
 engine = create_async_engine(
-    config.DATABASE_URL, echo=False, pool_pre_ping=True, pool_size=10, max_overflow=20
+    config.DATABASE_URL,
+    echo=False,
+    pool_pre_ping=True,
+    pool_size=10,
+    max_overflow=20,
 )
 
-async_session_factory = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+# Standard async session factory bound to PostgreSQL engine
+async_session_factory = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
 
 
 async def init_db():
-    """Coordinates database schema creation, DDL migrations, and table verification."""
-    logger.info("Initializing PostgreSQL schema and tables...")
+    """Initializes PostgreSQL database tables, migrations, and indexes."""
+    logger.info("Initializing PostgreSQL schema and connections...")
+    async with engine.connect() as conn:
+        await conn.execute(text("SELECT 1;"))
     await init_db_schema(engine)
+    logger.info("PostgreSQL database schema initialized successfully.")
 
 
 async def check_db_health() -> dict[str, Any]:
-    """Probes database connection health for readiness/liveness checks."""
+    """Probes PostgreSQL database connection health for readiness/liveness checks."""
     try:
         async with async_session_factory() as session:
             await session.execute(text("SELECT 1;"))
-            return {"connected": True, "status": "ready"}
+            return {"connected": True, "status": "ready", "engine": "postgresql"}
     except Exception as e:
         logger.error(f"PostgreSQL connection check failed: {e}")
-        return {"connected": False, "status": "unavailable", "error": str(e)}
+        return {
+            "connected": False,
+            "status": "unavailable",
+            "engine": "postgresql",
+            "error": str(e),
+        }

@@ -25,8 +25,6 @@ async def health_check():
         "default_text_model": config.DEFAULT_TEXT_MODEL,
         "default_image_model": config.DEFAULT_IMAGE_MODEL,
         "has_deepinfra_key": bool(config.DEEPINFRA_API_KEY),
-        "has_gemini_key": bool(config.GEMINI_API_KEY),
-        "has_openai_key": bool(config.OPENAI_API_KEY),
         "max_regenerations": config.MAX_REGENERATION_ATTEMPTS,
         "passing_threshold": config.PASSING_SCORE_THRESHOLD,
         "cost_per_million_input": config.COST_PER_MILLION_INPUT_TOKENS,

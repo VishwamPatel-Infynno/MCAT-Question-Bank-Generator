@@ -6,6 +6,7 @@ from app.schemas import (
     GenerationRequest,
     MCATSection,
     ReviewScore,
+    TokenUsage,
 )
 from app.workflow.graph import route_after_review
 
@@ -225,3 +226,85 @@ async def test_generate_question_with_self_critique_structure(monkeypatch):
     assert review2 is not None
     assert review2.total_score == 98
     assert review2.passed is True
+
+
+@pytest.mark.asyncio
+async def test_blind_solver_node_agreement(monkeypatch):
+    import app.agents.blind_solver as bs_mod
+    from app.workflow.nodes import blind_solver_node
+
+    req = GenerationRequest(section=MCATSection.BIO_BIOCHEM, difficulty=Difficulty.MEDIUM)
+    draft = get_mock_draft(req)
+
+    # Mock call_llm in blind_solver to agree with draft's key
+    async def mock_solver_llm(*_args, **_kwargs):
+        json_resp = f"""{{
+            "selected_key": "{draft.correct_answer_id}",
+            "confidence": 96,
+            "is_ambiguous": false,
+            "ambiguity_notes": "",
+            "solver_rationale": "Option {draft.correct_answer_id} is indisputably proven."
+        }}"""
+        return json_resp, TokenUsage(
+            prompt_tokens=100, completion_tokens=50, total_tokens=150, cost_usd=0.0001
+        )
+
+    monkeypatch.setattr(bs_mod, "call_llm", mock_solver_llm)
+
+    state = {
+        "request": req.model_dump(),
+        "current_draft": draft.model_dump(),
+        "current_review": {
+            "total_score": 95,
+            "passed": True,
+            "weaknesses": [],
+            "recommendations": [],
+        },
+        "iteration_count": 1,
+    }
+    result = await blind_solver_node(state)
+    assert result["blind_solver_passed"] is True
+    assert result["status"] == "blind_solver_passed"
+    assert result["blind_solver_result"]["selected_key"] == draft.correct_answer_id
+
+
+@pytest.mark.asyncio
+async def test_blind_solver_node_discrepancy_triggers_critique(monkeypatch):
+    import app.agents.blind_solver as bs_mod
+    from app.workflow.nodes import blind_solver_node
+
+    req = GenerationRequest(section=MCATSection.BIO_BIOCHEM, difficulty=Difficulty.MEDIUM)
+    draft = get_mock_draft(req)
+    wrong_key = "C" if draft.correct_answer_id != "C" else "A"
+
+    async def mock_solver_llm(*_args, **_kwargs):
+        json_resp = f"""{{
+            "selected_key": "{wrong_key}",
+            "confidence": 92,
+            "is_ambiguous": true,
+            "ambiguity_notes": "Stem can be interpreted in two ways.",
+            "solver_rationale": "Option {wrong_key} is defended under interpretation 2."
+        }}"""
+        return json_resp, TokenUsage(
+            prompt_tokens=100, completion_tokens=50, total_tokens=150, cost_usd=0.0001
+        )
+
+    monkeypatch.setattr(bs_mod, "call_llm", mock_solver_llm)
+
+    state = {
+        "request": req.model_dump(),
+        "current_draft": draft.model_dump(),
+        "current_review": {
+            "total_score": 95,
+            "passed": True,
+            "weaknesses": [],
+            "recommendations": [],
+        },
+        "iteration_count": 1,
+    }
+    result = await blind_solver_node(state)
+    assert result["blind_solver_passed"] is False
+    assert result["status"] == "blind_solver_failed"
+    # Ensure current_review was penalized below passing threshold to route to regenerator
+    assert result["current_review"]["total_score"] <= 90
+    assert any("Blind Solver" in w for w in result["current_review"]["weaknesses"])

@@ -20,6 +20,7 @@ from app.workflow.engine import (
     run_workflow_stream,
 )
 from app.workflow.nodes import (
+    blind_solver_node,
     finalize_node,
     fused_generator_node,
     generator_node,
@@ -43,6 +44,7 @@ def create_mcat_graph() -> StateGraph:
     workflow.add_node("fused_generator", fused_generator_node)
     workflow.add_node("generator", generator_node)
     workflow.add_node("reviewer", reviewer_node)
+    workflow.add_node("blind_solver", blind_solver_node)
     workflow.add_node("regenerator", regenerator_node)
     workflow.add_node("image_generator", image_node)
     workflow.add_node("finalize", finalize_node)
@@ -86,6 +88,7 @@ mcat_graph = create_mcat_graph()
 __all__ = [
     "AgentWorkflowState",
     "WorkflowRunResult",
+    "blind_solver_node",
     "create_mcat_graph",
     "finalize_node",
     "fused_generator_node",

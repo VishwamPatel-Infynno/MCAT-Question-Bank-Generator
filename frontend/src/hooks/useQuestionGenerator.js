@@ -166,6 +166,12 @@ export function useQuestionGenerator() {
               nextStage = 'drafting';
             } else if (evt.agent_name === 'Quality Reviewer' || evt.agent_name === 'Question Reviewer') {
               nextStage = 'reviewing';
+            } else if (
+              evt.agent_name === 'Blind-Solver Dual Validation' ||
+              evt.agent_name === 'Blind Solver' ||
+              evt.agent_name === 'Blind-Solver Student Agent'
+            ) {
+              nextStage = 'blind_solving';
             } else if (evt.agent_name === 'Question Improver' || evt.agent_name === 'Question Re-Generator') {
               nextStage = 'remediating';
             } else if (evt.agent_name === 'Diagram & Chart Maker' || evt.agent_name === 'Image Generator') {

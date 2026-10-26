@@ -1,6 +1,7 @@
 import logging
 from typing import Any
 
+from app.agents.blind_solver import blind_solve_question
 from app.agents.generator import (
     generate_question,
     generate_question_with_self_critique,
@@ -179,6 +180,78 @@ async def reviewer_node(state: AgentWorkflowState) -> dict[str, Any]:
         "iterations_history": existing_history,
         "active_agent": "Question Reviewer",
         "status": f"reviewed_iteration_{iteration}",
+        "total_tokens": t_tokens,
+        "total_prompt_tokens": p_tokens,
+        "total_completion_tokens": c_tokens,
+        "total_cost_usd": t_cost,
+        "agent_usage_breakdown": breakdown,
+        "latest_usage": usage.model_dump(),
+        "stage_outcomes": outcomes,
+    }
+
+
+async def blind_solver_node(state: AgentWorkflowState) -> dict[str, Any]:
+    """
+    Blind-Solver Dual Validation Node:
+    Tests candidate question against an independent top-score solver without
+    providing the intended key or explanation. Verifies indisputability and flags ambiguities.
+    """
+    req = GenerationRequest(**state["request"])
+    draft = QuestionDraft(**state["current_draft"])
+    iteration = state.get("iteration_count", 1)
+
+    logger.info(f"Executing Blind-Solver Dual Validation Agent (Iteration {iteration})...")
+    result, usage = await blind_solve_question(draft, req)
+
+    agent_entry = {
+        "agent": "Blind-Solver Dual Validation",
+        "iteration": iteration,
+        "prompt_tokens": usage.prompt_tokens,
+        "completion_tokens": usage.completion_tokens,
+        "total_tokens": usage.total_tokens,
+        "cost_usd": usage.cost_usd,
+    }
+    breakdown = list(state.get("agent_usage_breakdown", []))
+    breakdown.append(agent_entry)
+
+    p_tokens = state.get("total_prompt_tokens", 0) + usage.prompt_tokens
+    c_tokens = state.get("total_completion_tokens", 0) + usage.completion_tokens
+    t_tokens = state.get("total_tokens", 0) + usage.total_tokens
+    t_cost = round(state.get("total_cost_usd", 0.0) + usage.cost_usd, 7)
+
+    outcomes = dict(state.get("stage_outcomes", {}))
+    outcomes["blind_solver_validation"] = result.model_dump()
+
+    blind_passed = result.is_verified
+    cur_review = dict(state.get("current_review") or {})
+
+    if not blind_passed:
+        # Build actionable critique for regenerator
+        expected_key = draft.correct_answer_id
+        critique_msg = (
+            f"Blind Solver selected Option {result.selected_key} instead of intended Option {expected_key}. "
+            f"Solver rationale: {result.solver_rationale}. "
+            f"Ambiguity noted: {result.ambiguity_notes or 'Stem or distractors permit dual interpretation.'} "
+            f"Confidence: {result.confidence}%."
+        )
+        cur_review["total_score"] = min(int(cur_review.get("total_score", 95)), 82)
+        cur_review["passed"] = False
+        weaknesses = list(cur_review.get("weaknesses", []))
+        weaknesses.append(critique_msg)
+        cur_review["weaknesses"] = weaknesses
+
+        recommendations = list(cur_review.get("recommendations", []))
+        recommendations.append(
+            f"Clarify question stem to eliminate ambiguity between intended Option {expected_key} and Option {result.selected_key}."
+        )
+        cur_review["recommendations"] = recommendations
+
+    return {
+        "blind_solver_result": result.model_dump(),
+        "blind_solver_passed": blind_passed,
+        "current_review": cur_review,
+        "active_agent": "Blind-Solver Dual Validation",
+        "status": "blind_solver_passed" if blind_passed else "blind_solver_failed",
         "total_tokens": t_tokens,
         "total_prompt_tokens": p_tokens,
         "total_completion_tokens": c_tokens,

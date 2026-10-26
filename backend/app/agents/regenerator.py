@@ -76,7 +76,7 @@ Please re-generate and refine this question to resolve all weaknesses and produc
             system_prompt=REGENERATOR_SYSTEM_PROMPT,
             model=req.model_name,
             api_key=req.api_key,
-            temperature=0.6,
+            temperature=config.REGENERATOR_TEMPERATURE,
             max_tokens=config.DEFAULT_MAX_TOKENS,
         )
         data = safe_json_loads(raw_output)

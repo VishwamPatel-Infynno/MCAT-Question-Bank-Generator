@@ -17,6 +17,7 @@ from app.schemas import (
     WorkflowEvent,
 )
 from app.workflow.nodes import (
+    blind_solver_node,
     finalize_node,
     fused_generator_node,
     image_node,
@@ -117,109 +118,210 @@ async def _run_question_review_loop(
 ) -> bool:
     """
     Executes the quality review, critique, remediation (regeneration), and quality gate routing
-    for a question draft. Returns True if the question passed quality gates, False if rejected.
+    for a question draft. Integrates Blind-Solver Dual Validation to verify indisputability.
     """
-    if state.get("fused_self_passed"):
-        self_review = state.get("current_review") or {}
-        score = self_review.get("total_score", 95)
-        logger.info(
-            f"Question {idx + 1} passed quality standards via Fused Draft & 100-pt Audit (Self-Critique: {score}/100)."
-        )
-        return True
-
     while True:
         iteration = state.get("iteration_count", 1)
 
-        rev_start_evt = make_event(
-            event_type="agent_start",
-            agent_name="Quality Reviewer",
-            message=f"Reviewing draft {idx + 1}/{total_qty} (Round {iteration}) against 90+ quality standards...",
-            data={
-                "index": idx + 1,
-                "total": total_qty,
-                "stage": "reviewing",
-                "iteration": iteration,
-            },
-            run_id=item_run_id,
-        )
-        await event_queue.put(rev_start_evt)
-
-        rev_res = await reviewer_node(state)
-        state.update(rev_res)
-
-        review = state["current_review"]
-        score = review["total_score"]
-        rev_usage = state.get("latest_usage", {})
-
-        rev_done_evt = make_event(
-            event_type="agent_complete",
-            agent_name="Quality Reviewer",
-            message=f"Quality review completed for Question {idx + 1}. Score: {score}/100.",
-            data={
-                "review": review,
-                "iteration": iteration,
-                "latest_usage": rev_usage,
-                "index": idx + 1,
-                "total": total_qty,
-                "stage": "reviewing",
-                "score": score,
-            },
-            run_id=item_run_id,
-        )
-        await event_queue.put(rev_done_evt)
-
-        next_step = route_after_review(state)
-        if next_step == "regenerator":
-            regen_start_evt = make_event(
+        # Step 1: Run Reviewer if fused self-review is absent or unverified
+        if not state.get("fused_self_passed"):
+            rev_start_evt = make_event(
                 event_type="agent_start",
-                agent_name="Question Improver",
-                message=f"Question {idx + 1} score {score}/100 needs improvement. Question Improver is refining answer options...",
+                agent_name="Quality Reviewer",
+                message=f"Reviewing draft {idx + 1}/{total_qty} (Round {iteration}) against 90+ quality standards...",
                 data={
                     "index": idx + 1,
                     "total": total_qty,
-                    "stage": "remediating",
+                    "stage": "reviewing",
                     "iteration": iteration,
+                },
+                run_id=item_run_id,
+            )
+            await event_queue.put(rev_start_evt)
+
+            rev_res = await reviewer_node(state)
+            state.update(rev_res)
+
+            review = state["current_review"]
+            score = review["total_score"]
+            rev_usage = state.get("latest_usage", {})
+
+            rev_done_evt = make_event(
+                event_type="agent_complete",
+                agent_name="Quality Reviewer",
+                message=f"Quality review completed for Question {idx + 1}. Score: {score}/100.",
+                data={
+                    "review": review,
+                    "iteration": iteration,
+                    "latest_usage": rev_usage,
+                    "index": idx + 1,
+                    "total": total_qty,
+                    "stage": "reviewing",
                     "score": score,
                 },
                 run_id=item_run_id,
             )
-            await event_queue.put(regen_start_evt)
+            await event_queue.put(rev_done_evt)
 
-            regen_res = await regenerator_node(state)
-            state.update(regen_res)
+            next_step = route_after_review(state)
+            if next_step == "regenerator":
+                regen_start_evt = make_event(
+                    event_type="agent_start",
+                    agent_name="Question Improver",
+                    message=f"Question {idx + 1} score {score}/100 needs improvement. Question Improver is refining answer options...",
+                    data={
+                        "index": idx + 1,
+                        "total": total_qty,
+                        "stage": "remediating",
+                        "iteration": iteration,
+                        "score": score,
+                    },
+                    run_id=item_run_id,
+                )
+                await event_queue.put(regen_start_evt)
 
-            regen_usage = state.get("latest_usage", {})
-            regen_done_evt = make_event(
-                event_type="agent_complete",
-                agent_name="Question Improver",
-                message=f"Question {idx + 1} improved (Draft v{state['iteration_count']} • {regen_usage.get('total_tokens', 0)} tokens, ${regen_usage.get('cost_usd', 0.0):.5f}). Re-checking with Quality Reviewer...",
+                regen_res = await regenerator_node(state)
+                state.update(regen_res)
+
+                regen_usage = state.get("latest_usage", {})
+                regen_done_evt = make_event(
+                    event_type="agent_complete",
+                    agent_name="Question Improver",
+                    message=f"Question {idx + 1} improved (Draft v{state['iteration_count']} • {regen_usage.get('total_tokens', 0)} tokens, ${regen_usage.get('cost_usd', 0.0):.5f}). Re-checking with Quality Reviewer...",
+                    data={
+                        "draft": state["current_draft"],
+                        "latest_usage": regen_usage,
+                        "index": idx + 1,
+                        "total": total_qty,
+                        "stage": "remediating",
+                    },
+                    run_id=item_run_id,
+                )
+                await event_queue.put(regen_done_evt)
+                continue
+            if next_step == "reject":
+                rej_res = await reject_node(state)
+                state.update(rej_res)
+                rej_data = state.get("rejection_data") or {}
+                if isinstance(rej_data, dict):
+                    rej_data["index"] = idx + 1
+                    rej_data["stage"] = "rejected"
+                rej_evt = make_event(
+                    event_type="workflow_rejected",
+                    agent_name="Quality Gate",
+                    message=f"Quality check not passed for Question {idx + 1} (Score {score}/100 after {iteration} attempts).",
+                    data=rej_data,
+                    run_id=item_run_id,
+                )
+                await event_queue.put(rej_evt)
+                return False
+
+        # Step 2: Blind-Solver Dual Validation Agent Pass
+        if config.ENABLE_BLIND_SOLVER:
+            bs_start_evt = make_event(
+                event_type="agent_start",
+                agent_name="Blind-Solver Dual Validation",
+                message=f"Running independent Blind-Solver Dual Validation on Question {idx + 1}...",
                 data={
-                    "draft": state["current_draft"],
-                    "latest_usage": regen_usage,
                     "index": idx + 1,
                     "total": total_qty,
-                    "stage": "remediating",
+                    "stage": "blind_solving",
+                    "iteration": iteration,
                 },
                 run_id=item_run_id,
             )
-            await event_queue.put(regen_done_evt)
-            continue
-        if next_step == "reject":
-            rej_res = await reject_node(state)
-            state.update(rej_res)
-            rej_data = state.get("rejection_data") or {}
-            if isinstance(rej_data, dict):
-                rej_data["index"] = idx + 1
-                rej_data["stage"] = "rejected"
-            rej_evt = make_event(
-                event_type="workflow_rejected",
-                agent_name="Quality Gate",
-                message=f"Quality check not passed for Question {idx + 1} (Score {score}/100 after {iteration} attempts).",
-                data=rej_data,
-                run_id=item_run_id,
-            )
-            await event_queue.put(rej_evt)
-            return False
+            await event_queue.put(bs_start_evt)
+
+            bs_res = await blind_solver_node(state)
+            state.update(bs_res)
+
+            bs_data = state.get("blind_solver_result") or {}
+            bs_passed = state.get("blind_solver_passed", True)
+            bs_usage = state.get("latest_usage", {})
+
+            if bs_passed:
+                bs_done_evt = make_event(
+                    event_type="agent_complete",
+                    agent_name="Blind-Solver Dual Validation",
+                    message=f"Blind-Solver validated Question {idx + 1} (Selected Option {bs_data.get('selected_key')} matches key, confidence: {bs_data.get('confidence')}%, unambiguous).",
+                    data={
+                        "blind_solver": bs_data,
+                        "latest_usage": bs_usage,
+                        "index": idx + 1,
+                        "total": total_qty,
+                        "stage": "blind_solving",
+                        "passed": True,
+                    },
+                    run_id=item_run_id,
+                )
+                await event_queue.put(bs_done_evt)
+                return True
+            else:
+                bs_fail_evt = make_event(
+                    event_type="agent_complete",
+                    agent_name="Blind-Solver Dual Validation",
+                    message=f"Blind-Solver flagged discrepancy for Question {idx + 1}: Selected Option {bs_data.get('selected_key')} (Confidence: {bs_data.get('confidence')}%). Remediation required.",
+                    data={
+                        "blind_solver": bs_data,
+                        "latest_usage": bs_usage,
+                        "index": idx + 1,
+                        "total": total_qty,
+                        "stage": "blind_solving",
+                        "passed": False,
+                    },
+                    run_id=item_run_id,
+                )
+                await event_queue.put(bs_fail_evt)
+
+                # Route to Question Improver for remediation if within attempt limits
+                max_attempts = config.MAX_REGENERATION_ATTEMPTS
+                if iteration < max_attempts:
+                    state["fused_self_passed"] = False
+                    regen_start_evt = make_event(
+                        event_type="agent_start",
+                        agent_name="Question Improver",
+                        message=f"Question Improver is remediating question {idx + 1} based on blind-solver critique...",
+                        data={
+                            "index": idx + 1,
+                            "total": total_qty,
+                            "stage": "remediating",
+                            "iteration": iteration,
+                        },
+                        run_id=item_run_id,
+                    )
+                    await event_queue.put(regen_start_evt)
+
+                    regen_res = await regenerator_node(state)
+                    state.update(regen_res)
+
+                    regen_usage = state.get("latest_usage", {})
+                    regen_done_evt = make_event(
+                        event_type="agent_complete",
+                        agent_name="Question Improver",
+                        message=f"Question {idx + 1} remediated (Draft v{state['iteration_count']}). Re-running validation...",
+                        data={
+                            "draft": state["current_draft"],
+                            "latest_usage": regen_usage,
+                            "index": idx + 1,
+                            "total": total_qty,
+                            "stage": "remediating",
+                        },
+                        run_id=item_run_id,
+                    )
+                    await event_queue.put(regen_done_evt)
+                    continue
+                else:
+                    rej_res = await reject_node(state)
+                    state.update(rej_res)
+                    rej_evt = make_event(
+                        event_type="workflow_rejected",
+                        agent_name="Quality Gate",
+                        message=f"Blind-Solver validation failed after {iteration} attempts for Question {idx + 1}.",
+                        data=state.get("rejection_data") or {},
+                        run_id=item_run_id,
+                    )
+                    await event_queue.put(rej_evt)
+                    return False
         else:
             return True
 
@@ -459,18 +561,19 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         outcomes_usage: list[list[dict[str, Any]]] = [[] for _ in range(total_qty)]
 
         async def _worker(idx: int) -> None:
-            async with semaphore:
-                item_req, item_run_id, is_passage_item, item_interaction = (
-                    _build_batch_worker_request(
-                        req=req,
-                        idx=idx,
-                        total_qty=total_qty,
-                        batch_id=batch_id,
-                        effective_passage_count=effective_passage_count,
-                        shared_passage_id=shared_passage_id,
-                        shared_passage_text=shared_passage_text,
+            try:
+                async with semaphore:
+                    item_req, item_run_id, is_passage_item, item_interaction = (
+                        _build_batch_worker_request(
+                            req=req,
+                            idx=idx,
+                            total_qty=total_qty,
+                            batch_id=batch_id,
+                            effective_passage_count=effective_passage_count,
+                            shared_passage_id=shared_passage_id,
+                            shared_passage_text=shared_passage_text,
+                        )
                     )
-                )
 
                 if total_qty > 1:
                     worker_msg = (
@@ -645,6 +748,16 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 outcomes_completion_tokens[idx] = state.get("total_completion_tokens", 0)
                 outcomes_costs[idx] = state.get("total_cost_usd", 0.0)
                 outcomes_usage[idx] = state.get("agent_usage_breakdown", [])
+            except Exception as worker_err:
+                logger.error(f"Worker {idx + 1} raised error: {worker_err}", exc_info=worker_err)
+                err_evt = make_event(
+                    event_type="workflow_error",
+                    agent_name="System",
+                    message=f"Generation failed for Question {idx + 1}: {str(worker_err)}",
+                    data={"index": idx + 1, "error": str(worker_err)},
+                    run_id=req.run_id,
+                )
+                await event_queue.put(err_evt)
 
         tasks.extend([asyncio.create_task(_worker(i)) for i in range(total_qty)])
 

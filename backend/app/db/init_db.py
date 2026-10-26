@@ -16,7 +16,8 @@ async def init_db_schema(engine: AsyncEngine):
     """Initializes PostgreSQL tables, verifies schema columns, backfills passages/batches, and ensures FTS indexes."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-        # Safe schema update for token tracking columns
+
+        # Safe schema update for token tracking columns (PostgreSQL)
         await conn.execute(
             text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS total_tokens INTEGER DEFAULT 0;")
         )

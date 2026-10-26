@@ -52,10 +52,6 @@ class Settings(BaseSettings):
 
     # API Keys — loaded automatically from .env by pydantic-settings
     DEEPINFRA_API_KEY: str = ""
-    GEMINI_API_KEY: str = ""
-    OPENAI_API_KEY: str = ""
-    ANTHROPIC_API_KEY: str = ""
-    GROQ_API_KEY: str = ""
 
     # CORS Trusted Origins (extra origins beyond localhost defaults, comma-separated in .env)
     ALLOWED_ORIGINS: list[str] = []
@@ -76,6 +72,23 @@ class Settings(BaseSettings):
     PASSING_SCORE_THRESHOLD: int = 90
     DEFAULT_MAX_TOKENS: int = 3000
     REVIEWER_MAX_TOKENS: int = 1800
+
+    # Strict Temperature Parameters for High Instruction Fidelity
+    DEFAULT_TEMPERATURE: float = 0.2
+    GENERATOR_TEMPERATURE: float = 0.2
+    REGENERATOR_TEMPERATURE: float = 0.2
+    REVIEWER_TEMPERATURE: float = 0.1
+    BLIND_SOLVER_TEMPERATURE: float = 0.1
+
+    # Dedicated DeepInfra Model Cascade List
+    FAST_MODEL_CASCADE: list[str] = [
+        "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    ]
+
+    # Blind-Solver Dual Validation Agent
+    ENABLE_BLIND_SOLVER: bool = True
+    BLIND_SOLVER_CONFIDENCE_THRESHOLD: int = 88
+    BLIND_SOLVER_MAX_TOKENS: int = 1200
 
     model_config = SettingsConfigDict(
         env_file=[str(Path(__file__).resolve().parent.parent.parent.parent / ".env"), ".env"],

@@ -33,6 +33,49 @@ const STEP_CONFIG = [
   { num: 7, label: 'Review', short: 'Review', subtitle: 'Review & Launch', nextLabel: 'Launch 50-Question Batch' }
 ];
 
+const QUICK_PRESETS = [
+  {
+    id: 'bio_biochem_5',
+    label: '⚡ Biochem Passage Set',
+    tag: '5 Qs • Live',
+    section: 'bio_biochem',
+    total: 5,
+    passageRequired: 'Yes',
+    passageMode: 'single_passage',
+    desc: 'Enzyme kinetics & metabolic regulation passage'
+  },
+  {
+    id: 'cars_essay_5',
+    label: '⚡ CARS Philosophy Essay',
+    tag: '5 Qs • Live',
+    section: 'cars',
+    total: 5,
+    passageRequired: 'Yes',
+    passageMode: 'single_passage',
+    desc: '500-600 word dense humanities reasoning'
+  },
+  {
+    id: 'chem_phys_1',
+    label: '⚡ Physics Discrete',
+    tag: '1 Q • Instant',
+    section: 'chem_phys',
+    total: 1,
+    passageRequired: 'No',
+    passageMode: 'independent',
+    desc: 'Fluids, circuits, or thermodynamics problem'
+  },
+  {
+    id: 'psych_soc_5',
+    label: '⚡ Psych / Sociology Set',
+    tag: '5 Qs • Live',
+    section: 'psych_soc',
+    total: 5,
+    passageRequired: 'Yes',
+    passageMode: 'single_passage',
+    desc: 'Cognitive bias & behavioral health study'
+  }
+];
+
 export default function GuidedWizard({
   generatorForm,
   onGenerateQuestions,
@@ -167,13 +210,26 @@ export default function GuidedWizard({
     }
   };
 
+  const handleApplyQuickPreset = (preset) => {
+    handleSelectSection(preset.section);
+    setGenerationTotal(preset.total);
+    update('passageRequired', preset.passageRequired);
+    update('passageMode', preset.passageMode);
+    setStep(7);
+  };
+
   // Keyboard navigation
   const handleKeyDown = useCallback((e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      e.preventDefault();
+      (onGenerateQuestions || onLaunchGeneration)?.();
+      return;
+    }
     if (e.key === 'Enter' && !e.shiftKey && e.target.tagName !== 'TEXTAREA') {
       e.preventDefault();
       handleNext();
     }
-  }, [handleNext]);
+  }, [handleNext, onGenerateQuestions, onLaunchGeneration]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -209,15 +265,13 @@ export default function GuidedWizard({
           {STEP_CONFIG.map((cfg) => {
             const isCurrent = step === cfg.num;
             const isCompleted = step > cfg.num;
-            const isClickable = isCompleted || isCurrent;
 
             return (
               <button
                 key={cfg.num}
                 type="button"
-                onClick={() => isCompleted && setStep(cfg.num)}
-                disabled={!isClickable}
-                title={isCompleted ? `Jump back to ${cfg.label}` : cfg.label}
+                onClick={() => setStep(cfg.num)}
+                title={`Jump to Step ${cfg.num}: ${cfg.label}`}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -226,7 +280,7 @@ export default function GuidedWizard({
                   borderRadius: 'var(--radius-full)',
                   fontSize: '0.75rem',
                   fontWeight: isCurrent ? 700 : 500,
-                  cursor: isCompleted ? 'pointer' : 'default',
+                  cursor: 'pointer',
                   background: isCurrent
                     ? 'var(--infynno-gradient)'
                     : isCompleted
@@ -280,14 +334,86 @@ export default function GuidedWizard({
       <div className="wizard-body wizard-step-fade-enter" key={step}>
         {/* Step 1: Exam Section (1 Decision) */}
         {step === 1 && (
-          <WizardStep1Section
-            selectedSection={selectedSection}
-            onSelectSection={handleSelectSection}
-            SECTION_METADATA={SECTION_METADATA}
-            sectionMeta={sectionMeta}
-            pacing={pacing}
-            onAutoAdvance={() => setStep(2)}
-          />
+          <>
+            {/* Quick Launch Preset Ribbon */}
+            <div style={{
+              background: 'var(--bg-surface-elevated)',
+              border: '1px solid var(--border-medium)',
+              borderRadius: 'var(--radius-md)',
+              padding: '14px 16px',
+              marginBottom: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--brand-primary)' }}>
+                    ⚡ Rapid Launch Presets
+                  </span>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                    Pre-fills section & pacing calibrated to official AAMC standards
+                  </span>
+                </div>
+                <span className="badge-minimal" style={{ fontSize: '0.68rem', color: 'var(--brand-primary)', borderColor: 'var(--brand-primary)' }}>
+                  Shortcut: ⌘↵ to Launch
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '8px' }}>
+                {QUICK_PRESETS.map((preset) => {
+                  const isMatch = selectedSection === preset.section && totalQuestions === preset.total;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => handleApplyQuickPreset(preset)}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        gap: '4px',
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-sm)',
+                        background: isMatch ? 'var(--infynno-gradient)' : 'var(--bg-surface-subtle)',
+                        border: isMatch ? '1px solid transparent' : '1px solid var(--border-light)',
+                        color: isMatch ? '#ffffff' : 'var(--text-primary)',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        transition: 'all 0.15s ease'
+                      }}
+                      title="Click to apply parameters and jump straight to Review & Launch"
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>{preset.label}</span>
+                        <span style={{
+                          fontSize: '0.65rem',
+                          padding: '2px 6px',
+                          borderRadius: 'var(--radius-full)',
+                          background: isMatch ? 'rgba(255,255,255,0.25)' : 'rgba(51, 90, 207, 0.12)',
+                          color: isMatch ? '#ffffff' : 'var(--brand-primary)',
+                          fontWeight: 600
+                        }}>
+                          {preset.tag}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '0.7rem', color: isMatch ? 'rgba(255,255,255,0.85)' : 'var(--text-muted)' }}>
+                        {preset.desc}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <WizardStep1Section
+              selectedSection={selectedSection}
+              onSelectSection={handleSelectSection}
+              SECTION_METADATA={SECTION_METADATA}
+              sectionMeta={sectionMeta}
+              pacing={pacing}
+              onAutoAdvance={() => setStep(2)}
+            />
+          </>
         )}
 
         {/* Step 2: Discipline & Major Unit (2 Decisions) */}

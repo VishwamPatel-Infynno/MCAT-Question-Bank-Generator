@@ -103,59 +103,45 @@ def calculate_token_cost(prompt_tokens: int, completion_tokens: int) -> float:
     return round(in_cost + out_cost, 7)
 
 
-def _resolve_api_key(model: str, explicit_key: str | None) -> str | None:
+def _resolve_api_key(model: str, explicit_key: str | None) -> str:
     """
-    Resolves the correct API key for the given model identifier.
+    Resolves the DeepInfra API key.
 
     Priority order:
     1. Explicitly passed ``explicit_key`` (caller override)
-    2. Provider-specific key from Settings (loaded from .env)
-    3. Ambient environment key already set (litellm picks it up)
-    4. Raises ValueError if no key is available for models that require one.
+    2. DeepInfra key from Settings (loaded from .env)
+    3. Ambient DEEPINFRA_API_KEY environment variable
+    4. Raises ValueError if no DeepInfra key is configured.
 
     Args:
         model: The litellm model string, e.g. ``deepinfra/deepseek-ai/…``.
         explicit_key: Caller-supplied API key override, or ``None``.
 
     Returns:
-        Resolved API key string, or ``None`` if litellm should use its ambient env key.
+        Resolved DeepInfra API key string.
     """
     if explicit_key:
         return explicit_key
 
-    model_lower = model.lower()
+    key = config.DEEPINFRA_API_KEY or os.getenv("DEEPINFRA_API_KEY")
+    if not key:
+        raise ValueError(
+            "AI Gateway API Key is required. Please configure it in Settings or set the server environment key."
+        )
+    return key
 
-    if "deepinfra" in model_lower:
-        key = config.DEEPINFRA_API_KEY or os.getenv("DEEPINFRA_API_KEY")
-        if not key:
-            raise ValueError(
-                "AI Gateway API Key is required. Please configure it in Settings or set the server environment key."
-            )
-        return key
 
-    if "gemini" in model_lower and config.GEMINI_API_KEY:
-        return config.GEMINI_API_KEY
-
-    if ("gpt" in model_lower or "openai" in model_lower) and config.OPENAI_API_KEY:
-        return config.OPENAI_API_KEY
-
-    if "claude" in model_lower and config.ANTHROPIC_API_KEY:
-        return config.ANTHROPIC_API_KEY
-
-    if "groq" in model_lower and config.GROQ_API_KEY:
-        return config.GROQ_API_KEY
-
-    # Fall through — check if any ambient env key exists; if not, raise
-    has_env_key = (
-        os.getenv("DEEPINFRA_API_KEY")
-        or os.getenv("GEMINI_API_KEY")
-        or os.getenv("OPENAI_API_KEY")
-        or os.getenv("ANTHROPIC_API_KEY")
-        or os.getenv("GROQ_API_KEY")
-    )
-    if not has_env_key:
-        raise ValueError(f"No API key configured for {model}. Please set in Settings or .env")
-    return None
+def _get_available_fallback_models(primary_model: str) -> list[str]:
+    """Builds an ordered list of candidate models for which valid API credentials exist."""
+    candidates = [primary_model]
+    for model_name in config.FAST_MODEL_CASCADE:
+        if model_name != primary_model and model_name not in candidates:
+            try:
+                if _resolve_api_key(model_name, None):
+                    candidates.append(model_name)
+            except Exception:
+                continue
+    return candidates
 
 
 async def call_llm(
@@ -163,54 +149,72 @@ async def call_llm(
     system_prompt: str,
     model: str | None = None,
     api_key: str | None = None,
-    temperature: float = 0.7,
+    temperature: float | None = None,
     max_tokens: int | None = None,
 ) -> tuple[str, TokenUsage]:
-    """Universal LLM caller via LiteLLM returning content and TokenUsage metrics."""
-    chosen_model = model or config.DEFAULT_TEXT_MODEL
+    """Universal LLM caller via LiteLLM targeting DeepInfra models."""
+    initial_model = model or config.DEFAULT_TEXT_MODEL
     effective_max_tokens = max_tokens if max_tokens is not None else config.DEFAULT_MAX_TOKENS
+    effective_temperature = temperature if temperature is not None else config.DEFAULT_TEMPERATURE
 
-    # Configure API key in litellm or environment
-    kwargs: dict[str, Any] = {
-        "model": chosen_model,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt},
-        ],
-        "temperature": temperature,
-        "max_tokens": effective_max_tokens,
-        "request_timeout": 90.0,
-        "num_retries": 2,
-    }
+    # If caller explicitly provided an api_key, stick to that specific model
+    candidate_models = [initial_model] if api_key else _get_available_fallback_models(initial_model)
 
-    resolved_key = _resolve_api_key(chosen_model, api_key)
-    if resolved_key:
-        kwargs["api_key"] = resolved_key
+    last_error: Exception | None = None
 
-    try:
-        response = await litellm.acompletion(**kwargs)
-        content = response.choices[0].message.content
+    for candidate in candidate_models:
+        try:
+            resolved_key = _resolve_api_key(candidate, api_key)
+        except Exception as key_err:
+            last_error = key_err
+            continue
 
-        # Extract token usage
-        usage_obj = getattr(response, "usage", None)
-        prompt_tokens = int(getattr(usage_obj, "prompt_tokens", 0) or 0)
-        completion_tokens = int(getattr(usage_obj, "completion_tokens", 0) or 0)
-        total_tokens = int(
-            getattr(usage_obj, "total_tokens", prompt_tokens + completion_tokens)
-            or (prompt_tokens + completion_tokens)
-        )
+        kwargs: dict[str, Any] = {
+            "model": candidate,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": effective_temperature,
+            "max_tokens": effective_max_tokens,
+            "request_timeout": 60.0,
+            "num_retries": 1,
+        }
+        if resolved_key:
+            kwargs["api_key"] = resolved_key
 
-        cost_usd = calculate_token_cost(prompt_tokens, completion_tokens)
-        usage = TokenUsage(
-            prompt_tokens=prompt_tokens,
-            completion_tokens=completion_tokens,
-            total_tokens=total_tokens,
-            cost_usd=cost_usd,
-        )
-        logger.info(
-            f"LLM Call [{chosen_model}]: {prompt_tokens} in + {completion_tokens} out = {total_tokens} tokens (${cost_usd:.5f})"
-        )
-        return content, usage
-    except Exception as e:
-        logger.warning(f"LiteLLM call error on model {chosen_model}: {str(e)}")
-        raise e
+        try:
+            response = await litellm.acompletion(**kwargs)
+            content = response.choices[0].message.content
+
+            usage_obj = getattr(response, "usage", None)
+            prompt_tokens = int(getattr(usage_obj, "prompt_tokens", 0) or 0)
+            completion_tokens = int(getattr(usage_obj, "completion_tokens", 0) or 0)
+            total_tokens = int(
+                getattr(usage_obj, "total_tokens", prompt_tokens + completion_tokens)
+                or (prompt_tokens + completion_tokens)
+            )
+
+            cost_usd = calculate_token_cost(prompt_tokens, completion_tokens)
+            usage = TokenUsage(
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                total_tokens=total_tokens,
+                cost_usd=cost_usd,
+            )
+            logger.info(
+                f"LLM Call Succeeded [{candidate}]: {prompt_tokens} in + {completion_tokens} out = {total_tokens} tokens (${cost_usd:.5f})"
+            )
+            return content, usage
+        except Exception as err:
+            logger.warning(
+                f"DeepInfra LLM error on model '{candidate}': {err}. Attempting candidate retry..."
+            )
+            last_error = err
+
+    logger.error(f"DeepInfra LLM call failed for prompt. Last error: {last_error}")
+    if isinstance(last_error, ValueError):
+        raise last_error
+    raise RuntimeError(
+        f"AI Generation Failed: DeepInfra model unreachable or encountered errors. Details: {last_error}"
+    )

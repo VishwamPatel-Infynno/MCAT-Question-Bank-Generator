@@ -597,8 +597,6 @@ Retrieves active runtime engine configuration, gateway secrets status (masked bo
   "default_text_model": "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
   "default_image_model": "deepinfra/black-forest-labs/FLUX-2-klein-4b",
   "has_deepinfra_key": true,
-  "has_gemini_key": false,
-  "has_openai_key": false,
   "max_regenerations": 3,
   "passing_threshold": 90,
   "cost_per_million_input": 0.098,

@@ -36,14 +36,15 @@ cp .env.example .env
 | `DEFAULT_TEXT_MODEL` | `string` | `deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017` | Primary LiteLLM model identifier |
 | `DEFAULT_IMAGE_MODEL` | `string` | `deepinfra/black-forest-labs/FLUX-2-klein-4b` | Image model for visual stimuli |
 | `DEEPINFRA_API_KEY` | `string` | `""` | DeepInfra API authorization key |
-| `GEMINI_API_KEY` | `string` | `""` | Optional Google Gemini API key |
-| `OPENAI_API_KEY` | `string` | `""` | Optional OpenAI API key |
-| `ANTHROPIC_API_KEY` | `string` | `""` | Optional Anthropic API key |
-| `GROQ_API_KEY` | `string` | `""` | Optional Groq API key |
 | `MAX_REGENERATION_ATTEMPTS`| `integer`| `3` | Maximum remediation loops before Quality Gate reject |
 | `PASSING_SCORE_THRESHOLD` | `integer`| `90` | Minimum score required to pass psychometric gate |
 | `COST_PER_MILLION_INPUT_TOKENS` | `float` | `0.098` | Input token price ($0.098 / 1M tokens) |
 | `COST_PER_MILLION_OUTPUT_TOKENS`| `float` | `0.294` | Output token price ($0.294 / 1M tokens) |
+| `DEFAULT_TEMPERATURE` | `float` | `0.2` | Global default sampling temperature for call_llm |
+| `GENERATOR_TEMPERATURE` | `float` | `0.2` | Strict instruction-following temperature for Generator |
+| `REGENERATOR_TEMPERATURE` | `float` | `0.2` | Strict remediation temperature for Regenerator |
+| `REVIEWER_TEMPERATURE` | `float` | `0.1` | Deterministic temperature for 100-pt Psychometric Reviewer |
+| `BLIND_SOLVER_TEMPERATURE`| `float` | `0.1` | Ultra-deterministic temperature for Blind-Solver Agent |
 | `IMAGE_WIDTH` | `integer` | `1024` | Default width for FLUX diagrams |
 | `IMAGE_HEIGHT` | `integer` | `1024` | Default height for FLUX diagrams |
 | `IMAGE_ITERS` | `integer` | `0` | Inference step iterations (0 for flat-rate models) |

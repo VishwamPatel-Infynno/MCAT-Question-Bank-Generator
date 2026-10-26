@@ -303,7 +303,7 @@ STANDARDS FOR AAMC MCAT PASSAGES:
             system_prompt=system_prompt,
             model=req.model_name,
             api_key=req.api_key,
-            temperature=0.7,
+            temperature=config.GENERATOR_TEMPERATURE,
             max_tokens=config.DEFAULT_MAX_TOKENS,
         )
         cleaned = raw_output.strip()
@@ -400,7 +400,7 @@ async def generate_question(req: GenerationRequest) -> tuple[QuestionDraft, Toke
             system_prompt=GENERATOR_SYSTEM_PROMPT,
             model=req.model_name,
             api_key=req.api_key,
-            temperature=0.7,
+            temperature=config.GENERATOR_TEMPERATURE,
             max_tokens=config.DEFAULT_MAX_TOKENS,
         )
         data = safe_json_loads(raw_output)
@@ -441,7 +441,7 @@ async def generate_question_with_self_critique(
             system_prompt=FUSED_GENERATOR_SYSTEM_PROMPT,
             model=req.model_name,
             api_key=req.api_key,
-            temperature=0.7,
+            temperature=config.GENERATOR_TEMPERATURE,
             max_tokens=config.DEFAULT_MAX_TOKENS,
         )
         data = safe_json_loads(raw_output)
