@@ -372,7 +372,21 @@ export function useAppState() {
     onApprove: activeQuestion && !isQuestionSaved ? () => handleApproveQuestion(activeQuestion) : undefined,
     onDiscard: activeQuestion && !isQuestionSaved ? handleDiscardQuestion : undefined,
     onToggleTheme: toggleTheme,
-    onEscape: () => { if (auditQuestion) setAuditQuestion(null); }
+    onEscape: () => { if (auditQuestion) setAuditQuestion(null); },
+    onNextQuestion: () => {
+      if (stagedQuestions.length > 1) {
+        const currIdx = stagedQuestions.findIndex(q => q.id === activeQuestion?.id);
+        const nextIdx = currIdx >= 0 ? (currIdx + 1) % stagedQuestions.length : 0;
+        setActiveQuestion(stagedQuestions[nextIdx]);
+      }
+    },
+    onPrevQuestion: () => {
+      if (stagedQuestions.length > 1) {
+        const currIdx = stagedQuestions.findIndex(q => q.id === activeQuestion?.id);
+        const prevIdx = currIdx >= 0 ? (currIdx - 1 + stagedQuestions.length) % stagedQuestions.length : stagedQuestions.length - 1;
+        setActiveQuestion(stagedQuestions[prevIdx]);
+      }
+    }
   });
 
   return {

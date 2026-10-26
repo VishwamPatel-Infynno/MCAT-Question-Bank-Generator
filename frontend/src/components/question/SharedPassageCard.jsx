@@ -27,9 +27,22 @@ export default function SharedPassageCard({
   diagramQuestion = null,
   collapsible = true,
   defaultCollapsed = false,
+  isSplitPane = false,
   style = EMPTY_OBJECT
 }) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const [fontSizeLevel, setFontSizeLevel] = useState(1); // 0: 0.85rem, 1: 0.935rem, 2: 1.05rem
+
+  const fontSizes = ['0.85rem', '0.935rem', '1.05rem'];
+  const fontLabels = ['Small (A-)', 'Default (A)', 'Large (A+)'];
+
+  const handleDecreaseFont = () => {
+    setFontSizeLevel(prev => Math.max(0, prev - 1));
+  };
+
+  const handleIncreaseFont = () => {
+    setFontSizeLevel(prev => Math.min(fontSizes.length - 1, prev + 1));
+  };
 
   if (!passageText || !passageText.trim()) {
     return null;
@@ -57,7 +70,7 @@ export default function SharedPassageCard({
 
   return (
     <div
-      className="glass-panel"
+      className="glass-panel shared-passage-card"
       style={{
         padding: '16px 20px',
         borderLeft: '4px solid var(--brand-primary)',
@@ -67,6 +80,14 @@ export default function SharedPassageCard({
         gap: '12px',
         background: 'var(--bg-surface)',
         boxShadow: 'var(--shadow-sm)',
+        ...(isSplitPane
+          ? {
+              maxHeight: 'calc(100vh - 120px)',
+              overflowY: 'auto',
+              position: 'sticky',
+              top: '84px'
+            }
+          : {}),
         ...style
       }}
     >
@@ -132,18 +153,74 @@ export default function SharedPassageCard({
           </div>
         </div>
 
-        {collapsible && (
-          <button
-            type="button"
-            onClick={() => setIsCollapsed(prev => !prev)}
-            className="btn-secondary"
-            style={{ padding: '5px 12px', fontSize: '0.725rem', gap: '6px' }}
-            title={isCollapsed ? 'Expand Passage' : 'Collapse Passage'}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Font Size Scaling Controls */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              background: 'var(--bg-surface-subtle)',
+              border: '1px solid var(--border-light)',
+              borderRadius: 'var(--radius-xs)',
+              padding: '2px 4px',
+              gap: '2px'
+            }}
+            title={`Passage text scale: ${fontLabels[fontSizeLevel]}`}
           >
-            {isCollapsed ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
-            <span>{isCollapsed ? 'Show Full Passage' : 'Collapse Passage'}</span>
-          </button>
-        )}
+            <button
+              type="button"
+              onClick={handleDecreaseFont}
+              disabled={fontSizeLevel === 0}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: fontSizeLevel === 0 ? 'var(--text-dim)' : 'var(--text-secondary)',
+                cursor: fontSizeLevel === 0 ? 'default' : 'pointer',
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                padding: '2px 6px',
+                borderRadius: 'var(--radius-xs)'
+              }}
+              title="Decrease passage font size"
+            >
+              A-
+            </button>
+            <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', minWidth: '32px', textAlign: 'center' }}>
+              {fontSizeLevel === 0 ? '85%' : fontSizeLevel === 1 ? '100%' : '115%'}
+            </span>
+            <button
+              type="button"
+              onClick={handleIncreaseFont}
+              disabled={fontSizeLevel === fontSizes.length - 1}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: fontSizeLevel === fontSizes.length - 1 ? 'var(--text-dim)' : 'var(--text-secondary)',
+                cursor: fontSizeLevel === fontSizes.length - 1 ? 'default' : 'pointer',
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                padding: '2px 6px',
+                borderRadius: 'var(--radius-xs)'
+              }}
+              title="Increase passage font size"
+            >
+              A+
+            </button>
+          </div>
+
+          {collapsible && (
+            <button
+              type="button"
+              onClick={() => setIsCollapsed(prev => !prev)}
+              className="btn-secondary"
+              style={{ padding: '5px 12px', fontSize: '0.725rem', gap: '6px' }}
+              title={isCollapsed ? 'Expand Passage' : 'Collapse Passage'}
+            >
+              {isCollapsed ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
+              <span>{isCollapsed ? 'Show Full Passage' : 'Collapse Passage'}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Collapsible Body */}
@@ -155,10 +232,10 @@ export default function SharedPassageCard({
               background: 'var(--bg-surface-subtle)',
               borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border-light)',
-              maxHeight: '280px',
+              maxHeight: isSplitPane ? 'calc(100vh - 280px)' : '300px',
               overflowY: 'auto',
               fontFamily: 'var(--font-serif)',
-              fontSize: '0.925rem',
+              fontSize: fontSizes[fontSizeLevel],
               lineHeight: '1.7',
               color: 'var(--text-primary)',
               whiteSpace: 'pre-line'

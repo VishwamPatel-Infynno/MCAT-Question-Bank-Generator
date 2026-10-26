@@ -15,9 +15,32 @@ export function useQuestionGenerator() {
   const [perQuestionState, setPerQuestionState] = useState({});
   const abortControllerRef = useRef(null);
   const isCancelledRef = useRef(false);
+  const eventBufferRef = useRef([]);
+  const flushTimerRef = useRef(null);
+
+  const clearEventBuffer = useCallback(() => {
+    if (flushTimerRef.current) {
+      if (typeof cancelAnimationFrame === 'function') {
+        cancelAnimationFrame(flushTimerRef.current);
+      } else {
+        clearTimeout(flushTimerRef.current);
+      }
+      flushTimerRef.current = null;
+    }
+    eventBufferRef.current = [];
+  }, []);
+
+  const flushEvents = useCallback(() => {
+    flushTimerRef.current = null;
+    if (eventBufferRef.current.length === 0) return;
+    const queued = eventBufferRef.current;
+    eventBufferRef.current = [];
+    setEvents((prev) => [...prev, ...queued]);
+  }, []);
 
   const cancelGeneration = useCallback(() => {
     isCancelledRef.current = true;
+    clearEventBuffer();
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
@@ -29,10 +52,11 @@ export function useQuestionGenerator() {
     setEvents([]);
     setBatchProgress(null);
     setRejectedData(null);
-  }, []);
+  }, [clearEventBuffer]);
 
   const startGeneration = useCallback((payload) => {
     isCancelledRef.current = false;
+    clearEventBuffer();
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -79,7 +103,37 @@ export function useQuestionGenerator() {
       payload,
       (evt) => {
         if (isCancelledRef.current) return;
-        setEvents((prev) => [...prev, evt]);
+
+        const isCritical =
+          evt.event_type === 'question_generated' ||
+          evt.event_type === 'workflow_rejected' ||
+          evt.event_type === 'workflow_error' ||
+          evt.event_type === 'batch_progress' ||
+          evt.event_type === 'agent_complete';
+
+        if (isCritical) {
+          // Flush any buffered events before processing critical state
+          if (eventBufferRef.current.length > 0) {
+            const buffered = eventBufferRef.current;
+            eventBufferRef.current = [];
+            setEvents((prev) => [...prev, ...buffered, evt]);
+          } else {
+            setEvents((prev) => [...prev, evt]);
+          }
+        } else {
+          // Buffer high-frequency intermediate telemetry and schedule 50ms / RAF flush
+          eventBufferRef.current.push(evt);
+          if (!flushTimerRef.current) {
+            if (typeof requestAnimationFrame === 'function') {
+              flushTimerRef.current = requestAnimationFrame(() => {
+                flushEvents();
+              });
+            } else {
+              flushTimerRef.current = setTimeout(flushEvents, 50);
+            }
+          }
+        }
+
         if (evt.agent_name && evt.agent_name !== 'System') {
           setActiveAgent(evt.agent_name);
         }
@@ -198,6 +252,7 @@ export function useQuestionGenerator() {
         }
       },
       (err) => {
+        clearEventBuffer();
         abortControllerRef.current = null;
         if (err?.isAborted) {
           setIsGenerating(false);
@@ -214,6 +269,8 @@ export function useQuestionGenerator() {
       },
       (finalData) => {
         if (isCancelledRef.current) return;
+        flushEvents();
+        clearEventBuffer();
         abortControllerRef.current = null;
         setIsGenerating(false);
         setActiveAgent('Completed');
@@ -227,9 +284,10 @@ export function useQuestionGenerator() {
       },
       controller.signal
     );
-  }, []);
+  }, [clearEventBuffer, flushEvents]);
 
   const reset = useCallback(() => {
+    clearEventBuffer();
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
@@ -244,7 +302,7 @@ export function useQuestionGenerator() {
     setRejectedData(null);
     setLatestReview(null);
     setIterationCount(1);
-  }, []);
+  }, [clearEventBuffer]);
 
   return {
     isGenerating,

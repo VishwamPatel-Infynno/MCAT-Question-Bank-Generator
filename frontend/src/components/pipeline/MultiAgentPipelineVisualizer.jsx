@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Sparkles,
   RotateCcw,
@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Terminal
 } from 'lucide-react';
+import { LiveStopwatch } from '../common';
 
 const EMPTY_ARRAY = [];
 const EMPTY_OBJECT = Object.freeze({});
@@ -22,22 +23,7 @@ export default function MultiAgentPipelineVisualizer({
   batchProgress = null,
   onCancel = null
 }) {
-  const [elapsedTime, setElapsedTime] = useState('0.0');
   const [showLogs, setShowLogs] = useState(false);
-
-  // Live stopwatch when generation is actively running
-  useEffect(() => {
-    let interval = null;
-    if (isGenerating) {
-      const startTime = Date.now();
-      interval = setInterval(() => {
-        setElapsedTime(((Date.now() - startTime) / 1000).toFixed(1));
-      }, 100);
-    } else {
-      clearInterval(interval);
-    }
-    return () => clearInterval(interval);
-  }, [isGenerating]);
 
   // For multi-question swarms, inspect perQuestionState to see which agents are actively processing
   const qList = Object.values(perQuestionState);
@@ -203,7 +189,7 @@ export default function MultiAgentPipelineVisualizer({
               }}
             >
               <span className="agent-pulse-dot" />
-              <span>{elapsedTime}s</span>
+              <LiveStopwatch isRunning={isGenerating} />
               <span>•</span>
               {totalBatch > 1 ? (
                 <span>{completedCount}/{totalBatch} Ready ({progressPercent}%)</span>

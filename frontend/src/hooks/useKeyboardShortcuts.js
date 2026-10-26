@@ -7,7 +7,9 @@ export function useKeyboardShortcuts({
   onToggleEdit,
   onToggleTheme,
   onFocusSearch,
-  onEscape
+  onEscape,
+  onNextQuestion,
+  onPrevQuestion
 }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -62,10 +64,39 @@ export function useKeyboardShortcuts({
       if (e.key.toLowerCase() === 'e' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         if (onToggleEdit) onToggleEdit();
+        return;
+      }
+
+      // Key: J or ArrowRight -> Next Staged Question
+      if ((e.key.toLowerCase() === 'j' || e.key === 'ArrowRight') && !e.metaKey && !e.ctrlKey) {
+        if (onNextQuestion) {
+          e.preventDefault();
+          onNextQuestion();
+          return;
+        }
+      }
+
+      // Key: K or ArrowLeft -> Previous Staged Question
+      if ((e.key.toLowerCase() === 'k' || e.key === 'ArrowLeft') && !e.metaKey && !e.ctrlKey) {
+        if (onPrevQuestion) {
+          e.preventDefault();
+          onPrevQuestion();
+          return;
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onGenerate, onApprove, onDiscard, onToggleEdit, onToggleTheme, onFocusSearch, onEscape]);
+  }, [
+    onGenerate,
+    onApprove,
+    onDiscard,
+    onToggleEdit,
+    onToggleTheme,
+    onFocusSearch,
+    onEscape,
+    onNextQuestion,
+    onPrevQuestion
+  ]);
 }

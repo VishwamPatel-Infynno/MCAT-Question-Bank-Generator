@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   CheckCircle2, 
   Terminal, 
   Timer 
 } from 'lucide-react';
 import MultiAgentPipelineVisualizer from './MultiAgentPipelineVisualizer';
+import { LiveStopwatch } from '../common';
 
 const EMPTY_ARRAY = [];
 const EMPTY_OBJECT = Object.freeze({});
@@ -20,42 +21,41 @@ export default function AgentVisualizer({
   onCancel
 }) {
   const [showTelemetry, setShowTelemetry] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState('0.0');
 
-  // Live stopwatch during active generation
-  useEffect(() => {
-    let interval = null;
-    if (isGenerating) {
-      const startTime = Date.now();
-      interval = setInterval(() => {
-        setElapsedTime(((Date.now() - startTime) / 1000).toFixed(1));
-      }, 100);
-    } else {
-      clearInterval(interval);
-    }
-    return () => clearInterval(interval);
-  }, [isGenerating]);
-
-  const hasReviewed = events.some(e =>
-    (e.agent_name === 'Question Writer & Reviewer' ||
-     e.agent_name === 'Quality Reviewer' ||
-     e.agent_name === 'Question Reviewer') &&
-    e.event_type === 'agent_complete'
-  );
+  const hasReviewed = useMemo(() => {
+    return events.some(e =>
+      (e.agent_name === 'Question Writer & Reviewer' ||
+       e.agent_name === 'Quality Reviewer' ||
+       e.agent_name === 'Question Reviewer') &&
+      e.event_type === 'agent_complete'
+    );
+  }, [events]);
 
   const isWorkflowComplete = !isGenerating && events.length > 0 && hasReviewed;
 
   // Swarm & Batch calculation
   const totalBatch = batchProgress?.total || Object.keys(perQuestionState).length || 1;
 
-  // Usage telemetry
-  const latestUsageEvent = [...events].reverse().find(e => e.data?.cumulative_usage);
-  const cumulativeUsage = latestUsageEvent?.data?.cumulative_usage;
-  const totalTokens = cumulativeUsage?.total_tokens || 0;
+  // Memoized Usage Telemetry selector (avoids array reversal/allocation on every render)
+  const totalTokens = useMemo(() => {
+    for (let i = events.length - 1; i >= 0; i--) {
+      const usage = events[i]?.data?.cumulative_usage;
+      if (usage?.total_tokens != null) {
+        return usage.total_tokens;
+      }
+    }
+    return 0;
+  }, [events]);
 
-  // Extract latest active event message for single-source status
-  const latestProgressEvent = [...events].reverse().find(e => e.message && e.event_type !== 'agent_complete');
-  const liveStatusMessage = latestProgressEvent?.message || batchProgress?.message || null;
+  // Memoized live status message
+  const liveStatusMessage = useMemo(() => {
+    for (let i = events.length - 1; i >= 0; i--) {
+      if (events[i]?.message && events[i]?.event_type !== 'agent_complete') {
+        return events[i].message;
+      }
+    }
+    return batchProgress?.message || null;
+  }, [events, batchProgress?.message]);
 
   // When Idle (No events, not generating)
   if (!isGenerating && events.length === 0) {
@@ -92,7 +92,7 @@ export default function AgentVisualizer({
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Timer size={12} /> {elapsedTime}s
+            <Timer size={12} /> <LiveStopwatch isRunning={isGenerating} />
           </span>
           {isGenerating && onCancel && (
             <button

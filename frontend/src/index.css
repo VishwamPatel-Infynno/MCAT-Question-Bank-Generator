@@ -1564,6 +1564,19 @@ input:focus, select:focus, textarea:focus {
 
 
 /* ==========================================================================
+   AAMC Dual Split-Pane Reading Mode Layout
+   ========================================================================== */
+.aamc-split-layout-grid {
+  transition: all 0.25s ease;
+}
+
+@media (max-width: 960px) {
+  .aamc-split-layout-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ==========================================================================
    Print & PDF Export Utility Styles
    ========================================================================== */
 @media print {
@@ -1584,3 +1597,4 @@ input:focus, select:focus, textarea:focus {
     break-before: page !important;
   }
 }
+

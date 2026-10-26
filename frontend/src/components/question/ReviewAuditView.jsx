@@ -1,7 +1,10 @@
 import React from 'react';
 import { X, CheckCircle, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { useFocusTrap } from '../../hooks';
 
 export default function ReviewAuditView({ question, onClose }) {
+  const modalRef = useFocusTrap({ isActive: Boolean(question), onClose });
+
   if (!question) return null;
 
   const review = question.review_rubric;
@@ -20,6 +23,10 @@ export default function ReviewAuditView({ question, onClose }) {
       onClick={onClose}
     >
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="audit-modal-title"
         className="modal-card"
         style={{
           maxWidth: '820px'
@@ -46,7 +53,7 @@ export default function ReviewAuditView({ question, onClose }) {
               <ShieldCheck size={20} />
             </div>
             <div>
-              <h2 className="modal-title">
+              <h2 id="audit-modal-title" className="modal-title">
                 Question Quality &amp; Verification Audit
               </h2>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>

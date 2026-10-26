@@ -13,6 +13,7 @@ import {
   GraduationCap
 } from 'lucide-react';
 import { fetchQuestions } from '../../services/api';
+import { useFocusTrap } from '../../hooks';
 import { 
   formatExamTime,
   generateExamCsv,
@@ -33,6 +34,8 @@ export default function ExportPrintModal({
   hasActiveFilters = false,
   onShowToast
 }) {
+  const modalRef = useFocusTrap({ isActive: Boolean(isOpen), onClose });
+
   // Determine initial scope: selected > filtered > all
   const initialScope = selectedIds.length > 0 
     ? 'selected' 
@@ -180,6 +183,10 @@ export default function ExportPrintModal({
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div 
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="export-modal-title"
         className="modal-card" 
         onClick={(e) => e.stopPropagation()}
         style={{ maxWidth: '960px', width: '95vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
@@ -191,7 +198,7 @@ export default function ExportPrintModal({
               <FileDown size={18} />
             </div>
             <div>
-              <h2 className="modal-title">Export &amp; Print Studio</h2>
+              <h2 id="export-modal-title" className="modal-title">Export &amp; Print Studio</h2>
               <p className="modal-subtitle">Generate official AAMC MCAT test papers, printable PDF study packs, CSV tables, or JSON datasets</p>
             </div>
           </div>

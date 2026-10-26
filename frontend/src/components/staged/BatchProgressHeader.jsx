@@ -14,6 +14,7 @@ import {
   Trash2,
   Eye,
   LayoutGrid,
+  Columns2,
   Sparkles,
   ShieldCheck,
   FolderCheck,
@@ -42,6 +43,8 @@ export default function BatchProgressHeader({
   // View mode
   viewMode,
   setViewMode,
+  passageLayoutMode = 'split',
+  setPassageLayoutMode,
   // Selection
   handleToggleSelectAll,
   unsavedQuestions,
@@ -91,7 +94,7 @@ export default function BatchProgressHeader({
             className={`pill-track-btn ${viewMode === 'grid' ? 'active' : ''}`}
           >
             <LayoutGrid size={13} />
-            <span>Grid View (All Questions)</span>
+            <span>Grid View</span>
           </button>
           <button
             type="button"
@@ -102,6 +105,18 @@ export default function BatchProgressHeader({
             <Eye size={13} />
             <span>Detailed View</span>
           </button>
+          {isPassageSet && viewMode === 'tabs' && setPassageLayoutMode && (
+            <button
+              type="button"
+              id="btn-toggle-split-layout"
+              onClick={() => setPassageLayoutMode(mode => mode === 'split' ? 'stacked' : 'split')}
+              className={`pill-track-btn ${passageLayoutMode === 'split' ? 'active' : ''}`}
+              title="Toggle AAMC-style side-by-side passage and question view"
+            >
+              <Columns2 size={13} />
+              <span>{passageLayoutMode === 'split' ? 'Split View' : 'Stacked View'}</span>
+            </button>
+          )}
         </div>
       </div>
 
