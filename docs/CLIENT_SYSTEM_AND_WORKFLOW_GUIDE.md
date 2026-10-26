@@ -30,6 +30,8 @@ The **Infynno MCAT Question Bank Generator v2.0** solves these challenges with f
   - **Independent Discretes**: Standalone scientific stems with zero stimulus text.
 - **CARS Pure Passage Standard**: For **Critical Analysis and Reasoning Skills (CARS)**, the system strictly enforces 100% passage-based sets, locking discrete mode out in accordance with AAMC regulations.
 - **Fused Draft-and-Critique Cognitive Engine**: Authors the scenario, symmetric options, and mentor explanation while simultaneously self-scoring the item across a standardized 100-point rubric in a single unified round-trip, cutting latency by 35-45%.
+- **Blind-Solver Dual-Validation Safeguard**: Acts as an algorithmic test candidate, solving the drafted question completely blind without access to the author's answer key or explanation. Any discrepancy in the answer key or low confidence ($< 88\%$) instantly forces the item into remediation, eliminating false keys and ambiguous stems before human review.
+- **AAMC Dual Split-Pane Reading Mode**: Provides an authentic side-by-side split reading canvas for passage sets. The left pane anchors the dense research passage with sticky scrolling, while the right pane presents candidate stems, options, and rationales with independent vertical navigation.
 - **Autonomous Remediation & Strict Quality Gate (>90 Points)**: Items scoring $\le 90$ undergo up to three cycles of independent auditing and remediation. Unrepaired items are discarded and never committed to the database.
 
 ---
@@ -95,19 +97,24 @@ graph TD
 - Simultaneously generates a 100-point self-critique object in a single inference call, cutting latency by $35-45\%$ and saving ~590 tokens on passing drafts.
 - Strictly forbids em dashes (`—`) and enforces option word count symmetry ($\pm 15\%$).
 
-### 4.2 Independent Senior Psychometric Auditor (`reviewer.py`)
-- Engaged if a draft scores $\le 90$ or has undergone remediation.
+### 4.2 Blind-Solver Dual-Validation Safeguard (`blind_solver.py`)
+- Acts as an algorithmic test candidate, solving the drafted question completely blind without knowing the author's key or explanation.
+- Evaluates whether the question stem and passage provide unambiguous mathematical or deductive proof to identify the intended key.
+- Requires both **answer key agreement** and **$\ge 88\%$ confidence**. If the blind solver selects a different option or confidence is low, the item is automatically redirected to remediation to remove ambiguity.
+
+### 4.3 Independent Senior Psychometric Auditor (`reviewer.py`)
+- Engaged if a draft scores $\le 90$, fails blind-solver verification, or has undergone remediation.
 - Evaluates four 25-point pillars:
   1. *MCAT Authenticity & Scientific Rigor* (0-25)
   2. *Clarity & Logical Soundness* (0-25)
   3. *Distractor Trap Quality & Anti-Guessability* (0-25)
   4. *Explanation & Key Rigor* (0-25)
 
-### 4.3 Autonomous Remediation Engine (`regenerator.py`)
+### 4.4 Autonomous Remediation Engine (`regenerator.py`)
 - Repairs identified distractor weaknesses, equalizes option lengths, and sharpens pedagogical proofs.
 - Loops up to 3 cycles before triggering the deterministic rejection circuit breaker.
 
-### 4.4 Strict Quality Gate Benchmark ($> 90$ Points)
+### 4.5 Strict Quality Gate Benchmark ($> 90$ Points)
 - Any item unable to achieve $> 90$ points after 3 cycles is completely rejected and excluded from the Question Bank.
 
 ---
@@ -125,7 +132,7 @@ Every approved question presents a comprehensive **3-Card Mentor Explanation**:
 
 ---
 
-## 6. Financial Transparency & Token Accounting
+## 6. Financial Transparency, Concurrency & Batch Resiliency
 
 Every generated item tracks real-time inference telemetry:
 
@@ -133,8 +140,12 @@ $$\text{Total Cost} = \left(\frac{\text{Input Tokens}}{1{,}000{,}000} \times \$0
 
 - **Predictable Micro-Costs**: An audited 5-question batch typically costs **between $0.006 and $0.012 USD** in total inference.
 - **Repository Observability**: The Question Bank header displays accumulated input tokens, output tokens, total execution time, and cumulative investment across the entire repository.
+- **Enterprise Multi-Batch Concurrency & Resiliency**:
+  - The background batch runner operates under global worker semaphores (`4 concurrent jobs`, `10 concurrent LLM calls`) ensuring safe execution without API rate limit bottlenecks.
+  - **1-Click Batch Stop**: Educators can pause a 50-question mock run at any time without losing items already generated and validated.
+  - **1-Click Batch Retry**: If a job encounters temporary network latency, educators can re-launch incomplete jobs with a single click, picking up immediately from the exact point of interruption.
 - **Dedicated Application Views**: Seamlessly navigate between:
-  1. **Generator Workspace**: Interactive exam generation & pipeline workspace.
+  1. **Generator Workspace**: Interactive exam generation & pipeline workspace with AAMC Split-Pane mode.
   2. **AI Validated Bank**: High-quality items (>90 points) awaiting one-click educator publishing.
   3. **Question Bank**: Primary verified repository with search, filtering, and export.
-  4. **Batch Activity**: Real-time monitor tracking background 50-question mock runs.
+  4. **Batch Activity**: Real-time monitor tracking background 50-question mock runs with live worker metrics.

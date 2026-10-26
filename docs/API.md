@@ -16,7 +16,7 @@ This document provides a comprehensive technical reference for all REST endpoint
 
 ---
 
-## 2. API Endpoints Summary
+## 2. API Endpoints Summary (27 Operations / 22 Endpoint Paths)
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -34,11 +34,14 @@ This document provides a comprehensive technical reference for all REST endpoint
 | `GET` | `/api/passages` | Lists shared reading passages with query filtering and question counts |
 | `GET` | `/api/passages/{passage_id}` | Retrieves a single reading passage along with all its linked questions |
 | `POST` | `/api/passages` | Admin endpoint to create or update a shared reading passage record |
-| `GET` | `/api/batches` | Lists generation batches with active running counts and progress |
+| `GET` | `/api/batches` | Lists generation batches with active running counts and global concurrency metrics |
 | `GET` | `/api/batches/{batch_id}` | Retrieves a generation batch with all 10 jobs and grouped questions |
 | `POST` | `/api/batches/start` | Launches an asynchronous background batch generation (10 jobs x 5 questions = 50 total) |
-| `POST` | `/api/batches` | Admin endpoint to create or update a generation batch record |
+| `POST` | `/api/batches/{batch_id}/stop` | **Batch Control**: Gracefully halts active background jobs for a batch without deleting questions |
+| `POST` | `/api/batches/{batch_id}/retry` | **Batch Control**: Re-launches failed or cancelled jobs for a batch into the global worker pool |
+| `POST` | `/api/batches/cancel-all` | **Batch Control**: Gracefully halts all active background batches across the system |
 | `DELETE` | `/api/batches/{batch_id}` | Deletes a generation batch and cascades delete to jobs and questions |
+| `POST` | `/api/batches` | Admin endpoint to create or update a generation batch record |
 | `GET` | `/api/export` | Exports repository in standardized JSON or CSV format |
 | `GET` | `/api/health` | Service health, database connectivity, active models, and pricing |
 | `GET` | `/api/config` | Retrieves active model configuration and runtime status |
@@ -428,14 +431,14 @@ Accepts a `GenerationRequest` payload (same schema as `POST /api/generate`).
 
 ---
 
-### 3.13 List Batches
+### 3.13 List Batches & Concurrency Metrics
 `GET /api/batches`
 
-Lists all generation batches in the system with their status and active running count.
+Lists generation batches with job progress counts, active running batch numbers, and real-time global concurrency metrics.
 
 #### Query Parameters
 - `section` (optional): Filter by MCAT section.
-- `status` (optional): Filter by batch status (`in_progress`, `completed`, `failed`).
+- `status` (optional): Filter by batch status (`in_progress`, `completed`, `partially_completed`, `cancelled`, `failed`).
 
 #### Response (`200 OK`)
 ```json
@@ -446,13 +449,22 @@ Lists all generation batches in the system with their status and active running 
       "section": "chem_phys",
       "subtopic": "Thermodynamics & Reaction Kinetics",
       "difficulty": "medium",
-      "total_questions": 50,
-      "staged_questions": 50,
+      "target_count": 50,
+      "actual_count": 50,
+      "total_jobs": 10,
+      "completed_jobs": 10,
+      "failed_jobs": 0,
       "status": "completed",
       "created_at": "2026-10-26T12:00:00Z"
     }
   ],
-  "active_running_batches": 0
+  "active_running_batches": 1,
+  "concurrency_metrics": {
+    "active_running_batches": 1,
+    "global_max_concurrent_jobs": 4,
+    "global_max_concurrent_llm_calls": 10,
+    "active_batch_ids": ["6ba7b810-9dad-11d1-80b4-00c04fd430c8"]
+  }
 }
 ```
 
@@ -469,16 +481,17 @@ Retrieves a generation batch along with all 10 jobs (augmented with their genera
   "batch": {
     "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
     "section": "chem_phys",
-    "total_questions": 50,
-    "staged_questions": 50,
+    "target_count": 50,
+    "actual_count": 50,
     "status": "completed"
   },
   "jobs": [
     {
       "id": "job-uuid-1",
-      "job_index": 1,
+      "job_number": 1,
       "status": "completed",
-      "questions_target": 5,
+      "target_count": 5,
+      "actual_count": 5,
       "questions": [...]
     }
   ],
@@ -489,10 +502,74 @@ Retrieves a generation batch along with all 10 jobs (augmented with their genera
 
 ---
 
-### 3.15 Delete Batch
+### 3.15 Stop Single Batch
+`POST /api/batches/{batch_id}/stop`
+
+Gracefully halts active background jobs for a specific batch. Cancels running asyncio sub-tasks and updates remaining pending jobs to `"cancelled"` status without deleting questions already generated and saved to PostgreSQL.
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "message": "Batch 6ba7b810-9dad-11d1-80b4-00c04fd430c8 execution stopped.",
+  "batch": {
+    "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "status": "partially_completed"
+  }
+}
+```
+
+---
+
+### 3.16 Retry Incomplete Batch Jobs
+`POST /api/batches/{batch_id}/retry`
+
+Re-launches failed, cancelled, or pending jobs for an incomplete batch into the global worker pool. Re-engages the global semaphore without duplicating completed questions.
+
+#### Request Body (Optional)
+Optionally accepts an updated `GenerationRequest` payload to override parameters (e.g. difficulty or guidance) during retry.
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "message": "Retrying incomplete jobs for batch 6ba7b810-9dad-11d1-80b4-00c04fd430c8.",
+  "batch": {
+    "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "status": "in_progress"
+  },
+  "jobs": [
+    {
+      "id": "job-uuid-3",
+      "job_number": 3,
+      "status": "pending"
+    }
+  ]
+}
+```
+
+---
+
+### 3.17 Cancel All Active Batches
+`POST /api/batches/cancel-all`
+
+System-wide administrative action that gracefully halts all currently executing background batches. Cancels active worker tasks, sets status to `"cancelled"` or `"partially_completed"`, and safely flushes aggregate metrics to the database.
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "message": "Successfully stopped 2 running batches.",
+  "stopped_count": 2
+}
+```
+
+---
+
+### 3.18 Delete Batch
 `DELETE /api/batches/{batch_id}`
 
-Deletes a generation batch and cascades deletion to linked jobs and questions.
+Cancels any active runner task for the batch, then permanently deletes the generation batch record and cascades deletion to all associated jobs and question items.
 
 #### Response (`200 OK`)
 ```json
@@ -504,22 +581,26 @@ Deletes a generation batch and cascades deletion to linked jobs and questions.
 
 ---
 
-### 3.16 Create or Update Batch
+### 3.19 Create or Update Batch Record
 `POST /api/batches`
 
-Admin endpoint to create or update a generation batch entity.
+Admin endpoint to create or update a generation batch entity directly in PostgreSQL.
 
 #### Response (`200 OK`)
 ```json
 {
   "success": true,
-  "batch": { "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8", ... }
+  "batch": {
+    "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "section": "chem_phys",
+    "status": "in_progress"
+  }
 }
 ```
 
 ---
 
-### 3.17 Passages Management Endpoints
+### 3.20 Passages Management Endpoints
 `GET /api/passages` | `GET /api/passages/{passage_id}` | `POST /api/passages`
 
 - **List Passages (`GET /api/passages`)**: Lists reading passages with optional `section`, `subtopic`, and `search` filters.
@@ -546,7 +627,7 @@ Admin endpoint to create or update a generation batch entity.
 
 ---
 
-### 3.18 Export Repository
+### 3.21 Export Repository
 `GET /api/export`
 
 Exports the entire Question Bank (or filtered subsets) in standardized JSON or CSV format.
@@ -564,7 +645,7 @@ curl -X GET "http://localhost:8000/api/export?format=csv" -o mcat_question_bank.
 
 ---
 
-### 3.19 Service Health Check
+### 3.22 Service Health Check
 `GET /api/health`
 
 Evaluates system status, database connectivity, active text reasoning model, neural image model, and official token pricing.
@@ -586,7 +667,7 @@ Evaluates system status, database connectivity, active text reasoning model, neu
 
 ---
 
-### 3.20 Runtime Configuration & Settings
+### 3.23 Runtime Configuration & Settings
 `GET /api/config`
 
 Retrieves active runtime engine configuration, gateway secrets status (masked booleans), and pricing parameters.
@@ -609,7 +690,7 @@ Retrieves active runtime engine configuration, gateway secrets status (masked bo
 
 ---
 
-### 3.21 Official AAMC Sections & Syllabus Hierarchy
+### 3.24 Official AAMC Sections & Syllabus Hierarchy
 `GET /api/sections`
 
 Returns the complete cached syllabus hierarchy across all 4 official AAMC MCAT sections, including subjects, units, topics, subtopics, reasoning skills, and target pacing.
@@ -656,7 +737,7 @@ Returns the complete cached syllabus hierarchy across all 4 official AAMC MCAT s
 
 ---
 
-### 3.22 Official AAMC Dependent Taxonomy Tree
+### 3.25 Official AAMC Dependent Taxonomy Tree
 `GET /api/taxonomy`
 
 Returns the comprehensive hierarchical AAMC Dependent Taxonomy tree powering the multi-level Guided Wizard selection flow.

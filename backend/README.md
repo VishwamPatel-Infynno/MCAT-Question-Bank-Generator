@@ -31,6 +31,7 @@ backend/app/
 │   └── state.py         # AgentWorkflowState typed dictionary
 ├── agents/              # Cognitive Reasoning & Synthesis Layer
 │   ├── generator.py     # Fused clinical question synthesis & self-critique agent
+│   ├── blind_solver.py  # Blind-solver dual-validation candidate verification agent
 │   ├── reviewer.py      # 100-point 4-pillar psychometric auditor agent
 │   ├── regenerator.py   # Autonomous remediation agent (<= 90 score trigger)
 │   ├── image_generator.py # FLUX-2-klein-4b neural visual & SVG vector generator
@@ -150,10 +151,10 @@ PYTHONPATH=backend uvicorn app.main:app --port 8000 --reload
 ## 5. Automated Testing & Code Quality
 
 ### Running Tests
-Run the deterministic backend test suite covering endpoints, schemas, database operations, workflow routing, and token cost formulas:
+Run the deterministic backend test suite covering endpoints, schemas, database operations, workflow routing, and token cost formulas (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full specs):
 
 ```bash
-# Run all unit and integration tests (41 passed)
+# Run all unit and integration tests (47 passed)
 source .venv/bin/activate
 pytest backend/tests -v -k "not live_e2e"
 

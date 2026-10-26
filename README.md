@@ -16,14 +16,15 @@ For deep-dive technical specifications, architecture diagrams, API schemas, and 
 | Document | Description |
 | :--- | :--- |
 | **[Central Documentation Hub (docs/README.md)](docs/README.md)** | **Master Documentation Index**: Complete sitemap, role-based navigation paths, architectural overview, and cross-functional guide directory. |
-| **[Client System & Workflow Guide (docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)](docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)** | **Primary Client Deliverable**: End-to-end operational walkthrough, 7-step wizard, 3 generation scopes (1, 5, 50 Qs), >90 quality gate, mentor explanations, and token transparency. |
-| **[UI/UX Design System (DESIGN.md)](DESIGN.md)** | Authoritative design tokens, dual obsidian/alabaster themes, typography scale, component contracts, accessibility criteria (WCAG AA), and micro-animations. |
-| **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 3-step pipeline specifications, Strict Quality Gate, background batch runner, SSE pipeline, and PostgreSQL 16 ERD. |
-| **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation (22 endpoints), batch generation schemas, SSE event stream contracts, filter parameters, and cURL examples. |
+| **[Client System & Workflow Guide (docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)](docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)** | **Primary Client Deliverable**: End-to-end operational walkthrough, 7-step wizard, 3 generation scopes (1, 5, 50 Qs), Blind-Solver safeguard, AAMC Split-Pane reading mode, >90 quality gate, mentor explanations, and token transparency. |
+| **[UI/UX Design System (DESIGN.md)](DESIGN.md)** | Authoritative design tokens, dual obsidian/alabaster themes, AAMC Dual Split-Pane reading mode, accessible modal focus-trapping contracts, typography scale, component contracts, accessibility criteria (WCAG AA), and micro-animations. |
+| **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 3-step pipeline specifications, Blind-Solver Dual Validation, Strict Quality Gate, global worker semaphores, background batch runner, SSE pipeline, and PostgreSQL 16 ERD. |
+| **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation (27 operations across 22 endpoint paths), batch generation schemas, batch controls (`/stop`, `/retry`, `/cancel-all`), SSE event stream contracts, filter parameters, and cURL examples. |
+| **[Testing & Quality Assurance Guide](docs/TESTING_AND_QA.md)** | Complete test specifications for the 47 passing deterministic unit/integration tests, 15 TestSprite Playwright automated E2E browser tests (100% pass rate), Ruff & Oxlint code hygiene standards, and CI pipeline. |
 | **[Token Usage & Cost Tracking](docs/TOKEN_TRACKING.md)** | High-throughput rate card ($0.098 in / $0.294 out per 1M tokens), exact mathematical cost formulas, multi-agent accumulation, and UI observability. |
-| **[Installation, Setup & Deployment](docs/SETUP_AND_CONFIG.md)** | Step-by-step setup, Docker PostgreSQL 16 guide, environment variables reference, production deployment, linters, and troubleshooting. |
-| **[MCAT Psychometric Rubric & Standards](docs/MCAT_RUBRIC.md)** | Official 4 AAMC sections pacing (~96s to ~101s), 100-point 4-pillar evaluation rubric, $> 90$ quality benchmark, calibrated scaled score (118-132), and cognitive distractor trap engineering. |
-| **[Backend Developer Guide](backend/README.md)** | Layer separation, modular workflow engine (`engine.py`, `nodes.py`, `routes.py`), services, repositories, testing, and seeding scripts. |
+| **[Installation, Setup & Deployment](docs/SETUP_AND_CONFIG.md)** | Step-by-step setup, Docker PostgreSQL 16 guide, environment variables reference (29 parameters), production deployment, linters, and troubleshooting. |
+| **[MCAT Psychometric Rubric & Standards](docs/MCAT_RUBRIC.md)** | Official 4 AAMC sections pacing (~96s to ~101s), 100-point 4-pillar evaluation rubric, Blind-Solver algorithmic verification, $> 90$ quality benchmark, calibrated scaled score (118-132), and cognitive distractor trap engineering. |
+| **[Backend Developer Guide](backend/README.md)** | Layer separation, modular workflow engine (`engine.py`, `nodes.py`, `routes.py`), Blind-Solver agent, services, repositories, testing, and seeding scripts. |
 | **[Frontend Workstation Guide](frontend/README.md)** | Modern React 19 architecture, component directory, top-level views, hooks, scripts, and local development instructions. |
 
 ---
@@ -132,7 +133,7 @@ pnpm dev
 Run the full backend test suite covering schemas, routing logic, strict quality gates, SVG & FLUX synthesis, database operations, and token calculations:
 
 ```bash
-# Run backend deterministic test suite (41 passed)
+# Run backend deterministic test suite (47 passed)
 source .venv/bin/activate
 pytest backend/tests -v -k "not live_e2e"
 
@@ -143,12 +144,14 @@ ruff check backend
 Verify frontend code hygiene and production bundle:
 
 ```bash
-# Run frontend linter (oxlint: 0 warnings, 0 errors across 35 files)
+# Run frontend linter (oxlint: 0 warnings, 0 errors across 86 files)
 pnpm lint
 
 # Build production bundle (vite build: ~218ms)
 pnpm build
 ```
+
+For complete test specifications and the 15 TestSprite Playwright E2E browser scenarios, consult [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md).
 
 ---
 
@@ -157,13 +160,14 @@ pnpm build
 ```
 Question Bank Generator/
 ├── README.md                    # Project overview & documentation index
-├── DESIGN.md                    # Authoritative UI/UX Design System Guide (tokens, dual themes)
+├── DESIGN.md                    # Authoritative UI/UX Design System Guide (tokens, dual themes, split-pane)
 ├── docker-compose.yml           # PostgreSQL 16 container definition
-├── .env.example                 # Environment variables template
+├── .env.example                 # Environment variables template (29 parameters)
 ├── docs/                        # Comprehensive Documentation Suite
 │   ├── README.md                # Master Documentation Index & role-based sitemap
-│   ├── ARCHITECTURE.md          # Multi-agent architecture & LangGraph StateGraph
-│   ├── API.md                   # Complete REST & SSE API specification (22 endpoints)
+│   ├── ARCHITECTURE.md          # Multi-agent architecture, Blind-Solver & LangGraph StateGraph
+│   ├── API.md                   # Complete REST & SSE API specification (27 operations / 22 paths)
+│   ├── TESTING_AND_QA.md        # Pytest test suite & TestSprite Playwright E2E specifications
 │   ├── TOKEN_TRACKING.md        # Inference pricing & mathematical cost engine
 │   ├── SETUP_AND_CONFIG.md      # Installation, deployment & troubleshooting
 │   └── MCAT_RUBRIC.md           # 100-point psychometric rubric & authoring standards
@@ -172,7 +176,7 @@ Question Bank Generator/
 │   ├── requirements.txt         # Python dependencies
 │   ├── tests/
 │   │   ├── test_schemas.py      # Pydantic V2 schema validation & constraints
-│   │   ├── test_agents.py       # Heuristics, agent mocking & quality gates
+│   │   ├── test_agents.py       # Heuristics, agent mocking, blind solver & quality gates
 │   │   ├── test_workflow.py     # StateGraph multi-agent flow & bypass routing
 │   │   ├── test_visuals.py      # SVG & FLUX image generation and pricing
 │   │   ├── test_tokens.py       # Token counting, accumulation & DeepInfra limits
@@ -180,6 +184,7 @@ Question Bank Generator/
 │   │   ├── test_api.py          # CRUD endpoints, batch staging & lifecycle
 │   │   ├── test_database_structure.py # Relational schema, passage & batch sync tests
 │   │   ├── test_batch_jobs_flow.py # Background jobs & batch execution flow
+│   │   ├── test_multi_batch_concurrency.py # Global semaphores, rate limiting & metrics
 │   │   └── test_e2e_live.py     # Live end-to-end integration test suite
 │   └── app/
 │       ├── main.py              # FastAPI app with modern lifespan context & security headers

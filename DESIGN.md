@@ -138,19 +138,37 @@ Psychological, Social & Biological (PS)  -> Royal Violet  (#a855f7 / #7c3aed)
 - Conduits between nodes feature an animated electric gradient pulse (`conduit-flow-active`) during active streaming.
 - Collapsible SSE telemetry drawer displaying raw event stream timestamps, event types, token metrics, and per-step costs.
 
-### 4.3 Editorial Review Desk (`QuestionCard.jsx`, `StagedBatchReview.jsx`)
+### 4.3 Editorial Review Desk & AAMC Dual Split-Pane Mode (`QuestionCard.jsx`, `StagedBatchReview.jsx`)
 - **Top Metadata Strip**: Displays section badge, difficulty chip, dual score pills (AAMC Scaled Score `118-132` + 100-pt Audit Score), AAMC Skill badge (SIRS 1-4 / CARS 1-3), cumulative token/cost telemetry, and a dedicated **Primary Cognitive Trap Badge Chip** (`rgba(139, 92, 246, 0.12)` background, purple border, `Tag` icon).
+- **AAMC Dual Split-Pane Reading Mode Layout**:
+  - Implemented in `StagedBatchReview.jsx` using the `.aamc-split-layout-grid` CSS class:
+    ```css
+    .aamc-split-layout-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+    ```
+  - **Left Reading Pane (`SharedPassageCard.jsx`)**: Displays the shared experimental stimulus or CARS essay formatted in warm Newsreader serif type (`font-size: 1.05rem`, `line-height: 1.68`). Features sticky positioning (`position: sticky; top: 88px; max-height: calc(100vh - 120px); overflow-y: auto;`) allowing educators to consult passage evidence without losing their vertical reading position.
+  - **Right Candidate Pane (`QuestionCard.jsx` / `StagedDetailedView.jsx`)**: Hosts the active question stem, option badges, inline editor, and distractor rationales with independent vertical scrolling.
+  - **Layout Mode Toggle (`BatchProgressHeader.jsx`)**: An interactive switcher (`#btn-toggle-split-layout`) allows educators to seamlessly toggle between **Split View** (side-by-side reading desk) and **Stacked View** (vertical single-column layout).
+  - **Responsive Collapse**: Automatically collapses to a clean single column on mobile and tablet screens ($\le 1024\text{px}$).
 - **Option Badges**: Standard 4 circular `A`, `B`, `C`, `D` pills that highlight emerald on correct answers and crimson on incorrect distractors with clear checkmark/cross indicators.
 - **Distractor Rationalization Drawers**: Collapsible cards detailing the exact psychometric reason why each wrong option constitutes a realistic cognitive trap.
-- **Inline Editor**: Live editable fields allowing educators to adjust stem text, key letters, or explanation proofs before committing to the question bank.
+- **Inline Editor (`QuestionInlineEditor.jsx`)**: Live editable fields allowing educators to adjust stem text, key letters, or explanation proofs before committing to the question bank.
 
-### 4.4 Psychometric Audit Modal (`ReviewAuditView.jsx`)
+### 4.4 Psychometric Audit Modal & Accessible Focus Trapping (`ReviewAuditView.jsx`)
+- **Modal Architecture**: Accessible dialog overlay implementing strict WCAG AA focus trapping and escape dismissal:
+  - Traps keyboard focus (`Tab` and `Shift+Tab`) within the dialog boundaries, preventing background tabbing.
+  - Restores focus to the triggering element upon dismissal (`Escape` key or backdrop click).
+  - ARIA attributes: `role="dialog"`, `aria-modal="true"`, `aria-labelledby="audit-modal-title"`.
 - Displays the 4-pillar breakdown (Authenticity, Clarity, Distractor Traps, Explanation Rigor) scored out of 25 each.
 - Itemized per-cycle token usage table detailing prompt tokens, completion tokens, execution time, and sub-micro-cent USD cost.
 
-### 4.5 Export & Print Studio (`ExportPrintModal.jsx`)
-- Multi-format modal providing instant preview and export for:
-  1. **Exam Paper (PDF / Print)**: Formatted with title blocks, candidate name lines, timing guidelines, and page-break rules.
+### 4.5 Export & Print Studio (`ExportPrintModal.jsx`, `ExportPaperPreview.jsx`)
+- Accessible modal dialog providing live print preview and multi-format export:
+  1. **Exam Paper (PDF / Print)**: Formatted with title blocks, candidate name lines, timing guidelines, and `.page-break` rules preventing awkward page splits.
   2. **Comprehensive Study Pack**: Includes full passages, question stems, answers, and in-depth step-by-step rationales.
   3. **CSV Export**: Standardized comma-delimited export ready for LMS and spreadsheet ingestion.
   4. **JSON Bundle**: Full relational representation including evolution histories and token metrics.
@@ -170,7 +188,17 @@ Renders pedagogical rationales across three distinct, beautifully styled visual 
   - `QuestionCard.jsx` and `QuestionBankTable.jsx` render a persistent purple badge chip in the card header: background `rgba(139, 92, 246, 0.12)`, text `#a78bfa` (dark) / `#6d28d9` (light), border `rgba(139, 92, 246, 0.3)`.
 - **Responsive Modes**: Supports `isCompact=true` for staged review decks and full expanded mode for in-depth editorial analysis.
 
-### 4.7 Top-Level Application Views (`views/`)
+### 4.7 Active Multi-Batch Concurrency Monitor (`ActiveMultiBatchMonitor.jsx`)
+- **Real-Time Telemetry Strip**: Displays live worker pool occupancy against configured limits (`Global Jobs: X / 4`, `Active Inference Calls: Y / 10`).
+- **Interactive Batch Lifecycle Actions**:
+  - **1-Click Batch Stop**: Immediately halts running sub-tasks without deleting saved items.
+  - **1-Click Batch Retry**: Relaunches failed or cancelled jobs into the global worker pool.
+  - **Cancel All Batches**: Global administrative emergency stop.
+
+### 4.8 Live Stopwatch & Precision Telemetry (`LiveStopwatch.jsx`)
+- Renders an active runtime duration stopwatch using `font-family: var(--font-mono)` with glowing amber pulse animation during active generation runs.
+
+### 4.9 Top-Level Application Views (`views/`)
 1. **Generator Workspace View (`GeneratorWorkspaceView.jsx`)**: Coordinates the 7-step guided wizard dock alongside the single-canvas live generation desk, telemetry pipelines, and staged review decks.
 2. **AI Validated Questions View (`AiValidatedQuestionsView.jsx`)**: Dedicated review deck for items generated in background batches that passed the >90 quality threshold, supporting one-click individual or bulk publishing into the primary Question Bank.
 3. **Question Bank View (`QuestionBankView.jsx`)**: Full-featured searchable, filterable repository table featuring multi-format CSV/JSON exports, bulk deletion, lifecycle status updates, and repository-wide token analytics.

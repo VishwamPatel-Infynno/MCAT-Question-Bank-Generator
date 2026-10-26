@@ -34,7 +34,7 @@ cp .env.example .env
 | :--- | :--- | :--- | :--- |
 | `DATABASE_URL` | `string` | `postgresql+asyncpg://mcat_user:mcat_password@localhost:5432/mcat_db` | Async SQLAlchemy PostgreSQL connection string |
 | `DEFAULT_TEXT_MODEL` | `string` | `deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017` | Primary LiteLLM model identifier |
-| `DEFAULT_IMAGE_MODEL` | `string` | `deepinfra/black-forest-labs/FLUX-2-klein-4b` | Image model for visual stimuli |
+| `DEFAULT_IMAGE_MODEL` | `string` | `black-forest-labs/FLUX-2-klein-4b` | Image model for visual stimuli |
 | `DEEPINFRA_API_KEY` | `string` | `""` | DeepInfra API authorization key |
 | `MAX_REGENERATION_ATTEMPTS`| `integer`| `3` | Maximum remediation loops before Quality Gate reject |
 | `PASSING_SCORE_THRESHOLD` | `integer`| `90` | Minimum score required to pass psychometric gate |
@@ -45,6 +45,18 @@ cp .env.example .env
 | `REGENERATOR_TEMPERATURE` | `float` | `0.2` | Strict remediation temperature for Regenerator |
 | `REVIEWER_TEMPERATURE` | `float` | `0.1` | Deterministic temperature for 100-pt Psychometric Reviewer |
 | `BLIND_SOLVER_TEMPERATURE`| `float` | `0.1` | Ultra-deterministic temperature for Blind-Solver Agent |
+| `ENABLE_BLIND_SOLVER` | `boolean` | `true` | Enables dual-validation blind solver agent |
+| `BLIND_SOLVER_CONFIDENCE_THRESHOLD` | `integer` | `88` | Minimum blind solver confidence percentage to pass without remediation |
+| `BLIND_SOLVER_MAX_TOKENS` | `integer` | `1200` | Max completion tokens budget for blind-solver inference |
+| `GLOBAL_MAX_CONCURRENT_JOBS` | `integer` | `4` | Global worker pool semaphore governing simultaneous batch jobs |
+| `GLOBAL_MAX_CONCURRENT_LLM_CALLS` | `integer` | `10` | Global limiter for simultaneous outward inference calls |
+| `LLM_MAX_RETRIES` | `integer` | `4` | Maximum exponential backoff retries on 429/503 errors |
+| `LLM_BASE_BACKOFF_SECONDS` | `float` | `1.5` | Base backoff interval in seconds before retry |
+| `DB_POOL_SIZE` | `integer` | `20` | Core persistent asyncpg database connections |
+| `DB_MAX_OVERFLOW` | `integer` | `30` | Burst connection capacity beyond pool size |
+| `DB_POOL_TIMEOUT` | `integer` | `60` | Connection checkout timeout in seconds |
+| `DB_POOL_RECYCLE` | `integer` | `1800` | Connection lifetime recycle in seconds (30 mins) |
+| `ALLOWED_ORIGINS` | `list[str]` | `[]` | Additional CORS trusted origins (comma-separated in `.env`) |
 | `IMAGE_WIDTH` | `integer` | `1024` | Default width for FLUX diagrams |
 | `IMAGE_HEIGHT` | `integer` | `1024` | Default height for FLUX diagrams |
 | `IMAGE_ITERS` | `integer` | `0` | Inference step iterations (0 for flat-rate models) |
@@ -127,12 +139,12 @@ The repository maintains an uncompromising **Zero-Defect Quality Policy** enforc
 
 ### 5.1 Backend Verification Suite
 
-Run the complete 41-test deterministic unit & integration suite using `pytest`:
+Run the complete 47-test deterministic unit & integration suite using `pytest` (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full test specifications):
 
 ```bash
 source .venv/bin/activate
 
-# 1. Run all 41 backend unit and contract tests (100% pass guarantee)
+# 1. Run all 47 backend unit and integration tests (100% pass guarantee)
 PYTHONPATH=backend pytest backend/tests -v -k "not live_e2e"
 
 # 2. Run Python linting and code quality checks
@@ -142,7 +154,9 @@ ruff check backend
 This verifies:
 - Pydantic schema validation across all 4 official AAMC MCAT sections.
 - Reviewer 100-point rubric evaluation and remediation routing logic.
+- Blind-Solver dual-validation agent agreement and discrepancy re-routing.
 - Strict Quality Gate halt and rejection payload generation when score $\le 90$.
+- Global worker pool semaphores, LLM rate-limiting backoff, and multi-batch concurrency.
 - Programmatic SVG vector diagram rendering and XML validation.
 - PostgreSQL 16 CRUD persistence, native JSONB columns, and B-Tree indexes.
 - Batch generation schema parsing and background runner job tracking.
@@ -151,10 +165,13 @@ This verifies:
 #### Live Multi-Agent E2E Verification
 To verify live inference, streaming SSE events, and manager matrix combinations with active LLM gateways:
 ```bash
-PYTHONPATH=backend pytest backend/tests/test_e2e_live.py -v
+PYTHONPATH=backend pytest backend/tests/test_e2e_live.py -v -m live_e2e
 ```
 
-### 5.2 Frontend Quality & Production Verification
+### 5.2 Browser End-to-End Automated Testing (TestSprite TC001–TC015)
+The application includes 15 automated Playwright E2E browser tests covering guided wizard creation, SSE telemetry streaming, cancellation, staged approval, inline editing, batch approval, audit trail inspection, tab switching, and question bank management. All 15 tests pass with 100% success rate. See [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for the full test matrix and instructions.
+
+### 5.3 Frontend Quality & Production Verification
 
 ```bash
 # 1. High-speed Oxlint check (Zero warnings, zero errors required)

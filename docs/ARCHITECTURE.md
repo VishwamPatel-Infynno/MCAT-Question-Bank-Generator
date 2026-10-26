@@ -18,11 +18,14 @@ graph TD
     subgraph "LangGraph StateGraph Workflow"
         Graph --> NodeFused[Fused Draft & Self-Critique Engine]
         
-        NodeFused -->|Self-Score > 90 & Bypass Review (~40% Faster)| NodeBypass{Needs Visual?}
+        NodeFused --> NodeBlind[Blind-Solver Dual Validation Agent]
+        NodeBlind -->|Key Agreement & Confidence >= 88%| NodeBypass{Needs Visual?}
+        
         NodeBypass -->|Yes| NodeImg[Infynno Visual & Vector Engine]
         NodeBypass -->|No| NodeFin[Finalize & Staging Node]
         
-        NodeFused -->|Self-Score <= 90| NodeRegen[Autonomous Remediation Engine]
+        NodeBlind -->|Discrepancy OR Confidence < 88%| NodeRegen[Autonomous Remediation Engine]
+        NodeFused -->|Self-Score <= 90| NodeRegen
         NodeRegen --> NodeRev[Independent Psychometric Auditor]
         
         NodeRev -->|Audit Score <= 90 & Iteration < 3| NodeRegen
@@ -43,7 +46,7 @@ graph TD
 
 ## 2. Multi-Agent StateGraph Workflow
 
-The workflow enforces a strict psychometric quality contract. A question **must score higher than 90 out of 100** on the psychometric rubric to be approved for publication.
+The workflow enforces a strict psychometric quality contract. A question **must score higher than 90 out of 100** on the psychometric rubric and pass **Blind-Solver independent validation** to be approved for publication.
 
 ### 2.1 StateGraph Workflow Diagram
 
@@ -58,11 +61,21 @@ stateDiagram-v2
     state FusedRouter <<choice>>
     EvaluateSelfCritique --> FusedRouter
     
-    FusedRouter --> ImageGenerator: Score > 90 AND Needs Visual (~40% Faster)
-    FusedRouter --> FinalizeNode: Score > 90 AND Text Only (~40% Faster)
+    FusedRouter --> BlindSolver: Self-Score > 90
+    FusedRouter --> QuestionRegenerator: Self-Score <= 90 (Cycle 1)
+    
+    state "Blind-Solver Dual Validation" as BlindNode {
+        BlindSolver --> BlindCheck: Blind Solve Without Key & Check Agreement
+    }
+    
+    state BlindRouter <<choice>>
+    BlindCheck --> BlindRouter
+    
+    BlindRouter --> ImageGenerator: Agreement & Confidence >= 88% AND Needs Visual
+    BlindRouter --> FinalizeNode: Agreement & Confidence >= 88% AND Text Only
+    BlindRouter --> QuestionRegenerator: Key Discrepancy OR Confidence < 88%
     
     state "Remediation & Independent Audit Loop" as Loop {
-        FusedRouter --> QuestionRegenerator: Score <= 90 (Cycle 1)
         QuestionRegenerator --> QuestionReviewer: Remediated Draft (Cycle + 1)
         
         state ReviewRouter <<choice>>
@@ -108,8 +121,21 @@ The system coordinates specialized autonomous engines with a deterministic quali
   - If self-critique score $\le 90$, the candidate draft is routed to the Remediation Engine and Independent Auditor loop.
 - **Inference Gateway**: High-throughput enterprise reasoning model (~110-140 tok/s, Temperature: `0.2` for strict instruction adherence).
 
-### 3.2 Independent Senior Psychometric Auditor (`reviewer.py`)
-- **Mission**: Acts as an impartial Senior Psychometric Auditor, independently evaluating candidate questions whenever the initial draft does not clear the self-critique threshold or after a remediation cycle.
+### 3.2 Blind-Solver Dual-Validation Agent (`blind_solver.py` / `blind_solver_node`)
+- **Mission**: Acts as an algorithmic test candidate, solving the drafted question completely blind without access to the author's answer key, explanation, or self-critique rubric.
+- **Solving Mechanism**:
+  - Receives only the scientific passage or discrete scenario and the four unlabelled options ($A, B, C, D$).
+  - Independently derives the scientific solution, identifies the correct key, and assigns a numerical confidence score ($0 - 100\%$).
+- **Dual-Validation Contract**:
+  - **Key Agreement**: The blind-solver's selected answer key must match the draft's intended `correct_answer_id`.
+  - **Confidence Benchmark**: The blind-solver's confidence must satisfy $\ge 88\%$ (`BLIND_SOLVER_CONFIDENCE_THRESHOLD = 88`).
+- **Autonomous Rerouting**:
+  - If the blind solver **agrees** with high confidence ($\ge 88\%$), `blind_solver_passed = True`, and the question bypasses lengthy remediation directly to the visual engine or finalize node.
+  - If the blind solver **disagrees** or has low confidence ($< 88\%$), the discrepancy proves that the distractors or stem contain genuine ambiguity or misleading premises. The workflow sets `blind_solver_passed = False` and routes the draft directly to the Remediation Engine with the blind solver's dissenting proof.
+- **Inference Gateway**: High-throughput enterprise reasoning model (Temperature: `0.1` for deterministic, zero-hallucination solving, max tokens: `1200`).
+
+### 3.3 Independent Senior Psychometric Auditor (`reviewer.py`)
+- **Mission**: Acts as an impartial Senior Psychometric Auditor, independently evaluating candidate questions whenever the initial draft does not clear the self-critique threshold, fails blind-solver validation, or has completed a remediation cycle.
 - **Evaluation Rubric (100 Points)**:
   1. *MCAT Authenticity & Scientific Rigor* (0-25 points)
   2. *Clarity & Logical Soundness* (0-25 points)
@@ -121,22 +147,22 @@ The system coordinates specialized autonomous engines with a deterministic quali
 - **Output**: Returns numerical pillar scores, observed strengths, specific weaknesses, and actionable remediation instructions.
 - **Inference Gateway**: High-throughput enterprise reasoning model (Temperature: `0.1` for objective, deterministic evaluation).
 
-### 3.3 Autonomous Remediation Engine (`regenerator.py`)
-- **Mission**: Triggered exclusively when the score is $\le 90$. It digests the exact critique, distractor deficiencies, and recommendations to repair the draft.
+### 3.4 Autonomous Remediation Engine (`regenerator.py`)
+- **Mission**: Triggered exclusively when the score is $\le 90$ or blind solver fails. It digests the exact critique, distractor deficiencies, dissenting blind-solver rationales, and recommendations to repair the draft.
 - **Rules**:
   - Fixes borderline ambiguities, equalizes option lengths, and sharpens distractor plausibility.
   - Deepens step-by-step rationales explaining why the key is incontrovertible and why every distractor fails.
   - Re-submits the updated draft back to the Reviewer for re-audit.
 - **Inference Gateway**: High-throughput enterprise reasoning model (Temperature: `0.2` for disciplined remediation).
 
-### 3.4 Strict Quality Gate (`reject_node` in `app/workflow/nodes.py`)
+### 3.5 Strict Quality Gate (`reject_node` in `app/workflow/nodes.py`)
 - **Mission**: Deterministic circuit breaker. If a candidate draft fails to exceed 90 points after reaching the maximum permitted remediation cycles (`MAX_REGENERATION_ATTEMPTS = 3`), the workflow halts immediately.
 - **Safety Guarantee**:
   - **Bypasses Image Generation**: Prevents wasted computation and unnecessary token expenses.
   - **Discards from Database**: Zero substandard questions enter the PostgreSQL repository.
   - **Diagnostic Payload**: Transmits full rejection telemetry and history via SSE for audit inspection.
 
-### 3.5 Infynno Visual & Vector Engine (`image_generator.py`)
+### 3.6 Infynno Visual & Vector Engine (`image_generator.py`)
 - **Mission**: Generates visual stimuli for questions requiring graphical diagrams (e.g., metabolic cycles, enzyme kinetics, gel electrophoresis assays, optics diagrams; strictly disabled for CARS).
 - **Autonomous AI Routing**: Supports autonomous AI-driven stimulus synthesis when `allow_ai_images` is enabled and deemed pedagogically necessary.
 - **Hybrid Visual Engine**:
@@ -220,10 +246,33 @@ graph TD
     Workflow4 --> PersistQ
     Workflow10 --> PersistQ
     
-    PersistQ --> UpdateBatch[Update Batch & Job status to completed]
+    PersistQ --> AtomicUpdate[refresh_batch_aggregates Atomic DB Sync]
+    AtomicUpdate --> UpdateBatch[Update Batch & Job status to completed]
 ```
 
-### 5.1 Question Lifecycle State Machine
+### 5.1 Global Worker Pool Concurrency & Rate Limiting Engine
+
+To support heavy concurrent workloads and prevent thread starvation or provider rate limits, the batch execution engine implements multi-layered concurrency controls:
+
+1. **Global Worker Pool Semaphore (`_GLOBAL_JOB_SEMAPHORE`)**:
+   - Initialized as a singleton semaphore: `asyncio.Semaphore(config.GLOBAL_MAX_CONCURRENT_JOBS)` (default: **4 concurrent jobs**).
+   - Constrains simultaneous job execution across **all active running batches** in the system, preventing resource exhaustion when multiple batches are launched concurrently.
+2. **Global LLM Concurrency Limiter**:
+   - Managed via `config.GLOBAL_MAX_CONCURRENT_LLM_CALLS` (default: **10 concurrent inference calls**).
+   - Bounds the maximum number of simultaneous HTTP requests dispatched to DeepInfra.
+3. **Exponential Backoff & Rate-Limit Resilience (`call_llm` in `app/agents/base.py`)**:
+   - Automatically intercepts HTTP 429 (Rate Limit) and 503 (Service Unavailable) responses.
+   - Retries up to `LLM_MAX_RETRIES = 4` times using exponential backoff:
+     $$\text{Wait Seconds} = \text{base\_backoff} \times 2^{\text{attempt}} + \text{jitter}$$
+     with `LLM_BASE_BACKOFF_SECONDS = 1.5` and random fractional jitter to prevent thundering herd problems.
+4. **Atomic Database State Aggregation (`refresh_batch_aggregates`)**:
+   - Executes atomic SQL subqueries to calculate `completed_jobs`, `failed_jobs`, `actual_count`, `total_tokens`, and `cost_usd` directly inside PostgreSQL.
+   - Eliminates read-modify-write race conditions between parallel background worker tasks.
+5. **1-Click Batch Lifecycle Controls**:
+   - **Graceful Batch Halt (`POST /api/batches/{id}/stop`)**: Cancels running asyncio worker tasks and updates remaining pending jobs to `"cancelled"` while preserving all successfully generated questions in the bank.
+   - **Resilient Batch Retry (`POST /api/batches/{id}/retry`)**: Re-queues incomplete (failed or cancelled) jobs into the global worker pool, automatically picking up from where execution stopped without generating duplicate questions.
+   - **Global Halt (`POST /api/batches/cancel-all`)**: System-wide fail-safe terminating all active runner tasks cleanly.
+### 5.2 Question Lifecycle State Machine
 Every question in the system progresses through an explicit lifecycle state:
 
 ```mermaid
@@ -252,9 +301,17 @@ stateDiagram-v2
 
 ## 6. PostgreSQL 16 Database Architecture
 
-The persistence tier runs on **PostgreSQL 16** managed through **SQLAlchemy 2.0 Async** and the **`asyncpg`** driver.
+The persistence tier runs on **PostgreSQL 16** managed through **SQLAlchemy 2.0 Async** and the **`asyncpg`** driver, featuring enterprise connection pooling and zero-downtime startup migrations (`init_db()` in [`backend/app/db/session.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/db/session.py)):
 
-### 6.1 Entity-Relationship Diagram (ERD)
+### 6.1 Enterprise Connection Pooling Parameters
+To prevent database connection drops and handle parallel batch worker loads, the async engine is configured with:
+- `pool_size = 20`: Core persistent database connections maintained in the pool.
+- `max_overflow = 30`: Additional burst connections during heavy multi-batch load (total 50 connections).
+- `pool_timeout = 60`: Seconds to wait before timing out if all connections are busy.
+- `pool_recycle = 1800`: Automatically recycles connections after 30 minutes to prevent stale TCP sockets.
+- `pool_pre_ping = True`: Automatically validates connection health prior to checking out.
+
+### 6.2 Entity-Relationship Diagram (ERD)
 
 ```mermaid
 erDiagram
@@ -419,13 +476,14 @@ frontend/src/
 │   │   ├── QuestionBankFilters.jsx # Section, difficulty, and search filter controls
 │   │   └── QuestionBankTable.jsx # Tabular question rows, batch selection, and actions
 │   ├── batch/                    # Batch monitoring components
+│   │   ├── ActiveMultiBatchMonitor.jsx # Global concurrency metrics & live multi-batch controller
 │   │   ├── BatchCard.jsx         # Summary status card for generation batches
 │   │   ├── BatchFiltersBar.jsx   # Section, status, and search filters
 │   │   ├── BatchJobCard.jsx      # Per-question job card with lifecycle status
 │   │   ├── BatchQuestionItem.jsx # Staged question item with review modal
 │   │   └── BatchStatsHeader.jsx  # High-level aggregate batch statistics
 │   ├── validated/                # AI Validated bank components
-│   │   ├── AiValidatedCard.jsx   # Card with direct bank approval actions
+│   │   ├── AiValidatedQuestionCard.jsx # Card with direct bank approval actions
 │   │   ├── AiValidatedFiltersBar.jsx # Filters for AI-validated questions
 │   │   └── AiValidatedStatsBar.jsx # Quick-action statistics header
 │   ├── modals/                   # Dialog modals
@@ -438,12 +496,13 @@ frontend/src/
 │       ├── CustomSelect.jsx      # Accessible custom dropdown select primitive
 │       ├── FormattedText.jsx     # Inline markdown & cognitive trap chip highlighter
 │       ├── InfynnoLogo.jsx       # Official corporate vector logo primitive
+│       ├── LiveStopwatch.jsx     # High-precision live stopwatch timer
 │       ├── NumberStepper.jsx     # Accessible numerical stepper primitive
 │       └── Toast.jsx             # Floating toast notification system
 ├── constants/
 │   ├── config.js                 # Pricing models, image parameters, token rates
 │   ├── mcat.js                   # MCAT sections, pacing specs, icons, and fallback topics
-│   ├── mcatTaxonomy.json         # AAMC-aligned foundational concepts and skills
+│   ├── mcat_dependent_taxonomy.json # AAMC-aligned foundational concepts and skills
 │   └── mcatTraps.js              # AAMC cognitive trap definitions and defense strategies
 ├── hooks/
 │   ├── useAppState.js            # Centralized view routing & global event broker

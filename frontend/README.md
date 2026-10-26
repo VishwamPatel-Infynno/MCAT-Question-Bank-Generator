@@ -42,12 +42,13 @@ frontend/src/
 │   │   ├── CustomSelect.jsx      # Accessible custom dropdown select primitive
 │   │   ├── FormattedText.jsx     # Inline markdown & cognitive trap chip highlighter
 │   │   ├── InfynnoLogo.jsx       # Official corporate vector logo primitive
+│   │   ├── LiveStopwatch.jsx     # High-precision live stopwatch timer
 │   │   └── Toast.jsx             # Floating toast notification system
 │   ├── layout/
 │   │   ├── Footer.jsx            # Infynno Solutions LLP attribution & resource footer
 │   │   └── Navbar.jsx            # Header with branding, navigation tabs, status, and theme toggle
 │   ├── modals/
-│   │   ├── ExportPrintModal.jsx  # Exam Paper (PDF), Study Pack, CSV and JSON export modal
+│   │   ├── ExportPrintModal.jsx  # Exam Paper (PDF), Study Pack, CSV and JSON export modal (Focus Trapped)
 │   │   └── ExportPaperPreview.jsx# Live print layout previewer
 │   ├── pipeline/
 │   │   ├── AgentVisualizer.jsx   # Live generating telemetry & compact stepper
@@ -59,19 +60,20 @@ frontend/src/
 │   │   ├── QuestionDraftingSkeleton.jsx # Pulse skeleton for question creation
 │   │   ├── QuestionInlineEditor.jsx # In-place authoring & remediation editor
 │   │   ├── QuestionScorecardTab.jsx # 100-point rubric breakdown accordion
-│   │   ├── ReviewAuditView.jsx   # 100-point rubric breakdown & token cost modal
-│   │   ├── SharedPassageCard.jsx # Shared reading passage stimulus display card
+│   │   ├── ReviewAuditView.jsx   # 100-point rubric breakdown & token cost modal (Focus Trapped)
+│   │   ├── SharedPassageCard.jsx # Shared reading passage stimulus display card (Split-Pane Sticky)
 │   │   └── VisualStimulusViewer.jsx # SVG & neural visual diagram renderer
 │   ├── staged/
 │   │   ├── index.js              # Barrel export for batch review deck
-│   │   ├── BatchProgressHeader.jsx # Staged batch progress telemetry header
-│   │   ├── StageJsonInspector.jsx# Deep stage outcome JSON inspector modal
+│   │   ├── BatchProgressHeader.jsx # Staged batch progress telemetry header & Split/Stacked toggle
+│   │   ├── StageJsonInspector.jsx# Deep stage outcome JSON inspector modal (Focus Trapped)
 │   │   ├── StagedBatchGrid.jsx   # Grid of staged batch question slots
-│   │   ├── StagedBatchReview.jsx # Multi-question batch confirmation deck
+│   │   ├── StagedBatchReview.jsx # Multi-question batch confirmation deck (AAMC Split-Pane Layout)
 │   │   ├── StagedDetailedView.jsx# Expanded single question review panel
 │   │   ├── StagedQuestionSlotCard.jsx # Individual question slot reviewer card
 │   │   └── StagedSlotSkeleton.jsx# Slot loading pulse skeleton
 │   ├── batch/
+│   │   ├── ActiveMultiBatchMonitor.jsx # Global concurrency metrics & live multi-batch controller
 │   │   ├── BatchCard.jsx         # Summary status card for generation batches
 │   │   ├── BatchFiltersBar.jsx   # Section, status, and search filters
 │   │   ├── BatchJobCard.jsx      # Per-question job card with lifecycle status

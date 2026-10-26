@@ -1,5 +1,7 @@
+import json
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -53,8 +55,25 @@ class Settings(BaseSettings):
     # API Keys — loaded automatically from .env by pydantic-settings
     DEEPINFRA_API_KEY: str = ""
 
-    # CORS Trusted Origins (extra origins beyond localhost defaults, comma-separated in .env)
-    ALLOWED_ORIGINS: list[str] = []
+    # CORS Trusted Origins (extra origins beyond localhost defaults, comma-separated or JSON list in .env)
+    ALLOWED_ORIGINS: list[str] | str = []
+
+    @field_validator("ALLOWED_ORIGINS", mode="before")
+    @classmethod
+    def parse_allowed_origins(cls, v: object) -> list[str]:
+        if isinstance(v, str):
+            v_str = v.strip()
+            if v_str.startswith("[") and v_str.endswith("]"):
+                try:
+                    parsed = json.loads(v_str)
+                    if isinstance(parsed, list):
+                        return [str(x).strip() for x in parsed if str(x).strip()]
+                except Exception:
+                    pass
+            return [x.strip() for x in v_str.split(",") if x.strip()]
+        if isinstance(v, list):
+            return [str(x).strip() for x in v if str(x).strip()]
+        return []
 
     @property
     def effective_allowed_origins(self) -> list[str]:

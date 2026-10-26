@@ -91,17 +91,17 @@ Official MCAT distractors are **never trivial or obviously wrong**; they are del
 ---
 
 ### Pillar 4: Mentor Explanation & Key Rigor (0 - 25 Points)
-The correct answer must be incontrovertible. The explanation must provide deep pedagogical value, structured into:
-1. Proof of why the key is correct.
-2. Step-by-step refutation of each incorrect distractor.
-3. Cognitive trap spotlight detailing error mechanisms and defense strategies.
+The correct answer must be incontrovertible. Beyond editorial evaluation, the system enforces algorithmic verification via the **Blind-Solver Dual Validation Agent**, which solves the question without access to the key. To earn full credit, the key must be incontrovertibly deduced from passage evidence, and the explanation must provide deep pedagogical value structured into:
+1. Proof of why the key is correct (Core intuition + step-by-step mathematical or deductive proof).
+2. Step-by-step refutation of each incorrect distractor ($A, B, C, D$).
+3. Cognitive trap spotlight detailing psychological error mechanisms and actionable student defense strategies.
 
 | Score Range | Descriptor | Criteria |
 | :---: | :--- | :--- |
-| **23 - 25** | *Gold-Standard Pedagogy* | Elegant step-by-step scientific proof, rigorous distractor breakdown for choices A, B, C, D, and explicit tactical defense guidance. |
+| **23 - 25** | *Gold-Standard Pedagogy* | Incontrovertible key verified by Blind-Solver ($\ge 88\%$ confidence), elegant step-by-step scientific proof, rigorous distractor breakdown for all choices, and tactical defense guidance. |
 | **19 - 22** | *Thorough Explanation* | Valid proof and refutations, but lacks nuanced cognitive trap defense notes. |
 | **14 - 18** | *Superficial Explanation* | Explains only why the key is right without explaining why distractors are wrong. |
-| **0 - 13** | *Defective / Circular* | Simply restates the question key ("B is correct because B is the right answer") with no proof. |
+| **0 - 13** | *Defective / Circular* | Simply restates the question key ("B is correct because B is the right answer") with no proof, or key is disputed by Blind-Solver. |
 
 ---
 

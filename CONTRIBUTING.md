@@ -42,10 +42,10 @@ pnpm dev
 
 ## 🧪 Testing & Verification Guidelines
 
-Before submitting any code changes, ensure all verification suites pass with zero defects:
+Before submitting any code changes, ensure all verification suites pass with zero defects (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full test specifications):
 
 ```bash
-# 1. Backend pytest suite (41 unit & integration tests)
+# 1. Backend pytest suite (47 unit & integration tests)
 PYTHONPATH=backend pytest backend/tests -v -k "not live_e2e"
 
 # 2. Backend Python linter
@@ -63,18 +63,20 @@ pnpm build
 ## 📐 Multi-Agent Architectural Principles
 
 1. **Strict Quality Threshold**: Questions scoring $\le 90$ must be regenerated up to 3 times by the Re-Generator agent. If still below 90, the workflow must halt and reject the question from the Question Bank.
-2. **Deterministic Token & Cost Math**: All costs must be computed via official DeepInfra rates:
+2. **Blind-Solver Dual Validation**: Every candidate question is solved blindly without knowing the author's key or explanation. Any key discrepancy or confidence $< 88\%$ triggers automatic remediation to ensure question keys are incontrovertible.
+3. **Deterministic Token & Cost Math**: All costs must be computed via official DeepInfra rates:
    - Text: $0.098 input / $0.294 output per 1M tokens.
    - Image: Flat baseline rate of $0.014 USD per image (scaled by $(\text{width}/1024) \times (\text{height}/1024)$).
-3. **Modular Layer Separation**:
-   - Routing: `backend/app/api/v1/`
-   - Business/Agent Logic: `backend/app/agents/`
+4. **Modular Layer Separation**:
+   - Routing: `backend/app/api/v1/` (27 operations across 22 endpoint paths)
+   - Business/Agent Logic: `backend/app/agents/` (Generator, Blind Solver, Reviewer, Regenerator, Visuals)
    - Data Access Layer: `backend/app/repositories/`
    - Database Entities: `backend/app/models/`
-   - Background Services: `backend/app/services/`
+   - Background Services: `backend/app/services/` (`batch_runner.py` with global job semaphores)
    - Frontend: Top-level views (`views/`) with feature-based component directories (`wizard/`, `pipeline/`, `question/`, `staged/`, `bank/`, `batch/`, `validated/`, `layout/`, `modals/`, `common/`) and centralized hooks/constants.
-4. **3-Step AI Pipeline & Cognitive Fusion**: Milestone 01 fuses item authoring and 100-point rubric self-critique (`Question Writer & Reviewer`) into a single pass (~40% faster). Only drafts scoring $\le 90$ trigger Milestone 02 remediation (`Question Improver`), while Milestone 03 renders visual stimuli (`Diagram & Chart Maker`).
-5. **Option Symmetry & Anti-AI Standard**: Enforce $\pm 15\%$ option length parity across strictly 4 options ($A, B, C, D$) and single hyphens (`-`) only; em dashes (`—`) and en dashes (`–`) are strictly forbidden across prompts and generation output.
+5. **3-Step AI Pipeline & Cognitive Fusion**: Milestone 01 fuses item authoring and 100-point rubric self-critique (`Question Writer & Reviewer`) into a single pass (~40% faster). Only drafts scoring $\le 90$ or failing blind-solver verification trigger Milestone 02 remediation (`Question Improver`), while Milestone 03 renders visual stimuli (`Diagram & Chart Maker`).
+6. **AAMC Dual Split-Pane Reading Mode**: Ensures dense scientific research passages and CARS essays are presented side-by-side with sticky scrolling and synchronized candidate review.
+7. **Option Symmetry & Anti-AI Standard**: Enforce $\pm 15\%$ option length parity across strictly 4 options ($A, B, C, D$) and single hyphens (`-`) only; em dashes (`—`) and en dashes (`–`) are strictly forbidden across prompts and generation output.
 
 ---
 
