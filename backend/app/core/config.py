@@ -90,6 +90,18 @@ class Settings(BaseSettings):
     BLIND_SOLVER_CONFIDENCE_THRESHOLD: int = 88
     BLIND_SOLVER_MAX_TOKENS: int = 1200
 
+    # Global Multi-Batch Concurrency & Rate Limiting Controls
+    GLOBAL_MAX_CONCURRENT_JOBS: int = 4
+    GLOBAL_MAX_CONCURRENT_LLM_CALLS: int = 10
+    LLM_MAX_RETRIES: int = 4
+    LLM_BASE_BACKOFF_SECONDS: float = 1.5
+
+    # Production Database Connection Pool Settings
+    DB_POOL_SIZE: int = 20
+    DB_MAX_OVERFLOW: int = 30
+    DB_POOL_TIMEOUT: int = 60
+    DB_POOL_RECYCLE: int = 1800
+
     model_config = SettingsConfigDict(
         env_file=[str(Path(__file__).resolve().parent.parent.parent.parent / ".env"), ".env"],
         extra="allow",

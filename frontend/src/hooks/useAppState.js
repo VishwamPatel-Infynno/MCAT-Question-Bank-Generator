@@ -31,8 +31,9 @@ export function useAppState() {
   const generatorForm = useGeneratorForm();
   const { updateFields } = generatorForm;
 
-  // ─── Modals ───────────────────────────────────────────────────────────────
+  // ─── Modals & Background Actions ──────────────────────────────────────────
   const [auditQuestion, setAuditQuestion] = useState(null);
+  const [isLaunchingBatch, setIsLaunchingBatch] = useState(false);
 
   // ─── Toast Notifications ──────────────────────────────────────────────────
   const [toasts, setToasts] = useState([]);
@@ -181,12 +182,14 @@ export function useAppState() {
 
     // If 50 questions selected, trigger background multi-job batch
     if (totalQuestions === 50) {
+      if (isLaunchingBatch) return;
+      setIsLaunchingBatch(true);
       startBackgroundBatch(payload)
         .then(() => {
           showToast({
             type: 'success',
             title: '50-Question Batch Launched',
-            message: 'Generating 50 questions across 10 jobs (5 questions/job) in the background with 2-job concurrency.'
+            message: 'Generating 50 questions across 10 jobs in the background (Global Worker Pool).'
           });
           setActiveTab('batches');
           refreshActiveBatches();
@@ -197,6 +200,9 @@ export function useAppState() {
             title: 'Batch Launch Failed',
             message: err.message || 'Could not launch background batch.'
           });
+        })
+        .finally(() => {
+          setIsLaunchingBatch(false);
         });
       return;
     }
@@ -443,6 +449,7 @@ export function useAppState() {
     handleUpdateSingleQuestion,
     // AI Validated state
     validatedCount,
-    refreshCounts: refreshActiveBatches
+    refreshCounts: refreshActiveBatches,
+    isLaunchingBatch
   };
 }

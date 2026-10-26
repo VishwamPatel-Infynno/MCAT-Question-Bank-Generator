@@ -561,203 +561,230 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         outcomes_usage: list[list[dict[str, Any]]] = [[] for _ in range(total_qty)]
 
         async def _worker(idx: int) -> None:
-            try:
-                async with semaphore:
-                    item_req, item_run_id, is_passage_item, item_interaction = (
-                        _build_batch_worker_request(
-                            req=req,
-                            idx=idx,
-                            total_qty=total_qty,
-                            batch_id=batch_id,
-                            effective_passage_count=effective_passage_count,
-                            shared_passage_id=shared_passage_id,
-                            shared_passage_text=shared_passage_text,
+            max_worker_retries = 2
+            for attempt in range(max_worker_retries + 1):
+                try:
+                    async with semaphore:
+                        item_req, item_run_id, is_passage_item, item_interaction = (
+                            _build_batch_worker_request(
+                                req=req,
+                                idx=idx,
+                                total_qty=total_qty,
+                                batch_id=batch_id,
+                                effective_passage_count=effective_passage_count,
+                                shared_passage_id=shared_passage_id,
+                                shared_passage_text=shared_passage_text,
+                            )
                         )
-                    )
 
-                if total_qty > 1:
-                    worker_msg = (
-                        f"[{idx + 1}/{total_qty}] Writing linked {item_interaction.replace('_', ' ').title()} question from shared passage..."
-                        if is_passage_item
-                        else f"[{idx + 1}/{total_qty}] Writing independent {item_interaction.replace('_', ' ').title()} question (direct question)..."
-                    )
-                    batch_prog_evt = make_event(
-                        event_type="batch_progress",
-                        agent_name="System",
-                        message=worker_msg,
-                        data={
-                            "current_index": idx + 1,
-                            "total_count": total_qty,
-                            "interaction_type": item_interaction,
-                            "passage_required": item_req.passage_required,
-                            "passage_mode": item_req.passage_mode,
-                            "passage_id": item_req.passage_id,
-                            "is_passage_item": is_passage_item,
+                        if total_qty > 1:
+                            worker_msg = (
+                                f"[{idx + 1}/{total_qty}] Writing linked {item_interaction.replace('_', ' ').title()} question from shared passage..."
+                                if is_passage_item
+                                else f"[{idx + 1}/{total_qty}] Writing independent {item_interaction.replace('_', ' ').title()} question (direct question)..."
+                            )
+                            batch_prog_evt = make_event(
+                                event_type="batch_progress",
+                                agent_name="System",
+                                message=worker_msg,
+                                data={
+                                    "current_index": idx + 1,
+                                    "total_count": total_qty,
+                                    "interaction_type": item_interaction,
+                                    "passage_required": item_req.passage_required,
+                                    "passage_mode": item_req.passage_mode,
+                                    "passage_id": item_req.passage_id,
+                                    "is_passage_item": is_passage_item,
+                                    "batch_id": batch_id,
+                                },
+                                run_id=item_run_id,
+                            )
+                            await event_queue.put(batch_prog_evt)
+
+                        state: AgentWorkflowState = {
+                            "request": item_req.model_dump(),
+                            "run_id": item_run_id,
                             "batch_id": batch_id,
-                        },
-                        run_id=item_run_id,
-                    )
-                    await event_queue.put(batch_prog_evt)
-
-                state: AgentWorkflowState = {
-                    "request": item_req.model_dump(),
-                    "run_id": item_run_id,
-                    "batch_id": batch_id,
-                    "iteration_count": 1,
-                    "iterations_history": [],
-                    "log_messages": [],
-                    "total_tokens": 0,
-                    "total_prompt_tokens": 0,
-                    "total_completion_tokens": 0,
-                    "total_cost_usd": 0.0,
-                    "agent_usage_breakdown": [],
-                    "stage_outcomes": {},
-                }
-
-                # Step 1: Question Writer & Reviewer (Fused Authoring & 100-pt Audit)
-                gen_evt = make_event(
-                    event_type="agent_start",
-                    agent_name="Question Writer & Reviewer",
-                    message=f"Drafting and auditing question {idx + 1}/{total_qty} (Single Choice)...",
-                    data={
-                        "index": idx + 1,
-                        "total": total_qty,
-                        "stage": "drafting",
-                        "interaction_type": item_interaction,
-                        "passage_required": item_req.passage_required,
-                    },
-                    run_id=item_run_id,
-                )
-                await event_queue.put(gen_evt)
-
-                gen_res = await fused_generator_node(state)
-                state.update(gen_res)
-
-                gen_usage = state.get("latest_usage", {})
-                self_score = (state.get("current_review") or {}).get("total_score", 95)
-                gen_done_evt = make_event(
-                    event_type="agent_complete",
-                    agent_name="Question Writer & Reviewer",
-                    message=f"Draft authored and audited for Question {idx + 1} (Score: {self_score}/100, {gen_usage.get('total_tokens', 0)} tokens, ${gen_usage.get('cost_usd', 0.0):.5f}).",
-                    data={
-                        "draft": state["current_draft"],
-                        "review": state.get("current_review"),
-                        "score": self_score,
-                        "latest_usage": gen_usage,
-                        "index": idx + 1,
-                        "total": total_qty,
-                        "stage": "drafting",
-                    },
-                    run_id=item_run_id,
-                )
-                await event_queue.put(gen_done_evt)
-
-                # Step 2: Quality Review / Remediation Loop
-                question_passed = await _run_question_review_loop(
-                    state=state,
-                    idx=idx,
-                    total_qty=total_qty,
-                    item_run_id=item_run_id,
-                    event_queue=event_queue,
-                    make_event=make_event,
-                )
-
-                if question_passed:
-                    is_passage_item_check = is_single_passage_set and idx < effective_passage_count
-
-                    # If this is a passage question and the passage has a visual stimulus diagram, attach reference
-                    if is_passage_item_check and (
-                        shared_passage_image_svg or shared_passage_image_url
-                    ):
-                        state["image_url"] = shared_passage_image_url
-                        state["image_svg"] = shared_passage_image_svg
-                        state["image_description"] = shared_passage_image_desc
-                        outcomes = state.setdefault("stage_outcomes", {})
-                        outcomes["passage_visual_stimulus"] = {
-                            "image_url": shared_passage_image_url,
-                            "image_svg": shared_passage_image_svg,
-                            "image_description": shared_passage_image_desc,
-                            "note": "Visual stimulus belongs to shared reading passage",
+                            "iteration_count": 1,
+                            "iterations_history": [],
+                            "log_messages": [],
+                            "total_tokens": 0,
+                            "total_prompt_tokens": 0,
+                            "total_completion_tokens": 0,
+                            "total_cost_usd": 0.0,
+                            "agent_usage_breakdown": [],
+                            "stage_outcomes": {},
                         }
 
-                    requires_image = _determine_item_diagram_requirement(
-                        state=state,
-                        idx=idx,
-                        is_passage_item=is_passage_item_check,
-                    )
-
-                    if requires_image:
-                        img_start_evt = make_event(
+                        # Step 1: Question Writer & Reviewer (Fused Authoring & 100-pt Audit)
+                        gen_evt = make_event(
                             event_type="agent_start",
-                            agent_name="Diagram & Chart Maker",
-                            message=f"Drawing visual stimulus diagram for Question {idx + 1}...",
+                            agent_name="Question Writer & Reviewer",
+                            message=f"Drafting and auditing question {idx + 1}/{total_qty} (Single Choice)...",
                             data={
                                 "index": idx + 1,
                                 "total": total_qty,
-                                "stage": "image",
+                                "stage": "drafting",
+                                "interaction_type": item_interaction,
+                                "passage_required": item_req.passage_required,
                             },
                             run_id=item_run_id,
                         )
-                        await event_queue.put(img_start_evt)
+                        await event_queue.put(gen_evt)
 
-                        img_res = await image_node(state)
-                        state.update(img_res)
+                        gen_res = await fused_generator_node(state)
+                        state.update(gen_res)
 
-                        img_done_evt = make_event(
+                        gen_usage = state.get("latest_usage", {})
+                        self_score = (state.get("current_review") or {}).get("total_score", 95)
+                        gen_done_evt = make_event(
                             event_type="agent_complete",
-                            agent_name="Diagram & Chart Maker",
-                            message=f"Visual diagram drawn and attached to Question {idx + 1}.",
+                            agent_name="Question Writer & Reviewer",
+                            message=f"Draft authored and audited for Question {idx + 1} (Score: {self_score}/100, {gen_usage.get('total_tokens', 0)} tokens, ${gen_usage.get('cost_usd', 0.0):.5f}).",
                             data={
-                                "has_svg": bool(state.get("image_svg")),
-                                "image_url": state.get("image_url"),
-                                "usage": state.get("latest_usage"),
+                                "draft": state["current_draft"],
+                                "review": state.get("current_review"),
+                                "score": self_score,
+                                "latest_usage": gen_usage,
                                 "index": idx + 1,
                                 "total": total_qty,
-                                "stage": "image",
+                                "stage": "drafting",
                             },
                             run_id=item_run_id,
                         )
-                        await event_queue.put(img_done_evt)
+                        await event_queue.put(gen_done_evt)
 
-                    # Finalize
-                    fin_res = await finalize_node(state)
-                    state.update(fin_res)
+                        # Step 2: Quality Review / Remediation Loop
+                        question_passed = await _run_question_review_loop(
+                            state=state,
+                            idx=idx,
+                            total_qty=total_qty,
+                            item_run_id=item_run_id,
+                            event_queue=event_queue,
+                            make_event=make_event,
+                        )
 
-                    final_q_dict = state["final_question"]
-                    final_q_dict["index"] = idx + 1
-                    outcomes_questions[idx] = final_q_dict
+                        if question_passed:
+                            is_passage_item_check = is_single_passage_set and idx < effective_passage_count
 
-                    # Emit question_generated event
-                    q_gen_evt = make_event(
-                        event_type="question_generated",
-                        agent_name="System",
-                        message=f"Question {idx + 1} of {total_qty} passed quality check (Score: {final_q_dict.get('final_score')}/100) and is ready for review.",
-                        data={
-                            "question": final_q_dict,
-                            "index": idx + 1,
-                            "total": total_qty,
-                            "batch_id": batch_id,
-                            "stage": "completed",
-                        },
-                        run_id=item_run_id,
+                            # If this is a passage question and the passage has a visual stimulus diagram, attach reference
+                            if is_passage_item_check and (
+                                shared_passage_image_svg or shared_passage_image_url
+                            ):
+                                state["image_url"] = shared_passage_image_url
+                                state["image_svg"] = shared_passage_image_svg
+                                state["image_description"] = shared_passage_image_desc
+                                outcomes = state.setdefault("stage_outcomes", {})
+                                outcomes["passage_visual_stimulus"] = {
+                                    "image_url": shared_passage_image_url,
+                                    "image_svg": shared_passage_image_svg,
+                                    "image_description": shared_passage_image_desc,
+                                    "note": "Visual stimulus belongs to shared reading passage",
+                                }
+
+                            requires_image = _determine_item_diagram_requirement(
+                                state=state,
+                                idx=idx,
+                                is_passage_item=is_passage_item_check,
+                            )
+
+                            if requires_image:
+                                img_start_evt = make_event(
+                                    event_type="agent_start",
+                                    agent_name="Diagram & Chart Maker",
+                                    message=f"Drawing visual stimulus diagram for Question {idx + 1}...",
+                                    data={
+                                        "index": idx + 1,
+                                        "total": total_qty,
+                                        "stage": "image",
+                                    },
+                                    run_id=item_run_id,
+                                )
+                                await event_queue.put(img_start_evt)
+
+                                img_res = await image_node(state)
+                                state.update(img_res)
+
+                                img_done_evt = make_event(
+                                    event_type="agent_complete",
+                                    agent_name="Diagram & Chart Maker",
+                                    message=f"Visual diagram drawn and attached to Question {idx + 1}.",
+                                    data={
+                                        "has_svg": bool(state.get("image_svg")),
+                                        "image_url": state.get("image_url"),
+                                        "usage": state.get("latest_usage"),
+                                        "index": idx + 1,
+                                        "total": total_qty,
+                                        "stage": "image",
+                                    },
+                                    run_id=item_run_id,
+                                )
+                                await event_queue.put(img_done_evt)
+
+                            # Finalize
+                            fin_res = await finalize_node(state)
+                            state.update(fin_res)
+
+                            final_q_dict = state["final_question"]
+                            final_q_dict["index"] = idx + 1
+                            outcomes_questions[idx] = final_q_dict
+
+                            # Emit question_generated event
+                            q_gen_evt = make_event(
+                                event_type="question_generated",
+                                agent_name="System",
+                                message=f"Question {idx + 1} of {total_qty} passed quality check (Score: {final_q_dict.get('final_score')}/100) and is ready for review.",
+                                data={
+                                    "question": final_q_dict,
+                                    "index": idx + 1,
+                                    "total": total_qty,
+                                    "batch_id": batch_id,
+                                    "stage": "completed",
+                                },
+                                run_id=item_run_id,
+                            )
+                            await event_queue.put(q_gen_evt)
+
+                        outcomes_tokens[idx] = state.get("total_tokens", 0)
+                        outcomes_prompt_tokens[idx] = state.get("total_prompt_tokens", 0)
+                        outcomes_completion_tokens[idx] = state.get("total_completion_tokens", 0)
+                        outcomes_costs[idx] = state.get("total_cost_usd", 0.0)
+                        outcomes_usage[idx] = state.get("agent_usage_breakdown", [])
+                        return  # Successfully finished this worker
+                except asyncio.CancelledError:
+                    raise
+                except Exception as worker_err:
+                    if attempt < max_worker_retries:
+                        logger.warning(
+                            f"Worker {idx + 1} encountered error (attempt {attempt + 1}/{max_worker_retries + 1}): {worker_err}. Retrying in 1.5s..."
+                        )
+                        await asyncio.sleep(1.5)
+                        continue
+
+                    logger.error(
+                        f"Worker {idx + 1} failed after {max_worker_retries + 1} attempts: {worker_err}",
+                        exc_info=worker_err,
                     )
-                    await event_queue.put(q_gen_evt)
-
-                outcomes_tokens[idx] = state.get("total_tokens", 0)
-                outcomes_prompt_tokens[idx] = state.get("total_prompt_tokens", 0)
-                outcomes_completion_tokens[idx] = state.get("total_completion_tokens", 0)
-                outcomes_costs[idx] = state.get("total_cost_usd", 0.0)
-                outcomes_usage[idx] = state.get("agent_usage_breakdown", [])
-            except Exception as worker_err:
-                logger.error(f"Worker {idx + 1} raised error: {worker_err}", exc_info=worker_err)
-                err_evt = make_event(
-                    event_type="workflow_error",
-                    agent_name="System",
-                    message=f"Generation failed for Question {idx + 1}: {str(worker_err)}",
-                    data={"index": idx + 1, "error": str(worker_err)},
-                    run_id=req.run_id,
-                )
-                await event_queue.put(err_evt)
+                    # For multi-question runs (batches/sets), isolate failure to preserve sibling questions
+                    if total_qty > 1:
+                        err_evt = make_event(
+                            event_type="question_failed",
+                            agent_name="System",
+                            message=f"Generation failed for Question {idx + 1} after retries: {str(worker_err)}",
+                            data={"index": idx + 1, "error": str(worker_err)},
+                            run_id=req.run_id,
+                        )
+                        await event_queue.put(err_evt)
+                    else:
+                        err_evt = make_event(
+                            event_type="workflow_error",
+                            agent_name="System",
+                            message=f"Generation failed for Question {idx + 1}: {str(worker_err)}",
+                            data={"index": idx + 1, "error": str(worker_err)},
+                            run_id=req.run_id,
+                        )
+                        await event_queue.put(err_evt)
+                    return
 
         tasks.extend([asyncio.create_task(_worker(i)) for i in range(total_qty)])
 
@@ -790,6 +817,17 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         cumulative_cost = round(sum(outcomes_costs) + passage_cost, 7)
         for usage_list in outcomes_usage:
             all_agent_usage.extend(usage_list)
+
+        if not all_staged_questions:
+            error_msg = f"All {total_qty} questions in the run failed to generate after retries."
+            error_evt = make_event(
+                event_type="workflow_error",
+                agent_name="System",
+                message=error_msg,
+                data={"error": error_msg},
+            )
+            yield f"data: {error_evt.model_dump_json()}\n\n"
+            return
 
         if is_single_passage_set and total_qty > 1:
             complete_msg = f"Passage Set generated! {len(all_staged_questions)} questions linked to shared reading passage staged for Review. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."

@@ -79,7 +79,8 @@ const QUICK_PRESETS = [
 export default function GuidedWizard({
   generatorForm,
   onGenerateQuestions,
-  onLaunchGeneration
+  onLaunchGeneration,
+  isLaunchingBatch = false
 }) {
   const [step, setStep] = useState(1);
   const totalSteps = 7;
@@ -552,13 +553,21 @@ export default function GuidedWizard({
           className="workspace-action-btn-primary"
           id={step === totalSteps ? 'btn-wizard-generate-questions' : 'btn-wizard-next-step'}
           onClick={handleNext}
-          style={{ padding: '10px 22px', fontSize: '0.92rem' }}
+          disabled={step === totalSteps && isLaunchingBatch}
+          style={{
+            padding: '10px 22px',
+            fontSize: '0.92rem',
+            opacity: step === totalSteps && isLaunchingBatch ? 0.6 : 1,
+            cursor: step === totalSteps && isLaunchingBatch ? 'not-allowed' : 'pointer'
+          }}
         >
           {step === totalSteps ? (
             <>
-              <Sparkles size={16} />
+              <Sparkles size={16} className={isLaunchingBatch ? 'spin-icon' : ''} />
               <span>
-                {totalQuestions === 1
+                {isLaunchingBatch
+                  ? 'Launching Batch...'
+                  : totalQuestions === 1
                   ? 'Generate Single Question (Live)'
                   : totalQuestions === 5
                   ? 'Generate 5-Question Set (Live)'

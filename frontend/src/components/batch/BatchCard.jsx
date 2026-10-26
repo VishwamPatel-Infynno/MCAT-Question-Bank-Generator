@@ -6,7 +6,9 @@ import {
   Clock,
   ChevronDown,
   ChevronRight,
-  Trash2
+  Trash2,
+  Square,
+  RotateCcw
 } from 'lucide-react';
 import { MCAT_SECTION_LABELS } from '../../constants/mcat';
 import BatchJobCard from './BatchJobCard';
@@ -67,6 +69,17 @@ function getStatusBadge(status) {
           Partially Complete
         </span>
       );
+    case 'cancelled':
+    case 'stopped':
+      return (
+        <span
+          className="badge badge-neutral"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+        >
+          <Square size={11} />
+          Stopped
+        </span>
+      );
     case 'failed':
       return (
         <span
@@ -93,6 +106,10 @@ export default function BatchCard({
   isExpanded,
   onToggleExpand,
   onDeleteBatch,
+  onStopBatch,
+  onRetryBatch,
+  isStopping = false,
+  isRetrying = false,
   detail,
   loadingDetail,
   expandedJobIds = EMPTY_JOB_IDS,
@@ -268,8 +285,66 @@ export default function BatchCard({
         </div>
 
         {/* Right: Status Pill & Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {getStatusBadge(batch.status)}
+
+          {/* Stop Batch button for in_progress runs */}
+          {batch.status === 'in_progress' && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onStopBatch) onStopBatch(batch.id);
+              }}
+              disabled={isStopping}
+              style={{
+                background: 'rgba(239, 68, 68, 0.08)',
+                color: 'var(--status-danger)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '4px 8px',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+              title="Stop background batch"
+            >
+              <Square size={11} />
+              <span>{isStopping ? 'Stopping...' : 'Stop'}</span>
+            </button>
+          )}
+
+          {/* Retry Incomplete Jobs button for partially completed, stopped, or failed batches */}
+          {(batch.status === 'partially_completed' || batch.status === 'failed' || batch.status === 'cancelled' || batch.status === 'stopped') && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onRetryBatch) onRetryBatch(batch.id);
+              }}
+              disabled={isRetrying}
+              style={{
+                background: 'rgba(51, 90, 207, 0.08)',
+                color: 'var(--brand-primary)',
+                border: '1px solid rgba(51, 90, 207, 0.25)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '4px 8px',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+              title="Retry incomplete or failed jobs in this batch"
+            >
+              <RotateCcw size={11} />
+              <span>{isRetrying ? 'Retrying...' : 'Retry Incomplete'}</span>
+            </button>
+          )}
 
           <button
             type="button"

@@ -14,8 +14,10 @@ engine = create_async_engine(
     config.DATABASE_URL,
     echo=False,
     pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
+    pool_size=config.DB_POOL_SIZE,
+    max_overflow=config.DB_MAX_OVERFLOW,
+    pool_timeout=config.DB_POOL_TIMEOUT,
+    pool_recycle=config.DB_POOL_RECYCLE,
 )
 
 # Standard async session factory bound to PostgreSQL engine

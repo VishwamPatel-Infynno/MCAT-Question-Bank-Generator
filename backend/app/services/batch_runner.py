@@ -5,7 +5,12 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from app.repositories.batch_repository import get_batch_by_id, save_batch
+from app.core.config import config
+from app.repositories.batch_repository import (
+    get_batch_by_id,
+    refresh_batch_aggregates,
+    save_batch,
+)
 from app.repositories.job_repository import (
     get_jobs_by_batch_id,
     save_jobs_bulk,
@@ -19,6 +24,20 @@ logger = logging.getLogger(__name__)
 
 # Active background tasks dictionary to track running batch tasks
 _active_batch_tasks: dict[str, asyncio.Task[Any]] = {}
+
+# In-memory store for generation requests to support 1-click retries
+_batch_requests: dict[str, GenerationRequest] = {}
+
+# Global worker pool semaphore governing concurrent jobs across ALL running batches
+_GLOBAL_JOB_SEMAPHORE: asyncio.Semaphore | None = None
+
+
+def get_global_job_semaphore() -> asyncio.Semaphore:
+    """Returns the singleton global worker pool semaphore, lazily initialized."""
+    global _GLOBAL_JOB_SEMAPHORE
+    if _GLOBAL_JOB_SEMAPHORE is None:
+        _GLOBAL_JOB_SEMAPHORE = asyncio.Semaphore(config.GLOBAL_MAX_CONCURRENT_JOBS)
+    return _GLOBAL_JOB_SEMAPHORE
 
 
 async def _run_single_job(
@@ -103,7 +122,6 @@ async def _run_single_job(
                             logger.error(f"Error saving question for job {job.id}: {q_err}")
 
                     elif etype == "workflow_complete":
-                        # In case questions weren't caught in question_generated
                         completed_qs = data.get("questions") or []
                         for raw_q in completed_qs:
                             try:
@@ -116,7 +134,6 @@ async def _run_single_job(
                                     if (q_obj.final_score or 0) > 90
                                     else "below_threshold"
                                 )
-                                # Check if batch still exists before saving question
                                 curr_b = await get_batch_by_id(batch_id)
                                 if not curr_b:
                                     logger.info(
@@ -143,11 +160,12 @@ async def _run_single_job(
                 except json.JSONDecodeError:
                     continue
 
-            # Mark job as completed
+            # Mark job status based on questions saved
             completed_now = datetime.now(UTC).isoformat()
+            job_status = "completed" if len(job_questions) > 0 else "failed"
             await update_job_progress(
                 job.id,
-                status="completed",
+                status=job_status,
                 actual_count=len(job_questions),
                 passage_id=passage_id_for_job,
                 total_tokens=job_tokens,
@@ -157,21 +175,22 @@ async def _run_single_job(
                 completed_at=completed_now,
             )
 
-            # Update batch progress atomically
-            b = await get_batch_by_id(batch_id)
-            if b:
-                b.completed_jobs = (b.completed_jobs or 0) + 1
-                b.actual_count = (b.actual_count or 0) + len(job_questions)
-                b.total_tokens = (b.total_tokens or 0) + job_tokens
-                b.cost_usd = round((b.cost_usd or 0.0) + job_cost, 6)
-                await save_batch(b)
+            # Atomic database-level aggregation to prevent lost updates
+            await refresh_batch_aggregates(batch_id)
 
             logger.info(
-                f"Job {job.job_number}/10 (ID: {job.id}) completed: generated {len(job_questions)} questions."
+                f"Job {job.job_number}/10 (ID: {job.id}) finished: generated {len(job_questions)} questions."
             )
 
         except asyncio.CancelledError:
             logger.info(f"Job {job.job_number}/10 (ID: {job.id}) was cancelled.")
+            await update_job_progress(
+                job.id,
+                status="cancelled",
+                actual_count=len(job_questions),
+                completed_at=datetime.now(UTC).isoformat(),
+            )
+            await refresh_batch_aggregates(batch_id)
             raise
         except Exception as exc:
             logger.error(
@@ -182,44 +201,49 @@ async def _run_single_job(
                 job.id,
                 status="failed",
                 error_message=str(exc),
+                actual_count=len(job_questions),
                 completed_at=failed_now,
             )
-            b = await get_batch_by_id(batch_id)
-            if b:
-                b.failed_jobs = (b.failed_jobs or 0) + 1
-                await save_batch(b)
+            await refresh_batch_aggregates(batch_id)
 
 
-async def _execute_batch_workflow(batch_id: str, req: GenerationRequest) -> None:
-    """Coordinates the execution of all 10 jobs within a batch using 2-worker concurrency."""
+async def _execute_batch_workflow(
+    batch_id: str,
+    req: GenerationRequest,
+    target_jobs: list[GenerationJob] | None = None,
+) -> None:
+    """Coordinates the execution of jobs within a batch using the global worker semaphore."""
     tasks: list[asyncio.Task[Any]] = []
     try:
-        jobs = await get_jobs_by_batch_id(batch_id)
+        jobs = target_jobs or await get_jobs_by_batch_id(batch_id)
         if not jobs:
             logger.error(f"No jobs found for batch {batch_id}")
             return
 
-        # 2 concurrent jobs
-        semaphore = asyncio.Semaphore(2)
-        tasks = [
-            asyncio.create_task(_run_single_job(batch_id, job, req, semaphore)) for job in jobs
+        # Execute jobs that need work (pending or running or failed/cancelled on retry)
+        executable_jobs = [
+            j for j in jobs if j.status in ("pending", "running", "failed", "cancelled")
         ]
-        await asyncio.gather(*tasks, return_exceptions=False)
+        if not executable_jobs:
+            logger.info(f"Batch {batch_id} has no pending jobs to execute.")
+            await refresh_batch_aggregates(batch_id)
+            return
 
-        # Finalize batch state
-        b = await get_batch_by_id(batch_id)
-        if b:
-            if (b.completed_jobs == b.total_jobs) or (
-                (b.actual_count or 0) >= (b.target_count or 0) and (b.actual_count or 0) > 0
-            ):
-                b.status = "completed"
-            elif (b.completed_jobs or 0) > 0:
-                b.status = "partially_completed"
-            else:
-                b.status = "failed"
-            await save_batch(b)
+        # Acquire slots from the shared global worker pool
+        semaphore = get_global_job_semaphore()
+        tasks = [
+            asyncio.create_task(_run_single_job(batch_id, job, req, semaphore))
+            for job in executable_jobs
+        ]
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Finalize batch state atomically
+        updated_batch = await refresh_batch_aggregates(batch_id)
+        if updated_batch:
             logger.info(
-                f"Batch {batch_id} finished execution. Status: {b.status} ({b.completed_jobs}/{b.total_jobs} jobs, {b.actual_count}/{b.target_count} questions)."
+                f"Batch {batch_id} finished execution. Status: {updated_batch.status} "
+                f"({updated_batch.completed_jobs}/{updated_batch.total_jobs} jobs, "
+                f"{updated_batch.actual_count}/{updated_batch.target_count} questions)."
             )
 
     except asyncio.CancelledError:
@@ -228,6 +252,7 @@ async def _execute_batch_workflow(batch_id: str, req: GenerationRequest) -> None
             if not t.done():
                 t.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
+        await refresh_batch_aggregates(batch_id)
         raise
     except Exception as e:
         logger.error(f"Fatal error in batch {batch_id} execution: {e}", exc_info=True)
@@ -240,8 +265,8 @@ async def _execute_batch_workflow(batch_id: str, req: GenerationRequest) -> None
         _active_batch_tasks.pop(batch_id, None)
 
 
-async def cancel_background_batch(batch_id: str) -> bool:
-    """Cancels an active background batch runner task if running."""
+async def stop_background_batch(batch_id: str) -> bool:
+    """Gracefully stops an active batch, halts running tasks, and preserves generated questions."""
     task = _active_batch_tasks.pop(batch_id, None)
     if task and not task.done():
         task.cancel()
@@ -249,21 +274,96 @@ async def cancel_background_batch(batch_id: str) -> bool:
             await task
         except (asyncio.CancelledError, Exception):
             pass
-        return True
-    return False
+
+    # Mark remaining pending/running jobs as cancelled
+    jobs = await get_jobs_by_batch_id(batch_id)
+    now_iso = datetime.now(UTC).isoformat()
+    for j in jobs:
+        if j.status in ("pending", "running"):
+            await update_job_progress(j.id, status="cancelled", completed_at=now_iso)
+
+    b = await get_batch_by_id(batch_id)
+    if b:
+        b.status = "cancelled" if (b.completed_jobs or 0) == 0 else "partially_completed"
+        await save_batch(b)
+    await refresh_batch_aggregates(batch_id)
+    return True
 
 
-async def cancel_all_background_batches() -> None:
-    """Cancels all currently active background batch runner tasks."""
-    tasks = list(_active_batch_tasks.values())
-    _active_batch_tasks.clear()
-    for task in tasks:
-        if not task.done():
-            task.cancel()
-            try:
-                await task
-            except (asyncio.CancelledError, Exception):
-                pass
+async def cancel_background_batch(batch_id: str) -> bool:
+    """Cancels an active background batch runner task if running."""
+    return await stop_background_batch(batch_id)
+
+
+async def cancel_all_background_batches() -> int:
+    """Gracefully halts all active background batches, preserving generated questions."""
+    batch_ids = list(_active_batch_tasks.keys())
+    count = 0
+    for b_id in batch_ids:
+        stopped = await stop_background_batch(b_id)
+        if stopped:
+            count += 1
+    return count
+
+
+async def retry_incomplete_jobs_for_batch(
+    batch_id: str,
+    req: GenerationRequest | None = None,
+) -> tuple[GenerationBatch | None, list[GenerationJob]]:
+    """Re-launches failed or cancelled jobs for a batch into the global worker pool."""
+    b = await get_batch_by_id(batch_id)
+    if not b:
+        return None, []
+
+    # Stop any currently active task for this batch first
+    await cancel_background_batch(batch_id)
+
+    jobs = await get_jobs_by_batch_id(batch_id)
+    retryable_jobs = [j for j in jobs if j.status in ("failed", "cancelled", "pending")]
+    if not retryable_jobs:
+        return b, jobs
+
+    # Reset retryable jobs to pending
+    for j in retryable_jobs:
+        await update_job_progress(
+            j.id,
+            status="pending",
+            error_message=None,
+            started_at=None,
+            completed_at=None,
+        )
+
+    b.status = "in_progress"
+    b.error_message = None
+    await save_batch(b)
+
+    # Resolve GenerationRequest
+    effective_req = req or _batch_requests.get(batch_id)
+    if not effective_req:
+        effective_req = GenerationRequest(
+            section=b.section,
+            difficulty=b.difficulty,
+            subtopic=b.subtopic,
+            passage_mode=b.passage_mode,
+            questions_to_generate=5,
+        )
+
+    task = asyncio.create_task(_execute_batch_workflow(batch_id, effective_req, retryable_jobs))
+    _active_batch_tasks[batch_id] = task
+
+    refreshed_batch = await get_batch_by_id(batch_id)
+    all_jobs = await get_jobs_by_batch_id(batch_id)
+    return refreshed_batch, all_jobs
+
+
+def get_active_batch_metrics() -> dict[str, Any]:
+    """Returns real-time concurrency metrics for background batches."""
+    return {
+        "active_running_batches": len(_active_batch_tasks),
+        "global_max_concurrent_jobs": config.GLOBAL_MAX_CONCURRENT_JOBS,
+        "global_max_concurrent_llm_calls": config.GLOBAL_MAX_CONCURRENT_LLM_CALLS,
+        "active_batch_ids": list(_active_batch_tasks.keys()),
+    }
 
 
 async def launch_background_batch(
@@ -272,13 +372,16 @@ async def launch_background_batch(
 ) -> tuple[GenerationBatch, list[GenerationJob]]:
     """
     Initializes a 50-question batch with 10 jobs in PostgreSQL and launches
-    the background runner task with 2-job concurrency.
+    the background runner task governed by the global worker pool.
     """
     b_id = batch_id or str(uuid.uuid4())
     now_iso = datetime.now(UTC).isoformat()
 
     sec_val = req.section.value if hasattr(req.section, "value") else str(req.section)
     diff_val = req.difficulty.value if hasattr(req.difficulty, "value") else str(req.difficulty)
+
+    # Cache request for potential 1-click retries
+    _batch_requests[b_id] = req
 
     # 1. Create GenerationBatch record
     batch = GenerationBatch(
@@ -313,7 +416,7 @@ async def launch_background_batch(
 
     await save_jobs_bulk(jobs)
 
-    # 3. Spawn background asyncio task
+    # 3. Spawn background asyncio task governed by global worker pool
     task = asyncio.create_task(_execute_batch_workflow(b_id, req))
     _active_batch_tasks[b_id] = task
 

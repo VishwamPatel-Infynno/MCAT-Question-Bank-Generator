@@ -1,6 +1,8 @@
+import asyncio
 import json
 import logging
 import os
+import random
 import re
 from typing import Any
 
@@ -18,6 +20,16 @@ logger = logging.getLogger(__name__)
 
 # Configure litellm behavior
 litellm.suppress_debug_info = True
+
+_global_llm_semaphore: asyncio.Semaphore | None = None
+
+
+def get_global_llm_semaphore() -> asyncio.Semaphore:
+    """Returns the singleton global LLM concurrency semaphore, lazily initialized."""
+    global _global_llm_semaphore
+    if _global_llm_semaphore is None:
+        _global_llm_semaphore = asyncio.Semaphore(config.GLOBAL_MAX_CONCURRENT_LLM_CALLS)
+    return _global_llm_semaphore
 
 
 def clean_json_text(text: str) -> str:
@@ -152,7 +164,7 @@ async def call_llm(
     temperature: float | None = None,
     max_tokens: int | None = None,
 ) -> tuple[str, TokenUsage]:
-    """Universal LLM caller via LiteLLM targeting DeepInfra models."""
+    """Universal LLM caller via LiteLLM targeting DeepInfra models with global throttling & backoff."""
     initial_model = model or config.DEFAULT_TEXT_MODEL
     effective_max_tokens = max_tokens if max_tokens is not None else config.DEFAULT_MAX_TOKENS
     effective_temperature = temperature if temperature is not None else config.DEFAULT_TEMPERATURE
@@ -161,56 +173,96 @@ async def call_llm(
     candidate_models = [initial_model] if api_key else _get_available_fallback_models(initial_model)
 
     last_error: Exception | None = None
+    semaphore = get_global_llm_semaphore()
 
-    for candidate in candidate_models:
-        try:
-            resolved_key = _resolve_api_key(candidate, api_key)
-        except Exception as key_err:
-            last_error = key_err
-            continue
+    async with semaphore:
+        for candidate in candidate_models:
+            try:
+                resolved_key = _resolve_api_key(candidate, api_key)
+            except Exception as key_err:
+                last_error = key_err
+                continue
 
-        kwargs: dict[str, Any] = {
-            "model": candidate,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ],
-            "temperature": effective_temperature,
-            "max_tokens": effective_max_tokens,
-            "request_timeout": 60.0,
-            "num_retries": 1,
-        }
-        if resolved_key:
-            kwargs["api_key"] = resolved_key
+            kwargs: dict[str, Any] = {
+                "model": candidate,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt},
+                ],
+                "temperature": effective_temperature,
+                "max_tokens": effective_max_tokens,
+                "request_timeout": 60.0,
+                "num_retries": 1,
+            }
+            if resolved_key:
+                kwargs["api_key"] = resolved_key
 
-        try:
-            response = await litellm.acompletion(**kwargs)
-            content = response.choices[0].message.content
+            max_retries = config.LLM_MAX_RETRIES
+            for attempt in range(max_retries + 1):
+                try:
+                    response = await litellm.acompletion(**kwargs)
+                    content = response.choices[0].message.content
 
-            usage_obj = getattr(response, "usage", None)
-            prompt_tokens = int(getattr(usage_obj, "prompt_tokens", 0) or 0)
-            completion_tokens = int(getattr(usage_obj, "completion_tokens", 0) or 0)
-            total_tokens = int(
-                getattr(usage_obj, "total_tokens", prompt_tokens + completion_tokens)
-                or (prompt_tokens + completion_tokens)
-            )
+                    usage_obj = getattr(response, "usage", None)
+                    prompt_tokens = int(getattr(usage_obj, "prompt_tokens", 0) or 0)
+                    completion_tokens = int(getattr(usage_obj, "completion_tokens", 0) or 0)
+                    total_tokens = int(
+                        getattr(usage_obj, "total_tokens", prompt_tokens + completion_tokens)
+                        or (prompt_tokens + completion_tokens)
+                    )
 
-            cost_usd = calculate_token_cost(prompt_tokens, completion_tokens)
-            usage = TokenUsage(
-                prompt_tokens=prompt_tokens,
-                completion_tokens=completion_tokens,
-                total_tokens=total_tokens,
-                cost_usd=cost_usd,
-            )
-            logger.info(
-                f"LLM Call Succeeded [{candidate}]: {prompt_tokens} in + {completion_tokens} out = {total_tokens} tokens (${cost_usd:.5f})"
-            )
-            return content, usage
-        except Exception as err:
-            logger.warning(
-                f"DeepInfra LLM error on model '{candidate}': {err}. Attempting candidate retry..."
-            )
-            last_error = err
+                    cost_usd = calculate_token_cost(prompt_tokens, completion_tokens)
+                    usage = TokenUsage(
+                        prompt_tokens=prompt_tokens,
+                        completion_tokens=completion_tokens,
+                        total_tokens=total_tokens,
+                        cost_usd=cost_usd,
+                    )
+                    logger.info(
+                        f"LLM Call Succeeded [{candidate}]: {prompt_tokens} in + {completion_tokens} out = {total_tokens} tokens (${cost_usd:.5f})"
+                    )
+                    return content, usage
+                except Exception as err:
+                    err_str = str(err).lower()
+                    is_rate_limit = (
+                        "429" in err_str
+                        or "rate limit" in err_str
+                        or "too many requests" in err_str
+                    )
+                    is_overloaded = (
+                        "503" in err_str
+                        or "service unavailable" in err_str
+                        or "overloaded" in err_str
+                    )
+                    is_timeout = (
+                        "timeout" in err_str
+                        or "timed out" in err_str
+                        or isinstance(err, (asyncio.TimeoutError, TimeoutError))
+                    )
+
+                    last_error = err
+
+                    if (is_rate_limit or is_overloaded or is_timeout) and attempt < max_retries:
+                        base_backoff = config.LLM_BASE_BACKOFF_SECONDS
+                        backoff_secs = base_backoff * (2**attempt) + random.uniform(0.1, 0.5)
+                        logger.warning(
+                            f"Transient LLM error ({err}) on candidate '{candidate}'. "
+                            f"Backing off for {backoff_secs:.2f}s (attempt {attempt + 1}/{max_retries + 1})..."
+                        )
+                        await asyncio.sleep(backoff_secs)
+                        continue
+                    elif attempt < max_retries and "connection" in err_str:
+                        backoff_secs = 1.0 + random.uniform(0.1, 0.4)
+                        logger.warning(
+                            f"Connection error ({err}) on '{candidate}'. Retrying in {backoff_secs:.2f}s..."
+                        )
+                        await asyncio.sleep(backoff_secs)
+                        continue
+                    else:
+                        logger.warning(
+                            f"DeepInfra LLM error on model '{candidate}' attempt {attempt + 1}: {err}"
+                        )
+                        break
 
     logger.error(f"DeepInfra LLM call failed for prompt. Last error: {last_error}")
     if isinstance(last_error, ValueError):

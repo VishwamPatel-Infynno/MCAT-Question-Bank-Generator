@@ -99,6 +99,7 @@ export default function App() {
     handleSelectFromBank,
     handleUpdateQuestionInBatch,
     handleUpdateSingleQuestion,
+    isLaunchingBatch
   } = useAppState();
 
   return (
@@ -136,6 +137,7 @@ export default function App() {
                 generatorForm={generatorForm}
                 sectionsData={sectionsData}
                 onGenerateQuestions={handleGenerate}
+                isLaunchingBatch={isLaunchingBatch}
               />
             )}
 

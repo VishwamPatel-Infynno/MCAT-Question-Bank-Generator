@@ -4,9 +4,21 @@ import {
   RefreshCw,
   Sparkles
 } from 'lucide-react';
-import { fetchBatches, fetchBatchDetail, deleteBatch } from '../services/api';
+import {
+  fetchBatches,
+  fetchBatchDetail,
+  deleteBatch,
+  stopBatch,
+  retryBatchJobs,
+  cancelAllBatches
+} from '../services/api';
 import { SECTION_CODE_MAP } from '../constants/mcat';
-import { BatchStatsHeader, BatchFiltersBar, BatchCard } from '../components/batch';
+import {
+  BatchStatsHeader,
+  BatchFiltersBar,
+  BatchCard,
+  ActiveMultiBatchMonitor
+} from '../components/batch';
 
 export default function BatchActivityView({
   onOpenAudit,
@@ -25,23 +37,28 @@ export default function BatchActivityView({
   const [sectionFilter, setSectionFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Expanded batch details cache: { [batchId]: { batch, jobs, questions, total_questions_count } }
-  const [expandedBatchId, setExpandedBatchId] = useState(null);
+  // Multi-expand batch details cache: Set of expanded batch IDs
+  const [expandedBatchIds, setExpandedBatchIds] = useState(new Set());
   const [batchDetails, setBatchDetails] = useState({});
-  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [loadingDetails, setLoadingDetails] = useState({});
 
-  // Expanded job within the expanded batch: { [jobId]: boolean }
+  // Individual action loading states
+  const [stoppingBatchIds, setStoppingBatchIds] = useState({});
+  const [retryingBatchIds, setRetryingBatchIds] = useState({});
+  const [isCancellingAll, setIsCancellingAll] = useState(false);
+
+  // Expanded job within the expanded batches: { [jobId]: boolean }
   const [expandedJobIds, setExpandedJobIds] = useState({});
 
   // Auto-refresh control
   const [autoRefresh, setAutoRefresh] = useState(true);
   const pollTimerRef = useRef(null);
-  const expandedBatchIdRef = useRef(expandedBatchId);
+  const expandedBatchIdsRef = useRef(expandedBatchIds);
   const onShowToastRef = useRef(onShowToast);
 
   useEffect(() => {
-    expandedBatchIdRef.current = expandedBatchId;
-  }, [expandedBatchId]);
+    expandedBatchIdsRef.current = expandedBatchIds;
+  }, [expandedBatchIds]);
 
   useEffect(() => {
     onShowToastRef.current = onShowToast;
@@ -55,14 +72,14 @@ export default function BatchActivityView({
       setBatches(data.batches || []);
       setActiveCount(data.active_running_batches || 0);
 
-      // If an expanded batch is currently in progress, re-fetch its detail as well
-      const currExpandedId = expandedBatchIdRef.current;
-      if (currExpandedId) {
-        const currentExp = data.batches?.find((b) => b.id === currExpandedId);
-        if (currentExp && currentExp.status === 'in_progress') {
-          fetchBatchDetail(currExpandedId)
+      // Re-fetch details for any expanded batches that are in progress
+      const expandedIds = Array.from(expandedBatchIdsRef.current);
+      for (const bId of expandedIds) {
+        const matchingBatch = data.batches?.find((b) => b.id === bId);
+        if (matchingBatch && matchingBatch.status === 'in_progress') {
+          fetchBatchDetail(bId)
             .then((detail) => {
-              setBatchDetails((prev) => ({ ...prev, [currExpandedId]: detail }));
+              setBatchDetails((prev) => ({ ...prev, [bId]: detail }));
             })
             .catch(() => {});
         }
@@ -106,11 +123,11 @@ export default function BatchActivityView({
 
   const hasActiveBatches = activeCount > 0 || batches.some((b) => b.status === 'in_progress');
 
-  // Auto-polling effect (every 3 seconds if active batches or expanded batch is running)
+  // Auto-polling effect (every 2.5s if active batches, else 8s)
   useEffect(() => {
     if (!autoRefresh) return;
 
-    const intervalMs = hasActiveBatches ? 3000 : 8000;
+    const intervalMs = hasActiveBatches ? 2500 : 8000;
 
     pollTimerRef.current = setInterval(() => {
       loadBatches(true);
@@ -121,24 +138,28 @@ export default function BatchActivityView({
     };
   }, [autoRefresh, hasActiveBatches, loadBatches]);
 
-  // Handle batch expansion
+  // Handle multi-batch expansion toggle
   const handleToggleExpandBatch = async (batchId) => {
-    if (expandedBatchId === batchId) {
-      setExpandedBatchId(null);
-      return;
-    }
-    setExpandedBatchId(batchId);
+    setExpandedBatchIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(batchId)) {
+        next.delete(batchId);
+      } else {
+        next.add(batchId);
+      }
+      return next;
+    });
 
     // Fetch batch detail if not yet cached or if in progress
     if (!batchDetails[batchId] || batchDetails[batchId]?.batch?.status === 'in_progress') {
-      setLoadingDetail(true);
+      setLoadingDetails((prev) => ({ ...prev, [batchId]: true }));
       try {
         const detail = await fetchBatchDetail(batchId);
         setBatchDetails((prev) => ({ ...prev, [batchId]: detail }));
       } catch (err) {
         console.error('Failed to load batch detail:', err);
       } finally {
-        setLoadingDetail(false);
+        setLoadingDetails((prev) => ({ ...prev, [batchId]: false }));
       }
     }
   };
@@ -149,6 +170,91 @@ export default function BatchActivityView({
       ...prev,
       [jobId]: !prev[jobId]
     }));
+  };
+
+  // Stop a running batch
+  const handleStopBatch = async (batchId) => {
+    setStoppingBatchIds((prev) => ({ ...prev, [batchId]: true }));
+    try {
+      await stopBatch(batchId);
+      if (onShowToast) {
+        onShowToast({
+          type: 'info',
+          title: 'Batch Stopped',
+          message: 'Active background tasks halted. Generated questions remain preserved in the bank.'
+        });
+      }
+      await loadBatches(true);
+      const detail = await fetchBatchDetail(batchId);
+      setBatchDetails((prev) => ({ ...prev, [batchId]: detail }));
+    } catch (err) {
+      console.error('Failed to stop batch:', err);
+      if (onShowToast) {
+        onShowToast({
+          type: 'error',
+          title: 'Stop Failed',
+          message: err.message
+        });
+      }
+    } finally {
+      setStoppingBatchIds((prev) => ({ ...prev, [batchId]: false }));
+    }
+  };
+
+  // Retry incomplete or failed jobs in a batch
+  const handleRetryBatch = async (batchId) => {
+    setRetryingBatchIds((prev) => ({ ...prev, [batchId]: true }));
+    try {
+      await retryBatchJobs(batchId);
+      if (onShowToast) {
+        onShowToast({
+          type: 'success',
+          title: 'Incomplete Jobs Re-queued',
+          message: 'Re-queued incomplete jobs into the global worker pool.'
+        });
+      }
+      await loadBatches(true);
+      const detail = await fetchBatchDetail(batchId);
+      setBatchDetails((prev) => ({ ...prev, [batchId]: detail }));
+    } catch (err) {
+      console.error('Failed to retry batch jobs:', err);
+      if (onShowToast) {
+        onShowToast({
+          type: 'error',
+          title: 'Retry Failed',
+          message: err.message
+        });
+      }
+    } finally {
+      setRetryingBatchIds((prev) => ({ ...prev, [batchId]: false }));
+    }
+  };
+
+  // Cancel all active background batches
+  const handleCancelAllBatches = async () => {
+    setIsCancellingAll(true);
+    try {
+      const res = await cancelAllBatches();
+      if (onShowToast) {
+        onShowToast({
+          type: 'info',
+          title: 'All Active Batches Stopped',
+          message: res.message || 'All background batches have been stopped.'
+        });
+      }
+      await loadBatches(false);
+    } catch (err) {
+      console.error('Failed to cancel all batches:', err);
+      if (onShowToast) {
+        onShowToast({
+          type: 'error',
+          title: 'Cancel All Failed',
+          message: err.message
+        });
+      }
+    } finally {
+      setIsCancellingAll(false);
+    }
   };
 
   // Delete a batch
@@ -164,7 +270,11 @@ export default function BatchActivityView({
     try {
       await deleteBatch(batchId);
       setBatches((prev) => prev.filter((b) => b.id !== batchId));
-      if (expandedBatchId === batchId) setExpandedBatchId(null);
+      setExpandedBatchIds((prev) => {
+        const next = new Set(prev);
+        next.delete(batchId);
+        return next;
+      });
       if (onShowToast) {
         onShowToast({
           type: 'info',
@@ -184,6 +294,9 @@ export default function BatchActivityView({
     }
   };
 
+  // Active batches list for multi-batch monitor
+  const activeBatchesList = batches.filter((b) => b.status === 'in_progress');
+
   // Filtered batches
   const filteredBatches = batches.filter((b) => {
     if (statusFilter !== 'all' && b.status !== statusFilter) return false;
@@ -200,8 +313,6 @@ export default function BatchActivityView({
     }
     return true;
   });
-
-  const currentDetail = expandedBatchId ? batchDetails[expandedBatchId] : null;
 
   return (
     <div
@@ -259,8 +370,8 @@ export default function BatchActivityView({
                   margin: '2px 0 0 0'
                 }}
               >
-                Track 50-question background batches, inspect 10 constituent jobs, and view
-                generated questions.
+                Track 50-question background batches, inspect 10 constituent jobs, and monitor
+                multi-batch throughput in real-time.
               </p>
             </div>
           </div>
@@ -303,6 +414,15 @@ export default function BatchActivityView({
           </button>
         </div>
       </div>
+
+      {/* Active Multi-Batch Monitor Hero (Visible when 1+ batches running) */}
+      {activeBatchesList.length > 0 && (
+        <ActiveMultiBatchMonitor
+          activeBatches={activeBatchesList}
+          onCancelAll={handleCancelAllBatches}
+          isCancellingAll={isCancellingAll}
+        />
+      )}
 
       {/* Top Telemetry Stat Cards */}
       <BatchStatsHeader batches={batches} activeCount={activeCount} />
@@ -409,11 +529,15 @@ export default function BatchActivityView({
             <BatchCard
               key={batch.id}
               batch={batch}
-              isExpanded={expandedBatchId === batch.id}
+              isExpanded={expandedBatchIds.has(batch.id)}
               onToggleExpand={handleToggleExpandBatch}
               onDeleteBatch={handleDeleteBatch}
-              detail={expandedBatchId === batch.id ? currentDetail : null}
-              loadingDetail={loadingDetail}
+              onStopBatch={handleStopBatch}
+              onRetryBatch={handleRetryBatch}
+              isStopping={stoppingBatchIds[batch.id]}
+              isRetrying={retryingBatchIds[batch.id]}
+              detail={batchDetails[batch.id] || null}
+              loadingDetail={loadingDetails[batch.id]}
               expandedJobIds={expandedJobIds}
               onToggleJob={handleToggleJob}
               onNavigateToBank={onNavigateToBank}
@@ -426,3 +550,4 @@ export default function BatchActivityView({
     </div>
   );
 }
+

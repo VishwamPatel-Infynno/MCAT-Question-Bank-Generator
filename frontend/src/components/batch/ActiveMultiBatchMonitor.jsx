@@ -1,0 +1,359 @@
+import React, { useState } from 'react';
+import {
+  Layers,
+  Zap,
+  Square,
+  AlertTriangle,
+  Coins,
+  Cpu
+} from 'lucide-react';
+import { MCAT_SECTION_LABELS } from '../../constants/mcat';
+
+export default function ActiveMultiBatchMonitor({
+  activeBatches = [],
+  onCancelAll,
+  isCancellingAll = false
+}) {
+  const [showConfirmCancel, setShowConfirmCancel] = useState(false);
+
+  if (!activeBatches || activeBatches.length === 0) {
+    return null;
+  }
+
+  const batchCount = activeBatches.length;
+  const totalJobs = activeBatches.reduce((acc, b) => acc + (b.total_jobs || 10), 0);
+  const completedJobs = activeBatches.reduce((acc, b) => acc + (b.completed_jobs || 0), 0);
+  const targetQuestions = activeBatches.reduce((acc, b) => acc + (b.target_count || 50), 0);
+  const actualQuestions = activeBatches.reduce((acc, b) => acc + (b.actual_count || 0), 0);
+  const totalTokens = activeBatches.reduce((acc, b) => acc + (b.total_tokens || 0), 0);
+  const totalCost = activeBatches.reduce((acc, b) => acc + (b.cost_usd || 0.0), 0.0);
+
+  const overallProgressPct = targetQuestions > 0
+    ? Math.min(100, Math.round((actualQuestions / targetQuestions) * 100))
+    : 0;
+
+  const handleConfirmCancel = () => {
+    setShowConfirmCancel(false);
+    if (onCancelAll) onCancelAll();
+  };
+
+  return (
+    <div
+      style={{
+        background: 'linear-gradient(135deg, rgba(79, 48, 185, 0.08) 0%, rgba(51, 90, 207, 0.05) 100%)',
+        border: '1px solid rgba(79, 48, 185, 0.25)',
+        borderRadius: 'var(--radius-lg, 12px)',
+        padding: '20px 24px',
+        position: 'relative',
+        boxShadow: '0 4px 20px rgba(79, 48, 185, 0.08)',
+        backdropFilter: 'blur(8px)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px'
+      }}
+    >
+      {/* Top Banner Row */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div
+            style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, var(--infynno-violet) 0%, var(--infynno-blue) 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ffffff',
+              boxShadow: '0 0 12px rgba(79, 48, 185, 0.4)'
+            }}
+          >
+            <Zap size={20} className="pulse-icon" />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h2
+                style={{
+                  fontSize: '1.05rem',
+                  fontWeight: 800,
+                  color: 'var(--text-primary)',
+                  margin: 0,
+                  letterSpacing: '-0.01em'
+                }}
+              >
+                Active Multi-Batch Execution Pool
+              </h2>
+              <span
+                style={{
+                  background: 'rgba(51, 90, 207, 0.15)',
+                  color: 'var(--brand-primary)',
+                  border: '1px solid rgba(51, 90, 207, 0.3)',
+                  borderRadius: '20px',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px'
+                }}
+              >
+                <span
+                  style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    background: 'var(--brand-primary)',
+                    animation: 'pulse 1.5s infinite'
+                  }}
+                />
+                {batchCount} {batchCount === 1 ? 'Batch Active' : 'Batches Active'}
+              </span>
+            </div>
+            <p
+              style={{
+                fontSize: '0.78rem',
+                color: 'var(--text-secondary)',
+                margin: '2px 0 0 0'
+              }}
+            >
+              Governed by Global Worker Concurrency Pool with isolated retries and rate limit backoff.
+            </p>
+          </div>
+        </div>
+
+        {/* Action Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {!showConfirmCancel ? (
+            <button
+              type="button"
+              onClick={() => setShowConfirmCancel(true)}
+              disabled={isCancellingAll}
+              style={{
+                background: 'rgba(239, 68, 68, 0.08)',
+                color: 'var(--status-danger, #ef4444)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                borderRadius: 'var(--radius-sm, 6px)',
+                padding: '6px 12px',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.2s ease'
+              }}
+              title="Stop all currently running background batches"
+            >
+              <Square size={13} />
+              <span>{isCancellingAll ? 'Stopping...' : 'Stop All Active Batches'}</span>
+            </button>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--status-danger)', fontWeight: 600 }}>
+                Halt all {batchCount} batches?
+              </span>
+              <button
+                type="button"
+                onClick={handleConfirmCancel}
+                style={{
+                  background: 'var(--status-danger, #ef4444)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: 'var(--radius-sm, 6px)',
+                  padding: '5px 10px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                Yes, Stop All
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowConfirmCancel(false)}
+                style={{
+                  background: 'var(--bg-surface)',
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--border-light)',
+                  borderRadius: 'var(--radius-sm, 6px)',
+                  padding: '5px 10px',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Metric Telemetry Cards Grid */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '12px'
+        }}
+      >
+        {/* Jobs progress */}
+        <div
+          style={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-light)',
+            borderRadius: 'var(--radius-sm, 8px)',
+            padding: '10px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}
+        >
+          <Cpu size={16} color="var(--brand-primary)" />
+          <div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Jobs Progress</div>
+            <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+              {completedJobs} / {totalJobs} <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Completed</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Questions drafted */}
+        <div
+          style={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-light)',
+            borderRadius: 'var(--radius-sm, 8px)',
+            padding: '10px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}
+        >
+          <Layers size={16} color="var(--infynno-cyan, #06b6d4)" />
+          <div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Questions Authored</div>
+            <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+              {actualQuestions} / {targetQuestions} <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>({overallProgressPct}%)</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Tokens consumed */}
+        <div
+          style={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-light)',
+            borderRadius: 'var(--radius-sm, 8px)',
+            padding: '10px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}
+        >
+          <Coins size={16} color="var(--status-success, #10b981)" />
+          <div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Tokens &amp; Expenditure</div>
+            <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+              {totalTokens.toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--status-success)' }}>(${totalCost.toFixed(4)})</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Combined Progress Bar */}
+      <div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '0.75rem',
+            marginBottom: '6px'
+          }}
+        >
+          <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
+            Aggregated Multi-Batch Throughput
+          </span>
+          <span style={{ fontWeight: 800, color: 'var(--brand-primary)' }}>
+            {overallProgressPct}%
+          </span>
+        </div>
+        <div
+          style={{
+            height: '8px',
+            width: '100%',
+            borderRadius: '4px',
+            background: 'var(--border-light)',
+            overflow: 'hidden'
+          }}
+        >
+          <div
+            style={{
+              height: '100%',
+              width: `${overallProgressPct}%`,
+              background: 'linear-gradient(90deg, var(--infynno-violet) 0%, var(--infynno-blue) 50%, var(--infynno-cyan) 100%)',
+              borderRadius: '4px',
+              transition: 'width 0.5s ease',
+              boxShadow: '0 0 10px rgba(79, 48, 185, 0.4)'
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Active Batches Section Badges */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          flexWrap: 'wrap',
+          paddingTop: '4px'
+        }}
+      >
+        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+          Running Streams:
+        </span>
+        {activeBatches.map((b) => {
+          const secLabel = MCAT_SECTION_LABELS[b.section] || b.section;
+          const prog = b.target_count > 0 ? Math.round(((b.actual_count || 0) / b.target_count) * 100) : 0;
+          return (
+            <span
+              key={b.id}
+              style={{
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                padding: '3px 8px',
+                borderRadius: '6px',
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-medium)',
+                color: 'var(--text-primary)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              <span
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: 'var(--infynno-cyan)',
+                  animation: 'pulse 1.2s infinite'
+                }}
+              />
+              {secLabel}: {b.actual_count || 0}/{b.target_count || 50} ({prog}%)
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

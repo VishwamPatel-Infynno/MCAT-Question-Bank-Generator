@@ -206,3 +206,25 @@ export async function deleteBatch(batchId) {
   await assertOk(res, `Delete batch ${batchId}`);
   return res.json();
 }
+
+export async function stopBatch(batchId) {
+  const res = await fetch(`${API_BASE}/batches/${batchId}/stop`, { method: 'POST' });
+  await assertOk(res, `Stop batch ${batchId}`);
+  return res.json();
+}
+
+export async function retryBatchJobs(batchId, payload = null) {
+  const res = await fetch(`${API_BASE}/batches/${batchId}/retry`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: payload ? JSON.stringify(payload) : undefined
+  });
+  await assertOk(res, `Retry batch ${batchId}`);
+  return res.json();
+}
+
+export async function cancelAllBatches() {
+  const res = await fetch(`${API_BASE}/batches/cancel-all`, { method: 'POST' });
+  await assertOk(res, 'Cancel all active batches');
+  return res.json();
+}
