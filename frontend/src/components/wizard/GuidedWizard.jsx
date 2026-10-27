@@ -205,7 +205,7 @@ export default function GuidedWizard({
     } else {
       (onGenerateQuestions || onLaunchGeneration)?.();
     }
-  }, [step, totalSteps, onGenerateQuestions, onLaunchGeneration]);
+  }, [step, totalSteps, onGenerateQuestions, onLaunchGeneration, setStep]);
 
   const handleInstantLaunch = useCallback(() => {
     (onGenerateQuestions || onLaunchGeneration)?.();
