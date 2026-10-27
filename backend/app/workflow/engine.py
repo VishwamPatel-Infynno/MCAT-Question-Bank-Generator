@@ -1020,9 +1020,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                 )
                 await refresh_batch_aggregates(batch_id)
             except Exception as clean_err:
-                logger.warning(
-                    f"Error updating cancelled live batch {batch_id}: {clean_err}"
-                )
+                logger.warning(f"Error updating cancelled live batch {batch_id}: {clean_err}")
         raise
     except Exception as e:
         logger.error(f"Workflow stream error: {e}")

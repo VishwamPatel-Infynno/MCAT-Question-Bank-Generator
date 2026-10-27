@@ -246,7 +246,7 @@ async def test_multichoice_and_passage_support():
 
 @pytest.mark.asyncio
 async def test_batch_generation_and_staging_flow(monkeypatch):
-    from app.repositories.question_repository import get_question_by_id, save_questions_batch
+    from app.repositories.question_repository import get_question_by_id
 
     monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
     monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
@@ -291,6 +291,7 @@ async def test_batch_generation_and_staging_flow(monkeypatch):
 
     # Test approving selected questions into the Question Bank
     from app.repositories.question_repository import batch_update_question_status
+
     approved_ids = [staged_qs[0]["id"], staged_qs[1]["id"]]
     await batch_update_question_status(approved_ids, "in_bank")
 
@@ -693,7 +694,9 @@ async def test_question_status_lifecycle_and_counts():
     assert any(q.id == uid1 for q in validated_qs)
     assert not any(q.id == uid2 for q in validated_qs)
     assert not any(q.id == uid3 for q in validated_qs)
-    assert not any(q.id == uid4 for q in validated_qs), "Questions with score <= 90 must not appear in ai_validated query!"
+    assert not any(q.id == uid4 for q in validated_qs), (
+        "Questions with score <= 90 must not appear in ai_validated query!"
+    )
 
     batch_only_qs = await get_questions(status="batch_only")
     assert any(q.id == uid3 for q in batch_only_qs)
