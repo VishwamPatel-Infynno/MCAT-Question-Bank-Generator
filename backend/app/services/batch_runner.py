@@ -23,7 +23,8 @@ from app.workflow.engine import run_workflow_stream
 
 logger = logging.getLogger(__name__)
 
-# Active background tasks dictionary to track running batch tasks
+# NOTE: These module-level dicts are process-local and will be lost on restart.
+# For multi-process or distributed deployments, migrate to a Redis-backed store.
 _active_batch_tasks: dict[str, asyncio.Task[Any]] = {}
 
 # In-memory store for generation requests to support 1-click retries
@@ -50,7 +51,8 @@ async def _run_single_job(
     """Executes a single job generating 5 questions, saving them directly to the database."""
     async with semaphore:
         now_iso = datetime.now(UTC).isoformat()
-        logger.info(f"Starting Job {job.job_number}/10 (ID: {job.id}) for Batch {batch_id}...")
+        total_jobs = len(await get_jobs_by_batch_id(batch_id)) or 10
+        logger.info(f"Starting Job {job.job_number}/{total_jobs} (ID: {job.id}) for Batch {batch_id}...")
         await update_job_progress(job.id, status="running", started_at=now_iso)
 
         is_cars = (

@@ -37,7 +37,11 @@ async def list_questions(
     status: str | None = Query("in_bank"),
 ):
     """Lists saved questions from the Question Bank repository along with aggregated metrics."""
-    # Normalize when called directly as a Python function (unit tests)
+    # NOTE: FastAPI resolves Query(...) parameters during the dependency injection lifecycle.
+    # When this function is called directly in unit tests (bypassing FastAPI's request handling),
+    # parameters arrive as raw Query descriptor objects rather than resolved values.
+    # The isinstance checks below extract the default value in that case.
+    # Do NOT remove — this is required for test compatibility.
     from fastapi.params import Query as QueryParam
 
     if isinstance(status, QueryParam):

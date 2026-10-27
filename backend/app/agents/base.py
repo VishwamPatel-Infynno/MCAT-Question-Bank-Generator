@@ -33,7 +33,20 @@ def get_global_llm_semaphore() -> asyncio.Semaphore:
 
 
 def clean_json_text(text: str) -> str:
-    """Extract and sanitize JSON from model output that might contain markdown fences or extra text."""
+    """
+    Extract and sanitize a JSON payload from LLM output.
+
+    Handles markdown code fences (```json ... ``` or bare ``` ... ```),
+    strips leading/trailing non-JSON text, and locates the outermost
+    ``{...}`` or ``[...]`` structure.
+
+    Args:
+        text: Raw LLM response string that may contain surrounding prose
+            or markdown formatting.
+
+    Returns:
+        A cleaned string ready for ``json.loads`` or ``json_repair.loads``.
+    """
     text = text.strip()
 
     # Check for markdown code fences
@@ -151,7 +164,8 @@ def _get_available_fallback_models(primary_model: str) -> list[str]:
             try:
                 if _resolve_api_key(model_name, None):
                     candidates.append(model_name)
-            except Exception:
+            except Exception as key_err:
+                logger.debug("Skipping fallback model '%s': %s", model_name, key_err)
                 continue
     return candidates
 

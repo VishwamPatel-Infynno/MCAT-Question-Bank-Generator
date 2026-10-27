@@ -103,6 +103,16 @@ export async function batchDeleteQuestions(ids) {
   return res.json();
 }
 
+/**
+ * Approves and saves a single question to the Question Bank.
+ *
+ * POSTs the full question object to `/api/questions`. On success the question
+ * is persisted with status `in_bank` and a database-assigned ID is returned.
+ *
+ * @param {Object} question - Full Question schema object (must include all required fields).
+ * @returns {Promise<Object>} The saved question record as returned by the API.
+ * @throws {Error} If the HTTP response is not 2xx.
+ */
 export async function approveQuestion(question) {
   const res = await fetch(`${API_BASE}/questions`, {
     method: 'POST',
@@ -123,6 +133,21 @@ export async function batchApproveQuestions(questions) {
   return res.json();
 }
 
+/**
+ * Streams SSE events from the multi-agent generation API in real time.
+ *
+ * Opens an HTTP POST to `/api/generate`, reads the response body as a
+ * Server-Sent Events stream, parses each `data:` line, and dispatches
+ * events to the caller via callbacks.
+ *
+ * @param {Object} payload - GenerationRequest payload (section, difficulty, etc.)
+ * @param {Function} onEvent - Called for each parsed SSE event object.
+ * @param {Function} [onError] - Called on stream error or AbortError; receives
+ *   `{ isAborted: true }` on manual cancellation.
+ * @param {Function} onComplete - Called when a `workflow_complete` event is received.
+ * @param {AbortSignal|null} signal - Optional AbortController signal for cancellation.
+ * @returns {Promise<void>}
+ */
 export async function generateQuestionStream(payload, onEvent, onError, onComplete, signal = null) {
   try {
     const response = await fetch(`${API_BASE}/generate`, {

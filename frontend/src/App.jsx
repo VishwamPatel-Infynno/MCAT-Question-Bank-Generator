@@ -18,29 +18,9 @@ const AiValidatedQuestionsView = lazy(() => import('./views/AiValidatedQuestions
 
 function LazyLoadingSpinner({ label = 'Loading...' }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '360px',
-        width: '100%',
-        gap: '16px',
-        color: 'var(--text-muted)'
-      }}
-    >
-      <div
-        style={{
-          width: '32px',
-          height: '32px',
-          border: '2px solid var(--border-medium)',
-          borderTopColor: 'var(--brand-primary)',
-          borderRadius: '50%',
-          animation: 'spin 0.8s linear infinite'
-        }}
-      />
-      <span style={{ fontSize: '0.85rem', fontWeight: 500, letterSpacing: '0.02em' }}>
+    <div className="lazy-spinner-container">
+      <div className="lazy-spinner-ring" />
+      <span className="lazy-spinner-label">
         {label}
       </span>
     </div>
@@ -104,7 +84,7 @@ export default function App() {
   } = useAppState();
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="app-root">
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -119,7 +99,7 @@ export default function App() {
         }}
       />
 
-      <main style={{ flex: 1, maxWidth: '1440px', width: '100%', margin: '0 auto', padding: '24px' }}>
+      <main className="app-main-content">
         {activeTab === 'generator' && (
           <>
             {viewMode === 'hero' && (

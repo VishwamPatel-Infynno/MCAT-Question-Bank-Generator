@@ -42,6 +42,8 @@ export default function GeneratorWorkspaceView({
   setActiveTab,
   setViewMode
 }) {
+  // isBatchMode is true whenever questions are staged or generation is active.
+  // The totalQuestions fallback (always >= 5) keeps the batch review UI on by default.
   const isBatchMode =
     stagedQuestions.length > 0 ||
     isGenerating ||
@@ -105,35 +107,12 @@ export default function GeneratorWorkspaceView({
         />
       ) : (
         /* Clean Empty State */
-        <div
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-light)',
-            borderRadius: 'var(--radius-md)',
-            padding: '48px 24px',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '16px'
-          }}
-        >
-          <div
-            style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '50%',
-              background: 'rgba(79, 48, 185, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--brand-primary)'
-            }}
-          >
+        <div className="workspace-empty-state">
+          <div className="workspace-empty-icon">
             <Sparkles size={28} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+            <div className="workspace-empty-badge-row">
               <span className="badge badge-subtle" style={{ fontSize: '0.7rem', fontWeight: 600 }}>
                 Status: Idle
               </span>
@@ -141,10 +120,10 @@ export default function GeneratorWorkspaceView({
                 Ready for Review
               </span>
             </div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+            <h3 className="workspace-empty-heading">
               Ready to Create Questions
             </h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '420px', margin: '0 auto' }}>
+            <p className="workspace-empty-subtext">
               Configure exam sections, difficulty, reading passages, and diagrams with the Guided Question Wizard.
             </p>
           </div>

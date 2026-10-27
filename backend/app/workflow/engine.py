@@ -35,87 +35,15 @@ from app.workflow.nodes import (
     reject_node,
     reviewer_node,
 )
+from app.workflow.engine_helpers import (
+    _build_batch_worker_request,
+    _determine_item_diagram_requirement,
+)
 from app.workflow.routes import route_after_review
 from app.workflow.state import AgentWorkflowState
 
 logger = logging.getLogger(__name__)
 
-
-def _build_batch_worker_request(
-    req: GenerationRequest,
-    idx: int,
-    total_qty: int,
-    batch_id: str | None,
-    effective_passage_count: int,
-    shared_passage_id: str | None,
-    shared_passage_text: str | None,
-) -> tuple[GenerationRequest, str, bool, str]:
-    """
-    Builds an isolated GenerationRequest for an individual question worker within a batch,
-    resolving whether the question is passage-linked or independent (strictly single-choice MCAT format).
-    """
-    item_run_id = str(uuid.uuid4()) if total_qty > 1 else req.run_id
-    is_passage_item = idx < effective_passage_count
-    item_interaction = "single_choice"
-
-    if is_passage_item:
-        item_passage = "Yes"
-        item_passage_mode = "single_passage"
-        item_passage_id = shared_passage_id
-        item_stimulus = shared_passage_text
-    else:
-        item_passage = "No"
-        item_passage_mode = "independent"
-        item_passage_id = None
-        item_stimulus = None
-
-    item_req = req.model_copy(
-        update={
-            "run_id": item_run_id,
-            "batch_id": batch_id,
-            "questions_to_generate": 1,
-            "interaction_type": item_interaction,
-            "passage_required": item_passage,
-            "passage_mode": item_passage_mode,
-            "passage_id": item_passage_id,
-            "shared_stimulus": item_stimulus,
-        }
-    )
-    return item_req, item_run_id, is_passage_item, item_interaction
-
-
-def _determine_item_diagram_requirement(
-    state: AgentWorkflowState,
-    idx: int,
-    is_passage_item: bool,
-) -> bool:
-    """
-    Evaluates whether a specific question item within a batch requires a visual stimulus diagram.
-    Respects section type, passage attachment, explicit image flags, and autonomous AI needs.
-    """
-    req_data = state["request"]
-    sec_raw = req_data.get("section", "")
-    section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)
-    allow_ai_images = req_data.get("allow_ai_images", False)
-    explicit_image = req_data.get("require_image", False)
-    visual_type = req_data.get("visual_type", "None")
-
-    # CARS strictly has no figures, data tables or diagrams in official AAMC format
-    if section_val in (MCATSection.CARS.value, "CARS", "cars"):
-        return False
-    if is_passage_item:
-        # Passage question items share the passage diagram; they never have internal images
-        return False
-
-    # Check if visual generation is permitted at all
-    visuals_permitted = (
-        allow_ai_images or explicit_image or visual_type in ("SVG_Diagram", "AI_FLUX_Image")
-    )
-    if not visuals_permitted:
-        return False
-
-    # Autonomous AI determination for independent items
-    return bool(state.get("current_draft", {}).get("image_needed", False))
 
 
 async def _run_question_review_loop(
@@ -417,6 +345,10 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         data: dict[str, Any] | None = None,
         run_id: str | None = None,
     ) -> WorkflowEvent:
+        """
+        Factory closure that creates a WorkflowEvent, automatically injecting
+        the current batch_id and job_id into event data when not already present.
+        """
         event_data = dict(data or {})
         if "batch_id" not in event_data and batch_id:
             event_data["batch_id"] = batch_id
@@ -604,7 +536,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         )
         yield f"data: {start_evt.model_dump_json()}\n\n"
 
-        MAX_CONCURRENCY = 5
+        # Use the globally configured worker pool size (default: GLOBAL_MAX_CONCURRENT_JOBS)
+        MAX_CONCURRENCY = config.GLOBAL_MAX_CONCURRENT_JOBS
         semaphore = asyncio.Semaphore(MAX_CONCURRENCY)
         event_queue: asyncio.Queue[WorkflowEvent | None] = asyncio.Queue()
 
@@ -618,7 +551,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         shared_used_mistakes: list[str] = []
 
         async def _worker(idx: int) -> None:
-            max_worker_retries = 2
+            max_worker_retries = config.WORKFLOW_MAX_WORKER_RETRIES
             for attempt in range(max_worker_retries + 1):
                 try:
                     async with semaphore:

@@ -1,6 +1,30 @@
 import { useState, useCallback, useRef } from 'react';
 import { generateQuestionStream } from '../services/api';
 
+/**
+ * Multi-agent question generation hook.
+ *
+ * Manages the SSE stream lifecycle, per-question swarm state tracking,
+ * batch progress, and AbortController-based cancellation.
+ *
+ * @returns {{
+ *   isGenerating: boolean,
+ *   activeAgent: string,
+ *   iterationCount: number,
+ *   events: Array,
+ *   activeQuestion: Object|null,
+ *   setActiveQuestion: Function,
+ *   stagedQuestions: Array,
+ *   setStagedQuestions: Function,
+ *   batchProgress: Object|null,
+ *   perQuestionState: Object,
+ *   rejectedData: Object|null,
+ *   latestReview: Object|null,
+ *   startGeneration: Function,
+ *   cancelGeneration: Function,
+ *   reset: Function
+ * }}
+ */
 export function useQuestionGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeAgent, setActiveAgent] = useState('Idle');

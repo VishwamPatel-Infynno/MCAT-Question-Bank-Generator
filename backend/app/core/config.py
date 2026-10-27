@@ -68,8 +68,8 @@ class Settings(BaseSettings):
                     parsed = json.loads(v_str)
                     if isinstance(parsed, list):
                         return [str(x).strip() for x in parsed if str(x).strip()]
-                except Exception:
-                    pass
+                except (json.JSONDecodeError, ValueError):
+                    pass  # Fall through to comma-split parsing
             return [x.strip() for x in v_str.split(",") if x.strip()]
         if isinstance(v, list):
             return [str(x).strip() for x in v if str(x).strip()]
@@ -115,6 +115,8 @@ class Settings(BaseSettings):
     GLOBAL_MAX_CONCURRENT_LLM_CALLS: int = 10
     LLM_MAX_RETRIES: int = 4
     LLM_BASE_BACKOFF_SECONDS: float = 1.5
+    # Per-worker retry attempts for individual question generation jobs within a batch
+    WORKFLOW_MAX_WORKER_RETRIES: int = 2
 
     # Production Database Connection Pool Settings
     DB_POOL_SIZE: int = 20

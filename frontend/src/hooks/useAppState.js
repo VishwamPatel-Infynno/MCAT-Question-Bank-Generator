@@ -13,6 +13,15 @@ import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { MCAT_SECTIONS_FALLBACK } from '../constants';
 import { fetchSections, fetchHealth, approveQuestion, batchApproveQuestions, startBackgroundBatch, fetchBatches, fetchQuestionCounts } from '../services';
 
+/**
+ * Central application state hook.
+ *
+ * Owns all stateful logic, side-effects, and event handlers for the app.
+ * App.jsx uses this as its single source of truth — it purely assembles
+ * the layout while this hook manages everything stateful.
+ *
+ * @returns {Object} All app state values and event handler callbacks.
+ */
 export function useAppState() {
   // ─── Theme ───────────────────────────────────────────────────────────────
   const { theme, toggleTheme } = useTheme();
@@ -211,7 +220,7 @@ export function useAppState() {
     setIsQuestionSaved(false);
     setSavedQuestionIds(new Set());
     startGeneration(payload);
-    refreshActiveBatches?.();
+    refreshActiveBatches();
     const isPassageBatch = passageMode === 'single_passage' || selectedSection === 'cars';
     showToast({
       type: 'info',
@@ -423,9 +432,7 @@ export function useAppState() {
     iterationCount,
     events,
     activeQuestion,
-    setActiveQuestion,
     stagedQuestions,
-    setStagedQuestions,
     batchProgress,
     perQuestionState,
     rejectedData,
