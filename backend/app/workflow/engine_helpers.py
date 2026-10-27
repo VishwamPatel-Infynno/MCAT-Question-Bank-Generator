@@ -134,6 +134,7 @@ def _determine_item_diagram_requirement(
     Returns:
         True if a visual stimulus diagram should be generated for this question.
     """
+    _ = idx  # Informational parameter reserved for item-index specific diagram rules
     req_data = state["request"]
     sec_raw = req_data.get("section", "")
     section_val = sec_raw.value if hasattr(sec_raw, "value") else str(sec_raw)

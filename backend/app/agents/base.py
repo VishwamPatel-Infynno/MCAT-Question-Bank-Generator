@@ -128,7 +128,7 @@ def calculate_token_cost(prompt_tokens: int, completion_tokens: int) -> float:
     return round(in_cost + out_cost, 7)
 
 
-def _resolve_api_key(model: str, explicit_key: str | None) -> str:
+def _resolve_api_key(_model: str, explicit_key: str | None) -> str:
     """
     Resolves the DeepInfra API key.
 

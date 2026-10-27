@@ -187,12 +187,7 @@ body {
   border-color: var(--border-medium);
 }
 
-.glass-panel-elevated {
-  background: var(--bg-surface-elevated);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-}
+
 
 /* Primary Action Buttons */
 .btn-primary {
@@ -222,31 +217,7 @@ body {
   transform: translateY(0);
 }
 
-/* Button Size Modifiers */
-.btn-sm {
-  padding: 6px 12px;
-  font-size: 0.75rem;
-  gap: 5px;
-}
-
-.btn-md {
-  padding: 8px 16px;
-  font-size: 0.825rem;
-  gap: 7px;
-}
-
-.btn-lg {
-  padding: 12px 24px;
-  font-size: 0.95rem;
-  gap: 9px;
-}
-
 /* Infynno Solutions Brand Classes */
-.infynno-text-gradient {
-  background: var(--infynno-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
 
 .infynno-pill-link {
   display: inline-flex;
@@ -406,69 +377,6 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 2px var(--brand-light);
 }
 
-/* Filter Pills */
-.filter-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: var(--radius-full);
-  font-size: 0.775rem;
-  font-weight: 600;
-  border: 1px solid var(--border-light);
-  background: var(--bg-surface);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  white-space: nowrap;
-}
-.filter-pill:hover {
-  background: var(--bg-surface-hover);
-  border-color: var(--border-medium);
-  color: var(--text-primary);
-}
-.filter-pill.active {
-  background: var(--brand-primary);
-  border-color: var(--brand-primary);
-  color: #ffffff;
-}
-.filter-pill .pill-count {
-  font-size: 0.7rem;
-  padding: 1px 5px;
-  border-radius: 8px;
-  background: var(--bg-surface-hover);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-light);
-  font-weight: 700;
-}
-.filter-pill.active .pill-count {
-  background: rgba(255, 255, 255, 0.25);
-  color: #ffffff;
-  border-color: transparent;
-}
-
-/* Radio Option Cards (Question Card) */
-.radio-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 14px 18px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  transition: border-color var(--transition-fast), background-color var(--transition-fast);
-}
-
-.radio-card:hover {
-  border-color: var(--border-medium);
-  background: var(--bg-surface-hover);
-}
-
-.radio-card.correct-answer {
-  background: var(--status-success-bg);
-  border: 1px solid var(--status-success);
-}
-
 /* Keyboard Shortcut Hint Tag */
 .kbd-hint {
   display: inline-flex;
@@ -484,24 +392,6 @@ input:focus, select:focus, textarea:focus {
   color: var(--text-muted);
 }
 
-/* Floating Action Dock */
-.floating-review-bar {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  background: var(--bg-surface-elevated);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-full);
-  box-shadow: var(--shadow-lg);
-  z-index: 100;
-  animation: float-slide-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
 /* Keyframes */
 @keyframes toast-slide-in {
   from {
@@ -511,17 +401,6 @@ input:focus, select:focus, textarea:focus {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes float-slide-up {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 16px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
   }
 }
 
@@ -732,28 +611,6 @@ input:focus, select:focus, textarea:focus {
   }
 }
 
-/* Refined Subtle Agent Node Card (during live generation) */
-.agent-node-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm);
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  transition: all var(--transition-fast);
-  text-align: left;
-}
-
-.agent-node-card:hover {
-  border-color: var(--border-medium);
-}
-
-.agent-node-active {
-  border-color: var(--brand-primary) !important;
-  background: var(--brand-light) !important;
-}
-
 .agent-pulse-dot {
   width: 7px;
   height: 7px;
@@ -882,51 +739,7 @@ input:focus, select:focus, textarea:focus {
   letter-spacing: -0.003em;
 }
 
-/* Quiet Minimal Section Header */
-.section-header-minimal {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
 
-.section-header-title {
-  font-size: 0.725rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-/* Sleek Minimal Subtest Card */
-.subtest-item-minimal {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  width: 100%;
-  text-align: left;
-}
-
-.subtest-item-minimal:hover {
-  background: var(--bg-surface-hover);
-  color: var(--text-primary);
-}
-
-.subtest-item-minimal.active {
-  background: var(--bg-surface-elevated);
-  color: var(--text-primary);
-  font-weight: 600;
-  border-color: var(--border-medium);
-  box-shadow: var(--shadow-sm);
-}
 
 /* Modern Minimalist Badge */
 .badge-minimal {
@@ -1426,16 +1239,6 @@ input:focus, select:focus, textarea:focus {
   letter-spacing: -0.01em;
 }
 
-.wizard-decision-tag {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  background: var(--bg-surface-elevated);
-  padding: 3px 8px;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--border-light);
-}
-
 .wizard-decision-connector {
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--border-medium), transparent);
@@ -1457,19 +1260,14 @@ input:focus, select:focus, textarea:focus {
   }
 }
 
-.wizard-stepper-7::-webkit-scrollbar,
 .wizard-stepper-3::-webkit-scrollbar {
   height: 3px;
 }
 
-.wizard-stepper-7::-webkit-scrollbar-thumb,
 .wizard-stepper-3::-webkit-scrollbar-thumb {
   background: var(--border-medium);
   border-radius: var(--radius-full);
 }
-
-
-
 
 .workspace-action-btn-primary {
   display: inline-flex;
@@ -1837,14 +1635,6 @@ input:focus, select:focus, textarea:focus {
   font-size: 0.82rem;
   color: var(--text-secondary);
   margin-top: 2px;
-}
-
-.batch-activity-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
 }
 
 .batch-activity-list {

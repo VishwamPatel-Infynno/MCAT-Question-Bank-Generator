@@ -524,7 +524,7 @@ async def test_e2e_question_image_endpoint():
         save_res = await client.post("/questions", json=img_q)
         assert save_res.status_code == 200
 
-        # Query /questions/{id}/image
+        # Query question image endpoint
         img_res = await client.get(f"/questions/{test_id}/image")
         assert img_res.status_code == 200
         assert "image/jpeg" in img_res.headers.get("content-type", "")

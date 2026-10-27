@@ -59,7 +59,7 @@ async def test_call_llm_rate_limit_backoff(monkeypatch):
         choices = [MockChoice()]
         usage = MockUsage()
 
-    async def mock_acompletion(**kwargs):
+    async def mock_acompletion(**_kwargs):
         nonlocal attempt_count
         attempt_count += 1
         if attempt_count == 1:
@@ -68,7 +68,7 @@ async def test_call_llm_rate_limit_backoff(monkeypatch):
         return MockResponse()
 
     monkeypatch.setattr("litellm.acompletion", mock_acompletion)
-    monkeypatch.setattr("app.agents.base._resolve_api_key", lambda m, k: "test-key")
+    monkeypatch.setattr("app.agents.base._resolve_api_key", lambda _m, _k: "test-key")
     monkeypatch.setattr(config, "LLM_BASE_BACKOFF_SECONDS", 0.05)
 
     content, usage = await call_llm(
