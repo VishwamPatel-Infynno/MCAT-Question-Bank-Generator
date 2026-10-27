@@ -1,4 +1,5 @@
 import logging
+import re
 
 from app.agents.base import calculate_token_cost, call_llm, safe_json_loads
 from app.agents.mock_fixtures import evaluate_heuristically, get_mock_draft
@@ -241,9 +242,9 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
                 ("DISTRACTOR_OVERINTERPRETATION", r"Distractor\s*Overinterpretation"),
                 ("ANSWER_CHOICE_CONFLATION", r"Answer\s*Choice\s*Conflation"),
             ]
-            import re
 
             for trap_key, pattern in taxonomies:
+
                 if re.search(pattern, expl, re.IGNORECASE):
                     detected = trap_key
                     break
@@ -268,8 +269,6 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
         )
         if not effective_mistake:
             expl = data.get("explanation", "")
-            import re
-
             m_match = re.search(
                 r"(?:misconception|mistake\s*pattern|common\s*error)[:\s]+([^\n.,;]+)",
                 expl,

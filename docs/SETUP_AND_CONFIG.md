@@ -37,7 +37,10 @@ cp .env.example .env
 | `DEFAULT_IMAGE_MODEL` | `string` | `black-forest-labs/FLUX-2-klein-4b` | Image model for visual stimuli |
 | `DEEPINFRA_API_KEY` | `string` | `""` | DeepInfra API authorization key |
 | `MAX_REGENERATION_ATTEMPTS`| `integer`| `3` | Maximum remediation loops before Quality Gate reject |
-| `PASSING_SCORE_THRESHOLD` | `integer`| `90` | Minimum score required to pass psychometric gate |
+| `PASSING_SCORE_THRESHOLD` | `integer`| `90` | Minimum score required to pass individual psychometric gate (Tier 1) |
+| `BATCH_PASSING_SCORE_THRESHOLD` | `integer`| `85` | Benchmark score required for batch activity run acceptance (Tier 2) |
+| `DEFAULT_MAX_TOKENS` | `integer`| `3000` | Default maximum completion token budget for generator nodes |
+| `REVIEWER_MAX_TOKENS` | `integer`| `1800` | Maximum completion token budget for 100-point psychometric reviewer |
 | `COST_PER_MILLION_INPUT_TOKENS` | `float` | `0.098` | Input token price ($0.098 / 1M tokens) |
 | `COST_PER_MILLION_OUTPUT_TOKENS`| `float` | `0.294` | Output token price ($0.294 / 1M tokens) |
 | `DEFAULT_TEMPERATURE` | `float` | `0.2` | Global default sampling temperature for call_llm |

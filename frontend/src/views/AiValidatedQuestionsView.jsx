@@ -44,9 +44,8 @@ export default function AiValidatedQuestionsView({
   // Multi-selection state
   const [selectedIds, setSelectedIds] = useState([]);
 
-  // Load questions and counts on manual trigger or filter change
-  const loadData = useCallback(async (isSilent = false) => {
-    if (!isSilent) setRefreshing(true);
+  // Load questions and counts asynchronously without synchronous pre-render state mutations
+  const performFetchValidated = useCallback(async (isSilent = false) => {
     try {
       const [qsRes, countsRes] = await Promise.all([
         fetchQuestions({ status: 'ai_validated', section: sectionFilter || undefined }),
@@ -71,35 +70,24 @@ export default function AiValidatedQuestionsView({
     }
   }, [sectionFilter, onRefreshCounts, onShowToast]);
 
+  const loadData = useCallback(async (isSilent = false) => {
+    if (!isSilent) setRefreshing(true);
+    return performFetchValidated(isSilent);
+  }, [performFetchValidated]);
+
+  // Initial load on mount and when filter changes
   useEffect(() => {
     let ignore = false;
     async function init() {
-      try {
-        const [qsRes, countsRes] = await Promise.all([
-          fetchQuestions({ status: 'ai_validated', section: sectionFilter || undefined }),
-          fetchQuestionCounts()
-        ]);
-        if (!ignore) {
-          const loadedQs = (qsRes.questions || []).filter(q => (q.final_score || 0) > 90);
-          setQuestions(loadedQs);
-          setCounts(countsRes || {});
-          if (onRefreshCounts) onRefreshCounts();
-        }
-      } catch (err) {
-        if (!ignore) {
-          console.error('Failed to load AI validated questions:', err);
-        }
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
+      if (!ignore) {
+        await performFetchValidated(true);
       }
     }
     init();
     return () => {
       ignore = true;
     };
-  }, [sectionFilter, onRefreshCounts]);
+  }, [performFetchValidated]);
 
   // Filtered in-memory questions by search query (strictly preserving score > 90 benchmark)
   const filteredQuestions = useMemo(() => {

@@ -39,6 +39,7 @@ frontend/src/
 │   │   └── QuestionBankTable.jsx # Tabular question rows, batch selection, and actions
 │   ├── common/
 │   │   ├── CustomSelect.jsx      # Accessible custom dropdown select primitive
+│   │   ├── ErrorBoundary.jsx     # Production React error boundary with fallback UI
 │   │   ├── FormattedText.jsx     # Inline markdown & cognitive trap chip highlighter
 │   │   ├── InfynnoLogo.jsx       # Official corporate vector logo primitive
 │   │   ├── LiveStopwatch.jsx     # High-precision live stopwatch timer
@@ -95,6 +96,7 @@ frontend/src/
 ├── hooks/
 │   ├── index.js                  # Barrel export for custom hooks
 │   ├── useAppState.js            # Centralized view routing & global event broker
+│   ├── useFocusTrap.js           # Accessible WCAG AA keyboard focus-trapping hook for modals
 │   ├── useGeneratorForm.js       # Form state & validation logic
 │   ├── useKeyboardShortcuts.js   # Global hotkeys (⌘↵ to generate, A to approve, D to discard, T to toggle theme)
 │   ├── useQuestionBank.js        # Debounced search, sorting, and bank fetching

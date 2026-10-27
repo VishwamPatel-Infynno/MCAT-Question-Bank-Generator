@@ -34,6 +34,7 @@ backend/app/
 │   ├── blind_solver.py  # Blind-solver dual-validation candidate verification agent
 │   ├── reviewer.py      # 100-point 4-pillar psychometric auditor agent
 │   ├── regenerator.py   # Autonomous remediation agent (<= 90 score trigger)
+│   ├── option_balancer.py # Mathematical option length balancing (±15%) & anti-guessability
 │   ├── image_generator.py # FLUX-2-klein-4b neural visual & SVG vector generator
 │   ├── prompts.py       # Centralized system prompts, pacing rules & rubrics
 │   ├── mock_fixtures.py # Deterministic fallback fixtures for offline resilience

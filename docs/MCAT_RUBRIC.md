@@ -140,6 +140,26 @@ Internal 100-point psychometric audit scores are mathematically calibrated to th
 
 ---
 
-## 6. Strict Quality Gate Benchmark ($> 90$ Points)
+## 6. Two-Tier Quality Threshold Model & Quality Gates
 
-Any drafted question scoring $\le 90$ points is automatically rejected by the Strict Quality Gate and routed through autonomous remediation. Items failing after maximum allowed cycles (3 iterations) are discarded and never committed to the permanent database repository.
+The system enforces a calibrated two-tier quality evaluation framework that balances uncompromising question-bank admission with high-throughput batch evaluation:
+
+### 6.1 Tier 1: Question Bank & AI Validated Admission Gate (`PASSING_SCORE_THRESHOLD = 90`)
+- **Benchmark**: Score **$> 90$ Points** on the 100-point rubric.
+- **Rule**: Individual question candidates must achieve $> 90$ to qualify for admission into the permanent **Question Bank** or promotion to the **AI Validated Questions** workspace (`status = 'ai_validated'`).
+- **Remediation**: Any question scoring $\le 90$ points is automatically rejected by the gate and routed through autonomous remediation (`regenerator.py`).
+- **Circuit Breaker**: Items failing to achieve $> 90$ after the maximum allowed cycles (`MAX_REGENERATION_ATTEMPTS = 3`) are discarded permanently and never admitted into the database repository.
+
+### 6.2 Tier 2: Batch Activity Run Evaluation Gate (`BATCH_PASSING_SCORE_THRESHOLD = 85`)
+- **Benchmark**: Score **$> 85$ Points** across aggregate batch jobs.
+- **Rule**: High-throughput multi-job batches (e.g. 50-question mock sections across 10 parallel jobs) evaluate overall job health using the 85-point benchmark.
+- **Batch Acceptance**: Jobs whose questions achieve an average quality score $\ge 85$ are marked as passing batch jobs (`status = 'completed'`), while sub-85 drafts are flagged for targeted review or remediation (`status = 'below_threshold'`).
+
+---
+
+## 7. Smart AI Choice & Targeted Misconception Calibration (`likely_mistake_pattern`)
+
+Beyond standard cognitive traps, the engine operationalizes pedagogical misconception diagnosis:
+1. **Automatic (Smart AI Choice)**: The generator agent analyzes the scientific research study, equations, and question stem to autonomously diagnose the most authentic student calculation or conceptual error for the tested concept (e.g., `USES_WRONG_REFERENCE_VALUE`, `INVERTS_FRACTION`, `FORGETS_SQUARE_ROOT`, `CONFUSES_ENANTIOMERS_DIASTEREOMERS`, `MISREADS_GRAPH_AXES`, `FAILS_TO_SUBTRACT_BASELINE`, `CONFUSES_KM_VMAX`, `DROPS_NEGATIVE_SIGN`).
+2. **Explicit Distractor Targeting**: At least one distractor option is engineered specifically to attract students committing that exact misconception, and the complete error mechanism is detailed in the 3-card mentor explanation.
+3. **Audit Trail Persistence**: The diagnosed pattern is saved to PostgreSQL in `likely_mistake_pattern` and displayed on question cards and audit modals.

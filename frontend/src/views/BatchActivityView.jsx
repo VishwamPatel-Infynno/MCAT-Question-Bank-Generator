@@ -66,9 +66,8 @@ export default function BatchActivityView({
     onShowToastRef.current = onShowToast;
   }, [onShowToast]);
 
-  // Load batch list
-  const loadBatches = useCallback(async (isSilent = false) => {
-    if (!isSilent) setRefreshing(true);
+  // Fetch batch list asynchronously without synchronous pre-render state mutations
+  const performFetchBatches = useCallback(async (isSilent = false) => {
     try {
       const data = await fetchBatches();
       setBatches(data.batches || []);
@@ -101,27 +100,24 @@ export default function BatchActivityView({
     }
   }, []);
 
+  const loadBatches = useCallback(async (isSilent = false) => {
+    if (!isSilent) setRefreshing(true);
+    return performFetchBatches(isSilent);
+  }, [performFetchBatches]);
+
   // Initial load on mount
   useEffect(() => {
     let ignore = false;
     async function init() {
-      try {
-        const data = await fetchBatches();
-        if (!ignore) {
-          setBatches(data.batches || []);
-          setActiveCount(data.active_running_batches || 0);
-        }
-      } catch (err) {
-        console.error('Failed to load batches:', err);
-      } finally {
-        if (!ignore) setLoading(false);
+      if (!ignore) {
+        await performFetchBatches(true);
       }
     }
     init();
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [performFetchBatches]);
 
   const hasActiveBatches = activeCount > 0 || batches.some((b) => b.status === 'in_progress');
 

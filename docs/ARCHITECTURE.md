@@ -96,6 +96,15 @@ stateDiagram-v2
     CompletedEnd --> [*]
 ```
 
+### 2.3 Two-Tier Quality Threshold Architecture
+
+The system implements a calibrated two-tier quality threshold model to ensure uncompromising individual question bank admission while enabling resilient high-throughput batch evaluation:
+
+| Tier | Governing Threshold | Scope & Application | System Consequence |
+| :--- | :---: | :--- | :--- |
+| **Tier 1: Question Bank & AI Validated Gate** | **$> 90$ Points**<br>`PASSING_SCORE_THRESHOLD = 90` | Applied to every candidate question drafted in live sessions or batch workers. | Questions scoring $> 90$ qualify for admission into the permanent **Question Bank** or the dedicated **AI Validated** repository (`status = 'ai_validated'`). Candidate items scoring $\le 90$ must be remediated or discarded. |
+| **Tier 2: Batch Activity Run Evaluation Gate** | **$> 85$ Points**<br>`BATCH_PASSING_SCORE_THRESHOLD = 85` | Applied across aggregate generation jobs in multi-job background batches (e.g. 10 jobs x 5 questions = 50 total). | Jobs achieving an aggregate question quality $\ge 85$ are marked as passing batch runs (`status = 'completed'`). Jobs with sub-85 averages are highlighted for instructor review or targeted retry. |
+
 ---
 
 ## 3. Agent Specifications & Prompt Engineering

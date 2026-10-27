@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import json
 import logging
 import uuid
@@ -276,10 +277,8 @@ async def stop_background_batch(batch_id: str) -> bool:
     task = _active_batch_tasks.pop(batch_id, None)
     if task and not task.done():
         task.cancel()
-        try:
+        with contextlib.suppress(asyncio.CancelledError, Exception):
             await task
-        except (asyncio.CancelledError, Exception):
-            pass
 
     # Mark remaining pending/running jobs as cancelled
     jobs = await get_jobs_by_batch_id(batch_id)
