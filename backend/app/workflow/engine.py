@@ -26,6 +26,10 @@ from app.schemas import (
     QuestionDraft,
     WorkflowEvent,
 )
+from app.workflow.engine_helpers import (
+    _build_batch_worker_request,
+    _determine_item_diagram_requirement,
+)
 from app.workflow.nodes import (
     blind_solver_node,
     finalize_node,
@@ -34,10 +38,6 @@ from app.workflow.nodes import (
     regenerator_node,
     reject_node,
     reviewer_node,
-)
-from app.workflow.engine_helpers import (
-    _build_batch_worker_request,
-    _determine_item_diagram_requirement,
 )
 from app.workflow.routes import route_after_review
 from app.workflow.state import AgentWorkflowState
