@@ -354,7 +354,9 @@ async def get_questions(
             elif diff_lower in ["high", "hard"]:
                 stmt = stmt.where(QuestionModel.difficulty.in_(["high", "High", "hard", "Hard"]))
             elif diff_lower in ["medium", "standard"]:
-                stmt = stmt.where(QuestionModel.difficulty.in_(["medium", "Medium", "standard", "Standard"]))
+                stmt = stmt.where(
+                    QuestionModel.difficulty.in_(["medium", "Medium", "standard", "Standard"])
+                )
             else:
                 stmt = stmt.where(QuestionModel.difficulty == difficulty)
         if combination_id:

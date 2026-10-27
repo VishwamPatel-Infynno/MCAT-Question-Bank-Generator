@@ -144,16 +144,17 @@ def calculate_mcat_scaled_score(audit_total: int, difficulty: str = "medium") ->
         percentile: Estimated percentile rank e.g. "96th Percentile"
     """
     diff = str(difficulty).lower()
+    is_hard = diff in ("high", "hard")
 
     # Determine baseline section score (118-132)
     if audit_total >= 96:
-        base_sec = 132 if diff == "hard" else 131
+        base_sec = 132 if is_hard else 131
         percentile = "99th+ Percentile (Elite)"
     elif audit_total >= 92:
-        base_sec = 130 if diff == "hard" else 129
+        base_sec = 130 if is_hard else 129
         percentile = "96th Percentile (Top Tier)"
     elif audit_total >= 88:
-        base_sec = 128 if diff == "hard" else 127
+        base_sec = 128 if is_hard else 127
         percentile = "88th Percentile (Competitive)"
     elif audit_total >= 82:
         base_sec = 126

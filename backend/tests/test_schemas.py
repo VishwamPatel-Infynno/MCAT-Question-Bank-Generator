@@ -41,3 +41,16 @@ async def test_schemas_validation():
             section=MCATSection.CHEM_PHYS,
             questions_to_generate=51,
         )
+
+    # Test calculate_mcat_scaled_score parity between 'high' and legacy 'hard'
+    from app.schemas.mcat import calculate_mcat_scaled_score
+
+    score_high = calculate_mcat_scaled_score(audit_total=98, difficulty="high")
+    score_hard = calculate_mcat_scaled_score(audit_total=98, difficulty="hard")
+    score_medium = calculate_mcat_scaled_score(audit_total=98, difficulty="medium")
+
+    assert score_high["section_score"] == 132
+    assert score_hard["section_score"] == 132
+    assert score_medium["section_score"] == 131
+    assert score_high["composite_score"] == 528
+    assert score_medium["composite_score"] == 524

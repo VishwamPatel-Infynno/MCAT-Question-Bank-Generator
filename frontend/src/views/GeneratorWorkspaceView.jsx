@@ -102,7 +102,7 @@ export default function GeneratorWorkspaceView({
         />
       ) : isGenerating ? (
         <QuestionDraftingSkeleton
-          sectionLabel={sectionsData?.find((s) => s.id === generatorForm?.formData?.section)?.label || 'MCAT Question'}
+          sectionLabel={sectionsData?.find((s) => s.id === (generatorForm?.formData?.selectedSection || generatorForm?.formData?.section))?.label || 'MCAT Question'}
           difficulty={formatDifficulty(generatorForm?.formData?.difficulty)}
           interactionType={generatorForm?.formData?.interactionType || 'single_choice'}
           isPassage={generatorForm?.formData?.passageRequired === 'Yes'}

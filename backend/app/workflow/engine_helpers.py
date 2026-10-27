@@ -125,7 +125,9 @@ def _build_batch_worker_request(
             "passage_id": item_passage_id,
             "shared_stimulus": item_stimulus,
             "require_image": should_require_item_image or req.require_image,
-            "visual_type": "AI_FLUX_Image" if (should_require_item_image or req.require_image) else req.visual_type,
+            "visual_type": "AI_FLUX_Image"
+            if (should_require_item_image or req.require_image)
+            else req.visual_type,
         }
     )
     return item_req, item_run_id, is_passage_item, item_interaction

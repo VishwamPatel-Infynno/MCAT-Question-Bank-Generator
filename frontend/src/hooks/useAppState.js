@@ -130,7 +130,7 @@ export function useAppState() {
   }, [updateFields]);
 
   // ─── Batch & Counts Polling ───────────────────────────────────────────────
-  const refreshActiveBatches = useCallback(() => {
+  const refreshGlobalCounts = useCallback(() => {
     fetchBatches()
       .then((data) => {
         setActiveBatchCount(data.active_running_batches || 0);
@@ -144,11 +144,13 @@ export function useAppState() {
       .catch(() => {});
   }, []);
 
+  const refreshActiveBatches = refreshGlobalCounts;
+
   useEffect(() => {
-    refreshActiveBatches();
-    const timer = setInterval(refreshActiveBatches, 4000);
+    refreshGlobalCounts();
+    const timer = setInterval(refreshGlobalCounts, 4000);
     return () => clearInterval(timer);
-  }, [refreshActiveBatches]);
+  }, [refreshGlobalCounts]);
 
   // ─── Save State ───────────────────────────────────────────────────────────
   const [isQuestionSaved, setIsQuestionSaved] = useState(false);
@@ -351,7 +353,7 @@ export function useAppState() {
 
   // ─── Preset & Bank Selection Handlers ─────────────────────────────────────
   const handleApplyPreset = useCallback((cfg) => {
-    generatorForm.updateFields({
+    updateFields({
       ...(cfg.section && { selectedSection: cfg.section }),
       ...(cfg.difficulty && { difficulty: cfg.difficulty }),
       ...(cfg.totalQuestions !== undefined && { totalQuestions: cfg.totalQuestions }),
@@ -376,12 +378,12 @@ export function useAppState() {
       title: 'Preset Applied',
       message: `${cfg.totalQuestions || 50} questions configured for ${cfg.section ? cfg.section.replace(/_/g, ' ') : 'MCAT'}.`
     });
-  }, [generatorForm, showToast]);
+  }, [updateFields, showToast]);
 
   const handleSelectFromBank = useCallback((q) => {
     setActiveQuestion(q);
     setIsQuestionSaved(true);
-    generatorForm.updateFields({
+    updateFields({
       ...(q.section && { selectedSection: q.section }),
       ...(q.subtopic && { selectedSubtopic: q.subtopic }),
       ...(q.difficulty && { difficulty: q.difficulty }),
@@ -391,7 +393,7 @@ export function useAppState() {
     setActiveTab('generator');
     setViewMode('workspace');
     showToast({ type: 'info', title: 'Loaded into Review', message: 'Question loaded into Review Workspace.' });
-  }, [generatorForm, setActiveQuestion, showToast]);
+  }, [updateFields, setActiveQuestion, showToast]);
 
   // ─── Question Update Handlers ──────────────────────────────────────────────
   const handleUpdateQuestionInBatch = useCallback((updated) => {

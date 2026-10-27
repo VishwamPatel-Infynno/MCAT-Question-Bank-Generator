@@ -69,11 +69,13 @@ class CleanLifespanMiddleware:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         if scope["type"] == "lifespan":
+
             async def safe_receive():
                 try:
                     return await receive()
                 except (asyncio.CancelledError, KeyboardInterrupt):
                     return {"type": "lifespan.shutdown"}
+
             await self._app(scope, safe_receive, send)
         else:
             await self._app(scope, receive, send)

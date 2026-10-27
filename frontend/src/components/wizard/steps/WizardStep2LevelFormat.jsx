@@ -34,7 +34,7 @@ export default function WizardStep2LevelFormat({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
           <h2 className="wizard-step-title">Choose Difficulty, Format &amp; Question Count</h2>
           <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
-            AAMC Scaled &bull; Step 2 of 3
+            Difficulty &amp; Format &bull; Step 2 of 3
           </span>
         </div>
         <p className="wizard-step-subtitle">
