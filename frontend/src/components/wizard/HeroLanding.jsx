@@ -17,7 +17,7 @@ export default function HeroLanding({
   const PRESETS = [
     {
       label: 'Chem / Phys Foundations',
-      tag: '50 Qs Passage Batch',
+      tag: '50 Qs Passage Set',
       icon: FlaskConical,
       config: {
         section: 'chem_phys',
@@ -32,7 +32,7 @@ export default function HeroLanding({
     },
     {
       label: 'Critical Analysis (CARS)',
-      tag: '50 Qs Passage Batch',
+      tag: '50 Qs Passage Set',
       icon: BookOpen,
       config: {
         section: 'cars',
@@ -47,7 +47,7 @@ export default function HeroLanding({
     },
     {
       label: 'Bio / Biochem Foundations',
-      tag: '50 Qs Passage Batch',
+      tag: '50 Qs Passage Set',
       icon: Dna,
       config: {
         section: 'bio_biochem',
@@ -62,7 +62,7 @@ export default function HeroLanding({
     },
     {
       label: 'Psych / Soc Foundations',
-      tag: '50 Qs Discrete Set',
+      tag: '50 Qs Standalone Set',
       icon: Brain,
       config: {
         section: 'psych_soc',
@@ -100,7 +100,7 @@ export default function HeroLanding({
 
         {/* Tagline */}
         <p className="hero-tagline">
-          Create publication-grade AAMC MCAT practice questions calibrated to official standards.
+          Create high-yield AAMC MCAT practice questions calibrated to official standards.
           Fast, focused, and distraction-free.
         </p>
 
@@ -112,7 +112,7 @@ export default function HeroLanding({
             id="btn-hero-get-started"
             onClick={onGetStarted}
           >
-            <span>Get Started - Create Questions</span>
+            <span>Start Creating Questions</span>
             <ArrowRight size={16} />
           </button>
 

@@ -94,7 +94,7 @@ export default function BatchQuestionItem({
                 gap: '4px'
               }}
             >
-              <Sparkles size={11} /> In AI Validated (&gt;90)
+              <Sparkles size={11} /> Ready for Review (&gt;90)
             </span>
           )}
 
@@ -113,7 +113,7 @@ export default function BatchQuestionItem({
                 gap: '4px'
               }}
             >
-              <Layers size={11} /> Batch Only (86-90)
+              <Layers size={11} /> Good Quality (86-90)
             </span>
           )}
 
@@ -151,7 +151,7 @@ export default function BatchQuestionItem({
                 gap: '4px'
               }}
             >
-              <AlertCircle size={11} /> Below Threshold (&le;85)
+              <AlertCircle size={11} /> Needs Polish (&le;85)
             </span>
           )}
         </div>
@@ -278,10 +278,10 @@ export default function BatchQuestionItem({
                 alignItems: 'center',
                 gap: '4px'
               }}
-              title="Promote question directly to Question Bank"
+              title="Save question directly to Question Bank"
             >
               <Database size={10} />
-              <span>Save to Bank</span>
+              <span>Save to Question Bank</span>
             </button>
           )}
 
@@ -291,10 +291,10 @@ export default function BatchQuestionItem({
               onClick={onNavigateToValidated}
               className="btn-primary"
               style={{ padding: '2px 8px', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              title="Review in AI Validated screen"
+              title="Review in Ready for Review screen"
             >
               <Sparkles size={10} />
-              <span>Review in AI Validated</span>
+              <span>Review Question</span>
             </button>
           )}
 
@@ -304,10 +304,10 @@ export default function BatchQuestionItem({
               onClick={onNavigateToBank}
               className="btn-secondary"
               style={{ padding: '2px 8px', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              title="Open in Question Bank"
+              title="View in Question Bank"
             >
               <Database size={10} />
-              <span>In Bank</span>
+              <span>In Question Bank</span>
             </button>
           )}
 
@@ -318,7 +318,7 @@ export default function BatchQuestionItem({
               className="btn-secondary"
               style={{ padding: '2px 8px', fontSize: '0.7rem' }}
             >
-              Audit Rubric
+              Quality Review
             </button>
           )}
         </div>

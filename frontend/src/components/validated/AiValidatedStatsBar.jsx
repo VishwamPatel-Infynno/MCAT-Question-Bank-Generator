@@ -40,14 +40,14 @@ export default function AiValidatedStatsBar({
               <ShieldCheck size={15} />
             </div>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
-              AI Validated Questions
+              Questions Ready for Review
             </h2>
             <span className="badge badge-emerald" style={{ fontSize: '0.66rem' }}>
-              Score &gt; 90 Benchmark Passed
+              High Quality Score &gt; 90
             </span>
           </div>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-            Candidate questions verified with psychometric score &gt; 90. Review and approve questions into your Question Bank.
+            High-quality questions scored above 90. Review and save them into your Question Bank.
           </p>
         </div>
 
@@ -58,7 +58,7 @@ export default function AiValidatedStatsBar({
             disabled={refreshing}
             className="btn-secondary"
             style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', fontSize: '0.76rem' }}
-            title="Refresh AI Validated Questions"
+            title="Refresh questions list"
           >
             <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
             <span>Refresh</span>
@@ -90,21 +90,21 @@ export default function AiValidatedStatsBar({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ color: 'var(--text-muted)' }}>Pending AI Validated:</span>
+          <span style={{ color: 'var(--text-muted)' }}>Ready for Review:</span>
           <strong style={{ fontWeight: 700, color: 'var(--status-success)' }}>
             {counts.ai_validated || questionsCount}
           </strong>
         </div>
         <span style={{ color: 'var(--border-light)' }}>•</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ color: 'var(--text-muted)' }}>In Bank:</span>
+          <span style={{ color: 'var(--text-muted)' }}>In Question Bank:</span>
           <strong style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>
             {counts.in_bank || 0}
           </strong>
         </div>
         <span style={{ color: 'var(--border-light)' }}>•</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ color: 'var(--text-muted)' }}>Batch Only (86-90):</span>
+          <span style={{ color: 'var(--text-muted)' }}>Good Quality (86-90):</span>
           <strong style={{ fontWeight: 700, color: 'var(--brand-indigo, #6366f1)' }}>
             {counts.batch_only || 0}
           </strong>
@@ -118,7 +118,7 @@ export default function AiValidatedStatsBar({
         </div>
         <span style={{ color: 'var(--border-light)' }}>•</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ color: 'var(--text-muted)' }}>Below Threshold (&le;85):</span>
+          <span style={{ color: 'var(--text-muted)' }}>Needs Polish (&le;85):</span>
           <strong style={{ fontWeight: 700, color: 'var(--status-warning, #d97706)' }}>
             {counts.below_threshold || 0}
           </strong>

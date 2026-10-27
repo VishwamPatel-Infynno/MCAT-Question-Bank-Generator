@@ -69,7 +69,7 @@ export default function BatchJobCard({
               color: isJobRunning ? 'var(--brand-primary)' : 'var(--text-primary)'
             }}
           >
-            Job #{job.job_number}
+            Set #{job.job_number}
           </span>
           <span
             className="badge"
@@ -117,7 +117,7 @@ export default function BatchJobCard({
           color: 'var(--text-muted)'
         }}
       >
-        <span>Tokens: {(job.total_tokens || 0).toLocaleString()}</span>
+        <span>AI Tokens: {(job.total_tokens || 0).toLocaleString()}</span>
         <span>${(job.cost_usd || 0).toFixed(4)}</span>
         {job.completed_at && (
           <span>
@@ -156,7 +156,7 @@ export default function BatchJobCard({
                 fontWeight: 700
               }}
             >
-              {validatedCount} in AI Validated (&gt;90)
+              {validatedCount} Ready for Review (&gt;90)
             </span>
           )}
           {batchOnlyCount > 0 && (
@@ -173,7 +173,7 @@ export default function BatchJobCard({
                 gap: '3px'
               }}
             >
-              <Layers size={10} /> {batchOnlyCount} Batch Only (86-90)
+              <Layers size={10} /> {batchOnlyCount} Good Quality (86-90)
             </span>
           )}
           {inBankCount > 0 && (
@@ -186,7 +186,7 @@ export default function BatchJobCard({
                 fontWeight: 700
               }}
             >
-              {inBankCount} in Bank
+              {inBankCount} in Question Bank
             </span>
           )}
           {discardedCount > 0 && (
@@ -213,7 +213,7 @@ export default function BatchJobCard({
                 fontWeight: 700
               }}
             >
-              {belowCount} Below &le;85
+              {belowCount} Needs Polish (&le;85)
             </span>
           )}
         </div>
@@ -240,8 +240,8 @@ export default function BatchJobCard({
             <FileText size={12} />
             <span>
               {isExpanded
-                ? 'Hide 5 Generated Questions'
-                : `View ${jobQuestions.length} Generated Questions`}
+                ? 'Hide Questions in this Set'
+                : `View ${jobQuestions.length} Questions in this Set`}
             </span>
             {isExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
           </button>

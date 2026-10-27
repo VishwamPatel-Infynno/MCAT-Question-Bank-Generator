@@ -82,14 +82,14 @@ export default function MultiAgentPipelineVisualizer({
     || batchProgress?.message
     || (isGenerating
       ? (isWriterReviewerActive
-          ? 'Question Writer & Reviewer — Processing...'
+          ? 'Drafting question and initial review...'
           : isBlindSolverActive
-          ? 'Blind-Solver Dual Validation — Verifying key indisputability...'
+          ? 'Verifying correct answer and choices...'
           : isRegenActive
-          ? 'Question Improver — Remediating distractor traps...'
+          ? 'Polishing choices and answer explanations...'
           : isImgActive
-          ? 'Diagram Maker — Processing...'
-          : 'AI Team creating questions...')
+          ? 'Creating scientific diagram...'
+          : 'AI creating questions...')
       : null);
 
   const agents = [

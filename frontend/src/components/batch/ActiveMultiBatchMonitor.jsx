@@ -86,7 +86,7 @@ export default function ActiveMultiBatchMonitor({
                   letterSpacing: '-0.01em'
                 }}
               >
-                Active Multi-Batch Execution Pool
+                Active Practice Batches
               </h2>
               <span
                 style={{
@@ -121,7 +121,7 @@ export default function ActiveMultiBatchMonitor({
                 margin: '2px 0 0 0'
               }}
             >
-              Governed by Global Worker Concurrency Pool with isolated retries and rate limit backoff.
+              Generating question sets safely in parallel. You can leave this page anytime without losing progress.
             </p>
           </div>
         </div>
@@ -155,7 +155,7 @@ export default function ActiveMultiBatchMonitor({
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--status-danger)', fontWeight: 600 }}>
-                Halt all {batchCount} batches?
+                Stop all {batchCount} batches?
               </span>
               <button
                 type="button"
@@ -215,7 +215,7 @@ export default function ActiveMultiBatchMonitor({
         >
           <Cpu size={16} color="var(--brand-primary)" />
           <div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Jobs Progress</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Question Sets Progress</div>
             <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-primary)' }}>
               {completedJobs} / {totalJobs} <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Completed</span>
             </div>
@@ -236,7 +236,7 @@ export default function ActiveMultiBatchMonitor({
         >
           <Layers size={16} color="var(--infynno-cyan, #06b6d4)" />
           <div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Questions Authored</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Questions Created</div>
             <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-primary)' }}>
               {actualQuestions} / {targetQuestions} <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>({overallProgressPct}%)</span>
             </div>
@@ -257,7 +257,7 @@ export default function ActiveMultiBatchMonitor({
         >
           <Coins size={16} color="var(--status-success, #10b981)" />
           <div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Tokens &amp; Expenditure</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>AI Tokens &amp; Cost</div>
             <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-primary)' }}>
               {totalTokens.toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--status-success)' }}>(${totalCost.toFixed(4)})</span>
             </div>
@@ -277,7 +277,7 @@ export default function ActiveMultiBatchMonitor({
           }}
         >
           <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
-            Aggregated Multi-Batch Throughput
+            Overall Generation Progress
           </span>
           <span style={{ fontWeight: 800, color: 'var(--brand-primary)' }}>
             {overallProgressPct}%
@@ -316,7 +316,7 @@ export default function ActiveMultiBatchMonitor({
         }}
       >
         <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-          Running Streams:
+          Active Batches:
         </span>
         {activeBatches.map((b) => {
           const secLabel = MCAT_SECTION_LABELS[b.section] || b.section;

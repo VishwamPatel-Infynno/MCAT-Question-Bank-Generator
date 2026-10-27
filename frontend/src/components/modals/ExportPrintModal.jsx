@@ -198,15 +198,15 @@ export default function ExportPrintModal({
               <FileDown size={18} />
             </div>
             <div>
-              <h2 id="export-modal-title" className="modal-title">Export &amp; Print Studio</h2>
-              <p className="modal-subtitle">Generate official AAMC MCAT test papers, printable PDF study packs, CSV tables, or JSON datasets</p>
+              <h2 id="export-modal-title" className="modal-title">Export &amp; Print Exam</h2>
+              <p className="modal-subtitle">Print official MCAT exam papers, study packs with answer keys, or export to CSV and JSON</p>
             </div>
           </div>
           <button 
             type="button" 
             className="modal-close-btn" 
             onClick={onClose}
-            aria-label="Close Export Studio"
+            aria-label="Close Export &amp; Print"
           >
             <X size={18} />
           </button>
@@ -264,7 +264,7 @@ export default function ExportPrintModal({
                   style={{ gap: '6px' }}
                 >
                   <FileText size={13} />
-                  <span>Exam Paper (Print/PDF)</span>
+                  <span>Printable Exam (PDF)</span>
                 </button>
                 <button
                   type="button"
@@ -303,7 +303,7 @@ export default function ExportPrintModal({
                       style={{ gap: '6px', fontSize: '0.78rem' }}
                     >
                       <GraduationCap size={13} />
-                      <span>Student Exam Paper</span>
+                      <span>Student Test Paper (Questions Only)</span>
                     </button>
                     <button
                       type="button"
@@ -312,7 +312,7 @@ export default function ExportPrintModal({
                       style={{ gap: '6px', fontSize: '0.78rem' }}
                     >
                       <BookOpen size={13} />
-                      <span>Complete Study Pack (+ Answers)</span>
+                      <span>Study Pack (Questions + Explanations)</span>
                     </button>
                   </div>
                 </div>
@@ -340,7 +340,7 @@ export default function ExportPrintModal({
           {format === 'csv' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ padding: '10px 14px', background: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                Exports a structured CSV table containing all AAMC MCAT schema fields (stems, passages, research stimuli, options A-D, correct keys, trap defenses, SIRS skills, scaled scores, and quality audits) compatible with Excel, Google Sheets, and psychometric databases.
+                Exports a clean spreadsheet containing question stems, passages, choices A-D, correct answers, explanations, and quality scores for Excel or Google Sheets.
               </div>
 
               <div 
@@ -367,7 +367,7 @@ export default function ExportPrintModal({
           {format === 'json' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ padding: '10px 14px', background: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                Exports a formatted JSON array containing the exact full question objects, telemetry logs, and agent evaluation rubrics.
+                Exports full structured question data including passages, choices, explanations, and quality evaluation in JSON format.
               </div>
 
               <div 
@@ -418,7 +418,7 @@ export default function ExportPrintModal({
                 style={{ padding: '7px 16px', fontSize: '0.8rem', gap: '6px' }}
               >
                 <Printer size={14} />
-                <span>🖨️ Print / Save as PDF</span>
+                <span>Print / Save as PDF</span>
               </button>
             )}
 

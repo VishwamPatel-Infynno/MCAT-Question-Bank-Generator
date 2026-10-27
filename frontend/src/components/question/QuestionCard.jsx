@@ -175,7 +175,7 @@ export default function QuestionCard({
           {isSaved ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.725rem', fontWeight: 600, color: 'var(--status-success)' }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--status-success)' }} />
-              Saved in Bank
+              Saved in Question Bank
             </span>
           ) : (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.725rem', fontWeight: 600, color: 'var(--status-warning)' }}>
@@ -221,9 +221,9 @@ export default function QuestionCard({
                 gap: '4px',
                 fontWeight: 600
               }}
-              title={`Primary Cognitive Trap: ${effectiveTrapInfo.label}`}
+              title={`Common Trap: ${effectiveTrapInfo.label}`}
             >
-              <AlertTriangle size={11} /> Trap: {effectiveTrapInfo.label}
+              <AlertTriangle size={11} /> Common Trap: {effectiveTrapInfo.label}
             </span>
           )}
 
@@ -242,7 +242,7 @@ export default function QuestionCard({
               }}
               title={`Targeted Student Misconception: ${question.likely_mistake_pattern}`}
             >
-              <Target size={11} /> Misconception: {question.likely_mistake_pattern}
+              <Target size={11} /> Watch Out: {question.likely_mistake_pattern}
             </span>
           )}
 
@@ -318,7 +318,7 @@ export default function QuestionCard({
               title="Open quality breakdown modal"
             >
               <ShieldCheck size={12} color="var(--brand-primary)" />
-              <span>Quality Details</span>
+              <span>Quality Review</span>
             </button>
           )}
 
@@ -338,9 +338,9 @@ export default function QuestionCard({
       {/* Desk Tab Navigation */}
       <div className="pill-track">
         {[
-          { id: 'preview', label: 'Question Preview', icon: FileText },
-          { id: 'scorecard', label: 'Quality Check (100 pts)', icon: BarChart3 },
-          { id: 'telemetry', label: 'AI Creation Steps', icon: Code2 }
+          { id: 'preview', label: 'Question & Options', icon: FileText },
+          { id: 'scorecard', label: 'Quality & Score Review', icon: BarChart3 },
+          { id: 'telemetry', label: 'Technical Data', icon: Code2 }
         ].map(tab => {
           const Icon = tab.icon;
           const isSel = activeTab === tab.id;
@@ -481,7 +481,7 @@ export default function QuestionCard({
               >
                 <Scale size={11} />
                 <span>
-                  Anti-Guessability: {optionSymmetry.status} ({optionSymmetry.min_word_count}-{optionSymmetry.max_word_count} words)
+                  Option Length Balance: {optionSymmetry.status} ({optionSymmetry.min_word_count}-{optionSymmetry.max_word_count} words)
                 </span>
               </span>
             )}
@@ -573,7 +573,7 @@ export default function QuestionCard({
               style={{ gap: '6px', fontSize: '0.775rem' }}
             >
               {showExplanation ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-              <span>{showExplanation ? 'Hide Explanation & Rationales' : 'View Explanation & Rationales'}</span>
+              <span>{showExplanation ? 'Hide Answer Explanations' : 'View Answer Explanations'}</span>
             </button>
 
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>

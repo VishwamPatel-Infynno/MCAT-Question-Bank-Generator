@@ -37,6 +37,10 @@ export default function App() {
     setActiveTab,
     viewMode,
     setViewMode,
+    wizardStep,
+    setWizardStep,
+    handleNavigateToGenerator,
+    handleNavigateToWizard,
     // Data
     sectionsData,
     backendStatus,
@@ -88,6 +92,7 @@ export default function App() {
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        onNavigateToGenerator={handleNavigateToGenerator}
         backendStatus={backendStatus}
         activeBatchCount={activeBatchCount}
         validatedCount={validatedCount}
@@ -104,11 +109,11 @@ export default function App() {
           <>
             {viewMode === 'hero' && (
               <HeroLanding
-                onGetStarted={() => setViewMode('wizard')}
+                onGetStarted={() => handleNavigateToWizard(1)}
                 onOpenBank={() => setActiveTab('bank')}
                 onApplyPreset={(cfg) => {
                   handleApplyPreset(cfg);
-                  setViewMode('wizard');
+                  handleNavigateToWizard(1);
                 }}
               />
             )}
@@ -119,6 +124,8 @@ export default function App() {
                 sectionsData={sectionsData}
                 onGenerateQuestions={handleGenerate}
                 isLaunchingBatch={isLaunchingBatch}
+                step={wizardStep}
+                setStep={setWizardStep}
               />
             )}
 
@@ -152,22 +159,20 @@ export default function App() {
                 setAuditQuestion={setAuditQuestion}
                 setActiveTab={setActiveTab}
                 setViewMode={setViewMode}
+                onNavigateToWizard={handleNavigateToWizard}
               />
             )}
           </>
         )}
 
         {activeTab === 'batches' && (
-          <ErrorBoundary fallbackLabel="Batch Activity Monitor">
-            <Suspense fallback={<LazyLoadingSpinner label="Loading Batch Activity Monitor..." />}>
+          <ErrorBoundary fallbackLabel="Progress & History">
+            <Suspense fallback={<LazyLoadingSpinner label="Loading Progress & History..." />}>
               <BatchActivityView
                 onOpenAudit={(q) => setAuditQuestion(q)}
                 onNavigateToBank={() => setActiveTab('bank')}
                 onNavigateToValidated={() => setActiveTab('validated')}
-                onNavigateToWizard={() => {
-                  setActiveTab('generator');
-                  setViewMode('wizard');
-                }}
+                onNavigateToWizard={() => handleNavigateToWizard(1)}
                 onShowToast={showToast}
               />
             </Suspense>
@@ -175,16 +180,13 @@ export default function App() {
         )}
 
         {activeTab === 'validated' && (
-          <ErrorBoundary fallbackLabel="AI Validated Questions">
-            <Suspense fallback={<LazyLoadingSpinner label="Loading AI Validated Questions..." />}>
+          <ErrorBoundary fallbackLabel="Questions Ready for Review">
+            <Suspense fallback={<LazyLoadingSpinner label="Loading Questions Ready for Review..." />}>
               <AiValidatedQuestionsView
                 onOpenAudit={(q) => setAuditQuestion(q)}
                 onNavigateToBank={() => setActiveTab('bank')}
                 onNavigateToBatches={() => setActiveTab('batches')}
-                onNavigateToWizard={() => {
-                  setActiveTab('generator');
-                  setViewMode('wizard');
-                }}
+                onNavigateToWizard={() => handleNavigateToWizard(1)}
                 onShowToast={showToast}
                 onRefreshCounts={refreshCounts}
               />
@@ -198,10 +200,7 @@ export default function App() {
               <QuestionBankView
                 onSelectQuestion={handleSelectFromBank}
                 onShowToast={showToast}
-                onNavigateToWizard={() => {
-                  setActiveTab('generator');
-                  setViewMode('wizard');
-                }}
+                onNavigateToWizard={() => handleNavigateToWizard(1)}
               />
             </Suspense>
           </ErrorBoundary>

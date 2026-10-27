@@ -90,9 +90,9 @@ export default function AiValidatedQuestionCard({
             <span
               className="badge badge-purple"
               style={{ fontSize: '0.675rem', padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              title={`Primary Cognitive Trap: ${trapInfo.label}`}
+              title={`Common Trap: ${trapInfo.label}`}
             >
-              <AlertTriangle size={10} /> Trap: {trapInfo.label}
+              <AlertTriangle size={10} /> Common Trap: {trapInfo.label}
             </span>
           )}
           {q.likely_mistake_pattern && (
@@ -110,7 +110,7 @@ export default function AiValidatedQuestionCard({
               }}
               title={`Targeted Student Misconception: ${q.likely_mistake_pattern}`}
             >
-              <Target size={10} /> Misconception: {q.likely_mistake_pattern}
+              <Target size={10} /> Watch Out: {q.likely_mistake_pattern}
             </span>
           )}
           {q.image_svg && (
@@ -169,7 +169,7 @@ export default function AiValidatedQuestionCard({
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--text-secondary)' }}>
               <BookOpen size={12} />
-              <span>Passage Context ({q.stimulus_text.split(/\s+/).length} words)</span>
+              <span>Reading Passage ({q.stimulus_text.split(/\s+/).length} words)</span>
             </div>
             <button
               type="button"
@@ -296,7 +296,7 @@ export default function AiValidatedQuestionCard({
                 color: 'var(--text-secondary)'
               }}
             >
-              Trap: {q.primary_trap}
+              Common Trap: {q.primary_trap}
             </span>
           )}
         </div>
@@ -309,7 +309,7 @@ export default function AiValidatedQuestionCard({
               className="btn-secondary"
               style={{ padding: '5px 10px', fontSize: '0.74rem' }}
             >
-              Audit Rubric
+              Quality Review
             </button>
           )}
 
@@ -345,7 +345,7 @@ export default function AiValidatedQuestionCard({
             }}
           >
             <Database size={12} />
-            <span>Place in Bank</span>
+            <span>Save to Question Bank</span>
           </button>
         </div>
       </div>

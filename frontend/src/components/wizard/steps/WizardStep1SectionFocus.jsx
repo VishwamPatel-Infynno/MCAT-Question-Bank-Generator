@@ -132,13 +132,13 @@ export default function WizardStep1SectionFocus({
       {/* Step Header */}
       <div className="wizard-heading-group">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-          <h2 className="wizard-step-title">Choose MCAT Section &amp; Curriculum Focus</h2>
+          <h2 className="wizard-step-title">Choose MCAT Section &amp; Study Focus</h2>
           <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
             ⏱️ {pacing.target || '~96s / Q'} Target Pacing &bull; Step 1 of 3
           </span>
         </div>
         <p className="wizard-step-subtitle">
-          Calibrate your exam section, scientific discipline, and high-yield topic focus. All decisions feature 1-click balanced defaults.
+          Pick your exam section, scientific subject, and topic focus. Click any card to select, or keep the recommended balanced defaults.
         </p>
       </div>
 
@@ -159,7 +159,7 @@ export default function WizardStep1SectionFocus({
         >
           <span style={{ fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <Sparkles size={12} color="var(--brand-primary)" />
-            <span>Fast Track:</span>
+            <span>Quick Presets:</span>
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', flex: 1 }}>
             {presets.map((preset) => {
@@ -253,20 +253,20 @@ export default function WizardStep1SectionFocus({
 
       <div className="wizard-decision-connector" />
 
-      {/* Decision 2: Scientific Discipline */}
+      {/* Decision 2: Scientific Subject */}
       <div className="wizard-stacked-decision">
         <div className="wizard-decision-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="wizard-decision-num">2</span>
-            <span className="wizard-decision-title">Scientific Discipline</span>
+            <span className="wizard-decision-title">Scientific Subject</span>
           </div>
           <span className="badge-minimal" style={{ fontSize: '0.7rem' }}>
-            AAMC Syllabus Proportions
+            AAMC Blueprint
           </span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '10px' }}>
-          {/* Card 1: All Disciplines (Balanced Mix - Default) */}
+          {/* Card 1: All Subjects (Balanced Mix - Default) */}
           <div
             className={`wizard-tier-card ${isAllDisciplines ? 'selected' : ''}`}
             onClick={handleSelectAllDisciplines}
@@ -284,7 +284,7 @@ export default function WizardStep1SectionFocus({
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Compass size={15} style={{ color: 'var(--brand-primary)' }} />
                 <span style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  All Disciplines (Balanced Mix)
+                  All Subjects (Balanced Mix)
                 </span>
               </div>
               {isAllDisciplines && (
@@ -295,11 +295,11 @@ export default function WizardStep1SectionFocus({
               ✨ Recommended Default &bull; Full Syllabus
             </div>
             <p style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-              Evenly balances questions across all disciplines per official AAMC exam blueprint.
+              Balances questions evenly across all subjects on the official AAMC exam blueprint.
             </p>
           </div>
 
-          {/* Cards 2+: Specific Disciplines */}
+          {/* Cards 2+: Specific Subjects */}
           {subjects.map((subj) => {
             const isSelected = activeSubject?.id === subj.id;
             return (
@@ -332,7 +332,7 @@ export default function WizardStep1SectionFocus({
                   {subj.units?.length || 0} Syllabus Units
                 </div>
                 <p style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-                  Target questions specifically focused in {subj.name}.
+                  Focus questions specifically on {subj.name}.
                 </p>
               </div>
             );
@@ -347,10 +347,10 @@ export default function WizardStep1SectionFocus({
         <div className="wizard-decision-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="wizard-decision-num">3</span>
-            <span className="wizard-decision-title">High-Yield Topic Focus</span>
+            <span className="wizard-decision-title">Topic Focus</span>
           </div>
           <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-            Content Focus
+            High-Yield Concepts
           </span>
         </div>
 
@@ -373,7 +373,7 @@ export default function WizardStep1SectionFocus({
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Layers size={15} style={{ color: 'var(--brand-primary)' }} />
                 <span style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  All High-Yield Topics (Balanced Mix)
+                  All Topics (Balanced Mix)
                 </span>
               </div>
               {isAllTopics && (
@@ -381,10 +381,10 @@ export default function WizardStep1SectionFocus({
               )}
             </div>
             <div style={{ fontSize: '0.7rem', color: 'var(--brand-primary)', fontWeight: 600, marginBottom: '2px' }}>
-              ✨ Recommended Default &bull; Multi-Topic Rotation
+              ✨ Recommended Default &bull; Well-Rounded Practice
             </div>
             <p style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-              Rotates questions across foundational concepts for comprehensive, fatigue-free practice.
+              Covers all foundational concepts across the subject for comprehensive, fatigue-free practice.
             </p>
           </div>
 
@@ -442,7 +442,7 @@ export default function WizardStep1SectionFocus({
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                Target Subtopic Concepts within <em>{activeTopic.name}</em> (Multi-Select):
+                Select specific concepts within <em>{activeTopic.name}</em> (Optional):
               </span>
               <span className="badge-minimal" style={{ fontSize: '0.68rem' }}>
                 {selectedSubtopics.length > 0 ? `${selectedSubtopics.length} Selected` : 'All Concepts in Topic'}

@@ -32,13 +32,13 @@ export default function WizardStep2LevelFormat({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div className="wizard-heading-group">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-          <h2 className="wizard-step-title">Calibrate Level, Format &amp; Scope</h2>
+          <h2 className="wizard-step-title">Choose Difficulty, Format &amp; Question Count</h2>
           <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
             AAMC Scaled &bull; Step 2 of 3
           </span>
         </div>
         <p className="wizard-step-subtitle">
-          Calibrate challenge difficulty, stimulus format, and question count. Cognitive traps and visual figures are automatically calibrated with smart AI defaults.
+          Select challenge difficulty, whether to include reading passages, and your desired question count.
         </p>
       </div>
 
@@ -47,7 +47,7 @@ export default function WizardStep2LevelFormat({
         <div className="wizard-decision-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="wizard-decision-num">1</span>
-            <span className="wizard-decision-title">Challenge Difficulty</span>
+            <span className="wizard-decision-title">Question Difficulty</span>
           </div>
           <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>AAMC Scaled</span>
         </div>
@@ -91,7 +91,7 @@ export default function WizardStep2LevelFormat({
         <div className="wizard-decision-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="wizard-decision-num">2</span>
-            <span className="wizard-decision-title">Stimulus &amp; Question Format</span>
+            <span className="wizard-decision-title">Passage &amp; Question Format</span>
           </div>
           <span className="badge-minimal" style={{ fontSize: '0.7rem' }}>
             Single Best Answer (A-D)
@@ -116,10 +116,10 @@ export default function WizardStep2LevelFormat({
               <FileText size={18} style={{ color: '#e11d48', flexShrink: 0 }} />
               <div>
                 <span style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Passage-Based MCQ (Strict AAMC CARS)
+                  Reading Passage + Questions (Official CARS Standard)
                 </span>
                 <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', margin: '2px 0 0' }}>
-                  AAMC CARS standard: strictly passage-based (500-650 words) with linked humanities reasoning questions.
+                  Official AAMC CARS standard: strictly passage-based (500-650 words) with linked humanities reasoning questions.
                 </p>
               </div>
             </div>
@@ -130,7 +130,7 @@ export default function WizardStep2LevelFormat({
         ) : (
           /* Sciences Mode: Binary choice between Passage-Based MCQ OR Independent MCQ */
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
-            {/* Mode A: Passage-Based MCQ */}
+            {/* Mode A: Reading Passage + Questions */}
             <div
               className={`wizard-tier-card ${isPassage ? 'selected' : ''}`}
               onClick={() => selectPassageMode('single_passage')}
@@ -149,7 +149,7 @@ export default function WizardStep2LevelFormat({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <FileText size={15} style={{ color: 'var(--brand-primary)' }} />
                   <span style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    Passage-Based MCQ
+                    Reading Passage + Questions
                   </span>
                 </div>
                 {isPassage && (
@@ -157,11 +157,11 @@ export default function WizardStep2LevelFormat({
                 )}
               </div>
               <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-                Shared experimental or clinical research stimulus passage with linked questions.
+                Questions linked to a scientific experiment or clinical research study passage.
               </p>
             </div>
 
-            {/* Mode B: Independent MCQ */}
+            {/* Mode B: Standalone Questions */}
             <div
               className={`wizard-tier-card ${!isPassage ? 'selected' : ''}`}
               onClick={() => selectPassageMode('independent')}
@@ -180,7 +180,7 @@ export default function WizardStep2LevelFormat({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Layers size={15} style={{ color: 'var(--status-purple)' }} />
                   <span style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    Independent Discrete MCQ
+                    Standalone Questions (No Passage)
                   </span>
                 </div>
                 {!isPassage && (
@@ -188,7 +188,7 @@ export default function WizardStep2LevelFormat({
                 )}
               </div>
               <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-                Standalone discrete questions without shared reading passages.
+                Individual questions testing science concepts directly without a passage.
               </p>
             </div>
           </div>
@@ -197,20 +197,20 @@ export default function WizardStep2LevelFormat({
 
       <div className="wizard-decision-connector" />
 
-      {/* Decision 3: Generation Scope & Workflow Mode */}
+      {/* Decision 3: Practice Size */}
       <div className="wizard-stacked-decision">
         <div className="wizard-decision-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="wizard-decision-num">3</span>
-            <span className="wizard-decision-title">Generation Scope</span>
+            <span className="wizard-decision-title">Practice Size</span>
           </div>
           <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-            {totalQuestions === 50 ? '10 Jobs Async Background' : '1 Job Async Background'}
+            {totalQuestions === 50 ? '50 Questions Full Section' : '5 Questions Quick Set'}
           </span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
-          {/* Preset 1: Mini-Batch */}
+          {/* Preset 1: Quick Practice Set */}
           <div
             className={`wizard-tier-card ${totalQuestions === 5 ? 'selected' : ''}`}
             onClick={() => setTotalQuestions?.(5)}
@@ -228,7 +228,7 @@ export default function WizardStep2LevelFormat({
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '0.9rem' }}>🎯</span>
                 <span style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Mini-Batch (5 Questions)
+                  Quick Practice Set (5 Questions)
                 </span>
               </div>
               {totalQuestions === 5 && (
@@ -236,14 +236,14 @@ export default function WizardStep2LevelFormat({
               )}
             </div>
             <div style={{ fontSize: '0.7rem', color: 'var(--brand-primary)', fontWeight: 600, marginBottom: '2px' }}>
-              1 Job &bull; Background Worker Pool (~35-50s)
+              Fast Practice &bull; Ready in ~45 seconds
             </div>
             <p style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-              Dispatched to background worker pool. Auto-reviewed and streamed into your Validated Bank and Batch Activity.
+              5 questions sharing a reading passage (or 5 standalone questions). Reviewed by AI and saved to your bank.
             </p>
           </div>
 
-          {/* Preset 2: Full Mock Section */}
+          {/* Preset 2: Full Exam Section */}
           <div
             className={`wizard-tier-card ${totalQuestions === 50 ? 'selected' : ''}`}
             onClick={() => setTotalQuestions?.(50)}
@@ -261,7 +261,7 @@ export default function WizardStep2LevelFormat({
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '0.9rem' }}>📦</span>
                 <span style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Full Mock Section (50 Questions)
+                  Full Exam Section (50 Questions)
                 </span>
               </div>
               {totalQuestions === 50 && (
@@ -269,10 +269,10 @@ export default function WizardStep2LevelFormat({
               )}
             </div>
             <div style={{ fontSize: '0.7rem', color: 'var(--brand-primary)', fontWeight: 600, marginBottom: '2px' }}>
-              10 Jobs &bull; Background Worker Pool (~1-2m)
+              Complete Test &bull; Ready in ~1-2 minutes
             </div>
             <p style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-              Dispatched to parallel cloud workers. Auto-reviewed and streamed into your Validated Bank.
+              A full 50-question mock exam section generated in parallel in the background. Reviewed and organized for study.
             </p>
           </div>
         </div>

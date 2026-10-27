@@ -239,7 +239,7 @@ export default function QuestionBankFilters({
                 onClick={onOpenExportModal}
                 className="btn-secondary"
                 style={{ padding: '6px 12px', fontSize: '0.75rem', gap: '6px' }}
-                title="Open Export & Print Studio with selected questions"
+                title="Export &amp; Print selected questions"
               >
                 <FileDown size={13} />
                 <span>Export Selected ({selectedIds.length})</span>
@@ -281,7 +281,7 @@ export default function QuestionBankFilters({
               style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
             >
               <Sparkles size={13} />
-              <span>Create Questions in Wizard</span>
+              <span>Create New Questions</span>
             </button>
           )}
         </div>

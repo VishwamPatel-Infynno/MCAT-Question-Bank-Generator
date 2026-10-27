@@ -66,10 +66,10 @@ export default function ReviewAuditView({ question, onClose }) {
             </div>
             <div>
               <h2 id="audit-modal-title" className="modal-title">
-                Question Quality &amp; Verification Audit
+                Question Quality Review
               </h2>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                Quality Score Review &bull; AI Compute Tracking &bull; Multi-Agent Verification
+                Quality Score Breakdown &bull; AI Tokens &amp; Cost &bull; Exam Alignment
               </p>
             </div>
           </div>
@@ -78,7 +78,7 @@ export default function ReviewAuditView({ question, onClose }) {
             onClick={onClose}
             className="btn-ghost"
             style={{ padding: '6px', borderRadius: 'var(--radius-sm)' }}
-            title="Close Audit"
+            title="Close"
           >
             <X size={18} />
           </button>
@@ -110,10 +110,10 @@ export default function ReviewAuditView({ question, onClose }) {
               className={`badge ${question.final_score > 90 ? 'badge-emerald' : 'badge-amber'}`}
               style={{ fontSize: '0.75rem', padding: '4px 10px' }}
             >
-              {question.final_score > 90 ? 'PASSED (> 90 Benchmark)' : 'CONDITIONAL PASS'}
+              {question.final_score > 90 ? 'Ready for Review (>90 Score)' : 'Needs Polish (≤85 Score)'}
             </span>
             <div style={{ fontSize: '0.725rem', fontWeight: 500, color: 'var(--text-muted)', marginTop: '4px' }}>
-              Cycles: {question.iteration_count || 1} of 3
+              Refinement Rounds: {question.iteration_count || 1} of 3
             </div>
           </div>
         </div>
@@ -122,30 +122,30 @@ export default function ReviewAuditView({ question, onClose }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h4 style={{ fontSize: '0.775rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              AI Compute &amp; Workload Breakdown
+              AI Tokens &amp; Review Details
             </h4>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              Infynno Multi-Agent Quality Engine
+              AI Quality Evaluation
             </span>
           </div>
 
           {/* Metric Cards Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
             <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>INPUT UNITS</div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>PROMPT TOKENS</div>
               <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--brand-primary)' }}>{(question.prompt_tokens || 0).toLocaleString()}</div>
             </div>
             <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>GENERATION UNITS</div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>OUTPUT TOKENS</div>
               <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--brand-indigo)' }}>{(question.completion_tokens || 0).toLocaleString()}</div>
             </div>
             <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>TOTAL COMPUTE UNITS</div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>TOTAL TOKENS</div>
               <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--status-success)' }}>{(question.total_tokens || 0).toLocaleString()}</div>
             </div>
             <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>QUALITY STATUS</div>
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--status-success)' }}>Pass (&gt; 90)</div>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--status-success)' }}>High Quality (&gt; 90)</div>
             </div>
           </div>
         </div>
@@ -153,7 +153,7 @@ export default function ReviewAuditView({ question, onClose }) {
         {/* 4 Pillars Breakdown */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <h4 style={{ fontSize: '0.825rem', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Four-Pillar Quality Breakdown
+            Quality Pillars (100 Points Total)
           </h4>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             {pillars.map((p) => (
@@ -189,10 +189,10 @@ export default function ReviewAuditView({ question, onClose }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h4 style={{ fontSize: '0.825rem', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>
-              Cognitive &amp; Pedagogical Calibration
+              Exam Accuracy &amp; Question Design
             </h4>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              AAMC Cognitive Distractor &amp; Mistake Diagnosis
+              Question Trap Analysis &amp; Student Misconceptions
             </span>
           </div>
 
@@ -212,10 +212,10 @@ export default function ReviewAuditView({ question, onClose }) {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <Zap size={13} style={{ color: 'var(--brand-purple, #8b5cf6)' }} />
-                  Primary Cognitive Trap
+                  Common Trap Tested
                 </span>
                 <span className="badge badge-purple" style={{ fontSize: '0.68rem', padding: '2px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <Sparkles size={11} /> Smart Trap Profile
+                  <Sparkles size={11} /> Trap Breakdown
                 </span>
               </div>
               <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -241,10 +241,10 @@ export default function ReviewAuditView({ question, onClose }) {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <Target size={13} style={{ color: 'var(--brand-cyan, #06b6d4)' }} />
-                  Target Student Misconception
+                  Targeted Student Misconception
                 </span>
                 <span className="badge badge-cyan" style={{ fontSize: '0.68rem', padding: '2px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <Sparkles size={11} /> Smart Misconception Calibration
+                  <Sparkles size={11} /> Common Misconception
                 </span>
               </div>
               <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -290,17 +290,17 @@ export default function ReviewAuditView({ question, onClose }) {
               </div>
               <div>
                 <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Visual Stimulus Evaluation: {hasVisual ? 'Stimulus Generated & Attached' : 'Autonomous Decision: Textual Passage Sufficient'}
+                  Visual Stimulus Evaluation: {hasVisual ? 'Diagram Generated & Attached' : 'Text-Only Question (No Diagram Needed)'}
                 </div>
                 <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
                   {hasVisual
                     ? (question.image_description || 'Custom biomedical or physical sciences diagram rendered to accompany item stem.')
-                    : 'The AI Generator verified that the scientific stem and passage provide rigorous quantitative context without requiring a synthetic diagram.'}
+                    : 'The question stem and passage provide all necessary context without needing a diagram.'}
                 </div>
               </div>
             </div>
             <span className={`badge ${hasVisual ? 'badge-blue' : 'badge-slate'}`} style={{ fontSize: '0.7rem', padding: '3px 8px', flexShrink: 0 }}>
-              {hasVisual ? 'Visual Embedded' : 'Text-Only Calibrated'}
+              {hasVisual ? 'Diagram Attached' : 'Text Only'}
             </span>
           </div>
         </div>
@@ -318,7 +318,7 @@ export default function ReviewAuditView({ question, onClose }) {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--status-success)', fontWeight: 800, fontSize: '0.85rem', marginBottom: '8px' }}>
-                <CheckCircle size={16} /> Observed Strengths
+                <CheckCircle size={16} /> Question Strengths
               </div>
               <ul style={{ paddingLeft: '18px', fontSize: '0.825rem', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {review.strengths?.length > 0 ? (
@@ -339,13 +339,13 @@ export default function ReviewAuditView({ question, onClose }) {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--status-warning)', fontWeight: 800, fontSize: '0.85rem', marginBottom: '8px' }}>
-                <AlertTriangle size={16} /> Improvement Tips
+                <AlertTriangle size={16} /> Suggestions for Polish
               </div>
               <ul style={{ paddingLeft: '18px', fontSize: '0.825rem', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {review.recommendations?.length > 0 ? (
                   review.recommendations.map((r) => <li key={r}>{r}</li>)
                 ) : (
-                  <li>Draft met passing threshold and approved for Question Bank.</li>
+                  <li>Draft scored high and is ready for your Question Bank.</li>
                 )}
               </ul>
             </div>
@@ -356,7 +356,7 @@ export default function ReviewAuditView({ question, onClose }) {
         {history.length > 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <h4 style={{ fontSize: '0.825rem', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Improvement Steps History
+              Refinement History
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {history.map((h, idx) => (
@@ -373,13 +373,13 @@ export default function ReviewAuditView({ question, onClose }) {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span className="badge badge-cyan">Iteration {h.iteration}</span>
+                    <span className="badge badge-cyan">Round {h.iteration}</span>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 700 }}>
                       Score: {h.review?.total_score || 'N/A'}/100
                     </span>
                   </div>
                   <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-                    {h.review?.passed ? '✓ Met > 90 Quality Benchmark' : '⚠️ Polished by Question Improver'}
+                    {h.review?.passed ? '✓ Met High Quality (>90 Score)' : 'Polished in Refinement Round'}
                   </span>
                 </div>
               ))}
@@ -391,7 +391,7 @@ export default function ReviewAuditView({ question, onClose }) {
         {/* Modal Footer */}
         <div className="modal-footer">
           <button onClick={onClose} className="btn-secondary">
-            Close Audit
+            Close Review
           </button>
         </div>
       </div>

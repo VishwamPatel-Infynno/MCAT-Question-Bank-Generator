@@ -256,15 +256,15 @@ export default function AiValidatedQuestionsView({
       if (onShowToast) {
         onShowToast({
           type: 'success',
-          title: 'All Validated Questions Approved',
-          message: `${count} question(s) moved to Question Bank.`,
+          title: 'All Questions Saved to Bank',
+          message: `${count} question(s) saved to Question Bank.`,
           action: onNavigateToBank ? { label: 'View in Bank', onClick: onNavigateToBank } : undefined
         });
       }
       if (onRefreshCounts) onRefreshCounts();
       loadData(true);
     } catch (err) {
-      console.error('Approve all validated failed:', err);
+      console.error('Save all questions failed:', err);
       if (onShowToast) {
         onShowToast({ type: 'error', title: 'Action Failed', message: err.message || 'Error updating questions.' });
       }
@@ -311,7 +311,7 @@ export default function AiValidatedQuestionsView({
       {loading ? (
         <div className="view-loading-box">
           <div className="view-loading-spinner" />
-          <span className="view-loading-text">Loading AI Validated Questions...</span>
+          <span className="view-loading-text">Loading Questions Ready for Review...</span>
         </div>
       ) : filteredQuestions.length === 0 ? (
         /* Empty State */
@@ -321,12 +321,12 @@ export default function AiValidatedQuestionsView({
           </div>
           <div>
             <h3 className="view-empty-title">
-              No Pending AI Validated Questions
+              No Pending Questions to Review
             </h3>
             <p className="view-empty-desc">
               {searchQuery || sectionFilter
                 ? 'No questions matched your current filter criteria. Try clearing filters.'
-                : 'All validated questions have been placed into the Question Bank or discarded. Generate a new batch to review new questions here.'}
+                : 'All high-quality questions have been saved to your Question Bank or discarded. Generate a new practice set to create more questions.'}
             </p>
           </div>
           <div className="view-empty-actions">
@@ -337,7 +337,7 @@ export default function AiValidatedQuestionsView({
                 onClick={onNavigateToBatches}
                 style={{ padding: '8px 18px', fontSize: '0.825rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               >
-                <span>View Batch Activity</span>
+                <span>View Progress & History</span>
                 <ArrowRight size={14} />
               </button>
             )}
@@ -348,7 +348,7 @@ export default function AiValidatedQuestionsView({
                 onClick={onNavigateToWizard}
                 style={{ padding: '8px 18px', fontSize: '0.825rem' }}
               >
-                Generate Questions
+                Create Questions
               </button>
             )}
           </div>

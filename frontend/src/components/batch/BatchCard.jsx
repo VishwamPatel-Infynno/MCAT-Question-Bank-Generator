@@ -183,14 +183,14 @@ export default function BatchCard({
                   className="badge badge-purple"
                   style={{ fontSize: '0.7rem', fontWeight: 700 }}
                 >
-                  🎯 Mini-Batch (1 Job • 5 Qs)
+                  🎯 Quick Set (5 Qs)
                 </span>
               ) : (
                 <span
                   className="badge badge-cyan"
                   style={{ fontSize: '0.7rem', fontWeight: 700 }}
                 >
-                  📚 Full Section (10 Jobs • 50 Qs)
+                  📚 Full Section (50 Qs)
                 </span>
               )}
               <span
@@ -213,7 +213,7 @@ export default function BatchCard({
                 {batch.difficulty || 'Medium'}
               </span>
               <span className="badge-minimal" style={{ fontSize: '0.7rem' }}>
-                {batch.passage_mode === 'single_passage' ? 'Passage Set' : 'Discretes'}
+                {batch.passage_mode === 'single_passage' ? 'Passage Set' : 'Standalone'}
               </span>
             </div>
             <div
@@ -255,7 +255,7 @@ export default function BatchCard({
             }}
           >
             <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-              {completedJobs} / {totalJobs} {totalJobs === 1 ? 'Job' : 'Jobs'} Completed
+              {completedJobs} / {totalJobs} {totalJobs === 1 ? 'Set' : 'Sets'} Completed
             </span>
             <span style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>
               {actualTotal} / {totalTarget} Questions ({progressPercent}%)
@@ -360,7 +360,7 @@ export default function BatchCard({
               title="Retry incomplete or failed jobs in this batch"
             >
               <RotateCcw size={11} />
-              <span>{isRetrying ? 'Retrying...' : 'Retry Incomplete'}</span>
+              <span>{isRetrying ? 'Retrying...' : 'Retry Incomplete Sets'}</span>
             </button>
           )}
 
@@ -380,7 +380,7 @@ export default function BatchCard({
         </div>
       </div>
 
-      {/* Expanded Batch Detail: 10 Jobs & Questions */}
+      {/* Expanded Batch Detail: Question Sets */}
       {isExpanded && (
         <div style={{ padding: '20px', background: 'var(--bg-canvas)' }}>
           {loadingDetail && !detail ? (
@@ -402,7 +402,7 @@ export default function BatchCard({
                   margin: '0 auto 8px'
                 }}
               />
-              <span style={{ fontSize: '0.8rem' }}>Loading 10 constituent jobs...</span>
+              <span style={{ fontSize: '0.8rem' }}>Loading question sets...</span>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -425,15 +425,15 @@ export default function BatchCard({
                 >
                   <Layers size={15} style={{ color: 'var(--brand-primary)' }} />
                   <span>
-                    Constituent Jobs ({detail?.jobs?.length || 0} Jobs, exactly 5 Questions per Job):
+                    Question Sets ({detail?.jobs?.length || 0} sets &bull; 5 questions each):
                   </span>
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                  Controlled Concurrency: 2 Parallel Jobs
+                  Generating sets in parallel
                 </div>
               </div>
 
-              {/* 10 Jobs Grid */}
+              {/* Jobs Grid */}
               {!detail?.jobs || detail.jobs.length === 0 ? (
                 <div
                   style={{
@@ -446,7 +446,7 @@ export default function BatchCard({
                     border: '1px dashed var(--border-medium)'
                   }}
                 >
-                  No constituent jobs recorded for this batch.
+                  No question sets recorded for this practice batch.
                 </div>
               ) : (
                 <div

@@ -42,7 +42,7 @@ export default function BatchFiltersBar({
           />
           <input
             type="text"
-            placeholder="Search batches by topic..."
+            placeholder="Search by topic, section, or ID..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="input-field"
@@ -58,9 +58,9 @@ export default function BatchFiltersBar({
         {/* Scope Tabs */}
         <div className="pill-track" style={{ padding: '2px' }}>
           {[
-            { id: 'all', label: 'All Batches' },
-            { id: 'mini', label: 'Mini-Batches (1 Job)' },
-            { id: 'full', label: 'Full Mocks (10 Jobs)' }
+            { id: 'all', label: 'All Practice Sets' },
+            { id: 'mini', label: 'Quick Sets (5 Qs)' },
+            { id: 'full', label: 'Full Sections (50 Qs)' }
           ].map((scope) => (
             <button
               key={scope.id}

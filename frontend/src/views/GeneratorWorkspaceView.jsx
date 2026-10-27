@@ -40,7 +40,8 @@ export default function GeneratorWorkspaceView({
   handleUpdateSingleQuestion,
   setAuditQuestion,
   setActiveTab,
-  setViewMode
+  setViewMode,
+  onNavigateToWizard
 }) {
   // Hierarchical view resolution:
   // 1. Rejection state: prompt user with retry
@@ -77,7 +78,7 @@ export default function GeneratorWorkspaceView({
           onApprove={handleApproveQuestion}
           onDiscard={handleDiscardQuestion}
           onOpenAudit={(q) => setAuditQuestion(q)}
-          onNextQuestion={() => setViewMode('wizard')}
+          onNextQuestion={() => (onNavigateToWizard ? onNavigateToWizard(1) : setViewMode('wizard'))}
           onUpdateQuestion={handleUpdateSingleQuestion}
         />
       ) : isBatchMode ? (
@@ -132,7 +133,7 @@ export default function GeneratorWorkspaceView({
             type="button"
             className="btn-primary"
             style={{ padding: '10px 22px', fontSize: '0.9rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-            onClick={() => setViewMode('wizard')}
+            onClick={() => (onNavigateToWizard ? onNavigateToWizard(1) : setViewMode('wizard'))}
           >
             <Sparkles size={16} />
             <span>Open Question Wizard</span>

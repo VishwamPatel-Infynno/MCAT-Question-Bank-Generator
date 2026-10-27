@@ -44,7 +44,7 @@ export default function BatchStatsHeader({ batches = EMPTY_BATCHES, activeCount 
             {batches.length}
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-            Total Generation Batches
+            Total Practice Batches
           </div>
         </div>
       </div>
@@ -86,7 +86,7 @@ export default function BatchStatsHeader({ batches = EMPTY_BATCHES, activeCount 
             {activeCount}
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-            Running in Background
+            Currently Generating
           </div>
         </div>
       </div>
@@ -121,7 +121,7 @@ export default function BatchStatsHeader({ batches = EMPTY_BATCHES, activeCount 
             {totalQuestionsAuthored}
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-            Questions Authored
+            Total Questions Created
           </div>
         </div>
       </div>

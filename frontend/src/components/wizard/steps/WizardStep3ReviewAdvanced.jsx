@@ -192,13 +192,13 @@ export default function WizardStep3ReviewAdvanced({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
       <div className="wizard-heading-group">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-          <h2 className="wizard-step-title">Review &amp; Launch Batch</h2>
+          <h2 className="wizard-step-title">Review &amp; Start Generation</h2>
           <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
             Final Review &bull; Step 3 of 3
           </span>
         </div>
         <p className="wizard-step-subtitle">
-          Confirm your syllabus configuration, difficulty level, and batch scope. Advanced psychometrics can be tuned optionally below.
+          Confirm your exam section, difficulty, and question count. Everything is ready with smart defaults, and you can optionally customize specific traps or reasoning skills below.
         </p>
       </div>
 
@@ -207,7 +207,7 @@ export default function WizardStep3ReviewAdvanced({
         {/* Row 1: Section & Topic Focus */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Target Section &amp; Focus</div>
+            <div className="wizard-summary-label">Exam Section &amp; Topic Focus</div>
             <div className="wizard-summary-value" style={{ marginTop: '3px', flexWrap: 'wrap', gap: '8px' }}>
               <span style={{ color: sectionMeta?.color, fontWeight: 700 }}>
                 {sectionMeta?.label}
@@ -241,7 +241,7 @@ export default function WizardStep3ReviewAdvanced({
         {/* Row 2: Level, Scope & Format */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Difficulty, Scope &amp; Format</div>
+            <div className="wizard-summary-label">Difficulty, Size &amp; Format</div>
             <div className="wizard-summary-value" style={{ marginTop: '3px', flexWrap: 'wrap', gap: '8px' }}>
               <span style={{ textTransform: 'capitalize', fontWeight: 600 }}>
                 {difficulty} Difficulty
@@ -249,22 +249,22 @@ export default function WizardStep3ReviewAdvanced({
               <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
               <span style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>
                 {totalQuestions === 5
-                  ? 'Mini-Batch (1 Job • 5 Qs)'
-                  : `Full Mock Section (10 Jobs • ${totalQuestions} Qs)`}
+                  ? 'Quick Practice Set (5 Qs)'
+                  : `Full Exam Section (${totalQuestions} Qs)`}
               </span>
               <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
               <span className="badge-minimal" style={{ fontSize: '0.7rem' }}>
-                {questionType === 'PASSAGE_BASED_MCQ' ? 'Passage-Based MCQ' : 'Independent Discrete MCQ'}
+                {questionType === 'PASSAGE_BASED_MCQ' ? 'Reading Passage + Questions' : 'Standalone Questions (No Passage)'}
               </span>
             </div>
 
             {/* Quick Scope switcher */}
             {setTotalQuestions && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Switch scope:</span>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Switch size:</span>
                 {[
-                  { count: 5, label: '1 Job (5 Qs Batch)' },
-                  { count: 50, label: '10 Jobs (50 Qs Batch)' }
+                  { count: 5, label: '5 Qs Quick Set' },
+                  { count: 50, label: '50 Qs Full Section' }
                 ].map(({ count, label }) => (
                   <button
                     key={count}
@@ -332,12 +332,12 @@ export default function WizardStep3ReviewAdvanced({
           </div>
           <div>
             <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-              Scientific Figures &amp; Visual Stimuli
+              Scientific Diagrams &amp; Charts
             </div>
             <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)', marginTop: '2px' }}>
               {isCars
-                ? '🔒 CARS passages are strictly text-based per official AAMC exam guidelines.'
-                : 'Permit AI to synthesize Flux diagrams/charts when required for data analysis'}
+                ? '🔒 CARS questions are strictly reading-based per official AAMC exam guidelines.'
+                : 'Allow AI to generate diagrams, graphs, and figures when helpful for science questions.'}
             </div>
           </div>
         </div>
@@ -365,12 +365,12 @@ export default function WizardStep3ReviewAdvanced({
               onChange={(e) => setAllowAiImages?.(e.target.checked)}
               style={{ accentColor: 'var(--brand-primary)', width: '16px', height: '16px', cursor: 'pointer' }}
             />
-            <span>Enable AI Visuals</span>
+            <span>Include AI Diagrams</span>
           </label>
         )}
       </div>
 
-      {/* Expandable "Advanced Parameters & Directives (Optional)" Accordion */}
+      {/* Expandable "Customize Traps & Skills (Optional)" Accordion */}
       <div
         style={{
           borderRadius: 'var(--radius-sm)',
@@ -405,11 +405,11 @@ export default function WizardStep3ReviewAdvanced({
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <Sliders size={15} style={{ color: 'var(--brand-primary)' }} />
             <span style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-              Advanced Parameters &amp; Directives (Optional)
+              Customize Traps &amp; Skills (Optional)
             </span>
             {!showAdvanced && (
               <span className="badge-minimal" style={{ fontSize: '0.68rem', color: hasAdvancedCustomization ? 'var(--brand-primary)' : 'var(--text-muted)' }}>
-                {hasAdvancedCustomization ? '⚡ Custom Directives Active' : '✨ Smart Defaults Active'}
+                {hasAdvancedCustomization ? '⚡ Custom Traps Active' : '✨ Smart Defaults Active'}
               </span>
             )}
           </div>
@@ -430,12 +430,12 @@ export default function WizardStep3ReviewAdvanced({
         {/* Expanded Accordion Body */}
         {showAdvanced && (
           <div className="wizard-step-fade-enter" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            {/* Setting 1: Cognitive Distractor Traps (Multi-Select) */}
+            {/* Setting 1: Test Traps to Watch Out For */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
                 <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Zap size={13} style={{ color: 'var(--status-purple)' }} />
-                  Target Cognitive Distractor Traps (Multi-Select)
+                  Test Traps to Watch Out For (Optional)
                 </label>
                 <span className="badge-minimal" style={{ fontSize: '0.68rem' }}>
                   {effectiveTraps.length > 0 ? `${effectiveTraps.length} Traps Selected` : 'Automatic (Smart AI Choice)'}
@@ -447,7 +447,7 @@ export default function WizardStep3ReviewAdvanced({
                 <Search size={13} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input
                   type="text"
-                  placeholder="Search cognitive trap mechanisms..."
+                  placeholder="Search exam traps (e.g. over-generalization, opposite trap)..."
                   value={trapFilter}
                   onChange={(e) => setTrapFilter(e.target.value)}
                   style={{
@@ -529,7 +529,7 @@ export default function WizardStep3ReviewAdvanced({
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', flexWrap: 'wrap', gap: '6px' }}>
                 <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  AAMC Scientific Inquiry &amp; Reasoning Competency
+                  AAMC Scientific Reasoning Skills (Optional)
                 </label>
                 <span className="badge-minimal" style={{ fontSize: '0.68rem' }}>
                   {effectiveSubskills.length > 0 ? `${effectiveSubskills.length} Subskills Focus` : 'All Subskills'}
@@ -572,7 +572,7 @@ export default function WizardStep3ReviewAdvanced({
                 <div style={{ marginTop: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                     <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-                      Specific Reasoning Subskills (Multi-Select):
+                      Specific Reasoning Skills (Optional):
                     </span>
                     <span className="badge-minimal" style={{ fontSize: '0.68rem' }}>
                       {effectiveSubskills.length > 0 ? `${effectiveSubskills.length} Selected` : 'All Subskills'}
@@ -601,7 +601,7 @@ export default function WizardStep3ReviewAdvanced({
                       }}
                     >
                       {effectiveSubskills.length === 0 && <CheckCircle2 size={11} />}
-                      <span>✨ All Subskills in this Competency</span>
+                      <span>✨ All Skills in this Competency</span>
                     </button>
 
                     {availableSubskills.map((subsk) => {
@@ -639,12 +639,12 @@ export default function WizardStep3ReviewAdvanced({
               )}
             </div>
 
-            {/* Setting 3: Target Student Misconceptions & Mistake Patterns (Multi-Select) */}
+            {/* Setting 3: Common Student Mistakes to Target */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
                 <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Lightbulb size={13} style={{ color: 'var(--brand-primary)' }} />
-                  Target Student Misconceptions &amp; Error Patterns (Multi-Select)
+                  Common Student Mistakes to Target (Optional)
                 </label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button
@@ -687,7 +687,7 @@ export default function WizardStep3ReviewAdvanced({
                     }}
                   />
                   <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    Specify a custom psychometric error pattern or diagnostic flaw for distractors to target.
+                    Specify a common trap or reasoning mistake for incorrect choices to target.
                   </div>
                 </div>
               ) : (

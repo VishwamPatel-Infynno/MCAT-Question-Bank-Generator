@@ -147,7 +147,7 @@ export default function MentorExplanationView({
           </div>
           <div>
             <div style={{ fontWeight: 600, fontSize: isCompact ? '0.825rem' : '0.875rem', color: 'var(--text-primary)' }}>
-              Explanation & Rationales
+              Answer Explanation
             </div>
           </div>
         </div>
@@ -159,7 +159,7 @@ export default function MentorExplanationView({
             title={parsed.resolvedTrap.advice}
           >
             <AlertTriangle size={11} color="var(--status-warning)" />
-            Trap: {parsed.resolvedTrap.label}
+            Common Trap: {parsed.resolvedTrap.label}
           </span>
         )}
       </div>
@@ -178,7 +178,7 @@ export default function MentorExplanationView({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--status-success)' }}>
           <CheckCircle2 size={13} />
-          <span>Why {keyLabel} is Correct</span>
+          <span>Why the correct answer is right ({keyLabel})</span>
         </div>
 
         {parsed.steps && parsed.steps.length > 0 ? (
@@ -249,10 +249,10 @@ export default function MentorExplanationView({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)' }}>
               <AlertTriangle size={13} color="var(--status-warning)" />
-              <span>Distractor Breakdown</span>
+              <span>Why other choices are wrong</span>
             </div>
             <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>
-              {parsed.distractors.length} wrong choices
+              {parsed.distractors.length} other choices
             </span>
           </div>
 
@@ -330,12 +330,12 @@ export default function MentorExplanationView({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--status-purple)' }}>
               <Target size={13} />
-              <span>Cognitive Trap Spotlight &bull; {parsed.resolvedTrap.label}</span>
+              <span>Exam Trap &amp; How to Avoid It &bull; {parsed.resolvedTrap.label}</span>
             </div>
           </div>
 
           <div style={{ fontSize: isCompact ? '0.76rem' : '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-            <strong style={{ color: 'var(--text-primary)' }}>Defense Strategy: </strong>
+            <strong style={{ color: 'var(--text-primary)' }}>How to avoid this trap: </strong>
             {parsed.resolvedTrap.advice}
           </div>
         </div>
@@ -356,11 +356,11 @@ export default function MentorExplanationView({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--status-warning)' }}>
             <AlertTriangle size={13} />
-            <span>Target Misconception &bull; {likelyMistakePattern}</span>
+            <span>Watch Out: Common Misconception &bull; {likelyMistakePattern}</span>
           </div>
 
           <div style={{ fontSize: isCompact ? '0.76rem' : '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-            <strong style={{ color: 'var(--text-primary)' }}>Remediation: </strong>
+            <strong style={{ color: 'var(--text-primary)' }}>Exam Tip: </strong>
             Double-check foundational assumptions, formula boundary conditions, and sign/unit conventions before finalizing your choice.
           </div>
         </div>
@@ -378,7 +378,7 @@ export default function MentorExplanationView({
         }}
       >
         <Lightbulb size={12} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
-        <span>Always review why distractors fail to strengthen subconscious anti-trap pattern recognition.</span>
+        <span>Tip: Understanding why wrong choices are incorrect is one of the fastest ways to improve your exam score.</span>
       </div>
     </div>
   );

@@ -191,9 +191,9 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
               cursor: questions.length === 0 ? 'not-allowed' : 'pointer'
             }}
             disabled={questions.length === 0}
-            title={questions.length > 0 ? 'Open Export & Print Studio' : 'No questions to export'}
+            title={questions.length > 0 ? 'Open Export & Print Exam' : 'No questions to export'}
           >
-            <span>Export &amp; Print Studio</span>
+            <span>Export &amp; Print Exam</span>
           </button>
         </div>
       </div>
@@ -249,8 +249,8 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
           <h3 style={{ fontSize: '0.96rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>No Questions Found</h3>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, maxWidth: '440px' }}>
             {hasActiveFilters
-              ? 'No questions match your current search or filters. Clear your filters to see more, or create brand-new questions in the wizard.'
-              : 'Your question library is currently empty. Open the Guided Wizard to generate your first set of exam questions!'}
+              ? 'No questions match your current search or filters. Clear your filters to see more, or create questions.'
+              : 'Your Question Bank is currently empty. Create your first practice set to get started!'}
           </p>
           {!hasActiveFilters && onNavigateToWizard && (
             <button
@@ -261,7 +261,7 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
               style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px', marginTop: '12px' }}
             >
               <Sparkles size={13} />
-              <span>Create Questions in Wizard</span>
+              <span>Create New Questions</span>
             </button>
           )}
         </div>

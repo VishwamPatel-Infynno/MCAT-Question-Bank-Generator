@@ -207,8 +207,8 @@ export default function BatchActivityView({
       if (onShowToast) {
         onShowToast({
           type: 'success',
-          title: 'Incomplete Jobs Re-queued',
-          message: 'Re-queued incomplete jobs into the global worker pool.'
+          title: 'Incomplete Sets Retrying',
+          message: 'Incomplete question sets have been re-queued to continue generating.'
         });
       }
       await loadBatches(true);
@@ -378,11 +378,10 @@ export default function BatchActivityView({
           </div>
           <div>
             <h1 className="batch-activity-banner-title">
-              Batch Activity &amp; Job Monitor
+              Generation Progress &amp; History
             </h1>
             <p className="batch-activity-banner-subtext">
-              Track 5-question Mini-Batches (1 Job) and 50-question mock sections (10 Jobs), inspect constituent jobs, and monitor
-              throughput in real-time. Batch activity preserves questions scoring &gt; 85; questions scoring &gt; 90 route to AI Validated.
+              Track your question generation in real time. Questions scoring 90+ are ready for review, and all generated sets and exams are preserved here for reference.
             </p>
           </div>
         </div>
@@ -401,7 +400,7 @@ export default function BatchActivityView({
               alignItems: 'center',
               gap: '6px'
             }}
-            title="Refresh batches from database"
+            title="Refresh history from database"
           >
             <RefreshCw size={13} className={refreshing ? 'spin-icon' : ''} />
             <span>{refreshing ? 'Updating...' : 'Refresh'}</span>
@@ -420,7 +419,7 @@ export default function BatchActivityView({
             }}
           >
             <Sparkles size={14} />
-            <span>New Batch / Mini-Set</span>
+            <span>+ Create New Questions</span>
           </button>
         </div>
       </div>

@@ -137,11 +137,11 @@ export default function BatchProgressHeader({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <span style={{ color: 'var(--text-muted)' }}>Format:</span>
-          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{singleCount} Single Choice MCQs (A-D)</span>
+          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{singleCount} Multiple Choice Questions (A-D)</span>
           <span style={{ color: 'var(--border-light)' }}>•</span>
           <span style={{ fontWeight: 600, color: (isMixedBatch || isPassageSet || passageCount > 0) ? 'var(--brand-primary)' : 'var(--text-secondary)' }}>
             {isMixedBatch
-              ? `Mixed Set: ${effectivePassageCount} Passage + ${effectiveTotal - effectivePassageCount} Independent`
+              ? `Mixed Set: ${effectivePassageCount} Passage + ${effectiveTotal - effectivePassageCount} Standalone`
               : isPassageSet
                 ? '1 Shared Passage Set'
                 : `${passageCount} With Reading Passage${passageCount !== 1 ? 's' : ''}`}
@@ -156,7 +156,7 @@ export default function BatchProgressHeader({
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)' }}>
             <CheckCircle2 size={13} color="var(--brand-primary)" />
-            <span>Saved in Bank:</span>
+            <span>Saved in Question Bank:</span>
             <strong style={{ color: savedIds.size > 0 ? 'var(--status-success)' : 'var(--text-secondary)' }}>
               {savedIds.size} of {totalCompleted}
             </strong>
@@ -201,7 +201,7 @@ export default function BatchProgressHeader({
           )}
           <span style={{ fontSize: '0.775rem', fontWeight: 600, color: 'var(--text-primary)' }}>
             {allAccepted
-              ? `All Saved in Bank (${totalCompleted})`
+              ? `All Saved in Question Bank (${totalCompleted})`
               : anyAccepted
               ? `Select Unsaved (${unsavedCount})`
               : `Select All Ready (${totalCompleted})`}
@@ -240,7 +240,7 @@ export default function BatchProgressHeader({
                   title="Finish reviewing this batch"
                 >
                   <CheckCircle2 size={14} color="var(--status-success)" />
-                  <span>Finish &amp; Start New Batch</span>
+                  <span>Finish &amp; Create New Set</span>
                 </button>
               )}
             </>
@@ -284,7 +284,7 @@ export default function BatchProgressHeader({
               <Check size={14} />
               <span>
                 {isSaving ? 'Saving...' : unsavedSelectedCount > 0
-                  ? `Save Selected (${unsavedSelectedCount}) to Bank`
+                  ? `Save Selected (${unsavedSelectedCount}) to Question Bank`
                   : 'No Unsaved Selected'}
               </span>
             </button>
@@ -311,8 +311,8 @@ export default function BatchProgressHeader({
               {allAccepted
                 ? 'All Saved in Question Bank'
                 : isPassageSet
-                  ? `Accept Entire Passage Set (${totalCompleted} Qs) into Bank`
-                  : `Accept All Questions (${totalCompleted}) into Bank`}
+                  ? `Save Passage Set (${totalCompleted} Qs) to Question Bank`
+                  : `Save All Questions (${totalCompleted}) to Question Bank`}
             </span>
           </button>
         </div>

@@ -20,16 +20,16 @@ import {
 } from './steps';
 
 const STEP_CONFIG = [
-  { num: 1, label: 'Section & Topic', short: 'Section', subtitle: 'Choose Exam Section & Topic Focus', nextLabel: 'Continue to Format' },
-  { num: 2, label: 'Format & Scope', short: 'Format', subtitle: 'Calibrate Level, Format & Batch Scope', nextLabel: 'Review & Launch' },
-  { num: 3, label: 'Review & Launch', short: 'Review', subtitle: 'Review & Launch Question Generation', nextLabel: 'Launch Batch' }
+  { num: 1, label: 'Section & Topic', short: 'Section', subtitle: 'Choose Exam Section & Topic Focus', nextLabel: 'Continue to Format & Size' },
+  { num: 2, label: 'Format & Size', short: 'Format', subtitle: 'Choose Difficulty, Format & Question Count', nextLabel: 'Review & Create' },
+  { num: 3, label: 'Review & Create', short: 'Review', subtitle: 'Review & Start Generation', nextLabel: 'Create Questions' }
 ];
 
 const QUICK_PRESETS = [
   {
     id: 'bio_biochem_5',
     label: '⚡ Biochem Passage Set',
-    tag: '5 Qs • Batch',
+    tag: '5 Qs • Set',
     section: 'bio_biochem',
     total: 5,
     passageRequired: 'Yes',
@@ -39,7 +39,7 @@ const QUICK_PRESETS = [
   {
     id: 'cars_essay_5',
     label: '⚡ CARS Philosophy Essay',
-    tag: '5 Qs • Batch',
+    tag: '5 Qs • Set',
     section: 'cars',
     total: 5,
     passageRequired: 'Yes',
@@ -48,18 +48,18 @@ const QUICK_PRESETS = [
   },
   {
     id: 'chem_phys_5',
-    label: '⚡ Physics Discrete Set',
-    tag: '5 Qs • Batch',
+    label: '⚡ Physics Standalone Set',
+    tag: '5 Qs • Set',
     section: 'chem_phys',
     total: 5,
     passageRequired: 'No',
     passageMode: 'independent',
-    desc: '5-question discrete set (fluids, circuits, thermodynamics)'
+    desc: '5-question standalone set (fluids, circuits, thermodynamics)'
   },
   {
     id: 'psych_soc_5',
     label: '⚡ Psych / Sociology Set',
-    tag: '5 Qs • Batch',
+    tag: '5 Qs • Set',
     section: 'psych_soc',
     total: 5,
     passageRequired: 'Yes',
@@ -72,9 +72,13 @@ export default function GuidedWizard({
   generatorForm,
   onGenerateQuestions,
   onLaunchGeneration,
-  isLaunchingBatch = false
+  isLaunchingBatch = false,
+  step: controlledStep,
+  setStep: controlledSetStep
 }) {
-  const [step, setStep] = useState(1);
+  const [internalStep, setInternalStep] = useState(1);
+  const step = controlledStep !== undefined ? controlledStep : internalStep;
+  const setStep = controlledSetStep || setInternalStep;
   const totalSteps = 3;
 
   const form = generatorForm?.formData || {};
@@ -456,7 +460,7 @@ export default function GuidedWizard({
               className="btn-secondary"
               onClick={handleInstantLaunch}
               disabled={isLaunchingBatch}
-              title="Launch generation immediately using smart AI defaults"
+              title="Start generating immediately using recommended defaults"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -469,7 +473,7 @@ export default function GuidedWizard({
               }}
             >
               <Zap size={14} />
-              <span>Instant Launch (Defaults)</span>
+              <span>Quick Start (Default Settings)</span>
             </button>
           )}
 
@@ -491,10 +495,10 @@ export default function GuidedWizard({
                 <Sparkles size={16} className={isLaunchingBatch ? 'spin-icon' : ''} />
                 <span>
                   {isLaunchingBatch
-                    ? 'Launching Batch...'
+                    ? 'Starting Generation...'
                     : totalQuestions === 5
-                    ? 'Launch 5-Question Mini-Batch'
-                    : 'Launch 50-Question Batch'}
+                    ? 'Create 5-Question Practice Set'
+                    : 'Create 50-Question Full Exam'}
                 </span>
               </>
             ) : (

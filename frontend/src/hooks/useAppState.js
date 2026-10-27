@@ -29,6 +29,7 @@ export function useAppState() {
   // ─── Navigation ──────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState('generator');
   const [viewMode, setViewMode] = useState('hero'); // 'hero' | 'wizard' | 'workspace'
+  const [wizardStep, setWizardStep] = useState(1);
 
   // ─── Sections / Backend Status ────────────────────────────────────────────
   const [sectionsData, setSectionsData] = useState([]);
@@ -82,6 +83,25 @@ export function useAppState() {
       message: 'Generation cancelled. Workflow execution stopped and returned to idle.'
     });
   }, [cancelGeneration, showToast]);
+
+  const handleNavigateToGenerator = useCallback(() => {
+    if (isGenerating) {
+      const confirmCancel = window.confirm(
+        'Question generation is currently in progress. Returning to Step 1 will cancel current generation. Do you want to proceed?'
+      );
+      if (!confirmCancel) return;
+      handleCancelGeneration();
+    }
+    setActiveTab('generator');
+    setViewMode('wizard');
+    setWizardStep(1);
+  }, [isGenerating, handleCancelGeneration]);
+
+  const handleNavigateToWizard = useCallback((step = 1) => {
+    setActiveTab('generator');
+    setViewMode('wizard');
+    setWizardStep(step);
+  }, []);
 
   // ─── Bootstrap: Health + Sections ─────────────────────────────────────────
   useEffect(() => {
@@ -418,6 +438,10 @@ export function useAppState() {
     setActiveTab,
     viewMode,
     setViewMode,
+    wizardStep,
+    setWizardStep,
+    handleNavigateToGenerator,
+    handleNavigateToWizard,
     // Data
     sectionsData,
     backendStatus,

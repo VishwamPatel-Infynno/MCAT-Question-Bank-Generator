@@ -5,6 +5,7 @@ import InfynnoLogo from '../common/InfynnoLogo';
 export default function Navbar({
   activeTab,
   setActiveTab,
+  onNavigateToGenerator,
   backendStatus,
   theme,
   onToggleTheme,
@@ -113,11 +114,17 @@ export default function Navbar({
         <button
           id="nav-tab-generator"
           type="button"
-          onClick={() => setActiveTab('generator')}
+          onClick={() => {
+            if (onNavigateToGenerator) {
+              onNavigateToGenerator();
+            } else {
+              setActiveTab('generator');
+            }
+          }}
           className={`pill-track-btn ${activeTab === 'generator' ? 'active' : ''}`}
         >
           <Sparkles size={12} color={activeTab === 'generator' ? 'var(--brand-primary)' : 'currentColor'} />
-          <span>Question Generator</span>
+          <span>Create Questions</span>
         </button>
 
         <button
@@ -126,9 +133,10 @@ export default function Navbar({
           onClick={() => setActiveTab('batches')}
           className={`pill-track-btn ${activeTab === 'batches' ? 'active' : ''}`}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          title="View running generation progress and past batch history"
         >
           <Layers size={12} color={activeTab === 'batches' ? 'var(--brand-primary)' : 'currentColor'} />
-          <span>Batch Activity</span>
+          <span>Progress &amp; History</span>
           {activeBatchCount > 0 && (
             <span
               style={{
@@ -152,9 +160,10 @@ export default function Navbar({
           onClick={() => setActiveTab('validated')}
           className={`pill-track-btn ${activeTab === 'validated' ? 'active' : ''}`}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          title="Review high-quality questions ready to add to your bank"
         >
           <CheckCircle2 size={12} color={activeTab === 'validated' ? 'var(--brand-primary)' : 'currentColor'} />
-          <span>AI Validated</span>
+          <span>Ready for Review</span>
           {validatedCount > 0 && (
             <span
               style={{
@@ -177,6 +186,7 @@ export default function Navbar({
           type="button"
           onClick={() => setActiveTab('bank')}
           className={`pill-track-btn ${activeTab === 'bank' ? 'active' : ''}`}
+          title="Browse, study, and export your saved questions"
         >
           <Database size={12} color={activeTab === 'bank' ? 'var(--brand-primary)' : 'currentColor'} />
           <span>Question Bank</span>

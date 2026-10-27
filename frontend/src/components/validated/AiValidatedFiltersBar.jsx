@@ -45,7 +45,7 @@ export default function AiValidatedFiltersBar({
           />
           <input
             type="text"
-            placeholder="Search stem, passage, subtopic..."
+            placeholder="Search question, passage, topic..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="input-field"
@@ -114,10 +114,10 @@ export default function AiValidatedFiltersBar({
               background: 'var(--status-success)',
               borderColor: 'var(--status-success)'
             }}
-            title="Approve all filtered validated questions into the Question Bank"
+            title="Save all questions on this page to the Question Bank"
           >
             <Database size={13} />
-            <span>Approve All Validated ({totalFiltered})</span>
+            <span>Save All to Question Bank ({totalFiltered})</span>
           </button>
         )}
 
@@ -143,7 +143,7 @@ export default function AiValidatedFiltersBar({
               }}
             >
               <Database size={13} />
-              <span>Move Selected to Question Bank</span>
+              <span>Save Selected to Question Bank</span>
             </button>
 
             <button

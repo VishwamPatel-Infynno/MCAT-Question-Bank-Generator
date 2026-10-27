@@ -179,7 +179,7 @@ export default function QuestionDraftingSkeleton({
           color: 'var(--text-muted)'
         }}
       >
-        <span>Balancing distractor symmetry and psychometric rigor</span>
+        <span>Balancing answer choices and exam quality</span>
         <span style={{ color: 'var(--status-success)', fontWeight: 600 }}>
           Target Quality: 90+ Score
         </span>

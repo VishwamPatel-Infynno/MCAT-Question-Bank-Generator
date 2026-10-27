@@ -128,7 +128,7 @@ export default function StagedDetailedView({
                         : 'var(--status-warning)',
                       display: 'inline-block'
                     }}
-                    title={`Anti-Guessability Symmetry: ${
+                    title={`Option Length Balance: ${
                       (q.option_symmetry || q.stage_outcomes?.option_symmetry)?.status || 'Balanced'
                     }`}
                   />
