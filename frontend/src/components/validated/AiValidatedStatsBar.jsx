@@ -15,22 +15,21 @@ export default function AiValidatedStatsBar({
       style={{
         background: 'var(--bg-surface)',
         border: '1px solid var(--border-light)',
-        borderRadius: 'var(--radius-md)',
-        padding: '20px 24px',
+        borderRadius: 'var(--radius-sm)',
+        padding: '14px 18px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px',
-        boxShadow: 'var(--shadow-sm)'
+        gap: '12px'
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div
               style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '6px',
+                width: '24px',
+                height: '24px',
+                borderRadius: 'var(--radius-xs)',
                 background: 'rgba(16, 185, 129, 0.12)',
                 color: 'var(--status-success)',
                 display: 'flex',
@@ -38,40 +37,30 @@ export default function AiValidatedStatsBar({
                 justifyContent: 'center'
               }}
             >
-              <ShieldCheck size={18} />
+              <ShieldCheck size={15} />
             </div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
               AI Validated Questions
             </h2>
-            <span
-              style={{
-                background: 'rgba(16, 185, 129, 0.12)',
-                color: 'var(--status-success)',
-                borderRadius: '12px',
-                fontSize: '0.72rem',
-                fontWeight: 700,
-                padding: '2px 8px',
-                border: '1px solid rgba(16, 185, 129, 0.25)'
-              }}
-            >
+            <span className="badge badge-emerald" style={{ fontSize: '0.66rem' }}>
               Score &gt; 90 Benchmark Passed
             </span>
           </div>
-          <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', margin: 0 }}>
-            Candidate questions generated and verified with psychometric score &gt; 90. Review and select questions to place into your official Question Bank or discard.
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+            Candidate questions verified with psychometric score &gt; 90. Review and approve questions into your Question Bank.
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
             type="button"
             onClick={onRefresh}
             disabled={refreshing}
             className="btn-secondary"
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 12px', fontSize: '0.78rem' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', fontSize: '0.76rem' }}
             title="Refresh AI Validated Questions"
           >
-            <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+            <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
             <span>Refresh</span>
           </button>
           {onNavigateToBank && (
@@ -79,10 +68,10 @@ export default function AiValidatedStatsBar({
               type="button"
               onClick={onNavigateToBank}
               className="btn-secondary"
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 12px', fontSize: '0.78rem' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', fontSize: '0.76rem' }}
             >
-              <Database size={13} />
-              <span>Open Question Bank</span>
+              <Database size={12} />
+              <span>Question Bank</span>
             </button>
           )}
         </div>
@@ -91,42 +80,48 @@ export default function AiValidatedStatsBar({
       {/* Quick Metrics Bar */}
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '12px',
-          paddingTop: '12px',
-          borderTop: '1px solid var(--border-light)'
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          flexWrap: 'wrap',
+          paddingTop: '10px',
+          borderTop: '1px solid var(--border-light)',
+          fontSize: '0.75rem'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Pending AI Validated (&gt;90):</span>
-          <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--status-success)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ color: 'var(--text-muted)' }}>Pending AI Validated:</span>
+          <strong style={{ fontWeight: 700, color: 'var(--status-success)' }}>
             {counts.ai_validated || questionsCount}
-          </span>
+          </strong>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>In Question Bank:</span>
-          <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--brand-primary)' }}>
+        <span style={{ color: 'var(--border-light)' }}>•</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ color: 'var(--text-muted)' }}>In Bank:</span>
+          <strong style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>
             {counts.in_bank || 0}
-          </span>
+          </strong>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Batch Only (86-90):</span>
-          <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--brand-indigo, #6366f1)' }}>
+        <span style={{ color: 'var(--border-light)' }}>•</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ color: 'var(--text-muted)' }}>Batch Only (86-90):</span>
+          <strong style={{ fontWeight: 700, color: 'var(--brand-indigo, #6366f1)' }}>
             {counts.batch_only || 0}
-          </span>
+          </strong>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Discarded:</span>
-          <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-muted)' }}>
+        <span style={{ color: 'var(--border-light)' }}>•</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ color: 'var(--text-muted)' }}>Discarded:</span>
+          <strong style={{ fontWeight: 700, color: 'var(--text-muted)' }}>
             {counts.discarded || 0}
-          </span>
+          </strong>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Below Threshold (&le;85):</span>
-          <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#f59e0b' }}>
+        <span style={{ color: 'var(--border-light)' }}>•</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ color: 'var(--text-muted)' }}>Below Threshold (&le;85):</span>
+          <strong style={{ fontWeight: 700, color: 'var(--status-warning, #d97706)' }}>
             {counts.below_threshold || 0}
-          </span>
+          </strong>
         </div>
       </div>
     </div>

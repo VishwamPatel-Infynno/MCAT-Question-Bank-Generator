@@ -31,11 +31,11 @@ export default function WizardStep6VisualsPrompt({
   const imagePriceLabel = `$${imageUnitRate.toFixed(3)} / image`;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div className="wizard-heading-group">
-        <h2 className="wizard-step-title">Visual Stimulus & Custom Pedagogical Focus</h2>
+        <h2 className="wizard-step-title">Visuals &amp; Custom Directives</h2>
         <p className="wizard-step-subtitle">
-          Configure autonomous scientific diagrams, targeted student mistake patterns, and custom clinical vignette requirements.
+          Configure autonomous scientific diagrams, targeted student mistake patterns, and optional clinical vignette guidance.
         </p>
       </div>
 
@@ -44,14 +44,14 @@ export default function WizardStep6VisualsPrompt({
         <div className="wizard-decision-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="wizard-decision-num">1</span>
-            <span className="wizard-decision-title">AI Visual Stimulus (Diagrams & Figures)</span>
+            <span className="wizard-decision-title">Scientific Figures &amp; Visuals</span>
           </div>
           {isCars ? (
-            <span className="badge-minimal" style={{ fontSize: '0.72rem', color: 'var(--amber-warning, #f59e0b)', borderColor: 'var(--amber-warning, #f59e0b)' }}>
+            <span className="badge-minimal" style={{ fontSize: '0.7rem', color: '#e11d48' }}>
               CARS: Text-Only Standard
             </span>
           ) : (
-            <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
               Autonomous AI Discretion
             </span>
           )}
@@ -61,20 +61,20 @@ export default function WizardStep6VisualsPrompt({
           /* CARS Mode: Strictly Text-Only Notice */
           <div
             style={{
-              padding: '16px 18px',
+              padding: '12px 14px',
               borderRadius: 'var(--radius-sm)',
-              background: 'var(--bg-surface-elevated)',
+              background: 'var(--bg-surface)',
               border: '1px solid var(--border-light)',
               display: 'flex',
-              alignItems: 'flex-start',
+              alignItems: 'center',
               gap: '12px'
             }}
           >
             <div
               style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
+                width: '28px',
+                height: '28px',
+                borderRadius: 'var(--radius-xs)',
                 background: 'rgba(245, 158, 11, 0.12)',
                 display: 'flex',
                 alignItems: 'center',
@@ -83,14 +83,14 @@ export default function WizardStep6VisualsPrompt({
                 flexShrink: 0
               }}
             >
-              <Lock size={16} />
+              <Lock size={14} />
             </div>
             <div>
-              <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                Strict AAMC CARS Standard (Figures Prohibited)
+              <div style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                AAMC CARS Standard (Text-Only)
               </div>
-              <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                Official AAMC Critical Analysis and Reasoning Skills passages and questions are strictly 100% text-based humanities and social sciences. Figures, data tables, and diagrams are locked out to protect examination fidelity.
+              <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
+                Official CARS passages are strictly text-based humanities &amp; social sciences. Figures are locked out.
               </div>
             </div>
           </div>
@@ -98,36 +98,35 @@ export default function WizardStep6VisualsPrompt({
           /* Science Mode: Unified AI-Determined Diagram Toggle */
           <div
             style={{
-              padding: '18px 20px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'var(--bg-surface-elevated)',
+              padding: '14px 16px',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--bg-surface)',
               border: '1px solid var(--border-light)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '16px'
+              gap: '12px'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-              <div style={{ flex: '1 1 300px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    AI-Determined Visuals When Needed
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 260px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                  <span style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    AI-Determined Scientific Visuals
                   </span>
                   <span
                     className="badge-minimal"
                     style={{
-                      fontSize: '0.68rem',
-                      color: allowAiImages ? 'var(--brand-primary)' : 'var(--text-muted)',
-                      borderColor: allowAiImages ? 'var(--brand-primary)' : 'var(--border-light)'
+                      fontSize: '0.66rem',
+                      color: allowAiImages ? 'var(--brand-primary)' : 'var(--text-muted)'
                     }}
                   >
-                    {allowAiImages ? 'AI Active' : 'Off'}
+                    {allowAiImages ? 'Active' : 'Off'}
                   </span>
                 </div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
                   {passageMode === 'single_passage'
-                    ? 'When enabled, the AI evaluates whether your shared passage study (e.g. enzyme kinetics, metabolic pathway, or assay data) requires a scientific figure, and generates it on-demand.'
-                    : 'When enabled, the AI evaluates each independent item and generates an illustrative figure (e.g. ray diagram, electric circuit, Lineweaver-Burk plot) only when pedagogically essential.'}
+                    ? 'Evaluates whether your passage study (e.g. enzyme kinetics or assay data) requires a figure, and generates on-demand.'
+                    : 'Evaluates each item and generates an illustrative diagram (e.g. circuit or ray diagram) only when essential.'}
                 </div>
               </div>
 
@@ -135,7 +134,7 @@ export default function WizardStep6VisualsPrompt({
               <div
                 className="pill-track"
                 style={{
-                  width: '280px',
+                  width: '220px',
                   display: 'grid',
                   gridTemplateColumns: 'repeat(2, 1fr)',
                   flexShrink: 0
@@ -146,7 +145,7 @@ export default function WizardStep6VisualsPrompt({
                   id="btn-wizard-ai-visuals-off"
                   onClick={() => setAllowAiImages?.(false)}
                   className={`pill-track-btn ${!allowAiImages ? 'active' : ''}`}
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '0.78rem' }}
+                  style={{ width: '100%', padding: '6px 10px', fontSize: '0.75rem' }}
                 >
                   Disabled
                 </button>
@@ -157,15 +156,15 @@ export default function WizardStep6VisualsPrompt({
                   className={`pill-track-btn ${allowAiImages ? 'active' : ''}`}
                   style={{
                     width: '100%',
-                    padding: '8px 12px',
-                    fontSize: '0.78rem',
+                    padding: '6px 10px',
+                    fontSize: '0.75rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '6px'
+                    gap: '4px'
                   }}
                 >
-                  <Sparkles size={13} />
+                  <Sparkles size={12} />
                   <span>When Needed</span>
                 </button>
               </div>
@@ -177,23 +176,23 @@ export default function WizardStep6VisualsPrompt({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '10px 14px',
+                padding: '8px 12px',
                 borderRadius: 'var(--radius-xs)',
-                background: allowAiImages ? 'rgba(79, 70, 229, 0.05)' : 'var(--bg-surface-subtle)',
-                border: `1px dashed ${allowAiImages ? 'rgba(79, 70, 229, 0.3)' : 'var(--border-light)'}`,
-                fontSize: '0.74rem'
+                background: allowAiImages ? 'var(--brand-light)' : 'var(--bg-surface-subtle)',
+                border: `1px solid ${allowAiImages ? 'var(--border-brand)' : 'var(--border-light)'}`,
+                fontSize: '0.72rem'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: allowAiImages ? 'var(--brand-primary)' : 'var(--text-muted)' }}>
-                {allowAiImages ? <CheckCircle2 size={14} /> : <Info size={14} />}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: allowAiImages ? 'var(--brand-primary)' : 'var(--text-muted)' }}>
+                {allowAiImages ? <CheckCircle2 size={13} /> : <Info size={13} />}
                 <span>
                   {allowAiImages
-                    ? 'AI Discretion Enabled: Only generated if scientifically necessary.'
-                    : 'Text-Only Mode: All generated items will be strictly textual with zero diagram costs.'}
+                    ? 'AI Discretion Active: Only rendered if scientifically necessary.'
+                    : 'Text-Only Mode: Strictly textual items with zero diagram compute.'}
                 </span>
               </div>
               <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
-                {allowAiImages ? `${imagePriceLabel} (billed only when generated)` : '$0.00 image cost'}
+                {allowAiImages ? `${imagePriceLabel}` : '$0.00 cost'}
               </span>
             </div>
           </div>
@@ -208,16 +207,16 @@ export default function WizardStep6VisualsPrompt({
         <div className="wizard-decision-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="wizard-decision-num">2</span>
-            <span className="wizard-decision-title">Mistake Pattern & Vignette Focus</span>
+            <span className="wizard-decision-title">Mistake Pattern &amp; Vignette Directives</span>
           </div>
-          <span className="wizard-decision-tag">Optional Refinement</span>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Optional Focus</span>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {/* Likely Mistake Pattern */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+              <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
                 Target Student Mistake Pattern:
               </label>
               <button
@@ -232,36 +231,36 @@ export default function WizardStep6VisualsPrompt({
                   background: 'transparent',
                   border: 'none',
                   color: 'var(--brand-primary)',
-                  fontSize: '0.74rem',
+                  fontSize: '0.72rem',
                   cursor: 'pointer',
                   fontWeight: 600
                 }}
               >
-                {isCustomMistake ? 'Select Preset Pattern' : '+ Custom Mistake Pattern'}
+                {isCustomMistake ? 'Select Preset Pattern' : '+ Custom Pattern'}
               </button>
             </div>
 
             {isCustomMistake ? (
               <input
                 type="text"
-                placeholder="e.g. Inverts Michaelis-Menten Lineweaver-Burk slope (Km/Vmax instead of 1/Vmax)..."
+                placeholder="e.g. Inverts Lineweaver-Burk slope (Km/Vmax instead of 1/Vmax)..."
                 value={customMistakePattern || ''}
                 onChange={(e) => {
                   setCustomMistakePattern?.(e.target.value);
                   setLikelyMistakePattern?.(e.target.value);
                 }}
                 className="input-field"
-                style={{ width: '100%', fontSize: '0.8rem' }}
+                style={{ width: '100%', fontSize: '0.78rem', height: '32px' }}
               />
             ) : (
               <select
                 value={likelyMistakePattern || 'Automatic'}
                 onChange={(e) => setLikelyMistakePattern?.(e.target.value)}
                 className="input-field"
-                style={{ width: '100%', fontSize: '0.8rem' }}
+                style={{ width: '100%', fontSize: '0.78rem', height: '32px' }}
               >
-                <option value="Automatic">✨ Automatic (Smart AI Choice - Autonomous Student Misconception Diagnosis)</option>
-                <option value="None">None (Standard distractor design without specific mistake focus)</option>
+                <option value="Automatic">✨ Automatic (Smart AI Student Misconception Diagnosis)</option>
+                <option value="None">None (Standard distractor design without specific error focus)</option>
                 <optgroup label="Preset AAMC Student Mistake Patterns">
                   {LIKELY_MISTAKE_PATTERNS.map((mp) => (
                     <option key={mp.id} value={mp.id}>
@@ -271,31 +270,24 @@ export default function WizardStep6VisualsPrompt({
                 </optgroup>
               </select>
             )}
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              {isCustomMistake
-                ? 'The AI will craft a dedicated distractor specifically tailored to attract students who commit this custom mistake.'
-                : (likelyMistakePattern === 'None')
-                ? 'Standard distractor fallacies will be generated without targeting any single student misconception.'
-                : 'Smart AI will analyze the passage, equations, and question stem to autonomously diagnose the exact reasoning error students are most prone to make.'}
-            </div>
           </div>
 
           {/* Custom Prompt / Scenario */}
           <div>
-            <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Lightbulb size={14} style={{ color: 'var(--brand-primary)' }} />
+            <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Lightbulb size={13} style={{ color: 'var(--brand-primary)' }} />
               <span>Custom Vignette Focus / Research Guidance (Optional):</span>
             </label>
             <textarea
-              placeholder="e.g. Focus on SDS-PAGE reducing vs non-reducing conditions, or include a Western Blot assay in a neurodegenerative disease context..."
+              placeholder="e.g. Include an SDS-PAGE assay or Western Blot in a neurodegenerative disease context..."
               value={customPrompt}
               onChange={(e) => setCustomPrompt?.(e.target.value)}
               rows={2}
               className="input-field"
               style={{
                 width: '100%',
-                padding: '10px 12px',
-                fontSize: '0.8rem',
+                padding: '8px 10px',
+                fontSize: '0.78rem',
                 resize: 'vertical',
                 lineHeight: 1.45
               }}

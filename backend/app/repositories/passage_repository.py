@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import or_, select
 
+from app.db.base import to_datetime, to_iso_str
 from app.db.session import async_session_factory
 from app.models.passage import PassageModel
 from app.schemas import Passage
@@ -22,8 +23,8 @@ def _passage_model_to_schema(m: PassageModel) -> Passage:
         image_url=m.image_url,
         image_svg=m.image_svg,
         image_description=m.image_description,
-        created_at=m.created_at,
-        updated_at=m.updated_at,
+        created_at=to_iso_str(m.created_at),
+        updated_at=to_iso_str(m.updated_at) if m.updated_at else None,
     )
 
 
@@ -40,8 +41,8 @@ def _passage_schema_to_model(p: Passage) -> PassageModel:
         image_url=p.image_url,
         image_svg=p.image_svg,
         image_description=p.image_description,
-        created_at=p.created_at,
-        updated_at=p.updated_at or datetime.now(UTC).isoformat(),
+        created_at=to_datetime(p.created_at),
+        updated_at=to_datetime(p.updated_at) if p.updated_at else datetime.now(UTC),
     )
 
 

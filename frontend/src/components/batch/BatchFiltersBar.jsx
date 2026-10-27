@@ -23,13 +23,13 @@ export default function BatchFiltersBar({
         gap: '12px',
         background: 'var(--bg-surface)',
         border: '1px solid var(--border-light)',
-        borderRadius: 'var(--radius-md)',
-        padding: '12px 18px'
+        borderRadius: 'var(--radius-sm)',
+        padding: '10px 14px'
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', flex: 1 }}>
         {/* Search */}
-        <div style={{ position: 'relative', minWidth: '200px', flex: 1, maxWidth: '300px' }}>
+        <div style={{ position: 'relative', minWidth: '180px', flex: 1, maxWidth: '280px' }}>
           <Search
             size={14}
             style={{
@@ -45,14 +45,12 @@ export default function BatchFiltersBar({
             placeholder="Search batches by topic..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
+            className="input-field"
             style={{
               width: '100%',
-              padding: '6px 10px 6px 32px',
-              fontSize: '0.8rem',
-              borderRadius: 'var(--radius-xs)',
-              border: '1px solid var(--border-medium)',
-              background: 'var(--bg-canvas)',
-              color: 'var(--text-primary)'
+              paddingLeft: '32px',
+              fontSize: '0.78rem',
+              height: '32px'
             }}
           />
         </div>
@@ -61,8 +59,8 @@ export default function BatchFiltersBar({
         <div className="pill-track" style={{ padding: '2px' }}>
           {[
             { id: 'all', label: 'All Batches' },
-            { id: 'mini', label: '🎯 Live Mini-Sets [1 Job]' },
-            { id: 'full', label: '📚 Full Sections [10 Jobs]' }
+            { id: 'mini', label: 'Live Mini-Sets (1 Job)' },
+            { id: 'full', label: 'Full Mocks (10 Jobs)' }
           ].map((scope) => (
             <button
               key={scope.id}
@@ -80,13 +78,10 @@ export default function BatchFiltersBar({
         <select
           value={sectionFilter}
           onChange={(e) => onSectionFilterChange(e.target.value)}
+          className="input-field"
           style={{
-            padding: '6px 12px',
-            fontSize: '0.8rem',
-            borderRadius: 'var(--radius-xs)',
-            border: '1px solid var(--border-medium)',
-            background: 'var(--bg-canvas)',
-            color: 'var(--text-primary)'
+            fontSize: '0.78rem',
+            height: '32px'
           }}
         >
           <option value="all">All Sections</option>

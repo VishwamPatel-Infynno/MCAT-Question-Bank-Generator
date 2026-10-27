@@ -10,14 +10,27 @@ logger = logging.getLogger(__name__)
 
 
 async def seed():
-    """Seeds publication-grade authentic AAMC MCAT questions across all 4 sections."""
+    """Seeds publication-grade authentic AAMC MCAT questions across all 4 sections with complete relational linkage."""
     await init_db()
 
+    batch_id = "batch-seed-mcat-2026"
+
     q1 = Question(
+        id="q-seed-chem-phys-01",
         section="chem_phys",
         section_label="Chemical and Physical Foundations of Biological Systems",
         subtopic="Thermodynamics & Kinetics (Enthalpy, Entropy & Reaction Rates)",
-        difficulty="medium",
+        difficulty="Medium",
+        passage_id="passage-seed-chem-phys-01",
+        passage_mode="single_passage",
+        batch_id=batch_id,
+        mcat_scaled_score=130,
+        aamc_skill="Skill_1_Knowledge_of_Scientific_Concepts",
+        subject="Biochemistry",
+        unit="Enzymology & Bioenergetics",
+        topic="Enzyme Kinetics & Inhibition",
+        subskill="Interpretation of Lineweaver-Burk Plots",
+        likely_mistake_pattern="Inverting reciprocal x-axis intercepts when evaluating competitive vs noncompetitive inhibition",
         stimulus_text=(
             "Lactate dehydrogenase (LDH) catalyzes the reversible conversion of pyruvate to L-lactate with "
             "concomitant oxidation of NADH to NAD+. In an enzymatic study evaluating metabolic regulation, "
@@ -66,14 +79,26 @@ async def seed():
         ),
         cognitive_trap="Calculation / Formula Inversion",
         final_score=96,
+        status="in_bank",
         iteration_count=1,
     )
 
     q2 = Question(
+        id="q-seed-cars-01",
         section="cars",
         section_label="Critical Analysis and Reasoning Skills",
         subtopic="Foundations of Comprehension (Direct Inferences & Thesis Extraction)",
-        difficulty="hard",
+        difficulty="Hard",
+        passage_id="passage-seed-cars-01",
+        passage_mode="single_passage",
+        batch_id=batch_id,
+        mcat_scaled_score=131,
+        aamc_skill="Skill_2_Reasoning_About_The_Text",
+        subject="Humanities",
+        unit="Historiography & Media History",
+        topic="Print Culture & Social Control",
+        subskill="Evaluating Arguments Against Technological Determinism",
+        likely_mistake_pattern="Selecting absolute unhedged claims or overlooking sociological institutional mediation",
         stimulus_text=(
             "Technological deterministic historiography frequently credits Johannes Gutenberg's movable type "
             "with single-handedly dismantling scholastic dogma and midwifing European modernity. Yet this tidy "
@@ -122,14 +147,26 @@ async def seed():
         ),
         cognitive_trap="Extreme Language Trap",
         final_score=98,
+        status="in_bank",
         iteration_count=1,
     )
 
     q3 = Question(
+        id="q-seed-bio-biochem-01",
         section="bio_biochem",
         section_label="Biological and Biochemical Foundations of Living Systems",
         subtopic="Metabolic Pathways & Cellular Bioenergetics (Glycolysis, Krebs, OxPhos)",
-        difficulty="medium",
+        difficulty="Medium",
+        passage_id="passage-seed-bio-biochem-01",
+        passage_mode="single_passage",
+        batch_id=batch_id,
+        mcat_scaled_score=130,
+        aamc_skill="Skill_2_Scientific_Reasoning_and_Problem_Solving",
+        subject="Cell Biology",
+        unit="Cellular Metabolism",
+        topic="Oxidative Phosphorylation & Chemiosmosis",
+        subskill="Predicting Effects of Chemical Uncouplers vs Inhibitors",
+        likely_mistake_pattern="Assuming decoupling ATP synthesis must halt oxygen consumption",
         stimulus_text=(
             "Mitochondrial oxidative phosphorylation couples the exergonic transfer of electrons through the electron "
             "transport chain (ETC) to the endergonic synthesis of ATP via an electrochemical proton gradient across "
@@ -176,14 +213,26 @@ async def seed():
         ),
         cognitive_trap="Distortion / Opposite Trap",
         final_score=96,
+        status="in_bank",
         iteration_count=1,
     )
 
     q4 = Question(
+        id="q-seed-psych-soc-01",
         section="psych_soc",
         section_label="Psychological, Social, and Biological Foundations of Behavior",
         subtopic="Social Psychology, Social Cognition & Group Dynamics",
-        difficulty="medium",
+        difficulty="Medium",
+        passage_id="passage-seed-psych-soc-01",
+        passage_mode="single_passage",
+        batch_id=batch_id,
+        mcat_scaled_score=129,
+        aamc_skill="Skill_1_Knowledge_of_Scientific_Concepts",
+        subject="Sociology & Psychology",
+        unit="Social Processes & Interaction",
+        topic="Group Influence & Decision Making",
+        subskill="Differentiating Group Polarization from Conformity and Facilitation",
+        likely_mistake_pattern="Conflating group polarization with social facilitation or deindividuation",
         stimulus_text=(
             "A social psychology study investigated decision-making dynamics in civil jury simulations. Participants "
             "were pre-screened and categorized based on their initial attitudes regarding punitive damages in corporate "
@@ -231,6 +280,7 @@ async def seed():
         ),
         cognitive_trap="Scope Shift Trap",
         final_score=97,
+        status="in_bank",
         iteration_count=1,
     )
 
@@ -243,3 +293,4 @@ async def seed():
 
 if __name__ == "__main__":
     asyncio.run(seed())
+

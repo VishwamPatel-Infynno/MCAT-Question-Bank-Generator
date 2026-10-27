@@ -5,6 +5,7 @@ from typing import Any
 from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
+from app.db.base import to_datetime, to_iso_str
 from app.db.session import async_session_factory
 from app.models.batch import GenerationBatchModel
 from app.models.passage import PassageModel
@@ -46,8 +47,8 @@ def _model_to_schema(m: QuestionModel) -> Question:
         review_rubric=rubric,
         iteration_count=m.iteration_count,
         iterations_history=m.iterations_history or [],
-        created_at=m.created_at,
-        updated_at=getattr(m, "updated_at", None),
+        created_at=to_iso_str(m.created_at),
+        updated_at=to_iso_str(m.updated_at) if m.updated_at else None,
         total_tokens=m.total_tokens or 0,
         prompt_tokens=m.prompt_tokens or 0,
         completion_tokens=m.completion_tokens or 0,
@@ -102,8 +103,8 @@ def _schema_to_model(q: Question) -> QuestionModel:
         review_rubric=rubric_data,
         iteration_count=q.iteration_count,
         iterations_history=q.iterations_history,
-        created_at=q.created_at,
-        updated_at=q.updated_at or datetime.now(UTC).isoformat(),
+        created_at=to_datetime(q.created_at),
+        updated_at=to_datetime(q.updated_at) if q.updated_at else datetime.now(UTC),
         total_tokens=q.total_tokens,
         prompt_tokens=q.prompt_tokens,
         completion_tokens=q.completion_tokens,
@@ -132,7 +133,8 @@ def _schema_to_model(q: Question) -> QuestionModel:
 
 async def save_question(q: Question) -> Question:
     """Inserts or updates a question in PostgreSQL, auto-syncing passages and batches."""
-    now_iso = datetime.now(UTC).isoformat()
+    now_dt = datetime.now(UTC)
+    now_iso = now_dt.isoformat()
     q.updated_at = now_iso
 
     async with async_session_factory() as session:
@@ -150,15 +152,15 @@ async def save_question(q: Question) -> Question:
                     image_url=q.image_url,
                     image_svg=q.image_svg,
                     image_description=q.image_description,
-                    created_at=q.created_at or now_iso,
-                    updated_at=now_iso,
+                    created_at=to_datetime(q.created_at),
+                    updated_at=now_dt,
                 )
                 .on_conflict_do_update(
                     index_elements=["id"],
                     set_={
                         "text": q.stimulus_text.strip(),
                         "word_count": len(q.stimulus_text.split()),
-                        "updated_at": now_iso,
+                        "updated_at": now_dt,
                     },
                 )
             )
@@ -179,8 +181,8 @@ async def save_question(q: Question) -> Question:
                     total_tokens=q.total_tokens or 0,
                     cost_usd=q.cost_usd or 0.0,
                     status="completed",
-                    created_at=q.created_at or now_iso,
-                    updated_at=now_iso,
+                    created_at=to_datetime(q.created_at),
+                    updated_at=now_dt,
                 )
                 .on_conflict_do_update(
                     index_elements=["id"],
@@ -188,7 +190,7 @@ async def save_question(q: Question) -> Question:
                         "actual_count": GenerationBatchModel.actual_count + 1,
                         "total_tokens": GenerationBatchModel.total_tokens + (q.total_tokens or 0),
                         "cost_usd": GenerationBatchModel.cost_usd + (q.cost_usd or 0.0),
-                        "updated_at": now_iso,
+                        "updated_at": now_dt,
                     },
                 )
             )
@@ -206,7 +208,8 @@ async def save_questions_batch(questions: list[Question]) -> list[str]:
     if not questions:
         return []
 
-    now_iso = datetime.now(UTC).isoformat()
+    now_dt = datetime.now(UTC)
+    now_iso = now_dt.isoformat()
     saved_ids = []
 
     async with async_session_factory() as session:
@@ -234,8 +237,8 @@ async def save_questions_batch(questions: list[Question]) -> list[str]:
                     image_url=q.image_url,
                     image_svg=q.image_svg,
                     image_description=q.image_description,
-                    created_at=q.created_at or now_iso,
-                    updated_at=now_iso,
+                    created_at=to_datetime(q.created_at),
+                    updated_at=now_dt,
                 )
 
             # Aggregate batches
@@ -249,7 +252,7 @@ async def save_questions_batch(questions: list[Question]) -> list[str]:
                         "count": 0,
                         "tokens": 0,
                         "cost": 0.0,
-                        "created_at": q.created_at or now_iso,
+                        "created_at": to_datetime(q.created_at),
                     }
                 b_info = batches_to_upsert[q.batch_id]
                 b_info["count"] += 1
@@ -270,7 +273,7 @@ async def save_questions_batch(questions: list[Question]) -> list[str]:
                     existing_p.image_url = p_mod.image_url
                 if p_mod.image_description and not existing_p.image_description:
                     existing_p.image_description = p_mod.image_description
-                existing_p.updated_at = now_iso
+                existing_p.updated_at = now_dt
 
         # Upsert batches
         for bid, b_info in batches_to_upsert.items():
@@ -288,14 +291,14 @@ async def save_questions_batch(questions: list[Question]) -> list[str]:
                     cost_usd=b_info["cost"],
                     status="completed",
                     created_at=b_info["created_at"],
-                    updated_at=now_iso,
+                    updated_at=now_dt,
                 )
                 session.add(b_model)
             else:
                 existing_b.actual_count = (existing_b.actual_count or 0) + b_info["count"]
                 existing_b.total_tokens = (existing_b.total_tokens or 0) + b_info["tokens"]
                 existing_b.cost_usd = (existing_b.cost_usd or 0.0) + b_info["cost"]
-                existing_b.updated_at = now_iso
+                existing_b.updated_at = now_dt
 
         # Upsert questions
         for q in questions:
@@ -430,7 +433,7 @@ async def delete_questions_batch(question_ids: list[str]) -> int:
 
 async def update_question_status(question_id: str, status: str) -> bool:
     """Updates the lifecycle status of a single question."""
-    now_iso = datetime.now(UTC).isoformat()
+    now_dt = datetime.now(UTC)
     async with async_session_factory() as session:
         stmt = select(QuestionModel).where(QuestionModel.id == question_id)
         res = await session.execute(stmt)
@@ -438,7 +441,7 @@ async def update_question_status(question_id: str, status: str) -> bool:
         if not q:
             return False
         q.status = status
-        q.updated_at = now_iso
+        q.updated_at = now_dt
         await session.commit()
         return True
 
@@ -447,12 +450,12 @@ async def batch_update_question_status(question_ids: list[str], status: str) -> 
     """Updates the lifecycle status of multiple questions in a single atomic transaction."""
     if not question_ids:
         return 0
-    now_iso = datetime.now(UTC).isoformat()
+    now_dt = datetime.now(UTC)
     async with async_session_factory() as session:
         stmt = (
             update(QuestionModel)
             .where(QuestionModel.id.in_(question_ids))
-            .values(status=status, updated_at=now_iso)
+            .values(status=status, updated_at=now_dt)
         )
         result = await session.execute(stmt)
         await session.commit()

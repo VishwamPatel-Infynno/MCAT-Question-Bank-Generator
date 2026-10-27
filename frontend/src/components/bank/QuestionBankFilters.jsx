@@ -8,7 +8,8 @@ import {
   Square,
   RotateCcw,
   Sparkles,
-  CheckCircle2
+  Table,
+  LayoutList
 } from 'lucide-react';
 import CustomSelect from '../common/CustomSelect';
 
@@ -38,7 +39,7 @@ const DIFFICULTY_FILTER_OPTIONS = [
  * QuestionBankFilters
  *
  * Renders the search bar, difficulty chips, status filter, section pills, sort selector,
- * and bulk-selection action bar for the Question Bank.
+ * view mode switcher (Table Grid vs Editorial Cards), and bulk-selection action bar.
  */
 export default function QuestionBankFilters({
   searchQuery,
@@ -54,6 +55,8 @@ export default function QuestionBankFilters({
   selectedIds,
   isDeletingBulk,
   hasActiveFilters,
+  viewMode = 'grid',
+  setViewMode,
   onSelectAll,
   onBulkDelete,
   onClearAllFilters,
@@ -64,53 +67,73 @@ export default function QuestionBankFilters({
     <div
       style={{
         background: 'var(--bg-surface)',
-        border: '1px solid var(--border-subtle)',
+        border: '1px solid var(--border-light)',
         borderRadius: 'var(--radius-md)',
-        padding: '12px 16px',
+        padding: '10px 14px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '10px'
+        gap: '8px'
       }}
     >
-      {/* Search Row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+      {/* Primary Toolbar Row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        {/* Search Input */}
         <div
           style={{
-            flex: 1,
-            minWidth: '240px',
+            flex: '1 1 200px',
+            minWidth: '180px',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            background: 'var(--bg-surface-elevated)',
-            padding: '0 12px',
+            background: 'var(--bg-surface)',
+            padding: '0 10px',
             borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--border-subtle)'
+            border: '1px solid var(--border-light)',
+            height: '32px'
           }}
         >
-          <Search size={14} color="var(--text-muted)" />
+          <Search size={13} color="var(--text-muted)" />
           <input
             ref={searchInputRef}
             id="input-bank-search"
             aria-label="Search questions by stem, stimulus, topic, or trap"
             type="text"
-            placeholder="Search by stem, stimulus, topic, or trap (Press / to focus)..."
+            placeholder="Search questions (Press /)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
               border: 'none',
               background: 'transparent',
-              padding: '8px 0',
+              padding: '6px 0',
               width: '100%',
-              fontSize: '0.82rem',
+              fontSize: '0.78rem',
               color: 'var(--text-primary)',
               outline: 'none'
             }}
           />
-          <span className="kbd-hint" style={{ fontSize: '0.62rem' }}>/</span>
+          <span className="kbd-hint" style={{ fontSize: '0.6rem' }}>/</span>
+        </div>
+
+        {/* Section Filter Pills */}
+        <div className="pill-track" style={{ flexShrink: 0 }}>
+          {SECTION_FILTER_OPTIONS.map(sec => {
+            const isActive = sectionFilter === sec.id;
+            return (
+              <button
+                key={sec.id}
+                type="button"
+                className={`pill-track-btn ${isActive ? 'active' : ''}`}
+                onClick={() => setSectionFilter(sec.id)}
+                style={{ fontSize: '0.72rem', padding: '4px 9px' }}
+              >
+                <span>{sec.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Difficulty Filter Chips */}
-        <div className="pill-track">
+        <div className="pill-track" style={{ flexShrink: 0 }}>
           {DIFFICULTY_FILTER_OPTIONS.map(d => {
             const isActive = diffFilter === d.id;
             return (
@@ -119,7 +142,7 @@ export default function QuestionBankFilters({
                 type="button"
                 onClick={() => setDiffFilter(d.id)}
                 className={`pill-track-btn ${isActive ? 'active' : ''}`}
-                style={{ padding: '4px 10px', fontSize: '0.74rem' }}
+                style={{ padding: '4px 8px', fontSize: '0.72rem' }}
               >
                 {d.label}
               </button>
@@ -127,30 +150,38 @@ export default function QuestionBankFilters({
           })}
         </div>
 
-        {/* Verified Approved Library Tag */}
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '3px 10px',
-            borderRadius: 'var(--radius-sm)',
-            background: 'rgba(16, 185, 129, 0.08)',
-            border: '1px solid rgba(16, 185, 129, 0.25)',
-            fontSize: '0.72rem',
-            color: 'var(--status-success)',
-            fontWeight: 600
-          }}
-          title="All questions in this bank have been reviewed and approved into the repository"
-        >
-          <CheckCircle2 size={12} color="var(--status-success)" />
-          <span>Approved Bank</span>
-        </div>
+        {/* View Mode Switcher */}
+        {setViewMode && (
+          <div className="view-mode-pill-group" style={{ flexShrink: 0 }} title="Toggle Table Grid or Editorial Cards">
+            <button
+              type="button"
+              id="btn-view-mode-grid"
+              onClick={() => setViewMode('grid')}
+              className={`view-mode-btn ${viewMode === 'grid' ? 'active' : ''}`}
+              title="Table Grid View"
+              style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+            >
+              <Table size={12} />
+              <span>Table</span>
+            </button>
+            <button
+              type="button"
+              id="btn-view-mode-cards"
+              onClick={() => setViewMode('cards')}
+              className={`view-mode-btn ${viewMode === 'cards' ? 'active' : ''}`}
+              title="Editorial Cards View"
+              style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+            >
+              <LayoutList size={12} />
+              <span>Cards</span>
+            </button>
+          </div>
+        )}
 
         {/* Sort Selector */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto', minWidth: '180px' }}>
-          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
-            <ArrowUpDown size={12} /> Sort:
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto', flexShrink: 0 }}>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '3px', whiteSpace: 'nowrap' }}>
+            <ArrowUpDown size={11} /> Sort:
           </span>
           <CustomSelect
             id="select-bank-sort"
@@ -161,27 +192,9 @@ export default function QuestionBankFilters({
             options={SORT_OPTIONS.map((opt) => ({ value: opt.id, label: opt.label }))}
             searchable={false}
             align="right"
-            style={{ width: '140px' }}
+            style={{ width: '135px' }}
           />
         </div>
-      </div>
-
-      {/* Section Horizontal Filter Pills */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
-        {SECTION_FILTER_OPTIONS.map(sec => {
-          const isActive = sectionFilter === sec.id;
-          return (
-            <button
-              key={sec.id}
-              type="button"
-              className={`filter-pill ${isActive ? 'active' : ''}`}
-              onClick={() => setSectionFilter(sec.id)}
-              style={{ fontSize: '0.74rem', padding: '4px 10px' }}
-            >
-              <span>{sec.label}</span>
-            </button>
-          );
-        })}
       </div>
 
       {/* Bulk Action Bar (When items are selected) */}

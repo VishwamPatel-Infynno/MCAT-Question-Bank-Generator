@@ -127,7 +127,92 @@ async def init_db_schema(engine: AsyncEngine):
             text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS batch_id VARCHAR(64);")
         )
         await conn.execute(
-            text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS updated_at VARCHAR(64);")
+            text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE;")
+        )
+        await conn.execute(
+            text(
+                """
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name = 'questions' AND column_name = 'created_at' AND data_type = 'character varying'
+                    ) THEN
+                        ALTER TABLE questions ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE USING (
+                            CASE WHEN created_at IS NOT NULL AND created_at != '' THEN created_at::timestamptz ELSE NOW() END
+                        );
+                        ALTER TABLE questions ALTER COLUMN created_at SET DEFAULT NOW();
+                    END IF;
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name = 'questions' AND column_name = 'updated_at' AND data_type = 'character varying'
+                    ) THEN
+                        ALTER TABLE questions ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE USING (
+                            CASE WHEN updated_at IS NOT NULL AND updated_at != '' THEN updated_at::timestamptz ELSE NULL END
+                        );
+                    END IF;
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name = 'passages' AND column_name = 'created_at' AND data_type = 'character varying'
+                    ) THEN
+                        ALTER TABLE passages ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE USING (
+                            CASE WHEN created_at IS NOT NULL AND created_at != '' THEN created_at::timestamptz ELSE NOW() END
+                        );
+                        ALTER TABLE passages ALTER COLUMN created_at SET DEFAULT NOW();
+                    END IF;
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name = 'passages' AND column_name = 'updated_at' AND data_type = 'character varying'
+                    ) THEN
+                        ALTER TABLE passages ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE USING (
+                            CASE WHEN updated_at IS NOT NULL AND updated_at != '' THEN updated_at::timestamptz ELSE NULL END
+                        );
+                    END IF;
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name = 'generation_batches' AND column_name = 'created_at' AND data_type = 'character varying'
+                    ) THEN
+                        ALTER TABLE generation_batches ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE USING (
+                            CASE WHEN created_at IS NOT NULL AND created_at != '' THEN created_at::timestamptz ELSE NOW() END
+                        );
+                        ALTER TABLE generation_batches ALTER COLUMN created_at SET DEFAULT NOW();
+                    END IF;
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name = 'generation_batches' AND column_name = 'updated_at' AND data_type = 'character varying'
+                    ) THEN
+                        ALTER TABLE generation_batches ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE USING (
+                            CASE WHEN updated_at IS NOT NULL AND updated_at != '' THEN updated_at::timestamptz ELSE NULL END
+                        );
+                    END IF;
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name = 'generation_jobs' AND column_name = 'created_at' AND data_type = 'character varying'
+                    ) THEN
+                        ALTER TABLE generation_jobs ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE USING (
+                            CASE WHEN created_at IS NOT NULL AND created_at != '' THEN created_at::timestamptz ELSE NOW() END
+                        );
+                        ALTER TABLE generation_jobs ALTER COLUMN created_at SET DEFAULT NOW();
+                    END IF;
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name = 'generation_jobs' AND column_name = 'started_at' AND data_type = 'character varying'
+                    ) THEN
+                        ALTER TABLE generation_jobs ALTER COLUMN started_at TYPE TIMESTAMP WITH TIME ZONE USING (
+                            CASE WHEN started_at IS NOT NULL AND started_at != '' THEN started_at::timestamptz ELSE NULL END
+                        );
+                    END IF;
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name = 'generation_jobs' AND column_name = 'completed_at' AND data_type = 'character varying'
+                    ) THEN
+                        ALTER TABLE generation_jobs ALTER COLUMN completed_at TYPE TIMESTAMP WITH TIME ZONE USING (
+                            CASE WHEN completed_at IS NOT NULL AND completed_at != '' THEN completed_at::timestamptz ELSE NULL END
+                        );
+                    END IF;
+                END $$;
+                """
+            )
         )
         await conn.execute(
             text("CREATE INDEX IF NOT EXISTS ix_questions_run_id ON questions (run_id);")

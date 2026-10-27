@@ -10,40 +10,40 @@ export default function BatchStatsHeader({ batches = EMPTY_BATCHES, activeCount 
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '16px'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '12px'
       }}
     >
       <div
         style={{
           background: 'var(--bg-surface)',
           border: '1px solid var(--border-light)',
-          borderRadius: 'var(--radius-md)',
-          padding: '16px 20px',
+          borderRadius: 'var(--radius-sm)',
+          padding: '12px 16px',
           display: 'flex',
           alignItems: 'center',
-          gap: '14px'
+          gap: '12px'
         }}
       >
         <div
           style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            background: 'rgba(79, 48, 185, 0.1)',
+            width: '32px',
+            height: '32px',
+            borderRadius: 'var(--radius-xs)',
+            background: 'rgba(79, 48, 185, 0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: 'var(--brand-primary)'
           }}
         >
-          <Layers size={18} />
+          <Layers size={16} />
         </div>
         <div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+          <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>
             {batches.length}
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
             Total Generation Batches
           </div>
         </div>
@@ -53,38 +53,39 @@ export default function BatchStatsHeader({ batches = EMPTY_BATCHES, activeCount 
         style={{
           background: 'var(--bg-surface)',
           border: '1px solid var(--border-light)',
-          borderRadius: 'var(--radius-md)',
-          padding: '16px 20px',
+          borderRadius: 'var(--radius-sm)',
+          padding: '12px 16px',
           display: 'flex',
           alignItems: 'center',
-          gap: '14px'
+          gap: '12px'
         }}
       >
         <div
           style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            background: 'rgba(51, 90, 207, 0.1)',
+            width: '32px',
+            height: '32px',
+            borderRadius: 'var(--radius-xs)',
+            background: 'rgba(51, 90, 207, 0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: 'var(--infynno-blue)'
           }}
         >
-          <Zap size={18} />
+          <Zap size={16} />
         </div>
         <div>
           <div
             style={{
-              fontSize: '1.4rem',
-              fontWeight: 800,
-              color: activeCount > 0 ? 'var(--infynno-cyan)' : 'var(--text-primary)'
+              fontSize: '1.25rem',
+              fontWeight: 700,
+              color: activeCount > 0 ? 'var(--infynno-cyan)' : 'var(--text-primary)',
+              lineHeight: 1.1
             }}
           >
             {activeCount}
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
             Running in Background
           </div>
         </div>
@@ -94,32 +95,32 @@ export default function BatchStatsHeader({ batches = EMPTY_BATCHES, activeCount 
         style={{
           background: 'var(--bg-surface)',
           border: '1px solid var(--border-light)',
-          borderRadius: 'var(--radius-md)',
-          padding: '16px 20px',
+          borderRadius: 'var(--radius-sm)',
+          padding: '12px 16px',
           display: 'flex',
           alignItems: 'center',
-          gap: '14px'
+          gap: '12px'
         }}
       >
         <div
           style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            background: 'rgba(16, 185, 129, 0.1)',
+            width: '32px',
+            height: '32px',
+            borderRadius: 'var(--radius-xs)',
+            background: 'rgba(16, 185, 129, 0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: 'var(--status-success)'
           }}
         >
-          <ShieldCheck size={18} />
+          <ShieldCheck size={16} />
         </div>
         <div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+          <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>
             {totalQuestionsAuthored}
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
             Questions Authored
           </div>
         </div>

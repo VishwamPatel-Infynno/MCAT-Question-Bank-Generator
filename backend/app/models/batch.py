@@ -1,11 +1,24 @@
-from sqlalchemy import Float, Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from datetime import datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy import CheckConstraint, DateTime, Float, Integer, String, Text, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.job import GenerationJobModel
+    from app.models.question import QuestionModel
 
 
 class GenerationBatchModel(Base):
     __tablename__ = "generation_batches"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending', 'in_progress', 'running', 'completed', 'partially_completed', 'failed', 'cancelled', 'stopped')",
+            name="ck_generation_batches_status",
+        ),
+    )
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     section: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
@@ -21,5 +34,18 @@ class GenerationBatchModel(Base):
     completed_jobs: Mapped[int | None] = mapped_column(Integer, nullable=True, default=0)
     failed_jobs: Mapped[int | None] = mapped_column(Integer, nullable=True, default=0)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
-    updated_at: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), onupdate=func.now(), nullable=True
+    )
+
+    # Relationships
+    jobs: Mapped[list["GenerationJobModel"]] = relationship(
+        "GenerationJobModel", back_populates="batch", cascade="all, delete-orphan", lazy="selectin"
+    )
+    questions: Mapped[list["QuestionModel"]] = relationship(
+        "QuestionModel", back_populates="batch", lazy="selectin"
+    )
+

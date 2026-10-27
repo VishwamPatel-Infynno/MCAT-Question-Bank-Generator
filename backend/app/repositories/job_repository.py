@@ -1,7 +1,9 @@
+from datetime import UTC, datetime
 import logging
 
 from sqlalchemy import select
 
+from app.db.base import to_datetime, to_iso_str
 from app.db.session import async_session_factory
 from app.models.job import GenerationJobModel
 from app.schemas import GenerationJob
@@ -24,9 +26,9 @@ def _job_model_to_schema(m: GenerationJobModel) -> GenerationJob:
         completion_tokens=m.completion_tokens or 0,
         cost_usd=float(m.cost_usd) if m.cost_usd is not None else 0.0,
         error_message=m.error_message,
-        created_at=m.created_at,
-        started_at=m.started_at,
-        completed_at=m.completed_at,
+        created_at=to_iso_str(m.created_at),
+        started_at=to_iso_str(m.started_at) if m.started_at else None,
+        completed_at=to_iso_str(m.completed_at) if m.completed_at else None,
     )
 
 
@@ -45,9 +47,9 @@ def _job_schema_to_model(j: GenerationJob) -> GenerationJobModel:
         completion_tokens=j.completion_tokens,
         cost_usd=j.cost_usd,
         error_message=j.error_message,
-        created_at=j.created_at,
-        started_at=j.started_at,
-        completed_at=j.completed_at,
+        created_at=to_datetime(j.created_at),
+        started_at=to_datetime(j.started_at) if j.started_at else None,
+        completed_at=to_datetime(j.completed_at) if j.completed_at else None,
     )
 
 
@@ -130,9 +132,9 @@ async def update_job_progress(
         if error_message is not None:
             model.error_message = error_message
         if started_at is not None:
-            model.started_at = started_at
+            model.started_at = to_datetime(started_at) if started_at else None
         if completed_at is not None:
-            model.completed_at = completed_at
+            model.completed_at = to_datetime(completed_at) if completed_at else None
 
         await session.commit()
         await session.refresh(model)

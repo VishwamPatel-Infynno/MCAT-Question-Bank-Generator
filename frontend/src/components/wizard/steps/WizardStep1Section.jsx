@@ -7,31 +7,88 @@ export default function WizardStep1Section({
   SECTION_METADATA,
   sectionMeta,
   pacing,
-  onAutoAdvance
+  onAutoAdvance,
+  presets = [],
+  onApplyPreset,
+  totalQuestions
 }) {
   const handleCardClick = (secId) => {
     onSelectSection(secId);
     if (onAutoAdvance) {
       setTimeout(() => {
         onAutoAdvance();
-      }, 240);
+      }, 220);
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      {/* Step Header */}
       <div className="wizard-heading-group">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-          <h2 className="wizard-step-title">Which AAMC MCAT section would you like to practice?</h2>
-          <span className="badge-minimal">
-            ⏱️ {pacing.target || '~96s / Q'} Target Speed
+          <h2 className="wizard-step-title">Choose MCAT Exam Section</h2>
+          <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
+            ⏱️ {pacing.target || '~96s / Q'} Target Pacing
           </span>
         </div>
         <p className="wizard-step-subtitle">
-          Select one of the four official exam sections below. Each section activates tailored scientific disciplines, official pacing guidelines, and scoring criteria.
+          Select an official AAMC section. Each section calibrates scientific disciplines, high-yield topics, and cognitive distractor traps.
         </p>
       </div>
 
+      {/* Sleek Quick Presets Pill Row */}
+      {presets && presets.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            flexWrap: 'wrap',
+            padding: '8px 12px',
+            borderRadius: 'var(--radius-sm)',
+            background: 'var(--bg-surface-subtle)',
+            border: '1px solid var(--border-light)',
+            fontSize: '0.75rem'
+          }}
+        >
+          <span style={{ fontWeight: 600, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Sparkles size={12} color="var(--brand-primary)" />
+            <span>Quick Start:</span>
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', flex: 1 }}>
+            {presets.map((preset) => {
+              const isMatch = selectedSection === preset.section && totalQuestions === preset.total;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => onApplyPreset?.(preset)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '3px 9px',
+                    borderRadius: 'var(--radius-full)',
+                    background: isMatch ? 'var(--brand-light)' : 'var(--bg-surface)',
+                    border: isMatch ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
+                    color: isMatch ? 'var(--brand-primary)' : 'var(--text-secondary)',
+                    fontWeight: isMatch ? 600 : 500,
+                    fontSize: '0.72rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                  title={preset.desc}
+                >
+                  <span>{preset.label}</span>
+                  <span style={{ fontSize: '0.65rem', opacity: 0.75 }}>({preset.tag})</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 4 Section Selection Cards */}
       <div className="wizard-sections-grid">
         {Object.values(SECTION_METADATA).map((sec) => {
           const Icon = sec.icon;
@@ -59,13 +116,13 @@ export default function WizardStep1Section({
                     color: isSelected ? '#ffffff' : 'var(--text-secondary)'
                   }}
                 >
-                  <Icon size={18} />
+                  <Icon size={16} />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   {isSelected && (
                     <CheckCircle2 size={15} style={{ color: 'var(--brand-primary)' }} />
                   )}
-                  <span className="badge-minimal">{sec.tag}</span>
+                  <span className="badge-minimal" style={{ fontSize: '0.68rem' }}>{sec.tag}</span>
                 </div>
               </div>
 
@@ -76,22 +133,23 @@ export default function WizardStep1Section({
         })}
       </div>
 
-      {/* Interactive Section Coach Tip */}
+      {/* Minimalist Section Coach Tip */}
       {sectionMeta.coachTip && (
         <div style={{
-          padding: '12px 16px',
+          padding: '10px 14px',
           borderRadius: 'var(--radius-sm)',
-          background: 'var(--bg-surface-subtle)',
+          background: 'var(--bg-surface)',
           border: '1px solid var(--border-light)',
+          borderLeft: '3px solid var(--brand-primary)',
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
-          fontSize: '0.825rem',
+          gap: '10px',
+          fontSize: '0.8rem',
           color: 'var(--text-secondary)'
         }}>
-          <Sparkles size={16} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
+          <Sparkles size={14} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
           <div>
-            <strong style={{ color: 'var(--text-primary)' }}>Tip for {sectionMeta.label}:</strong>{' '}
+            <strong style={{ color: 'var(--text-primary)' }}>{sectionMeta.label} Tip:</strong>{' '}
             <span>
               {sectionMeta.coachTip.replace(/^⚡ Exam Coach Tip:\s*/, '')}
             </span>

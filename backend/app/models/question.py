@@ -1,14 +1,47 @@
-from typing import Any
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import Float, Integer, String, Text
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.batch import GenerationBatchModel
+    from app.models.job import GenerationJobModel
+    from app.models.passage import PassageModel
 
 
 class QuestionModel(Base):
     __tablename__ = "questions"
+    __table_args__ = (
+        CheckConstraint(
+            "length(trim(section)) > 0",
+            name="ck_questions_section",
+        ),
+        CheckConstraint(
+            "status IN ('in_bank', 'ai_validated', 'batch_only', 'below_threshold', 'discarded', 'approved', 'rejected_below_threshold', 'error', 'failed')",
+            name="ck_questions_status",
+        ),
+        CheckConstraint(
+            "final_score >= 0 AND final_score <= 100",
+            name="ck_questions_final_score",
+        ),
+        Index("ix_questions_status_created", "status", "created_at"),
+        Index("ix_questions_section_created", "section", "created_at"),
+        Index("ix_questions_batch_job", "batch_id", "job_id"),
+    )
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     section: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
@@ -28,11 +61,25 @@ class QuestionModel(Base):
     review_rubric: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     iteration_count: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     iterations_history: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB, nullable=True)
-    created_at: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
-    updated_at: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), onupdate=func.now(), nullable=True
+    )
     run_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
-    batch_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
-    job_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    batch_id: Mapped[str | None] = mapped_column(
+        String(64),
+        ForeignKey("generation_batches.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    job_id: Mapped[str | None] = mapped_column(
+        String(64),
+        ForeignKey("generation_jobs.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     status: Mapped[str] = mapped_column(String(32), default="in_bank", index=True)
 
     # Token usage & cost tracking
@@ -50,7 +97,12 @@ class QuestionModel(Base):
     primary_trap: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     passage_required: Mapped[str | None] = mapped_column(String(16), nullable=True)
     passage_mode: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    passage_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    passage_id: Mapped[str | None] = mapped_column(
+        String(64),
+        ForeignKey("passages.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     passage_questions: Mapped[int | None] = mapped_column(Integer, nullable=True)
     visual_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
@@ -67,3 +119,15 @@ class QuestionModel(Base):
 
     # Multi-Stage Raw Outcome JSON
     stage_outcomes: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+
+    # Bidirectional relationships
+    passage: Mapped["PassageModel | None"] = relationship(
+        "PassageModel", back_populates="questions"
+    )
+    batch: Mapped["GenerationBatchModel | None"] = relationship(
+        "GenerationBatchModel", back_populates="questions"
+    )
+    job: Mapped["GenerationJobModel | None"] = relationship(
+        "GenerationJobModel", back_populates="questions"
+    )
+

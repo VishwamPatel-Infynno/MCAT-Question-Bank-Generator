@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 
+from app.db.base import to_datetime, to_iso_str
 from app.db.session import async_session_factory
 from app.models.batch import GenerationBatchModel
 from app.models.job import GenerationJobModel
@@ -28,8 +29,8 @@ def _batch_model_to_schema(m: GenerationBatchModel) -> GenerationBatch:
         total_tokens=m.total_tokens or 0,
         cost_usd=float(m.cost_usd) if m.cost_usd is not None else 0.0,
         status=m.status or "completed",
-        created_at=m.created_at,
-        updated_at=m.updated_at,
+        created_at=to_iso_str(m.created_at),
+        updated_at=to_iso_str(m.updated_at) if m.updated_at else None,
     )
 
 
@@ -50,8 +51,8 @@ def _batch_schema_to_model(b: GenerationBatch) -> GenerationBatchModel:
         total_tokens=b.total_tokens,
         cost_usd=b.cost_usd,
         status=b.status,
-        created_at=b.created_at,
-        updated_at=b.updated_at or datetime.now(UTC).isoformat(),
+        created_at=to_datetime(b.created_at),
+        updated_at=to_datetime(b.updated_at) if b.updated_at else datetime.now(UTC),
     )
 
 
@@ -136,7 +137,7 @@ async def refresh_batch_aggregates(batch_id: str) -> GenerationBatch | None:
         batch_model.actual_count = actual_count
         batch_model.total_tokens = total_tokens
         batch_model.cost_usd = cost_usd
-        batch_model.updated_at = datetime.now(UTC).isoformat()
+        batch_model.updated_at = datetime.now(UTC)
 
         total_jobs = batch_model.total_jobs or 10
         target_count = batch_model.target_count or 50

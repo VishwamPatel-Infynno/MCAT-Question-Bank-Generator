@@ -27,11 +27,11 @@ export default function WizardStep7Review({
   const trapLabel = trapObj?.label || primaryTrap || 'Automatic';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
       <div className="wizard-heading-group">
-        <h2 className="wizard-step-title">Review & Finalize MCAT Generation Parameters</h2>
+        <h2 className="wizard-step-title">Review &amp; Finalize Parameters</h2>
         <p className="wizard-step-subtitle">
-          Verify your syllabus hierarchy, challenge calibration, distractor traps, and visual stimuli before launching the multi-agent swarm.
+          Verify your syllabus hierarchy, cognitive traps, and visual stimuli before launching question authoring.
         </p>
       </div>
 
@@ -39,11 +39,11 @@ export default function WizardStep7Review({
         {/* Row 1: Section & Pacing (Step 1) */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Target Section & Pacing</div>
-            <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
+            <div className="wizard-summary-label">Target Section &amp; Pacing</div>
+            <div className="wizard-summary-value" style={{ marginTop: '3px' }}>
               <span style={{ color: sectionMeta?.color, fontWeight: 700 }}>{sectionMeta?.label}</span>
               <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
-              <span className="badge-minimal">⏱️ {pacing?.target || '~96s / Q'} Target Speed</span>
+              <span className="badge-minimal" style={{ fontSize: '0.7rem' }}>⏱️ {pacing?.target || '~96s / Q'} Target Pacing</span>
             </div>
           </div>
           <button
@@ -52,16 +52,16 @@ export default function WizardStep7Review({
             onClick={() => setStep(1)}
             title="Edit Exam Section"
           >
-            <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
-            Edit Section
+            <Edit3 size={12} style={{ display: 'inline', marginRight: '4px' }} />
+            Edit
           </button>
         </div>
 
         {/* Row 2: Discipline & Major Unit (Step 2) */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Discipline & Major Unit</div>
-            <div className="wizard-summary-value" style={{ marginTop: '4px' }}>
+            <div className="wizard-summary-label">Discipline &amp; Syllabus Unit</div>
+            <div className="wizard-summary-value" style={{ marginTop: '3px' }}>
               <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                 {selectedSubject || 'Discipline'}
               </span>
@@ -77,23 +77,21 @@ export default function WizardStep7Review({
             onClick={() => setStep(2)}
             title="Edit Discipline and Unit"
           >
-            <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
-            Edit Unit
+            <Edit3 size={12} style={{ display: 'inline', marginRight: '4px' }} />
+            Edit
           </button>
         </div>
 
         {/* Row 3: Topic & Specific Subtopic (Step 3) */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Target Topic & High-Yield Concept</div>
-            <div className="wizard-summary-value" style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <div>
-                <strong style={{ color: 'var(--text-primary)' }}>{selectedSubtopic || 'General Practice'}</strong>
-              </div>
+            <div className="wizard-summary-label">Topic &amp; Target Concept</div>
+            <div className="wizard-summary-value" style={{ marginTop: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>{selectedSubtopic || 'General Practice'}</strong>
               {selectedTopic && (
-                <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
-                  Topic Area: {selectedTopic}
-                </div>
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                  ({selectedTopic})
+                </span>
               )}
             </div>
           </div>
@@ -103,33 +101,33 @@ export default function WizardStep7Review({
             onClick={() => setStep(3)}
             title="Edit Topic and Subtopic"
           >
-            <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
-            Edit Topic
+            <Edit3 size={12} style={{ display: 'inline', marginRight: '4px' }} />
+            Edit
           </button>
         </div>
 
         {/* Row 4: Challenge Level, Scope & Format (Step 4) */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Challenge Level, Scope & Format</div>
-            <div className="wizard-summary-value" style={{ marginTop: '4px', flexWrap: 'wrap', gap: '8px' }}>
+            <div className="wizard-summary-label">Level, Scope &amp; Format</div>
+            <div className="wizard-summary-value" style={{ marginTop: '3px', flexWrap: 'wrap', gap: '8px' }}>
               <span style={{ textTransform: 'capitalize', fontWeight: 600 }}>{difficulty} Difficulty</span>
               <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
               <span style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>
                 {totalQuestions === 5
-                  ? 'Live Mini-Set (1 Job • 5 Qs, Staged)'
-                  : `Full Mock Section (10 Jobs • ${totalQuestions} Qs, Async)`}
+                  ? 'Live Mini-Set (1 Job &bull; 5 Qs)'
+                  : `Full Mock Section (10 Jobs &bull; ${totalQuestions} Qs)`}
               </span>
               <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
-              <span className="badge-minimal">
-                {questionType === 'PASSAGE_BASED_MCQ' ? 'Passage-Based MCQ (Single Choice)' : 'Independent MCQ (Single Choice)'}
+              <span className="badge-minimal" style={{ fontSize: '0.7rem' }}>
+                {questionType === 'PASSAGE_BASED_MCQ' ? 'Passage-Based MCQ' : 'Independent MCQ'}
               </span>
             </div>
             {setTotalQuestions && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px' }}>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Quick switch scope:</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Switch scope:</span>
                 {[
-                  { count: 5, label: '1 Job (5 Qs Staged)' },
+                  { count: 5, label: '1 Job (5 Qs Live)' },
                   { count: 50, label: '10 Jobs (50 Qs Batch)' }
                 ].map(({ count, label }) => (
                   <button
@@ -137,9 +135,9 @@ export default function WizardStep7Review({
                     type="button"
                     onClick={() => setTotalQuestions(count)}
                     style={{
-                      padding: '3px 8px',
-                      fontSize: '0.7rem',
-                      fontWeight: totalQuestions === count ? 700 : 500,
+                      padding: '2px 7px',
+                      fontSize: '0.68rem',
+                      fontWeight: totalQuestions === count ? 600 : 500,
                       borderRadius: 'var(--radius-xs)',
                       background: totalQuestions === count ? 'var(--brand-light)' : 'var(--bg-surface-subtle)',
                       border: totalQuestions === count ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
@@ -159,17 +157,17 @@ export default function WizardStep7Review({
             onClick={() => setStep(4)}
             title="Edit Difficulty & Format"
           >
-            <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
-            Edit Scope
+            <Edit3 size={12} style={{ display: 'inline', marginRight: '4px' }} />
+            Edit
           </button>
         </div>
 
         {/* Row 5: Cognitive Traps & Reasoning Skills (Step 5) */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Cognitive Trap & Reasoning Skill</div>
-            <div className="wizard-summary-value" style={{ marginTop: '4px', flexWrap: 'wrap' }}>
-              <span className="badge badge-purple" style={{ fontSize: '0.76rem' }}>
+            <div className="wizard-summary-label">Distractor Trap &amp; Reasoning Competency</div>
+            <div className="wizard-summary-value" style={{ marginTop: '3px', flexWrap: 'wrap' }}>
+              <span className="badge badge-purple" style={{ fontSize: '0.72rem' }}>
                 {primaryTrap === 'Automatic' ? (
                   <Sparkles size={11} style={{ marginRight: '4px', display: 'inline', color: 'var(--brand-primary)' }} />
                 ) : (
@@ -180,9 +178,9 @@ export default function WizardStep7Review({
               {(selectedSkill || selectedSubskill) && (
                 <>
                   <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
-                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{selectedSkill}</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.8rem' }}>{selectedSkill}</span>
                   {selectedSubskill && (
-                    <span style={{ color: 'var(--text-secondary)' }}>: {selectedSubskill}</span>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.78rem' }}>: {selectedSubskill}</span>
                   )}
                 </>
               )}
@@ -194,60 +192,43 @@ export default function WizardStep7Review({
             onClick={() => setStep(5)}
             title="Edit Traps & Skills"
           >
-            <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
-            Edit Traps
+            <Edit3 size={12} style={{ display: 'inline', marginRight: '4px' }} />
+            Edit
           </button>
         </div>
 
         {/* Row 6: Visual Stimulus & Custom Focus (Step 6) */}
         <div className="wizard-summary-row">
           <div>
-            <div className="wizard-summary-label">Visual Stimuli & Guidance</div>
-            <div className="wizard-summary-value" style={{ marginTop: '4px', flexWrap: 'wrap' }}>
+            <div className="wizard-summary-label">Visuals &amp; Directives</div>
+            <div className="wizard-summary-value" style={{ marginTop: '3px', flexWrap: 'wrap' }}>
               <span>
                 {selectedSection === 'cars'
-                  ? 'Disabled (Strict AAMC CARS: Text-Only)'
+                  ? 'Disabled (Strict CARS Standard)'
                   : allowAiImages
-                  ? 'AI-Determined When Needed'
-                  : 'Disabled (Text-Only Items)'}
+                  ? 'AI Figures When Needed'
+                  : 'Text-Only Items'}
               </span>
-              {selectedSection === 'cars' ? (
-                <span className="badge-minimal" style={{ color: 'var(--amber-warning, #f59e0b)' }}>CARS Standard</span>
-              ) : allowAiImages ? (
-                <span className="badge-minimal" style={{ color: 'var(--brand-primary)', borderColor: 'var(--brand-primary)' }}>
-                  Autonomous $0.014 / img on-demand
-                </span>
-              ) : (
-                <span className="badge-minimal">$0.00 Image Cost</span>
-              )}
               {customMistakePattern ? (
                 <>
                   <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                  <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
                     Misconception: <em>{customMistakePattern}</em>
                   </span>
                 </>
-              ) : likelyMistakePattern === 'None' ? (
+              ) : likelyMistakePattern === 'None' ? null : (
                 <>
                   <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                    Misconception: None (Standard Distractors)
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
-                  <span className="badge badge-amber" style={{ fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <Sparkles size={10} />
+                  <span className="badge-minimal" style={{ fontSize: '0.68rem' }}>
                     {likelyMistakePattern && likelyMistakePattern !== 'Automatic'
-                      ? `Misconception: ${likelyMistakePattern}`
-                      : 'Misconception: Smart AI Choice'}
+                      ? `Trap: ${likelyMistakePattern}`
+                      : 'Smart AI Trap Analysis'}
                   </span>
                 </>
               )}
               {customPrompt && (
-                <div style={{ fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--text-muted)', width: '100%', marginTop: '3px' }}>
-                  Prompt: "{customPrompt}"
+                <div style={{ fontSize: '0.74rem', fontStyle: 'italic', color: 'var(--text-muted)', width: '100%', marginTop: '2px' }}>
+                  "{customPrompt}"
                 </div>
               )}
             </div>
@@ -258,25 +239,33 @@ export default function WizardStep7Review({
             onClick={() => setStep(6)}
             title="Edit Visuals & Guidance"
           >
-            <Edit3 size={13} style={{ display: 'inline', marginRight: '4px' }} />
-            Edit Visuals
+            <Edit3 size={12} style={{ display: 'inline', marginRight: '4px' }} />
+            Edit
           </button>
         </div>
       </div>
 
       {/* Generation Summary Banner */}
       <div style={{
-        padding: '16px 20px',
-        borderRadius: 'var(--radius-md)',
-        background: 'rgba(79, 48, 185, 0.1)',
-        border: '1px solid rgba(79, 48, 185, 0.25)',
+        padding: '12px 16px',
+        borderRadius: 'var(--radius-sm)',
+        background: 'var(--brand-light)',
+        border: '1px solid var(--border-brand)',
         display: 'flex',
         alignItems: 'center',
         gap: '12px'
       }}>
-        <Sparkles size={20} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
-        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-          Clicking <strong>Launch 50-Question Batch</strong> initiates 10 parallel drafting and review jobs running with controlled concurrency. Questions that pass the strict 100-pt psychometric standard will automatically stream into the <strong>AI Validated</strong> workspace.
+        <Sparkles size={18} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
+        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+          {totalQuestions === 5 ? (
+            <>
+              Clicking <strong>Generate 5-Question Set (Live)</strong> launches real-time SSE streaming into your staged review desk with inline editing and multi-agent verification (~35-50s).
+            </>
+          ) : (
+            <>
+              Clicking <strong>Launch 50-Question Batch</strong> dispatches 10 parallel drafting worker jobs in the global worker pool. Approved questions will automatically stream into your <strong>AI Validated</strong> workspace.
+            </>
+          )}
         </div>
       </div>
     </div>

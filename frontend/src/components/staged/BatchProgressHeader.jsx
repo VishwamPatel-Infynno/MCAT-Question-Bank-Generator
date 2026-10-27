@@ -58,13 +58,14 @@ export default function BatchProgressHeader({
 }) {
   return (
     <div
-      className="glass-panel"
       style={{
-        padding: '16px 20px',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-light)',
+        padding: '14px 18px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '14px',
-        borderRadius: 'var(--radius-md)'
+        gap: '12px',
+        borderRadius: 'var(--radius-sm)'
       }}
     >
       {/* ── Title & View Mode Switcher ─────────────────────────────────── */}

@@ -260,7 +260,7 @@ export default function GuidedWizard({
         </div>
 
         {/* Interactive Step Pills Tracker */}
-        <div className="wizard-stepper-7" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', overflowX: 'auto', paddingBottom: '4px' }}>
+        <div className="wizard-stepper-7" style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '10px', overflowX: 'auto', paddingBottom: '2px' }}>
           {STEP_CONFIG.map((cfg) => {
             const isCurrent = step === cfg.num;
             const isCompleted = step > cfg.num;
@@ -275,15 +275,15 @@ export default function GuidedWizard({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '5px 11px',
+                  padding: '4px 10px',
                   borderRadius: 'var(--radius-full)',
-                  fontSize: '0.75rem',
+                  fontSize: '0.74rem',
                   fontWeight: isCurrent ? 600 : 500,
                   cursor: 'pointer',
                   background: isCurrent
                     ? 'var(--brand-primary)'
                     : isCompleted
-                    ? 'var(--bg-surface-hover)'
+                    ? 'var(--bg-surface-subtle)'
                     : 'var(--bg-surface)',
                   border: isCurrent
                     ? '1px solid var(--brand-primary)'
@@ -301,18 +301,18 @@ export default function GuidedWizard({
               >
                 <span
                   style={{
-                    width: '18px',
-                    height: '18px',
+                    width: '16px',
+                    height: '16px',
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '0.68rem',
+                    fontSize: '0.64rem',
                     background: isCurrent ? 'rgba(255, 255, 255, 0.25)' : 'transparent',
                     fontWeight: 600
                   }}
                 >
-                  {isCompleted ? <Check size={11} /> : cfg.num}
+                  {isCompleted ? <Check size={10} /> : cfg.num}
                 </span>
                 <span>{cfg.short}</span>
               </button>
@@ -331,88 +331,19 @@ export default function GuidedWizard({
 
       {/* Wizard Body: Render Focused Progressive Steps */}
       <div className="wizard-body wizard-step-fade-enter" key={step}>
-        {/* Step 1: Exam Section (1 Decision) */}
+        {/* Step 1: Exam Section */}
         {step === 1 && (
-          <>
-            {/* Quick Launch Preset Ribbon */}
-            <div style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border-light)',
-              borderRadius: 'var(--radius-md)',
-              padding: '12px 16px',
-              marginBottom: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '0.775rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    Quick Launch Presets
-                  </span>
-                  <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
-                    Standard AAMC pacing & calibration
-                  </span>
-                </div>
-                <span className="badge-minimal" style={{ fontSize: '0.675rem' }}>
-                  Press ⌘↵ to Launch
-                </span>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
-                {QUICK_PRESETS.map((preset) => {
-                  const isMatch = selectedSection === preset.section && totalQuestions === preset.total;
-                  return (
-                    <button
-                      key={preset.id}
-                      type="button"
-                      onClick={() => handleApplyQuickPreset(preset)}
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'flex-start',
-                        gap: '3px',
-                        padding: '8px 10px',
-                        borderRadius: 'var(--radius-sm)',
-                        background: isMatch ? 'var(--brand-light)' : 'var(--bg-surface-subtle)',
-                        border: isMatch ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
-                        color: 'var(--text-primary)',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'all 0.15s ease'
-                      }}
-                      title="Click to apply parameters and jump straight to Review & Launch"
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{preset.label}</span>
-                        <span style={{
-                          fontSize: '0.625rem',
-                          padding: '1px 5px',
-                          borderRadius: 'var(--radius-full)',
-                          background: isMatch ? 'var(--brand-primary)' : 'var(--bg-surface-hover)',
-                          color: isMatch ? '#ffffff' : 'var(--text-secondary)',
-                          fontWeight: 600
-                        }}>
-                          {preset.tag}
-                        </span>
-                      </div>
-                      <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                        {preset.desc}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <WizardStep1Section
-              selectedSection={selectedSection}
-              onSelectSection={handleSelectSection}
-              SECTION_METADATA={SECTION_METADATA}
-              sectionMeta={sectionMeta}
-              pacing={pacing}
-              onAutoAdvance={() => setStep(2)}
-            />
-          </>
+          <WizardStep1Section
+            selectedSection={selectedSection}
+            onSelectSection={handleSelectSection}
+            SECTION_METADATA={SECTION_METADATA}
+            sectionMeta={sectionMeta}
+            pacing={pacing}
+            onAutoAdvance={() => setStep(2)}
+            presets={QUICK_PRESETS}
+            onApplyPreset={handleApplyQuickPreset}
+            totalQuestions={totalQuestions}
+          />
         )}
 
         {/* Step 2: Discipline & Major Unit (2 Decisions) */}

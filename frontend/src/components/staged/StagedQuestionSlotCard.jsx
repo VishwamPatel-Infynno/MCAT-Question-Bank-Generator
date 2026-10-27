@@ -40,19 +40,20 @@ export default function StagedQuestionSlotCard({
     return (
       <div
         key={q.id || idx}
-        className="glass-panel"
         style={{
-          padding: '16px',
+          background: 'var(--bg-surface)',
+          padding: '14px 16px',
           display: 'flex',
           flexDirection: 'column',
           gap: '12px',
-          borderRadius: 'var(--radius-md)',
+          borderRadius: 'var(--radius-sm)',
           border: isSaved
             ? '1px solid rgba(16, 185, 129, 0.4)'
             : isChecked
             ? '1px solid var(--border-brand)'
             : '1px solid var(--border-light)',
-          position: 'relative'
+          position: 'relative',
+          transition: 'border-color var(--transition-fast)'
         }}
       >
         {/* Card Top Header */}

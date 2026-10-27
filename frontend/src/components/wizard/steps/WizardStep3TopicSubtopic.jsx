@@ -68,16 +68,16 @@ export default function WizardStep3TopicSubtopic({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div className="wizard-heading-group">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-          <h2 className="wizard-step-title">Specify Core Topic & High-Yield Concept</h2>
-          <span className="badge-minimal">
+          <h2 className="wizard-step-title">Specify Topic &amp; Concept</h2>
+          <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
             {activeSubject?.name || 'Discipline'} &bull; {activeUnit?.name || 'Unit'}
           </span>
         </div>
         <p className="wizard-step-subtitle">
-          Filter and select your primary topic area, then pick the exact target subtopic concept to focus the question generation.
+          Select your primary topic area, then choose the high-yield subtopic concept for targeted question drafting.
         </p>
       </div>
 
@@ -86,14 +86,14 @@ export default function WizardStep3TopicSubtopic({
         <div className="wizard-decision-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="wizard-decision-num">1</span>
-            <span className="wizard-decision-title">Core Topic Area</span>
+            <span className="wizard-decision-title">Topic Area</span>
           </div>
-          <div style={{ position: 'relative', width: '220px' }}>
+          <div style={{ position: 'relative', width: '200px' }}>
             <Search
-              size={13}
+              size={12}
               style={{
                 position: 'absolute',
-                left: '10px',
+                left: '9px',
                 top: '50%',
                 transform: 'translateY(-50%)',
                 color: 'var(--text-muted)'
@@ -106,16 +106,16 @@ export default function WizardStep3TopicSubtopic({
               onChange={(e) => setTopicSearch(e.target.value)}
               className="input-field"
               style={{
-                height: '30px',
-                paddingLeft: '30px',
-                fontSize: '0.75rem',
+                height: '28px',
+                paddingLeft: '28px',
+                fontSize: '0.74rem',
                 width: '100%'
               }}
             />
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', maxHeight: '240px', overflowY: 'auto', padding: '2px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '8px', maxHeight: '220px', overflowY: 'auto', padding: '1px' }}>
           {filteredTopics.map((top) => {
             const isSelected = activeTopic?.id === top.id;
             return (
@@ -132,23 +132,23 @@ export default function WizardStep3TopicSubtopic({
                 role="button"
                 tabIndex={0}
                 aria-pressed={isSelected}
-                style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <BookmarkCheck size={15} style={{ color: isSelected ? 'var(--brand-primary)' : 'var(--text-muted)', flexShrink: 0 }} />
-                  <span style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  <BookmarkCheck size={14} style={{ color: isSelected ? 'var(--brand-primary)' : 'var(--text-muted)', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                     {top.name}
                   </span>
                 </div>
                 {isSelected && (
-                  <CheckCircle2 size={15} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
+                  <CheckCircle2 size={14} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
                 )}
               </div>
             );
           })}
           {filteredTopics.length === 0 && (
-            <div style={{ gridColumn: '1 / -1', padding: '16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-              No topic matching "{topicSearch}". Try clearing the search.
+            <div style={{ gridColumn: '1 / -1', padding: '14px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+              No topic matching "{topicSearch}".
             </div>
           )}
         </div>
@@ -162,14 +162,14 @@ export default function WizardStep3TopicSubtopic({
         <div className="wizard-decision-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="wizard-decision-num">2</span>
-            <span className="wizard-decision-title">Target Subtopic Concept</span>
+            <span className="wizard-decision-title">Target Concept</span>
           </div>
-          <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
             {subtopics.length} concepts
           </span>
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
           {subtopics.map((st) => {
             const isSelected = activeSubtopic === st;
             return (
@@ -179,24 +179,24 @@ export default function WizardStep3TopicSubtopic({
                 onClick={() => handleSubtopicClick(st)}
                 className={`pill-chip ${isSelected ? 'selected' : ''}`}
                 style={{
-                  padding: '8px 14px',
+                  padding: '6px 12px',
                   borderRadius: 'var(--radius-full)',
                   border: isSelected ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
-                  background: isSelected ? 'rgba(79, 48, 185, 0.12)' : 'var(--bg-surface-elevated)',
-                  color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  background: isSelected ? 'var(--brand-light)' : 'var(--bg-surface)',
+                  color: isSelected ? 'var(--brand-primary)' : 'var(--text-secondary)',
                   fontWeight: isSelected ? 600 : 500,
-                  fontSize: '0.8rem',
+                  fontSize: '0.78rem',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  gap: '5px',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease'
                 }}
               >
                 {isSelected ? (
-                  <CheckCircle2 size={13} style={{ color: 'var(--brand-primary)' }} />
+                  <CheckCircle2 size={12} style={{ color: 'var(--brand-primary)' }} />
                 ) : (
-                  <Tag size={12} style={{ color: 'var(--text-dim)' }} />
+                  <Tag size={11} style={{ color: 'var(--text-dim)' }} />
                 )}
                 <span>{st}</span>
               </button>

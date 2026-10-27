@@ -55,11 +55,11 @@ export default function WizardStep5TrapsSkills({
   }, [trapFilter]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div className="wizard-heading-group">
-        <h2 className="wizard-step-title">Calibrate Cognitive Traps & Reasoning Skills</h2>
+        <h2 className="wizard-step-title">Cognitive Traps &amp; Reasoning Skills</h2>
         <p className="wizard-step-subtitle">
-          Anchor question psychometrics to deliberate AAMC distractor trap mechanisms and official inquiry reasoning skills.
+          Anchor distractor options to deliberate AAMC fallacy traps and official inquiry reasoning skills.
         </p>
       </div>
 
@@ -68,14 +68,14 @@ export default function WizardStep5TrapsSkills({
         <div className="wizard-decision-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="wizard-decision-num">1</span>
-            <span className="wizard-decision-title">Primary Cognitive Distractor Trap</span>
+            <span className="wizard-decision-title">Distractor Trap Mechanism</span>
           </div>
-          <div style={{ position: 'relative', width: '220px' }}>
+          <div style={{ position: 'relative', width: '200px' }}>
             <Search
-              size={13}
+              size={12}
               style={{
                 position: 'absolute',
-                left: '10px',
+                left: '9px',
                 top: '50%',
                 transform: 'translateY(-50%)',
                 color: 'var(--text-muted)'
@@ -83,21 +83,21 @@ export default function WizardStep5TrapsSkills({
             />
             <input
               type="text"
-              placeholder="Filter 25 traps..."
+              placeholder="Filter traps..."
               value={trapFilter}
               onChange={(e) => setTrapFilter(e.target.value)}
               className="input-field"
               style={{
-                height: '30px',
-                paddingLeft: '30px',
-                fontSize: '0.75rem',
+                height: '28px',
+                paddingLeft: '28px',
+                fontSize: '0.74rem',
                 width: '100%'
               }}
             />
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '10px', maxHeight: '230px', overflowY: 'auto', padding: '2px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '8px', maxHeight: '200px', overflowY: 'auto', padding: '1px' }}>
           {filteredTraps.map((trap) => {
             const isSelected = primaryTrap === trap.id;
             const isAuto = trap.id === 'Automatic';
@@ -115,24 +115,24 @@ export default function WizardStep5TrapsSkills({
                 role="button"
                 tabIndex={0}
                 aria-pressed={isSelected}
-                style={{ padding: '12px 14px' }}
+                style={{ padding: '10px 12px' }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                     {isAuto ? (
-                      <Sparkles size={14} style={{ color: 'var(--brand-primary)' }} />
+                      <Sparkles size={13} style={{ color: 'var(--brand-primary)' }} />
                     ) : (
-                      <Zap size={14} style={{ color: 'var(--status-purple)' }} />
+                      <Zap size={13} style={{ color: 'var(--status-purple)' }} />
                     )}
-                    <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                       {trap.label}
                     </span>
                   </div>
                   {isSelected && (
-                    <CheckCircle2 size={15} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
+                    <CheckCircle2 size={14} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
                   )}
                 </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>
                   {trap.desc}
                 </div>
               </div>
@@ -149,29 +149,30 @@ export default function WizardStep5TrapsSkills({
         <div className="wizard-decision-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="wizard-decision-num">2</span>
-            <span className="wizard-decision-title">AAMC Reasoning Skill (SIRS / CARS)</span>
+            <span className="wizard-decision-title">AAMC Reasoning Competency</span>
           </div>
-          <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
-            Official Competency
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+            Official Syllabus
           </span>
         </div>
 
         {/* Skill Selection Pills */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: availableSubskills.length > 0 ? '12px' : 0 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: availableSubskills.length > 0 ? '10px' : 0 }}>
           {availableSkills.map((sk) => {
             const isSel = (activeSkill?.id === sk.id);
             return (
               <button
                 key={sk.id}
                 type="button"
-                className={`badge-minimal ${isSel ? 'active' : ''}`}
+                className={`pill-chip ${isSel ? 'selected' : ''}`}
                 style={{
-                  padding: '8px 14px',
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-full)',
                   cursor: 'pointer',
-                  fontSize: '0.8rem',
-                  background: isSel ? 'var(--infynno-gradient)' : 'var(--bg-surface-elevated)',
-                  borderColor: isSel ? 'transparent' : 'var(--border-light)',
-                  color: isSel ? '#ffffff' : 'var(--text-primary)',
+                  fontSize: '0.76rem',
+                  background: isSel ? 'var(--brand-light)' : 'var(--bg-surface)',
+                  border: isSel ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
+                  color: isSel ? 'var(--brand-primary)' : 'var(--text-primary)',
                   fontWeight: isSel ? 600 : 500,
                   transition: 'all 0.15s ease'
                 }}
@@ -185,11 +186,11 @@ export default function WizardStep5TrapsSkills({
 
         {/* Granular Subskill Selection */}
         {availableSubskills.length > 0 && (
-          <div style={{ borderTop: '1px dashed var(--border-light)', paddingTop: '10px' }}>
-            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>
-              Granular Subskill Focus:
+          <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '8px' }}>
+            <label style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+              Subskill Focus:
             </label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
               {availableSubskills.map((subsk) => {
                 const isSel = (selectedSubskill === subsk);
                 return (
@@ -198,18 +199,18 @@ export default function WizardStep5TrapsSkills({
                     type="button"
                     onClick={() => setSelectedSubskill?.(subsk)}
                     style={{
-                      padding: '5px 11px',
+                      padding: '4px 10px',
                       borderRadius: 'var(--radius-xs)',
-                      fontSize: '0.75rem',
+                      fontSize: '0.72rem',
                       cursor: 'pointer',
-                      background: isSel ? 'rgba(56, 189, 248, 0.15)' : 'var(--bg-surface)',
-                      border: isSel ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
-                      color: isSel ? 'var(--brand-primary)' : 'var(--text-muted)',
+                      background: isSel ? 'var(--brand-light)' : 'var(--bg-surface)',
+                      border: isSel ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
+                      color: isSel ? 'var(--brand-primary)' : 'var(--text-secondary)',
                       fontWeight: isSel ? 600 : 500,
                       transition: 'all 0.15s ease'
                     }}
                   >
-                    {isSel && <CheckCircle2 size={12} style={{ display: 'inline', marginRight: '4px' }} />}
+                    {isSel && <CheckCircle2 size={11} style={{ display: 'inline', marginRight: '4px' }} />}
                     <span>{subsk}</span>
                   </button>
                 );

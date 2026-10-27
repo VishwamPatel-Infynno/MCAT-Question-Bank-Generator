@@ -1,7 +1,14 @@
-from sqlalchemy import Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from datetime import datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy import DateTime, Integer, String, Text, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.job import GenerationJobModel
+    from app.models.question import QuestionModel
 
 
 class PassageModel(Base):
@@ -16,5 +23,16 @@ class PassageModel(Base):
     image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     image_svg: Mapped[str | None] = mapped_column(Text, nullable=True)
     image_description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
-    updated_at: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), onupdate=func.now(), nullable=True
+    )
+
+    # Bidirectional relationships
+    questions: Mapped[list["QuestionModel"]] = relationship(
+        "QuestionModel", back_populates="passage", lazy="selectin"
+    )
+
+
