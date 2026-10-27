@@ -55,8 +55,8 @@ export default function WizardStep1Section({
                 <div
                   className="wizard-section-icon-badge"
                   style={{
-                    background: isSelected ? 'var(--infynno-gradient)' : 'rgba(79, 48, 185, 0.1)',
-                    color: isSelected ? '#ffffff' : sec.color
+                    background: isSelected ? 'var(--brand-primary)' : 'var(--bg-surface-hover)',
+                    color: isSelected ? '#ffffff' : 'var(--text-secondary)'
                   }}
                 >
                   <Icon size={18} />
@@ -80,19 +80,19 @@ export default function WizardStep1Section({
       {sectionMeta.coachTip && (
         <div style={{
           padding: '12px 16px',
-          borderRadius: 'var(--radius-md)',
-          background: 'rgba(79, 48, 185, 0.08)',
-          border: '1px solid rgba(79, 48, 185, 0.2)',
+          borderRadius: 'var(--radius-sm)',
+          background: 'var(--bg-surface-subtle)',
+          border: '1px solid var(--border-light)',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
-          fontSize: '0.85rem',
-          color: 'var(--text-primary)'
+          fontSize: '0.825rem',
+          color: 'var(--text-secondary)'
         }}>
-          <Sparkles size={18} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
+          <Sparkles size={16} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
           <div>
-            <strong style={{ color: 'var(--brand-primary)' }}>Coach Tip for {sectionMeta.label}:</strong>{' '}
-            <span style={{ color: 'var(--text-secondary)' }}>
+            <strong style={{ color: 'var(--text-primary)' }}>Tip for {sectionMeta.label}:</strong>{' '}
+            <span>
               {sectionMeta.coachTip.replace(/^⚡ Exam Coach Tip:\s*/, '')}
             </span>
           </div>

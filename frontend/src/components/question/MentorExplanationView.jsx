@@ -4,8 +4,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Lightbulb,
-  Target,
-  Sparkles
+  Target
 } from 'lucide-react';
 
 import {
@@ -18,10 +17,10 @@ import { FormattedText } from '../common';
 /**
  * MentorExplanationView
  *
- * Dedicated educational view for AAMC MCAT questions:
- * 1. Card 1: Why Option [Key] is Correct (Evidence, proof & intuition)
- * 2. Card 2: Why Other Options are Incorrect (Itemized distractor rows with cognitive trap chips)
- * 3. Card 3: Primary Cognitive Trap Spotlight (Smart AI or assigned trap with student defense strategy)
+ * Dedicated minimalist educational view for AAMC MCAT questions:
+ * 1. Why the Correct Key is True (Core evidence, step-by-step mathematical/conceptual proof)
+ * 2. Why Distractors Fail (Itemized option breakdown with subtle trap annotations)
+ * 3. Tactical Trap Defense Strategy
  */
 const EMPTY_ARRAY = [];
 
@@ -45,7 +44,7 @@ export default function MentorExplanationView({
 
     const text = String(explanation).trim();
 
-    // 1. Resolve Primary Trap: from prop or detect from explanation
+    // 1. Resolve Primary Trap
     let resolvedTrap = resolveTrapInfo(primaryTrap);
     if (!resolvedTrap) {
       resolvedTrap = detectTrapFromText(text);
@@ -59,12 +58,10 @@ export default function MentorExplanationView({
       const correctRaw = text.substring(0, match.index).trim();
       const distractorsRaw = text.substring(match.index + match[0].length).trim();
 
-      // Clean up headers from correct section
       const cleanedCorrect = correctRaw
         .replace(/^(?:why\s+options?\s+[A-E](?:\s*,\s*[A-E])*\s+is\s+correct|correct\s+answer(?:\s+analysis)?|how\s+to\s+think\s+about\s+this|pedagogical\s+evaluation):?/i, '')
         .trim();
 
-      // Check for step-by-step
       let steps = null;
       if (/(?:\*\*|\b)Step\s+\d+:?\*?\*?/i.test(cleanedCorrect)) {
         const rawSteps = cleanedCorrect.split(/(?=(?:(?:\*\*|\b)Step\s+\d+:?\*?\*?))/i);
@@ -82,7 +79,6 @@ export default function MentorExplanationView({
       };
     }
 
-    // Fallback: If no explicit distractor marker, check if text has option bullet lines (e.g. - Key A is CORRECT, - Distractor B is INCORRECT)
     const lines = text.split(/\r?\n+/).map(l => l.trim()).filter(Boolean);
     const correctLines = [];
     const distractorLines = [];
@@ -113,7 +109,6 @@ export default function MentorExplanationView({
       };
     }
 
-    // Unified single text fallback
     const cleanedUnified = text
       .replace(/^(?:why\s+options?\s+[A-E](?:\s*,\s*[A-E])*\s+is\s+correct|correct\s+answer|how\s+to\s+think\s+about\s+this):?/i, '')
       .trim();
@@ -131,16 +126,16 @@ export default function MentorExplanationView({
   const keyLabel = correctAnswerId ? `Option ${correctAnswerId}` : 'Correct Key';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: isCompact ? '10px' : '14px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: isCompact ? '12px' : '16px' }}>
       {/* Mentor Header Bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div
             style={{
-              width: isCompact ? '24px' : '28px',
-              height: isCompact ? '24px' : '28px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'rgba(99, 102, 241, 0.12)',
+              width: isCompact ? '22px' : '26px',
+              height: isCompact ? '22px' : '26px',
+              borderRadius: 'var(--radius-xs)',
+              background: 'var(--brand-light)',
               color: 'var(--brand-primary)',
               display: 'flex',
               alignItems: 'center',
@@ -148,51 +143,46 @@ export default function MentorExplanationView({
               flexShrink: 0
             }}
           >
-            <GraduationCap size={isCompact ? 14 : 16} />
+            <GraduationCap size={isCompact ? 13 : 15} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: isCompact ? '0.85rem' : '0.92rem', color: 'var(--text-primary)' }}>
-              Why Answers are Right or Wrong
+            <div style={{ fontWeight: 600, fontSize: isCompact ? '0.825rem' : '0.875rem', color: 'var(--text-primary)' }}>
+              Explanation & Rationales
             </div>
-            {!isCompact && (
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                Itemized Option Analysis &bull; Cognitive Trap Breakdown
-              </div>
-            )}
           </div>
         </div>
 
         {parsed.resolvedTrap && (
           <span
-            className="badge badge-amber"
-            style={{ fontSize: '0.68rem', padding: '2px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
+            className="badge badge-neutral"
+            style={{ fontSize: '0.675rem', padding: '2px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}
             title={parsed.resolvedTrap.advice}
           >
-            <AlertTriangle size={11} />
+            <AlertTriangle size={11} color="var(--status-warning)" />
             Trap: {parsed.resolvedTrap.label}
           </span>
         )}
       </div>
 
-      {/* CARD 1: Why Option [Key] is Correct */}
+      {/* SECTION 1: Why Option [Key] is Correct */}
       <div
         style={{
-          background: 'var(--status-success-bg, rgba(16, 185, 129, 0.05))',
-          border: '1px solid var(--status-success-border, rgba(16, 185, 129, 0.25))',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-light)',
           borderRadius: 'var(--radius-sm)',
-          padding: isCompact ? '10px 12px' : '14px 16px',
+          padding: isCompact ? '10px 12px' : '12px 14px',
           display: 'flex',
           flexDirection: 'column',
           gap: '8px'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 700, color: 'var(--status-success)' }}>
-          <CheckCircle2 size={14} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--status-success)' }}>
+          <CheckCircle2 size={13} />
           <span>Why {keyLabel} is Correct</span>
         </div>
 
         {parsed.steps && parsed.steps.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {parsed.steps.map((st, idx) => {
               const stepMatch = st.match(/^(?:\*\*)?(Step\s+\d+|[1-9]\d*\.)(?::|\s*-)?(?:\*\*)?\s*(.*)/is);
               const stepKey = `step-${idx}-${st.slice(0, 10)}`;
@@ -200,19 +190,18 @@ export default function MentorExplanationView({
                 const label = stepMatch[1].replace(/:$/, '').trim();
                 const stepBody = stepMatch[2].trim();
                 return (
-                  <div key={stepKey} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: isCompact ? '0.8rem' : '0.86rem' }}>
+                  <div key={stepKey} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: isCompact ? '0.8rem' : '0.84rem' }}>
                     <span
                       style={{
-                        background: 'rgba(16, 185, 129, 0.14)',
-                        border: '1px solid var(--status-success-border, rgba(16, 185, 129, 0.25))',
+                        background: 'var(--bg-surface-subtle)',
+                        border: '1px solid var(--border-light)',
                         color: 'var(--status-success)',
-                        padding: '1px 6px',
-                        borderRadius: '3px',
-                        fontWeight: 700,
-                        fontSize: '0.74rem',
+                        padding: '1px 5px',
+                        borderRadius: 'var(--radius-xs)',
+                        fontWeight: 600,
+                        fontSize: '0.7rem',
                         whiteSpace: 'nowrap',
-                        flexShrink: 0,
-                        lineHeight: 1.45
+                        flexShrink: 0
                       }}
                     >
                       {label}
@@ -224,7 +213,7 @@ export default function MentorExplanationView({
                 );
               }
               return (
-                <div key={stepKey} style={{ color: 'var(--text-primary)', lineHeight: 1.55, fontSize: isCompact ? '0.8rem' : '0.86rem' }}>
+                <div key={stepKey} style={{ color: 'var(--text-primary)', lineHeight: 1.55, fontSize: isCompact ? '0.8rem' : '0.84rem' }}>
                   <FormattedText text={st} />
                 </div>
               );
@@ -233,7 +222,7 @@ export default function MentorExplanationView({
         ) : (
           <div
             style={{
-              fontSize: isCompact ? '0.8rem' : '0.86rem',
+              fontSize: isCompact ? '0.8rem' : '0.84rem',
               lineHeight: 1.6,
               color: 'var(--text-primary)',
               whiteSpace: 'pre-line'
@@ -244,30 +233,30 @@ export default function MentorExplanationView({
         )}
       </div>
 
-      {/* CARD 2: Why Other Options are Incorrect (Distractor & Trap Breakdown) */}
+      {/* SECTION 2: Why Other Options are Incorrect (Distractors) */}
       {parsed.distractors && parsed.distractors.length > 0 && (
         <div
           style={{
-            background: 'var(--status-warning-bg, rgba(245, 158, 11, 0.05))',
-            border: '1px solid var(--status-warning-border, rgba(245, 158, 11, 0.22))',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-light)',
             borderRadius: 'var(--radius-sm)',
-            padding: isCompact ? '10px 12px' : '14px 16px',
+            padding: isCompact ? '10px 12px' : '12px 14px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '10px'
+            gap: '8px'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 700, color: 'var(--status-warning)' }}>
-              <AlertTriangle size={14} />
-              <span>Why Other Options are Incorrect (Distractor & Trap Breakdown)</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+              <AlertTriangle size={13} color="var(--status-warning)" />
+              <span>Distractor Breakdown</span>
             </div>
             <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>
-              {parsed.distractors.length} distractors evaluated
+              {parsed.distractors.length} wrong choices
             </span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: isCompact ? '0.78rem' : '0.84rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: isCompact ? '0.78rem' : '0.825rem' }}>
             {parsed.distractors.map((item, idx) => (
               <div
                 key={item.label ? `dist-${item.label}` : `dist-${idx}-${item.text?.slice(0, 10)}`}
@@ -275,24 +264,23 @@ export default function MentorExplanationView({
                   display: 'flex',
                   alignItems: 'flex-start',
                   gap: '8px',
-                  background: 'var(--bg-surface-elevated, rgba(255,255,255,0.03))',
-                  border: '1px solid var(--border-light, rgba(255,255,255,0.06))',
+                  background: 'var(--bg-surface-subtle)',
+                  border: '1px solid var(--border-hairline)',
                   borderRadius: 'var(--radius-xs)',
-                  padding: '8px 10px',
+                  padding: '6px 8px',
                   lineHeight: 1.5
                 }}
               >
-                {/* Option Badge */}
                 {item.label && (
                   <span
                     style={{
-                      background: 'rgba(245, 158, 11, 0.14)',
-                      border: '1px solid var(--status-warning-border, rgba(245, 158, 11, 0.22))',
-                      color: 'var(--status-warning)',
-                      padding: '1px 6px',
-                      borderRadius: '3px',
-                      fontWeight: 700,
-                      fontSize: '0.74rem',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-light)',
+                      color: 'var(--status-danger)',
+                      padding: '1px 5px',
+                      borderRadius: 'var(--radius-xs)',
+                      fontWeight: 600,
+                      fontSize: '0.7rem',
                       whiteSpace: 'nowrap',
                       flexShrink: 0
                     }}
@@ -301,17 +289,16 @@ export default function MentorExplanationView({
                   </span>
                 )}
 
-                {/* Specific Trap Chip */}
                 {item.trap && (
                   <span
                     style={{
-                      background: 'rgba(139, 92, 246, 0.14)',
-                      border: '1px solid rgba(139, 92, 246, 0.3)',
-                      color: 'var(--status-purple, #8b5cf6)',
-                      padding: '1px 6px',
-                      borderRadius: '3px',
-                      fontWeight: 700,
-                      fontSize: '0.72rem',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-light)',
+                      color: 'var(--status-purple)',
+                      padding: '1px 5px',
+                      borderRadius: 'var(--radius-xs)',
+                      fontWeight: 500,
+                      fontSize: '0.675rem',
                       whiteSpace: 'nowrap',
                       flexShrink: 0
                     }}
@@ -327,97 +314,59 @@ export default function MentorExplanationView({
         </div>
       )}
 
-      {/* CARD 3: Primary Cognitive Trap Spotlight */}
+      {/* SECTION 3: Primary Cognitive Trap Defense */}
       {parsed.resolvedTrap && (
         <div
           style={{
-            background: 'rgba(139, 92, 246, 0.05)',
-            border: '1px solid rgba(139, 92, 246, 0.25)',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-light)',
             borderRadius: 'var(--radius-sm)',
             padding: isCompact ? '10px 12px' : '12px 14px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '6px'
+            gap: '5px'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 700, color: 'var(--status-purple, #8b5cf6)' }}>
-              <Target size={14} />
-              <span>Primary Cognitive Trap Spotlight &bull; {parsed.resolvedTrap.label}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--status-purple)' }}>
+              <Target size={13} />
+              <span>Cognitive Trap Spotlight &bull; {parsed.resolvedTrap.label}</span>
             </div>
-
-            <span
-              style={{
-                fontSize: '0.65rem',
-                background: 'rgba(139, 92, 246, 0.14)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                color: 'var(--status-purple, #8b5cf6)',
-                padding: '1px 6px',
-                borderRadius: '3px',
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '3px'
-              }}
-            >
-              <Sparkles size={9} />
-              Smart Trap Profile
-            </span>
           </div>
 
           <div style={{ fontSize: isCompact ? '0.76rem' : '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-            <strong style={{ color: 'var(--text-primary)' }}>Anti-Trap Strategy: </strong>
+            <strong style={{ color: 'var(--text-primary)' }}>Defense Strategy: </strong>
             {parsed.resolvedTrap.advice}
           </div>
         </div>
       )}
 
-      {/* Card 4: Diagnosed Student Misconception / Likely Mistake Pattern */}
+      {/* SECTION 4: Student Misconception if present */}
       {likelyMistakePattern && (
         <div
           style={{
-            background: 'rgba(245, 158, 11, 0.06)',
-            border: '1px solid rgba(245, 158, 11, 0.28)',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-light)',
             borderRadius: 'var(--radius-sm)',
             padding: isCompact ? '10px 12px' : '12px 14px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '6px'
+            gap: '5px'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 700, color: 'var(--status-warning, #d97706)' }}>
-              <AlertTriangle size={14} />
-              <span>Target Student Misconception &bull; {likelyMistakePattern}</span>
-            </div>
-
-            <span
-              style={{
-                fontSize: '0.65rem',
-                background: 'rgba(245, 158, 11, 0.15)',
-                border: '1px solid rgba(245, 158, 11, 0.35)',
-                color: 'var(--status-warning, #d97706)',
-                padding: '1px 6px',
-                borderRadius: '3px',
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '3px'
-              }}
-            >
-              <Sparkles size={9} />
-              Smart Misconception Calibration
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--status-warning)' }}>
+            <AlertTriangle size={13} />
+            <span>Target Misconception &bull; {likelyMistakePattern}</span>
           </div>
 
           <div style={{ fontSize: isCompact ? '0.76rem' : '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-            <strong style={{ color: 'var(--text-primary)' }}>Remediation Defense: </strong>
-            Students frequently commit this exact error when working under strict AAMC timing pressure. Double-check foundational assumptions, formula boundary conditions, and sign/unit conventions before finalizing your choice.
+            <strong style={{ color: 'var(--text-primary)' }}>Remediation: </strong>
+            Double-check foundational assumptions, formula boundary conditions, and sign/unit conventions before finalizing your choice.
           </div>
         </div>
       )}
 
-      {/* Mentor Pro-Tip Footer */}
+      {/* Quiet Pro-Tip Footer */}
       <div
         style={{
           display: 'flex',
@@ -425,12 +374,11 @@ export default function MentorExplanationView({
           gap: '6px',
           fontSize: '0.72rem',
           color: 'var(--text-muted)',
-          fontStyle: 'italic',
           paddingTop: '2px'
         }}
       >
         <Lightbulb size={12} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
-        <span>Tip: Always note why distractors fail to build subconscious anti-trap intuition under strict MCAT exam timing.</span>
+        <span>Always review why distractors fail to strengthen subconscious anti-trap pattern recognition.</span>
       </div>
     </div>
   );

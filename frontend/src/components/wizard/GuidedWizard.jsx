@@ -275,27 +275,27 @@ export default function GuidedWizard({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '6px 12px',
+                  padding: '5px 11px',
                   borderRadius: 'var(--radius-full)',
                   fontSize: '0.75rem',
-                  fontWeight: isCurrent ? 700 : 500,
+                  fontWeight: isCurrent ? 600 : 500,
                   cursor: 'pointer',
                   background: isCurrent
-                    ? 'var(--infynno-gradient)'
+                    ? 'var(--brand-primary)'
                     : isCompleted
-                    ? 'rgba(16, 185, 129, 0.1)'
-                    : 'var(--bg-surface-elevated)',
+                    ? 'var(--bg-surface-hover)'
+                    : 'var(--bg-surface)',
                   border: isCurrent
-                    ? '1px solid transparent'
+                    ? '1px solid var(--brand-primary)'
                     : isCompleted
-                    ? '1px solid rgba(16, 185, 129, 0.3)'
+                    ? '1px solid var(--border-medium)'
                     : '1px solid var(--border-light)',
                   color: isCurrent
                     ? '#ffffff'
                     : isCompleted
-                    ? 'var(--status-success)'
+                    ? 'var(--text-primary)'
                     : 'var(--text-muted)',
-                  transition: 'all 0.18s ease',
+                  transition: 'all 0.15s ease',
                   flexShrink: 0
                 }}
               >
@@ -309,7 +309,7 @@ export default function GuidedWizard({
                     justifyContent: 'center',
                     fontSize: '0.68rem',
                     background: isCurrent ? 'rgba(255, 255, 255, 0.25)' : 'transparent',
-                    fontWeight: 700
+                    fontWeight: 600
                   }}
                 >
                   {isCompleted ? <Check size={11} /> : cfg.num}
@@ -336,10 +336,10 @@ export default function GuidedWizard({
           <>
             {/* Quick Launch Preset Ribbon */}
             <div style={{
-              background: 'var(--bg-surface-elevated)',
-              border: '1px solid var(--border-medium)',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-light)',
               borderRadius: 'var(--radius-md)',
-              padding: '14px 16px',
+              padding: '12px 16px',
               marginBottom: '16px',
               display: 'flex',
               flexDirection: 'column',
@@ -347,18 +347,18 @@ export default function GuidedWizard({
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--brand-primary)' }}>
-                    ⚡ Rapid Launch Presets
+                  <span style={{ fontSize: '0.775rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    Quick Launch Presets
                   </span>
-                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                    Pre-fills section & pacing calibrated to official AAMC standards
+                  <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
+                    Standard AAMC pacing & calibration
                   </span>
                 </div>
-                <span className="badge-minimal" style={{ fontSize: '0.68rem', color: 'var(--brand-primary)', borderColor: 'var(--brand-primary)' }}>
-                  Shortcut: ⌘↵ to Launch
+                <span className="badge-minimal" style={{ fontSize: '0.675rem' }}>
+                  Press ⌘↵ to Launch
                 </span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
                 {QUICK_PRESETS.map((preset) => {
                   const isMatch = selectedSection === preset.section && totalQuestions === preset.total;
                   return (
@@ -370,12 +370,12 @@ export default function GuidedWizard({
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'flex-start',
-                        gap: '4px',
-                        padding: '10px 12px',
+                        gap: '3px',
+                        padding: '8px 10px',
                         borderRadius: 'var(--radius-sm)',
-                        background: isMatch ? 'var(--infynno-gradient)' : 'var(--bg-surface-subtle)',
-                        border: isMatch ? '1px solid transparent' : '1px solid var(--border-light)',
-                        color: isMatch ? '#ffffff' : 'var(--text-primary)',
+                        background: isMatch ? 'var(--brand-light)' : 'var(--bg-surface-subtle)',
+                        border: isMatch ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
+                        color: 'var(--text-primary)',
                         cursor: 'pointer',
                         textAlign: 'left',
                         transition: 'all 0.15s ease'
@@ -383,19 +383,19 @@ export default function GuidedWizard({
                       title="Click to apply parameters and jump straight to Review & Launch"
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                        <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>{preset.label}</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{preset.label}</span>
                         <span style={{
-                          fontSize: '0.65rem',
-                          padding: '2px 6px',
+                          fontSize: '0.625rem',
+                          padding: '1px 5px',
                           borderRadius: 'var(--radius-full)',
-                          background: isMatch ? 'rgba(255,255,255,0.25)' : 'rgba(51, 90, 207, 0.12)',
-                          color: isMatch ? '#ffffff' : 'var(--brand-primary)',
+                          background: isMatch ? 'var(--brand-primary)' : 'var(--bg-surface-hover)',
+                          color: isMatch ? '#ffffff' : 'var(--text-secondary)',
                           fontWeight: 600
                         }}>
                           {preset.tag}
                         </span>
                       </div>
-                      <span style={{ fontSize: '0.7rem', color: isMatch ? 'rgba(255,255,255,0.85)' : 'var(--text-muted)' }}>
+                      <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
                         {preset.desc}
                       </span>
                     </button>

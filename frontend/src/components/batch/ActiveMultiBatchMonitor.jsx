@@ -39,16 +39,15 @@ export default function ActiveMultiBatchMonitor({
   return (
     <div
       style={{
-        background: 'linear-gradient(135deg, rgba(79, 48, 185, 0.08) 0%, rgba(51, 90, 207, 0.05) 100%)',
-        border: '1px solid rgba(79, 48, 185, 0.25)',
-        borderRadius: 'var(--radius-lg, 12px)',
-        padding: '20px 24px',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-light)',
+        borderRadius: 'var(--radius-md)',
+        padding: '16px 20px',
         position: 'relative',
-        boxShadow: '0 4px 20px rgba(79, 48, 185, 0.08)',
-        backdropFilter: 'blur(8px)',
+        boxShadow: 'var(--shadow-xs)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px'
+        gap: '14px'
       }}
     >
       {/* Top Banner Row */}
@@ -61,21 +60,20 @@ export default function ActiveMultiBatchMonitor({
           gap: '12px'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
             style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, var(--infynno-violet) 0%, var(--infynno-blue) 100%)',
+              width: '32px',
+              height: '32px',
+              borderRadius: 'var(--radius-xs)',
+              background: 'var(--brand-light)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#ffffff',
-              boxShadow: '0 0 12px rgba(79, 48, 185, 0.4)'
+              color: 'var(--brand-primary)'
             }}
           >
-            <Zap size={20} className="pulse-icon" />
+            <Zap size={16} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

@@ -151,20 +151,18 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
               gap: '12px',
               padding: '6px 14px',
               background: 'var(--bg-surface)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-light)',
+              borderRadius: 'var(--radius-sm)',
               fontSize: '0.78rem',
               color: 'var(--text-secondary)'
             }}
           >
-            <span><strong style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{questions.length}</strong> {questions.length === 1 ? 'question' : 'questions'}</span>
-            <span style={{ color: 'var(--border-subtle)' }}>•</span>
+            <span><strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{questions.length}</strong> {questions.length === 1 ? 'question' : 'questions'}</span>
+            <span style={{ color: 'var(--border-light)' }}>•</span>
             <span>
-              <strong style={{ color: 'var(--status-success-text)', fontWeight: 700 }}>{avgScore}</strong>
+              <strong style={{ color: 'var(--status-success)', fontWeight: 600 }}>{avgScore}</strong>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>/100 avg</span>
             </span>
-            <span style={{ color: 'var(--border-subtle)' }}>•</span>
-            <span><strong style={{ color: 'var(--status-purple)', fontWeight: 700 }}>Enterprise Verified</strong></span>
           </div>
 
           <button

@@ -573,7 +573,7 @@ export default function QuestionCard({
               style={{ gap: '6px', fontSize: '0.775rem' }}
             >
               {showExplanation ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-              <span>{showExplanation ? 'Hide Explanation & Answer Breakdown' : 'Show Explanation & Answer Breakdown'}</span>
+              <span>{showExplanation ? 'Hide Explanation & Rationales' : 'View Explanation & Rationales'}</span>
             </button>
 
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>

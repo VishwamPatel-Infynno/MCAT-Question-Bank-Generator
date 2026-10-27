@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Database, Layers, CheckCircle2, Sun, Moon, ExternalLink } from 'lucide-react';
+import { Sparkles, Database, Layers, CheckCircle2, Sun, Moon } from 'lucide-react';
 import InfynnoLogo from '../common/InfynnoLogo';
 
 export default function Navbar({
@@ -132,14 +132,13 @@ export default function Navbar({
           {activeBatchCount > 0 && (
             <span
               style={{
-                background: 'linear-gradient(135deg, var(--infynno-violet) 0%, var(--infynno-blue) 100%)',
-                color: '#ffffff',
-                borderRadius: '10px',
-                fontSize: '0.62rem',
-                fontWeight: 700,
+                background: 'var(--border-medium)',
+                color: 'var(--text-secondary)',
+                borderRadius: 'var(--radius-full)',
+                fontSize: '0.625rem',
+                fontWeight: 600,
                 padding: '1px 5px',
-                lineHeight: 1,
-                boxShadow: '0 0 6px rgba(79, 48, 185, 0.4)'
+                lineHeight: 1
               }}
             >
               {activeBatchCount}
@@ -159,14 +158,13 @@ export default function Navbar({
           {validatedCount > 0 && (
             <span
               style={{
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                color: '#ffffff',
-                borderRadius: '10px',
-                fontSize: '0.62rem',
-                fontWeight: 700,
+                background: 'var(--border-medium)',
+                color: 'var(--text-secondary)',
+                borderRadius: 'var(--radius-full)',
+                fontSize: '0.625rem',
+                fontWeight: 600,
                 padding: '1px 5px',
-                lineHeight: 1,
-                boxShadow: '0 0 6px rgba(16, 185, 129, 0.4)'
+                lineHeight: 1
               }}
             >
               {validatedCount}
@@ -187,19 +185,6 @@ export default function Navbar({
 
       {/* Right Tools */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifySelf: 'end', minWidth: 0 }}>
-        {/* Infynno Website Pill Link */}
-        <a
-          href="https://infynno.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="infynno-pill-link"
-          id="btn-nav-infynno"
-          title="Visit Infynno Solutions (infynno.com)"
-          style={{ padding: '4px 10px', fontSize: '0.725rem' }}
-        >
-          <span>Visit Infynno</span>
-          <ExternalLink size={11} />
-        </a>
 
         {/* Backend Status Indicator */}
         <div
