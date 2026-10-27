@@ -381,7 +381,7 @@ export default function BatchActivityView({
               Batch Activity &amp; Job Monitor
             </h1>
             <p className="batch-activity-banner-subtext">
-              Track 5-question Live Mini-Sets (1 Job) and 50-question mock sections (10 Jobs), inspect constituent jobs, and monitor
+              Track 5-question Mini-Batches (1 Job) and 50-question mock sections (10 Jobs), inspect constituent jobs, and monitor
               throughput in real-time. Batch activity preserves questions scoring &gt; 85; questions scoring &gt; 90 route to AI Validated.
             </p>
           </div>

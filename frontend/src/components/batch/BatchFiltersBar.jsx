@@ -59,7 +59,7 @@ export default function BatchFiltersBar({
         <div className="pill-track" style={{ padding: '2px' }}>
           {[
             { id: 'all', label: 'All Batches' },
-            { id: 'mini', label: 'Live Mini-Sets (1 Job)' },
+            { id: 'mini', label: 'Mini-Batches (1 Job)' },
             { id: 'full', label: 'Full Mocks (10 Jobs)' }
           ].map((scope) => (
             <button

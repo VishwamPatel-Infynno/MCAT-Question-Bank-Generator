@@ -205,12 +205,12 @@ export default function WizardStep2LevelFormat({
             <span className="wizard-decision-title">Generation Scope</span>
           </div>
           <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-            {totalQuestions === 50 ? '10 Jobs Async Background' : '1 Job Live Streamed'}
+            {totalQuestions === 50 ? '10 Jobs Async Background' : '1 Job Async Background'}
           </span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
-          {/* Preset 1: Live Mini-Set */}
+          {/* Preset 1: Mini-Batch */}
           <div
             className={`wizard-tier-card ${totalQuestions === 5 ? 'selected' : ''}`}
             onClick={() => setTotalQuestions?.(5)}
@@ -228,7 +228,7 @@ export default function WizardStep2LevelFormat({
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '0.9rem' }}>🎯</span>
                 <span style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Live Mini-Set (5 Questions)
+                  Mini-Batch (5 Questions)
                 </span>
               </div>
               {totalQuestions === 5 && (
@@ -236,10 +236,10 @@ export default function WizardStep2LevelFormat({
               )}
             </div>
             <div style={{ fontSize: '0.7rem', color: 'var(--brand-primary)', fontWeight: 600, marginBottom: '2px' }}>
-              1 Job &bull; Staged Workspace (~35-50s)
+              1 Job &bull; Background Worker Pool (~35-50s)
             </div>
             <p style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-              Streamed live into the staging desk with inline editing and multi-agent observability.
+              Dispatched to background worker pool. Auto-reviewed and streamed into your Validated Bank and Batch Activity.
             </p>
           </div>
 

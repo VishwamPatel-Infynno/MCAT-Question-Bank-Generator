@@ -29,7 +29,7 @@ const QUICK_PRESETS = [
   {
     id: 'bio_biochem_5',
     label: '⚡ Biochem Passage Set',
-    tag: '5 Qs • Live',
+    tag: '5 Qs • Batch',
     section: 'bio_biochem',
     total: 5,
     passageRequired: 'Yes',
@@ -39,7 +39,7 @@ const QUICK_PRESETS = [
   {
     id: 'cars_essay_5',
     label: '⚡ CARS Philosophy Essay',
-    tag: '5 Qs • Live',
+    tag: '5 Qs • Batch',
     section: 'cars',
     total: 5,
     passageRequired: 'Yes',
@@ -49,7 +49,7 @@ const QUICK_PRESETS = [
   {
     id: 'chem_phys_5',
     label: '⚡ Physics Discrete Set',
-    tag: '5 Qs • Live',
+    tag: '5 Qs • Batch',
     section: 'chem_phys',
     total: 5,
     passageRequired: 'No',
@@ -59,7 +59,7 @@ const QUICK_PRESETS = [
   {
     id: 'psych_soc_5',
     label: '⚡ Psych / Sociology Set',
-    tag: '5 Qs • Live',
+    tag: '5 Qs • Batch',
     section: 'psych_soc',
     total: 5,
     passageRequired: 'Yes',
@@ -255,7 +255,7 @@ export default function GuidedWizard({
             </div>
             <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
               {totalQuestions === 5
-                ? 'Live Mini-Set (5 Questions)'
+                ? 'Mini-Batch (5 Questions)'
                 : `Standard Batch: ${totalQuestions} Questions`}
             </span>
           </div>
@@ -493,7 +493,7 @@ export default function GuidedWizard({
                   {isLaunchingBatch
                     ? 'Launching Batch...'
                     : totalQuestions === 5
-                    ? 'Generate 5-Question Set (Live)'
+                    ? 'Launch 5-Question Mini-Batch'
                     : 'Launch 50-Question Batch'}
                 </span>
               </>

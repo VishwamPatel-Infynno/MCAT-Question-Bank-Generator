@@ -190,11 +190,11 @@ async def _run_single_job(
             await refresh_batch_aggregates(batch_id)
 
             logger.info(
-                f"Job {job.job_number}/10 (ID: {job.id}) finished: generated {len(job_questions)} questions."
+                f"Job {job.job_number}/{total_jobs} (ID: {job.id}) finished: generated {len(job_questions)} questions."
             )
 
         except asyncio.CancelledError:
-            logger.info(f"Job {job.job_number}/10 (ID: {job.id}) was cancelled.")
+            logger.info(f"Job {job.job_number}/{total_jobs} (ID: {job.id}) was cancelled.")
             await update_job_progress(
                 job.id,
                 status="cancelled",
@@ -205,7 +205,7 @@ async def _run_single_job(
             raise
         except Exception as exc:
             logger.error(
-                f"Job {job.job_number}/10 (ID: {job.id}) failed with error: {exc}", exc_info=True
+                f"Job {job.job_number}/{total_jobs} (ID: {job.id}) failed with error: {exc}", exc_info=True
             )
             failed_now = datetime.now(UTC).isoformat()
             await update_job_progress(

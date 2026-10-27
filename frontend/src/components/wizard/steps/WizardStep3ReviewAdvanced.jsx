@@ -249,7 +249,7 @@ export default function WizardStep3ReviewAdvanced({
               <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
               <span style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>
                 {totalQuestions === 5
-                  ? 'Live Mini-Set (1 Job • 5 Qs)'
+                  ? 'Mini-Batch (1 Job • 5 Qs)'
                   : `Full Mock Section (10 Jobs • ${totalQuestions} Qs)`}
               </span>
               <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
@@ -263,7 +263,7 @@ export default function WizardStep3ReviewAdvanced({
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Switch scope:</span>
                 {[
-                  { count: 5, label: '1 Job (5 Qs Live)' },
+                  { count: 5, label: '1 Job (5 Qs Batch)' },
                   { count: 50, label: '10 Jobs (50 Qs Batch)' }
                 ].map(({ count, label }) => (
                   <button

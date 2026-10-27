@@ -29,7 +29,8 @@ router = APIRouter(tags=["Generation Batches"])
 async def start_batch_generation(req: GenerationRequest):
     """
     Launches an asynchronous background batch generation.
-    Creates 1 batch record and 10 job records (each job producing 5 questions for 50 total).
+    Creates 1 batch record and constituent job records (1 job producing 5 questions for a mini-batch,
+    or 10 jobs producing 5 questions each for a 50-question full mock section).
     Returns immediately with batch and job details while generation runs in the background.
     """
     try:

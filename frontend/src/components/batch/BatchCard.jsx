@@ -183,7 +183,7 @@ export default function BatchCard({
                   className="badge badge-purple"
                   style={{ fontSize: '0.7rem', fontWeight: 700 }}
                 >
-                  🎯 Live Mini-Set (1 Job • 5 Qs)
+                  🎯 Mini-Batch (1 Job • 5 Qs)
                 </span>
               ) : (
                 <span

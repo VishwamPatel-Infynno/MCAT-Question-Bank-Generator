@@ -191,16 +191,19 @@ export function useAppState() {
       require_passage_image: false
     };
 
-    // If 50 questions selected, trigger background multi-job batch
-    if (totalQuestions === 50) {
+    // All batches (both 5 Qs / 1 Job and 50 Qs / 10 Jobs) execute in background worker pool
+    if (totalQuestions === 50 || totalQuestions === 5) {
       if (isLaunchingBatch) return;
       setIsLaunchingBatch(true);
+      const isMini = totalQuestions === 5;
       startBackgroundBatch(payload)
         .then(() => {
           showToast({
             type: 'success',
-            title: '50-Question Batch Launched',
-            message: 'Generating 50 questions across 10 jobs in the background (Global Worker Pool).'
+            title: isMini ? 'Mini-Batch (5 Questions) Launched' : '50-Question Batch Launched',
+            message: isMini
+              ? 'Generating 5 questions (1 Job) in the background (Global Worker Pool).'
+              : 'Generating 50 questions across 10 jobs in the background (Global Worker Pool).'
           });
           setActiveTab('batches');
           refreshActiveBatches();
@@ -226,10 +229,10 @@ export function useAppState() {
     const isPassageBatch = passageMode === 'single_passage' || selectedSection === 'cars';
     showToast({
       type: 'info',
-      title: 'Live Mini-Set Started (1 Job • 5 Qs)',
+      title: 'Generation Started',
       message: isPassageBatch
-        ? 'Drafting 5-question Passage-Based Set (1 Job) linked to a shared reading passage...'
-        : 'Drafting 5 Independent Discrete Questions (1 Job)...'
+        ? 'Drafting passage-based set linked to a shared reading passage...'
+        : 'Drafting independent discrete questions...'
     });
   }, [
     isGenerating,
