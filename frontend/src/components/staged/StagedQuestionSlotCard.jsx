@@ -119,7 +119,7 @@ export default function StagedQuestionSlotCard({
                 Direct Question
               </span>
             )}
-            {!isLinked && (q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url) && (
+            {!isLinked && (q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url || q.stage_outcomes?.passage_visual_stimulus?.image_svg || q.stage_outcomes?.passage_visual_stimulus?.image_url) && (
               <span className="badge badge-purple" style={{ fontSize: '0.675rem', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                 <ImageIcon size={10} /> Diagram
               </span>
@@ -179,7 +179,7 @@ export default function StagedQuestionSlotCard({
         )}
 
         {/* Visual Stimulus Diagram Thumbnail */}
-        {!isLinked && (q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url) && (
+        {!isLinked && (q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url || q.stage_outcomes?.passage_visual_stimulus?.image_svg || q.stage_outcomes?.passage_visual_stimulus?.image_url) && (
           <VisualStimulusViewer question={q} compact={true} />
         )}
 

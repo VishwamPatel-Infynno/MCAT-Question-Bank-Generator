@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   CheckCircle2,
   Image as ImageIcon,
@@ -6,8 +6,12 @@ import {
   XCircle,
   AlertCircle,
   Database,
-  Layers
+  Layers,
+  BookOpen,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
+import VisualStimulusViewer from '../question/VisualStimulusViewer';
 
 export default function BatchQuestionItem({
   question,
@@ -17,7 +21,19 @@ export default function BatchQuestionItem({
   onOpenAudit,
   onSaveToBank
 }) {
+  const [isPassageExpanded, setIsPassageExpanded] = useState(false);
+
   if (!question) return null;
+
+  const hasPassage = Boolean(question.stimulus_text && question.stimulus_text.trim().length > 0);
+  const hasDiagram = Boolean(
+    question.image_url ||
+      question.image_svg ||
+      question.stage_outcomes?.visual_stimulus?.image_url ||
+      question.stage_outcomes?.visual_stimulus?.image_svg ||
+      question.stage_outcomes?.passage_visual_stimulus?.image_url ||
+      question.stage_outcomes?.passage_visual_stimulus?.image_svg
+  );
 
   // Determine lifecycle status
   let status = question.status;
@@ -185,17 +201,114 @@ export default function BatchQuestionItem({
           >
             Score {finalScore}/100
           </span>
-          {question.image_svg && (
+          {hasDiagram && (
             <span
               className="badge-minimal"
-              style={{ fontSize: '0.65rem', padding: '1px 4px' }}
-              title="Has visual diagram"
+              style={{
+                fontSize: '0.65rem',
+                padding: '1px 6px',
+                color: 'var(--brand-primary)',
+                background: 'rgba(79, 48, 185, 0.08)',
+                border: '1px solid rgba(79, 48, 185, 0.25)',
+                borderRadius: '9999px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px'
+              }}
+              title={hasPassage ? 'Has passage visual diagram' : 'Has visual diagram'}
             >
-              <ImageIcon size={10} /> Diagram
+              <ImageIcon size={10} /> {hasPassage ? 'Passage Diagram' : 'Diagram'}
             </span>
           )}
         </div>
       </div>
+
+      {/* Passage Display Drawer */}
+      {hasPassage && (
+        <div
+          style={{
+            marginBottom: '8px',
+            borderRadius: 'var(--radius-xs)',
+            border: '1px solid var(--border-light)',
+            overflow: 'hidden',
+            background: 'var(--bg-surface)'
+          }}
+        >
+          <div
+            style={{
+              padding: '6px 10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'var(--bg-surface-subtle)',
+              borderBottom: isPassageExpanded ? '1px solid var(--border-light)' : 'none'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <BookOpen size={13} style={{ color: 'var(--brand-primary)' }} />
+              <span style={{ fontWeight: 600, fontSize: '0.75rem', color: 'var(--text-primary)' }}>
+                Reading Passage
+              </span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                ({question.stimulus_text.trim().split(/\s+/).length} words)
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsPassageExpanded((prev) => !prev)}
+              className="btn-secondary"
+              style={{
+                padding: '2px 7px',
+                fontSize: '0.7rem',
+                gap: '4px',
+                display: 'inline-flex',
+                alignItems: 'center'
+              }}
+            >
+              {isPassageExpanded ? (
+                <>
+                  <ChevronUp size={12} />
+                  <span>Hide Passage</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown size={12} />
+                  <span>View Passage</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {isPassageExpanded && (
+            <div
+              style={{
+                padding: '10px 12px',
+                fontSize: '0.78rem',
+                lineHeight: 1.6,
+                color: 'var(--text-secondary)',
+                maxHeight: '320px',
+                overflowY: 'auto',
+                whiteSpace: 'pre-wrap',
+                background: 'var(--bg-canvas)'
+              }}
+            >
+              {hasDiagram && (
+                <div style={{ marginBottom: '10px' }}>
+                  <VisualStimulusViewer question={question} />
+                </div>
+              )}
+              {question.stimulus_text}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Standalone question visual stimulus (when not embedded in a passage) */}
+      {!hasPassage && hasDiagram && (
+        <div style={{ marginBottom: '8px' }}>
+          <VisualStimulusViewer question={question} />
+        </div>
+      )}
 
       {/* Question Stem */}
       <div

@@ -148,6 +148,8 @@ export default function GuidedWizard({
         independentSingleCount: 0,
         independentMultiCount: 0,
         requireImage: false,
+        allowAiImages: false,
+        requirePassageImage: false,
         visual_type: 'None'
       });
     } else {
@@ -162,7 +164,11 @@ export default function GuidedWizard({
         selectedSubskill: firstSkill?.subskills?.[0] || '',
         selectedSubskills: [],
         singleChoiceCount: totalQuestions,
-        multiChoiceCount: 0
+        multiChoiceCount: 0,
+        allowAiImages: true,
+        requireImage: true,
+        requirePassageImage: true,
+        visual_type: 'AI_FLUX_Image'
       });
     }
   };

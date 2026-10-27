@@ -28,12 +28,23 @@ export default function VisualStimulusViewer({
   const [zoomLevel, setZoomLevel] = useState(1.0);
   const [copiedSvg, setCopiedSvg] = useState(false);
 
-  // Extract visual data from question or stage outcomes
-  const svgContent = question?.image_svg || question?.stage_outcomes?.visual_stimulus?.image_svg || null;
-  const imageUrl = question?.image_url || question?.stage_outcomes?.visual_stimulus?.image_url || null;
+  // Extract visual data from question or stage outcomes (supporting both discrete and passage stimuli)
+  const svgContent =
+    question?.image_svg ||
+    question?.stage_outcomes?.visual_stimulus?.image_svg ||
+    question?.stage_outcomes?.passage_visual_stimulus?.image_svg ||
+    null;
+  const imageUrl =
+    question?.image_url ||
+    question?.stage_outcomes?.visual_stimulus?.image_url ||
+    question?.stage_outcomes?.passage_visual_stimulus?.image_url ||
+    null;
   const rawDescription = isEditing 
     ? (editedDescription ?? question?.image_description ?? '')
-    : (question?.image_description || question?.stage_outcomes?.visual_stimulus?.image_description || '');
+    : (question?.image_description ||
+       question?.stage_outcomes?.visual_stimulus?.image_description ||
+       question?.stage_outcomes?.passage_visual_stimulus?.image_description ||
+       '');
 
   // Handle escape key to close lightbox
   const handleKeyDown = useCallback((e) => {

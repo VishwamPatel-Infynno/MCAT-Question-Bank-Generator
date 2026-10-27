@@ -186,7 +186,12 @@ async def generate_passage_stimulus(
 
     is_cars = req.section in (MCATSection.CARS, "CARS", "cars")
     target_length = "500 to 600 words" if is_cars else "320 to 450 words"
-    allow_visuals = (req.allow_ai_images or req.require_image) and not is_cars
+    allow_visuals = (
+        req.allow_ai_images
+        or req.require_image
+        or req.require_passage_image
+        or req.visual_type in ("SVG_Diagram", "AI_FLUX_Image")
+    ) and not is_cars
 
     if allow_visuals:
         prompt = f"""Generate a high-yield, authentic AAMC MCAT Reading Passage for {section_name}.

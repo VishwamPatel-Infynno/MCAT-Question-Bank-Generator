@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, ChevronDown, ChevronRight, Layers } from 'lucide-react';
+import { FileText, ChevronDown, ChevronRight, Layers, BookOpen, Image as ImageIcon } from 'lucide-react';
 import BatchQuestionItem from './BatchQuestionItem';
 
 export default function BatchJobCard({
@@ -32,6 +32,21 @@ export default function BatchJobCard({
   const inBankCount = jobQuestions.filter((q) => resolveStatus(q) === 'in_bank').length;
   const discardedCount = jobQuestions.filter((q) => resolveStatus(q) === 'discarded').length;
   const belowCount = jobQuestions.filter((q) => resolveStatus(q) === 'below_threshold').length;
+
+  const hasPassageInJob = jobQuestions.some(
+    (q) => Boolean(q.stimulus_text && q.stimulus_text.trim().length > 0)
+  );
+  const hasDiagramInJob = jobQuestions.some(
+    (q) =>
+      Boolean(
+        q.image_url ||
+          q.image_svg ||
+          q.stage_outcomes?.visual_stimulus?.image_url ||
+          q.stage_outcomes?.visual_stimulus?.image_svg ||
+          q.stage_outcomes?.passage_visual_stimulus?.image_url ||
+          q.stage_outcomes?.passage_visual_stimulus?.image_svg
+      )
+  );
 
   // Present kept questions (>85) first, then below threshold (<=85)
   const sortedQuestions = [...jobQuestions].sort((a, b) => {
@@ -214,6 +229,40 @@ export default function BatchJobCard({
               }}
             >
               {belowCount} Needs Polish (&le;85)
+            </span>
+          )}
+          {hasPassageInJob && (
+            <span
+              style={{
+                background: 'rgba(51, 90, 207, 0.08)',
+                color: 'var(--brand-primary)',
+                border: '1px solid rgba(51, 90, 207, 0.2)',
+                padding: '2px 7px',
+                borderRadius: '4px',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px'
+              }}
+            >
+              <BookOpen size={10} /> Reading Passage
+            </span>
+          )}
+          {hasDiagramInJob && (
+            <span
+              style={{
+                background: 'rgba(79, 48, 185, 0.08)',
+                color: 'var(--brand-primary)',
+                border: '1px solid rgba(79, 48, 185, 0.2)',
+                padding: '2px 7px',
+                borderRadius: '4px',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px'
+              }}
+            >
+              <ImageIcon size={10} /> Visual Stimulus
             </span>
           )}
         </div>

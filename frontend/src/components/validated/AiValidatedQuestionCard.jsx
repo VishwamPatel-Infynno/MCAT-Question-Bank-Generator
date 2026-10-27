@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { MCAT_SECTION_LABELS, formatDifficulty } from '../../constants/mcat';
 import { getEffectiveTrapInfo } from '../../utils';
+import VisualStimulusViewer from '../question/VisualStimulusViewer';
 
 export default function AiValidatedQuestionCard({
   question: q,
@@ -27,6 +28,14 @@ export default function AiValidatedQuestionCard({
   actionInProgress = false
 }) {
   const hasPassage = Boolean(q.stimulus_text && q.stimulus_text.trim());
+  const hasDiagram = Boolean(
+    q.image_svg ||
+    q.image_url ||
+    q.stage_outcomes?.visual_stimulus?.image_svg ||
+    q.stage_outcomes?.visual_stimulus?.image_url ||
+    q.stage_outcomes?.passage_visual_stimulus?.image_svg ||
+    q.stage_outcomes?.passage_visual_stimulus?.image_url
+  );
   const trapInfo = getEffectiveTrapInfo(q);
 
   return (
@@ -113,13 +122,13 @@ export default function AiValidatedQuestionCard({
               <Target size={10} /> Watch Out: {q.likely_mistake_pattern}
             </span>
           )}
-          {q.image_svg && (
+          {hasDiagram && (
             <span
-              className="badge-minimal"
+              className="badge badge-purple"
               style={{ fontSize: '0.675rem', padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              title="Contains Visual Diagram"
+              title={hasPassage ? "Contains Passage Diagram" : "Contains Visual Diagram"}
             >
-              <ImageIcon size={10} /> Diagram
+              <ImageIcon size={10} /> {hasPassage ? 'Passage Diagram' : 'Diagram'}
             </span>
           )}
         </div>
@@ -182,19 +191,36 @@ export default function AiValidatedQuestionCard({
           </div>
 
           {isPassageExpanded && (
-            <div
-              style={{
-                marginTop: '8px',
-                color: 'var(--text-primary)',
-                lineHeight: 1.5,
-                whiteSpace: 'pre-wrap',
-                maxHeight: '240px',
-                overflowY: 'auto'
-              }}
-            >
-              {q.stimulus_text}
+            <div style={{ marginTop: '8px' }}>
+              <div
+                style={{
+                  color: 'var(--text-primary)',
+                  fontFamily: 'var(--font-serif)',
+                  fontSize: '0.85rem',
+                  lineHeight: 1.6,
+                  whiteSpace: 'pre-wrap',
+                  maxHeight: '260px',
+                  overflowY: 'auto'
+                }}
+              >
+                {q.stimulus_text}
+              </div>
+
+              {/* Embedded Visual Stimulus Diagram */}
+              {hasDiagram && (
+                <div style={{ marginTop: '10px', borderTop: '1px solid var(--border-light)', paddingTop: '10px' }}>
+                  <VisualStimulusViewer question={q} compact={false} />
+                </div>
+              )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Visual Stimulus Diagram / Image for standalone questions (without passage) */}
+      {!hasPassage && hasDiagram && (
+        <div style={{ marginBottom: '12px' }}>
+          <VisualStimulusViewer question={q} compact={false} />
         </div>
       )}
 

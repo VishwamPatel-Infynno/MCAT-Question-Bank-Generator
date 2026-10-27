@@ -31,11 +31,11 @@ export const DEFAULT_GENERATOR_FORM = {
   selectedSubskills: [],
   selectedSubtopics: [],
   customMistakePattern: '',
-  requireImage: false,
-  allowAiImages: false,
-  imageMode: 'none', // 'none' | 'all' | 'specific'
+  requireImage: true,
+  allowAiImages: true,
+  imageMode: 'all', // 'none' | 'all' | 'specific'
   imageQuestionIndices: [], // 1-based question numbers e.g. [1, 2]
-  requirePassageImage: false
+  requirePassageImage: true
 };
 
 export function useGeneratorForm(initialValues = {}) {
