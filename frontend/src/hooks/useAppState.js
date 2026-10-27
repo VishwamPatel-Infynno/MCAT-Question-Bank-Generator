@@ -151,13 +151,16 @@ export function useAppState() {
       passageMode,
       passageRequired,
       primaryTrap,
+      primaryTraps,
       likelyMistakePattern,
+      likelyMistakePatterns,
       customMistakePattern,
       contentDomains,
       contentDomain,
+      selectedSubskills,
+      selectedSubtopics,
       allowAiImages,
-      requireImage,
-      customPrompt
+      requireImage
     } = generatorForm.formData;
 
     const isVisualsPermitted = Boolean(allowAiImages || requireImage);
@@ -167,9 +170,9 @@ export function useAppState() {
       subject: selectedSubject || undefined,
       unit: selectedUnit || undefined,
       topic: selectedTopic || undefined,
-      subtopic: selectedSubtopic,
+      subtopic: (selectedSubtopics && selectedSubtopics.length > 0) ? selectedSubtopics.join(', ') : selectedSubtopic,
       aamc_skill: selectedSkill || undefined,
-      subskill: selectedSubskill || undefined,
+      subskill: (selectedSubskills && selectedSubskills.length > 0) ? selectedSubskills.join(', ') : (selectedSubskill || undefined),
       question_type: questionType || (passageMode === 'single_passage' ? 'PASSAGE_BASED_MCQ' : 'DISCRETE_MCQ'),
       difficulty,
       questions_to_generate: totalQuestions,
@@ -178,15 +181,14 @@ export function useAppState() {
       passage_question_count: passageMode === 'single_passage' ? totalQuestions : undefined,
       interaction_type: 'single_choice',
       passage_required: passageRequired,
-      primary_trap: primaryTrap || 'Automatic',
-      likely_mistake_pattern: customMistakePattern || likelyMistakePattern || 'Automatic',
+      primary_trap: (primaryTraps && primaryTraps.length > 0) ? primaryTraps.join(', ') : (primaryTrap || 'Automatic'),
+      likely_mistake_pattern: customMistakePattern || ((likelyMistakePatterns && likelyMistakePatterns.length > 0) ? likelyMistakePatterns.join(', ') : (likelyMistakePattern || 'Automatic')),
       content_domains: contentDomains && contentDomains.length > 0 ? contentDomains : undefined,
       content_domain: contentDomain || (contentDomains && contentDomains.length > 0 ? contentDomains.join(', ') : undefined),
       allow_ai_images: isVisualsPermitted,
       require_image: false,
       visual_type: isVisualsPermitted ? 'AI_FLUX_Image' : 'None',
-      require_passage_image: false,
-      custom_prompt: customPrompt.trim() || undefined
+      require_passage_image: false
     };
 
     // If 50 questions selected, trigger background multi-job batch

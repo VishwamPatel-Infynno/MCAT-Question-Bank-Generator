@@ -244,30 +244,6 @@ export default function WizardStep7Review({
           </button>
         </div>
       </div>
-
-      {/* Generation Summary Banner */}
-      <div style={{
-        padding: '12px 16px',
-        borderRadius: 'var(--radius-sm)',
-        background: 'var(--brand-light)',
-        border: '1px solid var(--border-brand)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px'
-      }}>
-        <Sparkles size={18} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
-        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-          {totalQuestions === 5 ? (
-            <>
-              Clicking <strong>Generate 5-Question Set (Live)</strong> launches real-time SSE streaming into your staged review desk with inline editing and multi-agent verification (~35-50s).
-            </>
-          ) : (
-            <>
-              Clicking <strong>Launch 50-Question Batch</strong> dispatches 10 parallel drafting worker jobs in the global worker pool. Approved questions will automatically stream into your <strong>AI Validated</strong> workspace.
-            </>
-          )}
-        </div>
-      </div>
     </div>
   );
 }

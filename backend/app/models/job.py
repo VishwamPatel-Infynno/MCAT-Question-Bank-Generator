@@ -8,7 +8,6 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.models.batch import GenerationBatchModel
-    from app.models.passage import PassageModel
     from app.models.question import QuestionModel
 
 

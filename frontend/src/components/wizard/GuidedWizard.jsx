@@ -3,34 +3,26 @@ import {
   ArrowLeft,
   ArrowRight,
   Sparkles,
-  Check
+  Check,
+  Zap
 } from 'lucide-react';
 import {
   PACING_INFO,
-  getSubjectsForSection,
   getSkillsForSection,
   SECTION_METADATA,
   DIFFICULTY_TIERS,
   COGNITIVE_TRAPS
 } from '../../constants';
 import {
-  WizardStep1Section,
-  WizardStep2DisciplineUnit,
-  WizardStep3TopicSubtopic,
-  WizardStep4LevelFormat,
-  WizardStep5TrapsSkills,
-  WizardStep6VisualsPrompt,
-  WizardStep7Review
+  WizardStep1SectionFocus,
+  WizardStep2LevelFormat,
+  WizardStep3ReviewAdvanced
 } from './steps';
 
 const STEP_CONFIG = [
-  { num: 1, label: 'Section', short: 'Section', subtitle: 'Choose Exam Section', nextLabel: 'Continue to Unit' },
-  { num: 2, label: 'Discipline', short: 'Unit', subtitle: 'Pick Discipline & Major Unit', nextLabel: 'Continue to Topic' },
-  { num: 3, label: 'Topic', short: 'Topic', subtitle: 'Select Topic & Concept', nextLabel: 'Continue to Level' },
-  { num: 4, label: 'Level', short: 'Level', subtitle: 'Calibrate Level & Format', nextLabel: 'Continue to Traps' },
-  { num: 5, label: 'Traps', short: 'Traps', subtitle: 'Cognitive Traps & Reasoning Skills', nextLabel: 'Continue to Visuals' },
-  { num: 6, label: 'Visuals', short: 'Visuals', subtitle: 'Figures & Vignette Guidance', nextLabel: 'Review Configuration' },
-  { num: 7, label: 'Review', short: 'Review', subtitle: 'Review & Launch', nextLabel: 'Launch 50-Question Batch' }
+  { num: 1, label: 'Section & Topic', short: 'Section', subtitle: 'Choose Exam Section & Topic Focus', nextLabel: 'Continue to Format' },
+  { num: 2, label: 'Format & Scope', short: 'Format', subtitle: 'Calibrate Level, Format & Batch Scope', nextLabel: 'Review & Launch' },
+  { num: 3, label: 'Review & Launch', short: 'Review', subtitle: 'Review & Launch Question Generation', nextLabel: 'Launch Batch' }
 ];
 
 const QUICK_PRESETS = [
@@ -83,7 +75,7 @@ export default function GuidedWizard({
   isLaunchingBatch = false
 }) {
   const [step, setStep] = useState(1);
-  const totalSteps = 7;
+  const totalSteps = 3;
 
   const form = generatorForm?.formData || {};
   const update = generatorForm?.updateField;
@@ -101,8 +93,17 @@ export default function GuidedWizard({
   const totalQuestions = form.totalQuestions || 50;
   const setGenerationTotal = generatorForm?.setGenerationTotal || ((t) => update('totalQuestions', t));
   const primaryTrap = form.primaryTrap || 'Automatic';
+  const primaryTraps = form.primaryTraps || [];
   const likelyMistakePattern = form.likelyMistakePattern || '';
+  const likelyMistakePatterns = form.likelyMistakePatterns || [];
+  const selectedSubskills = form.selectedSubskills || [];
+  const selectedSubtopics = form.selectedSubtopics || [];
   const customMistakePattern = form.customMistakePattern || '';
+
+  const togglePrimaryTrap = generatorForm?.togglePrimaryTrap;
+  const toggleSubskill = generatorForm?.toggleSubskill;
+  const toggleMistakePattern = generatorForm?.toggleMistakePattern;
+  const toggleSubtopic = generatorForm?.toggleSubtopic;
 
   const setDifficulty = (v) => update('difficulty', v);
   const setQuestionType = (v) => update('questionType', v);
@@ -110,8 +111,6 @@ export default function GuidedWizard({
   const setPrimaryTrap = (v) => update('primaryTrap', v);
   const allowAiImages = Boolean(form.allowAiImages ?? form.requireImage);
   const setAllowAiImages = generatorForm?.setAllowAiImages || ((v) => update('allowAiImages', v));
-  const customPrompt = form.customPrompt || '';
-  const setCustomPrompt = (v) => update('customPrompt', v);
 
   const sectionMeta = SECTION_METADATA[selectedSection] || SECTION_METADATA.chem_phys;
   const pacing = PACING_INFO[selectedSection] || PACING_INFO.chem_phys;
@@ -119,23 +118,20 @@ export default function GuidedWizard({
   // Section Selection handler
   const handleSelectSection = (sectionId) => {
     const isCars = sectionId === 'cars';
-    const subjs = getSubjectsForSection(sectionId);
-    const firstSubj = subjs[0];
-    const firstUnit = firstSubj?.units?.[0];
-    const firstTopic = firstUnit?.topics?.[0];
-    const firstSubtopic = firstTopic?.subtopics?.[0] || '';
     const skills = getSkillsForSection(sectionId);
     const firstSkill = skills[0];
 
     if (isCars) {
       updateFields({
         selectedSection: sectionId,
-        selectedSubject: firstSubj?.id || '',
-        selectedUnit: firstUnit?.id || '',
-        selectedTopic: firstTopic?.id || '',
-        selectedSubtopic: firstSubtopic,
+        selectedSubject: '',
+        selectedUnit: '',
+        selectedTopic: '',
+        selectedSubtopic: 'All Core Topics (Balanced Mix)',
+        selectedSubtopics: [],
         selectedSkill: firstSkill?.id || 'CARS1',
         selectedSubskill: firstSkill?.subskills?.[0] || '',
+        selectedSubskills: [],
         passageMode: 'single_passage',
         passageRequired: 'Yes',
         questionType: 'PASSAGE_BASED_MCQ',
@@ -153,12 +149,14 @@ export default function GuidedWizard({
     } else {
       updateFields({
         selectedSection: sectionId,
-        selectedSubject: firstSubj?.id || '',
-        selectedUnit: firstUnit?.id || '',
-        selectedTopic: firstTopic?.id || '',
-        selectedSubtopic: firstSubtopic,
+        selectedSubject: '',
+        selectedUnit: '',
+        selectedTopic: '',
+        selectedSubtopic: 'All Core Topics (Balanced Mix)',
+        selectedSubtopics: [],
         selectedSkill: firstSkill?.id || 'S1',
         selectedSubskill: firstSkill?.subskills?.[0] || '',
+        selectedSubskills: [],
         singleChoiceCount: totalQuestions,
         multiChoiceCount: 0
       });
@@ -205,6 +203,10 @@ export default function GuidedWizard({
     }
   }, [step, totalSteps, onGenerateQuestions, onLaunchGeneration]);
 
+  const handleInstantLaunch = useCallback(() => {
+    (onGenerateQuestions || onLaunchGeneration)?.();
+  }, [onGenerateQuestions, onLaunchGeneration]);
+
   const handleBack = () => {
     if (step > 1) {
       setStep(prev => prev - 1);
@@ -216,7 +218,7 @@ export default function GuidedWizard({
     setGenerationTotal(preset.total);
     update('passageRequired', preset.passageRequired);
     update('passageMode', preset.passageMode);
-    setStep(7);
+    setStep(3); // Fast track straight to Step 3 Review
   };
 
   // Keyboard navigation
@@ -259,8 +261,8 @@ export default function GuidedWizard({
           </div>
         </div>
 
-        {/* Interactive Step Pills Tracker */}
-        <div className="wizard-stepper-7" style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '10px', overflowX: 'auto', paddingBottom: '2px' }}>
+        {/* Interactive Step Pills Tracker (3 Steps) */}
+        <div className="wizard-stepper-3" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', overflowX: 'auto', paddingBottom: '2px' }}>
           {STEP_CONFIG.map((cfg) => {
             const isCurrent = step === cfg.num;
             const isCompleted = step > cfg.num;
@@ -274,10 +276,10 @@ export default function GuidedWizard({
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  padding: '4px 10px',
+                  gap: '7px',
+                  padding: '5px 14px',
                   borderRadius: 'var(--radius-full)',
-                  fontSize: '0.74rem',
+                  fontSize: '0.78rem',
                   fontWeight: isCurrent ? 600 : 500,
                   cursor: 'pointer',
                   background: isCurrent
@@ -301,20 +303,20 @@ export default function GuidedWizard({
               >
                 <span
                   style={{
-                    width: '16px',
-                    height: '16px',
+                    width: '18px',
+                    height: '18px',
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '0.64rem',
+                    fontSize: '0.68rem',
                     background: isCurrent ? 'rgba(255, 255, 255, 0.25)' : 'transparent',
                     fontWeight: 600
                   }}
                 >
-                  {isCompleted ? <Check size={10} /> : cfg.num}
+                  {isCompleted ? <Check size={11} /> : cfg.num}
                 </span>
-                <span>{cfg.short}</span>
+                <span>{cfg.label}</span>
               </button>
             );
           })}
@@ -329,53 +331,35 @@ export default function GuidedWizard({
         </div>
       </div>
 
-      {/* Wizard Body: Render Focused Progressive Steps */}
+      {/* Wizard Body: 3 Focused Progressive Steps */}
       <div className="wizard-body wizard-step-fade-enter" key={step}>
-        {/* Step 1: Exam Section */}
+        {/* Step 1: Exam Section & Topic Focus */}
         {step === 1 && (
-          <WizardStep1Section
+          <WizardStep1SectionFocus
             selectedSection={selectedSection}
             onSelectSection={handleSelectSection}
             SECTION_METADATA={SECTION_METADATA}
             sectionMeta={sectionMeta}
             pacing={pacing}
-            onAutoAdvance={() => setStep(2)}
+            selectedSubject={selectedSubject}
+            onSelectSubject={(v) => update('selectedSubject', v)}
+            selectedUnit={selectedUnit}
+            onSelectUnit={(v) => update('selectedUnit', v)}
+            selectedTopic={selectedTopic}
+            onSelectTopic={(v) => update('selectedTopic', v)}
+            selectedSubtopic={selectedSubtopic}
+            onSelectSubtopic={(v) => update('selectedSubtopic', v)}
+            selectedSubtopics={selectedSubtopics}
+            onToggleSubtopic={toggleSubtopic}
             presets={QUICK_PRESETS}
             onApplyPreset={handleApplyQuickPreset}
             totalQuestions={totalQuestions}
           />
         )}
 
-        {/* Step 2: Discipline & Major Unit (2 Decisions) */}
+        {/* Step 2: Challenge Level, Format & Batch Scope */}
         {step === 2 && (
-          <WizardStep2DisciplineUnit
-            selectedSection={selectedSection}
-            sectionMeta={sectionMeta}
-            selectedSubject={selectedSubject}
-            onSelectSubject={(v) => update('selectedSubject', v)}
-            selectedUnit={selectedUnit}
-            onSelectUnit={(v) => update('selectedUnit', v)}
-            onSelectTopic={(v) => update('selectedTopic', v)}
-            onSelectSubtopic={(v) => update('selectedSubtopic', v)}
-          />
-        )}
-
-        {/* Step 3: Specific Topic & Subtopic Concept (2 Decisions) */}
-        {step === 3 && (
-          <WizardStep3TopicSubtopic
-            selectedSection={selectedSection}
-            selectedSubject={selectedSubject}
-            selectedUnit={selectedUnit}
-            selectedTopic={selectedTopic}
-            onSelectTopic={(v) => update('selectedTopic', v)}
-            selectedSubtopic={selectedSubtopic}
-            onSelectSubtopic={(v) => update('selectedSubtopic', v)}
-          />
-        )}
-
-        {/* Step 4: Challenge Level & Question Format (3 Decisions) */}
-        {step === 4 && (
-          <WizardStep4LevelFormat
+          <WizardStep2LevelFormat
             selectedSection={selectedSection}
             difficulty={difficulty}
             setDifficulty={setDifficulty}
@@ -389,38 +373,9 @@ export default function GuidedWizard({
           />
         )}
 
-        {/* Step 5: Cognitive Traps & Reasoning Skills (2 Decisions) */}
-        {step === 5 && (
-          <WizardStep5TrapsSkills
-            selectedSection={selectedSection}
-            primaryTrap={primaryTrap}
-            setPrimaryTrap={setPrimaryTrap}
-            selectedSkill={selectedSkill}
-            setSelectedSkill={(v) => update('selectedSkill', v)}
-            selectedSubskill={selectedSubskill}
-            setSelectedSubskill={(v) => update('selectedSubskill', v)}
-          />
-        )}
-
-        {/* Step 6: Visual Stimulus & Custom Guidance (2 Decisions) */}
-        {step === 6 && (
-          <WizardStep6VisualsPrompt
-            selectedSection={selectedSection}
-            passageMode={passageMode}
-            allowAiImages={allowAiImages}
-            setAllowAiImages={setAllowAiImages}
-            likelyMistakePattern={likelyMistakePattern}
-            setLikelyMistakePattern={(v) => update('likelyMistakePattern', v)}
-            customMistakePattern={customMistakePattern}
-            setCustomMistakePattern={(v) => update('customMistakePattern', v)}
-            customPrompt={customPrompt}
-            setCustomPrompt={setCustomPrompt}
-          />
-        )}
-
-        {/* Step 7: Review & Multi-Agent Launch */}
-        {step === 7 && (
-          <WizardStep7Review
+        {/* Step 3: Review & Multi-Agent Launch (+ Optional Advanced Tuning) */}
+        {step === 3 && (
+          <WizardStep3ReviewAdvanced
             selectedSection={selectedSection}
             sectionMeta={sectionMeta}
             pacing={pacing}
@@ -429,18 +384,33 @@ export default function GuidedWizard({
             selectedUnit={selectedUnit}
             selectedTopic={selectedTopic}
             selectedSubtopic={selectedSubtopic}
-            customPrompt={customPrompt}
+            selectedSubtopics={selectedSubtopics}
             difficulty={difficulty}
+            setDifficulty={setDifficulty}
             totalQuestions={totalQuestions}
             setTotalQuestions={setGenerationTotal}
             questionType={questionType}
+            setQuestionType={setQuestionType}
+            passageMode={passageMode}
             allowAiImages={allowAiImages}
+            setAllowAiImages={setAllowAiImages}
             COGNITIVE_TRAPS={COGNITIVE_TRAPS}
             primaryTrap={primaryTrap}
+            setPrimaryTrap={setPrimaryTrap}
+            primaryTraps={primaryTraps}
+            onTogglePrimaryTrap={togglePrimaryTrap}
             selectedSkill={selectedSkill}
+            setSelectedSkill={(v) => update('selectedSkill', v)}
             selectedSubskill={selectedSubskill}
+            setSelectedSubskill={(v) => update('selectedSubskill', v)}
+            selectedSubskills={selectedSubskills}
+            onToggleSubskill={toggleSubskill}
             likelyMistakePattern={likelyMistakePattern}
+            setLikelyMistakePattern={(v) => update('likelyMistakePattern', v)}
+            likelyMistakePatterns={likelyMistakePatterns}
+            onToggleMistakePattern={toggleMistakePattern}
             customMistakePattern={customMistakePattern}
+            setCustomMistakePattern={(v) => update('customMistakePattern', v)}
           />
         )}
       </div>
@@ -477,37 +447,64 @@ export default function GuidedWizard({
           ))}
         </div>
 
-        <button
-          type="button"
-          className="workspace-action-btn-primary"
-          id={step === totalSteps ? 'btn-wizard-generate-questions' : 'btn-wizard-next-step'}
-          onClick={handleNext}
-          disabled={step === totalSteps && isLaunchingBatch}
-          style={{
-            padding: '10px 22px',
-            fontSize: '0.92rem',
-            opacity: step === totalSteps && isLaunchingBatch ? 0.6 : 1,
-            cursor: step === totalSteps && isLaunchingBatch ? 'not-allowed' : 'pointer'
-          }}
-        >
-          {step === totalSteps ? (
-            <>
-              <Sparkles size={16} className={isLaunchingBatch ? 'spin-icon' : ''} />
-              <span>
-                {isLaunchingBatch
-                  ? 'Launching Batch...'
-                  : totalQuestions === 5
-                  ? 'Generate 5-Question Set (Live)'
-                  : 'Launch 50-Question Batch'}
-              </span>
-            </>
-          ) : (
-            <>
-              <span>{currentStepConfig.nextLabel}</span>
-              <ArrowRight size={16} />
-            </>
+        {/* Action Buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Step 2 Instant Launch Shortcut */}
+          {step === 2 && (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={handleInstantLaunch}
+              disabled={isLaunchingBatch}
+              title="Launch generation immediately using smart AI defaults"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '9px 16px',
+                fontSize: '0.84rem',
+                fontWeight: 600,
+                color: 'var(--brand-primary)',
+                borderColor: 'var(--border-brand)'
+              }}
+            >
+              <Zap size={14} />
+              <span>Instant Launch (Defaults)</span>
+            </button>
           )}
-        </button>
+
+          <button
+            type="button"
+            className="workspace-action-btn-primary"
+            id={step === totalSteps ? 'btn-wizard-generate-questions' : 'btn-wizard-next-step'}
+            onClick={handleNext}
+            disabled={step === totalSteps && isLaunchingBatch}
+            style={{
+              padding: '10px 22px',
+              fontSize: '0.92rem',
+              opacity: step === totalSteps && isLaunchingBatch ? 0.6 : 1,
+              cursor: step === totalSteps && isLaunchingBatch ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {step === totalSteps ? (
+              <>
+                <Sparkles size={16} className={isLaunchingBatch ? 'spin-icon' : ''} />
+                <span>
+                  {isLaunchingBatch
+                    ? 'Launching Batch...'
+                    : totalQuestions === 5
+                    ? 'Generate 5-Question Set (Live)'
+                    : 'Launch 50-Question Batch'}
+                </span>
+              </>
+            ) : (
+              <>
+                <span>{currentStepConfig.nextLabel}</span>
+                <ArrowRight size={16} />
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

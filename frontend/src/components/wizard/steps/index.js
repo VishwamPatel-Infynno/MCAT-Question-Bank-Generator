@@ -1,3 +1,8 @@
+export { default as WizardStep1SectionFocus } from './WizardStep1SectionFocus';
+export { default as WizardStep2LevelFormat } from './WizardStep2LevelFormat';
+export { default as WizardStep3ReviewAdvanced } from './WizardStep3ReviewAdvanced';
+
+// Backward-compatible exports
 export { default as WizardStep1Section } from './WizardStep1Section';
 export { default as WizardStep2DisciplineUnit } from './WizardStep2DisciplineUnit';
 export { default as WizardStep3TopicSubtopic } from './WizardStep3TopicSubtopic';

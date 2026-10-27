@@ -25,14 +25,17 @@ export const DEFAULT_GENERATOR_FORM = {
   interactionType: 'single_choice',
   passageRequired: 'Yes',
   primaryTrap: 'Automatic',
+  primaryTraps: [],
   likelyMistakePattern: 'Automatic',
+  likelyMistakePatterns: [],
+  selectedSubskills: [],
+  selectedSubtopics: [],
   customMistakePattern: '',
   requireImage: false,
   allowAiImages: false,
   imageMode: 'none', // 'none' | 'all' | 'specific'
   imageQuestionIndices: [], // 1-based question numbers e.g. [1, 2]
-  requirePassageImage: false,
-  customPrompt: ''
+  requirePassageImage: false
 };
 
 export function useGeneratorForm(initialValues = {}) {
@@ -241,6 +244,94 @@ export function useGeneratorForm(initialValues = {}) {
     }));
   }, []);
 
+  const togglePrimaryTrap = useCallback((trapId) => {
+    setFormData(prev => {
+      if (trapId === 'Automatic') {
+        return {
+          ...prev,
+          primaryTraps: [],
+          primaryTrap: 'Automatic'
+        };
+      }
+      const current = prev.primaryTraps || [];
+      const exists = current.includes(trapId);
+      const next = exists ? current.filter(t => t !== trapId) : [...current, trapId];
+      return {
+        ...prev,
+        primaryTraps: next,
+        primaryTrap: next.length === 0 ? 'Automatic' : next.join(', ')
+      };
+    });
+  }, []);
+
+  const toggleSubskill = useCallback((subskill) => {
+    setFormData(prev => {
+      if (subskill === 'All' || subskill === 'Automatic' || subskill === '') {
+        return {
+          ...prev,
+          selectedSubskills: [],
+          selectedSubskill: ''
+        };
+      }
+      const current = prev.selectedSubskills || [];
+      const exists = current.includes(subskill);
+      const next = exists ? current.filter(s => s !== subskill) : [...current, subskill];
+      return {
+        ...prev,
+        selectedSubskills: next,
+        selectedSubskill: next.join(', ')
+      };
+    });
+  }, []);
+
+  const toggleMistakePattern = useCallback((patternId) => {
+    setFormData(prev => {
+      if (patternId === 'Automatic' || patternId === 'None') {
+        return {
+          ...prev,
+          likelyMistakePatterns: [],
+          likelyMistakePattern: patternId
+        };
+      }
+      const current = prev.likelyMistakePatterns || [];
+      const exists = current.includes(patternId);
+      const next = exists ? current.filter(p => p !== patternId) : [...current, patternId];
+      return {
+        ...prev,
+        likelyMistakePatterns: next,
+        likelyMistakePattern: next.length === 0 ? 'Automatic' : next.join(', ')
+      };
+    });
+  }, []);
+
+  const toggleSubtopic = useCallback((subtopic) => {
+    setFormData(prev => {
+      if (
+        subtopic === 'All' ||
+        subtopic === 'Automatic' ||
+        subtopic === 'All Concepts in Topic' ||
+        subtopic === 'All Core Topics (Balanced Mix)' ||
+        subtopic === 'All High-Yield Topics (Balanced Mix)'
+      ) {
+        return {
+          ...prev,
+          selectedSubtopics: [],
+          selectedSubtopic: prev.selectedTopic ? `${prev.selectedTopic} (All Concepts)` : 'All High-Yield Topics (Balanced Mix)'
+        };
+      }
+      const current = prev.selectedSubtopics || [];
+      const exists = current.includes(subtopic);
+      const next = exists ? current.filter(s => s !== subtopic) : [...current, subtopic];
+      return {
+        ...prev,
+        selectedSubtopics: next,
+        selectedSubtopic: next.length === 0
+          ? (prev.selectedTopic ? `${prev.selectedTopic} (All Concepts)` : 'All High-Yield Topics (Balanced Mix)')
+          : next.join(', ')
+      };
+    });
+  }, []);
+
   return {
     formData,
     setFormData,
@@ -249,6 +340,10 @@ export function useGeneratorForm(initialValues = {}) {
     toggleContentDomain,
     toggleQuestionImage,
     togglePassageImage,
+    togglePrimaryTrap,
+    toggleSubskill,
+    toggleMistakePattern,
+    toggleSubtopic,
     setImageMode,
     setImageCount,
     setSingleImageCount,
@@ -259,3 +354,4 @@ export function useGeneratorForm(initialValues = {}) {
     setGenerationTotal
   };
 }
+

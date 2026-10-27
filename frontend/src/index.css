@@ -1457,14 +1457,17 @@ input:focus, select:focus, textarea:focus {
   }
 }
 
-.wizard-stepper-7::-webkit-scrollbar {
+.wizard-stepper-7::-webkit-scrollbar,
+.wizard-stepper-3::-webkit-scrollbar {
   height: 3px;
 }
 
-.wizard-stepper-7::-webkit-scrollbar-thumb {
+.wizard-stepper-7::-webkit-scrollbar-thumb,
+.wizard-stepper-3::-webkit-scrollbar-thumb {
   background: var(--border-medium);
   border-radius: var(--radius-full);
 }
+
 
 
 

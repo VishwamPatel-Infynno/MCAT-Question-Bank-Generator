@@ -1,4 +1,3 @@
-from datetime import UTC, datetime
 import logging
 
 from sqlalchemy import select
