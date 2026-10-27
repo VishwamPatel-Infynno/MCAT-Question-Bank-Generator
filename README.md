@@ -16,7 +16,7 @@ For deep-dive technical specifications, architecture diagrams, API schemas, and 
 | Document | Description |
 | :--- | :--- |
 | **[Central Documentation Hub (docs/README.md)](docs/README.md)** | **Master Documentation Index**: Complete sitemap, role-based navigation paths, architectural overview, and cross-functional guide directory. |
-| **[Client System & Workflow Guide (docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)](docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)** | **Primary Client Deliverable**: End-to-end operational walkthrough, 7-step wizard, 2 calibrated generation scopes (Live Mini-Set [5 Qs] and Full Mock Section [50 Qs]), Blind-Solver safeguard, AAMC Split-Pane reading mode, Two-Tier quality thresholds (>90 AI Validated / >85 Batch), mentor explanations, and token transparency. |
+| **[Client System & Workflow Guide (docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)](docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)** | **Primary Client Deliverable**: End-to-end operational walkthrough, 3-step wizard, 2 calibrated generation scopes (Live Mini-Set [5 Qs] and Full Mock Section [50 Qs]), Blind-Solver safeguard, AAMC Split-Pane reading mode, Two-Tier quality thresholds (>90 AI Validated / >85 Batch), mentor explanations, and token transparency. |
 | **[UI/UX Design System (DESIGN.md)](DESIGN.md)** | Authoritative design tokens, dual obsidian/alabaster themes, AAMC Dual Split-Pane reading mode, accessible modal focus-trapping contracts, typography scale, component contracts, accessibility criteria (WCAG AA), and micro-animations. |
 | **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 3-step pipeline specifications, Blind-Solver Dual Validation, Strict Quality Gate, Two-Tier quality threshold model, global worker semaphores, background batch runner, SSE pipeline, and PostgreSQL 16 ERD. |
 | **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation (27 operations across 22 endpoint paths), batch generation schemas, batch controls (`/stop`, `/retry`, `/cancel-all`), SSE event stream contracts, filter parameters, and cURL examples. |
@@ -263,7 +263,7 @@ Question Bank Generator/
         ├── components/          # Domain-organized UI components
         │   ├── index.js         # Barrel exports for clean component imports
         │   ├── layout/          # Layout components (Navbar, Footer)
-        │   ├── wizard/          # Progressive 7-step Guided Wizard (HeroLanding, GuidedWizard, steps 1-7)
+        │   ├── wizard/          # Progressive 3-step Guided Wizard (HeroLanding, GuidedWizard, steps 1-3)
         │   ├── pipeline/        # AI Pipeline (AgentVisualizer, MultiAgentPipelineVisualizer, RejectionCard)
         │   ├── question/        # Single Question Review Desk (QuestionCard, ReviewAuditView, SharedPassageCard, VisualStimulusViewer)
         │   ├── staged/          # Staged batch review (StagedBatchReview, StagedBatchGrid, StagedDetailedView, StagedQuestionSlotCard, StagedSlotSkeleton, BatchProgressHeader, StageJsonInspector)

@@ -10,7 +10,7 @@ Built with **React 19**, **Vite 8**, **Oxlint**, and a custom dark-glass precisi
 
 The frontend provides an intuitive, real-time command canvas for AAMC MCAT question generation, AI team tracking, and question bank management:
 
-- **Progressive 7-Step Guided Wizard**: Step-by-step authoring workflow for selecting official AAMC sections (Chemical and Physical Foundations, Critical Analysis and Reasoning Skills [CARS], Biological and Biochemical Foundations, Psychological, Social, and Biological Foundations), syllabus disciplines, major units, topics, subtopics, difficulty calibration, reading material stimuli, and cognitive distractor traps.
+- **Streamlined 3-Step Guided Wizard**: High-velocity authoring workflow consolidating section selection, syllabus disciplines, major units, multi-select subtopic concepts, difficulty & format calibration (Mini-Set vs Mock Section), visual stimuli, and advanced cognitive traps into three focused decision stages (Section & Topic Focus, Format & Scope, Review & Launch).
 - **2 Calibrated Generation Scopes**:
   - **Live Mini-Set (5 Qs)**: Parallel drafting on a shared passage or discrete set (~35-50s) staged in the interactive multi-slot desk with live telemetry and inline editing.
   - **Full Mock Section (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
@@ -85,9 +85,9 @@ frontend/src/
 │   │   ├── AiValidatedFiltersBar.jsx # Filters for AI-validated questions
 │   │   └── AiValidatedStatsBar.jsx # Quick-action statistics header
 │   └── wizard/
-│       ├── GuidedWizard.jsx      # Progressive 7-step guided exam generation wizard dock
+│       ├── GuidedWizard.jsx      # Streamlined 3-step guided exam generation wizard dock
 │       ├── HeroLanding.jsx       # Welcome landing hero header
-│       └── steps/                # Progressive 7-step subcomponents (WizardStep1Section through WizardStep7Review)
+│       └── steps/                # Progressive 3-step subcomponents (WizardStep1SectionFocus, WizardStep2LevelFormat, WizardStep3ReviewAdvanced)
 ├── constants/
 │   ├── index.js                  # Constants barrel export
 │   ├── config.js                 # Pricing models, image parameters, token rates

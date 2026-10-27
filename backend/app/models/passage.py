@@ -33,5 +33,3 @@ class PassageModel(Base):
     questions: Mapped[list["QuestionModel"]] = relationship(
         "QuestionModel", back_populates="passage", lazy="selectin"
     )
-
-

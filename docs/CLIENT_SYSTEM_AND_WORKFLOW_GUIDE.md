@@ -48,24 +48,28 @@ The platform is engineered around the official syllabus, cognitive traps, and pa
 
 ---
 
-## 3. End-to-End User Experience & 7-Step Guided Wizard
+## 3. End-to-End User Experience & Streamlined 3-Step Guided Wizard
 
-The workstation provides an interactive **7-Step Guided Wizard** docked beside the full-width workspace, organizing decisions into 1-2 focused choices per step:
+The workstation provides an interactive **Streamlined 3-Step Guided Wizard** docked beside the full-width workspace, organizing authoring decisions into three high-velocity stages:
 
 ```
-[ Step 1: Section ] ──> [ Step 2: Discipline & Unit ] ──> [ Step 3: Topic & Concept ] ──> [ Step 4: Level & Scope ] ──> [ Step 5: Traps & Skills ] ──> [ Step 6: Visuals & Prompt ] ──> [ Step 7: Review & Launch ]
+[ Step 1: Section & Topic Focus ] ──> [ Step 2: Level, Format & Scope ] ──> [ Step 3: Review & Launch (Advanced Calibration) ]
 ```
 
-1. **Step 1: Choose MCAT Section**: Select from the 4 official AAMC sections. Selecting CARS automatically primes the wizard for 100% passage-based operation and disables image generation.
-2. **Step 2: Choose Discipline & Major Unit**: Select discipline and major unit based on the official AAMC syllabus.
-3. **Step 3: Select Topic & Granular Concept**: Select targeted topic and granular subtopic concept.
-4. **Step 4: Calibrate Level, Scope & Question Format**:
-   - **Generation Scope**: Select Live Mini-Set (5 Qs) or Full Mock Section (50 Qs).
-   - **Challenge Level**: Foundational, Standard MCAT, or Top Percentile.
+1. **Step 1: Section & Topic Focus**: 
+   - **Exam Section Selection**: Choose from the 4 official AAMC sections (Chemical and Physical Foundations, CARS, Biological and Biochemical Foundations, Psychological, Social, and Biological Foundations). Selecting CARS automatically primes the wizard for 100% passage-based operation and disables image generation.
+   - **Discipline & Major Unit**: Select syllabus discipline and unit taxonomy.
+   - **High-Yield Concept Subtopics**: Multi-select granular subtopics or select all concepts for a balanced mix.
+2. **Step 2: Level, Format & Scope**:
+   - **Generation Scope**: Select Live Mini-Set (5 Qs) for immediate parallel drafting or Full Mock Section (50 Qs) for background multi-job batch execution.
+   - **Challenge Level**: Foundational, Standard MCAT, or Top Percentile tier calibration.
    - **Binary Passage Mode**: Passage-Based Set vs Independent Discretes.
-5. **Step 5: Cognitive Traps & Reasoning Skills**: Calibrate specific AAMC cognitive distractor traps paired with official AAMC SIRS skills (Skill 1-4) or CARS reasoning skills.
-6. **Step 6: Figures & Clinical Guidance**: Configure optional SVG vector diagrams (reaction coordinates, metabolic cycles, Western blot assays), autonomous AI visual generation, and custom prompt directives.
-7. **Step 7: Review & Launch**: Inspect the unified configuration summary with quick scope switcher pills and trigger real-time SSE streaming or background batch generation.
+   - **Question Breakdown**: Calibrate single-choice and multi-choice proportions.
+3. **Step 3: Review & Launch (with Advanced Calibration)**:
+   - **Scientific Figures & Visual Stimuli**: Enable/disable autonomous AI visual diagrams (reaction coordinates, Western blots, anatomical pathways).
+   - **Expandable Advanced Directives**: Multi-select official AAMC cognitive distractor traps (Formula Trap, Extreme Quantifiers, False Causation), SIRS reasoning skills (Skill 1–4), and likely student mistake patterns.
+   - **Unified Review & Launch**: Inspect the live configuration summary and launch real-time SSE streaming or background worker pool batch generation.
+
 
 ---
 

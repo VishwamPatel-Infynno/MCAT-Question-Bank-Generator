@@ -50,8 +50,9 @@ class GenerationJobModel(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Bidirectional relationships
-    batch: Mapped["GenerationBatchModel"] = relationship("GenerationBatchModel", back_populates="jobs")
+    batch: Mapped["GenerationBatchModel"] = relationship(
+        "GenerationBatchModel", back_populates="jobs"
+    )
     questions: Mapped[list["QuestionModel"]] = relationship(
         "QuestionModel", back_populates="job", lazy="selectin"
     )
-

@@ -127,7 +127,9 @@ async def init_db_schema(engine: AsyncEngine):
             text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS batch_id VARCHAR(64);")
         )
         await conn.execute(
-            text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE;")
+            text(
+                "ALTER TABLE questions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE;"
+            )
         )
         await conn.execute(
             text(
@@ -144,7 +146,7 @@ async def init_db_schema(engine: AsyncEngine):
                         ALTER TABLE questions ALTER COLUMN created_at SET DEFAULT NOW();
                     END IF;
                     IF EXISTS (
-                        SELECT 1 FROM information_schema.columns 
+                        SELECT 1 FROM information_schema.columns
                         WHERE table_name = 'questions' AND column_name = 'updated_at' AND data_type = 'character varying'
                     ) THEN
                         ALTER TABLE questions ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE USING (
@@ -152,7 +154,7 @@ async def init_db_schema(engine: AsyncEngine):
                         );
                     END IF;
                     IF EXISTS (
-                        SELECT 1 FROM information_schema.columns 
+                        SELECT 1 FROM information_schema.columns
                         WHERE table_name = 'passages' AND column_name = 'created_at' AND data_type = 'character varying'
                     ) THEN
                         ALTER TABLE passages ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE USING (
@@ -161,7 +163,7 @@ async def init_db_schema(engine: AsyncEngine):
                         ALTER TABLE passages ALTER COLUMN created_at SET DEFAULT NOW();
                     END IF;
                     IF EXISTS (
-                        SELECT 1 FROM information_schema.columns 
+                        SELECT 1 FROM information_schema.columns
                         WHERE table_name = 'passages' AND column_name = 'updated_at' AND data_type = 'character varying'
                     ) THEN
                         ALTER TABLE passages ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE USING (
@@ -169,7 +171,7 @@ async def init_db_schema(engine: AsyncEngine):
                         );
                     END IF;
                     IF EXISTS (
-                        SELECT 1 FROM information_schema.columns 
+                        SELECT 1 FROM information_schema.columns
                         WHERE table_name = 'generation_batches' AND column_name = 'created_at' AND data_type = 'character varying'
                     ) THEN
                         ALTER TABLE generation_batches ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE USING (
@@ -178,7 +180,7 @@ async def init_db_schema(engine: AsyncEngine):
                         ALTER TABLE generation_batches ALTER COLUMN created_at SET DEFAULT NOW();
                     END IF;
                     IF EXISTS (
-                        SELECT 1 FROM information_schema.columns 
+                        SELECT 1 FROM information_schema.columns
                         WHERE table_name = 'generation_batches' AND column_name = 'updated_at' AND data_type = 'character varying'
                     ) THEN
                         ALTER TABLE generation_batches ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE USING (
@@ -186,7 +188,7 @@ async def init_db_schema(engine: AsyncEngine):
                         );
                     END IF;
                     IF EXISTS (
-                        SELECT 1 FROM information_schema.columns 
+                        SELECT 1 FROM information_schema.columns
                         WHERE table_name = 'generation_jobs' AND column_name = 'created_at' AND data_type = 'character varying'
                     ) THEN
                         ALTER TABLE generation_jobs ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE USING (
@@ -195,7 +197,7 @@ async def init_db_schema(engine: AsyncEngine):
                         ALTER TABLE generation_jobs ALTER COLUMN created_at SET DEFAULT NOW();
                     END IF;
                     IF EXISTS (
-                        SELECT 1 FROM information_schema.columns 
+                        SELECT 1 FROM information_schema.columns
                         WHERE table_name = 'generation_jobs' AND column_name = 'started_at' AND data_type = 'character varying'
                     ) THEN
                         ALTER TABLE generation_jobs ALTER COLUMN started_at TYPE TIMESTAMP WITH TIME ZONE USING (
@@ -203,7 +205,7 @@ async def init_db_schema(engine: AsyncEngine):
                         );
                     END IF;
                     IF EXISTS (
-                        SELECT 1 FROM information_schema.columns 
+                        SELECT 1 FROM information_schema.columns
                         WHERE table_name = 'generation_jobs' AND column_name = 'completed_at' AND data_type = 'character varying'
                     ) THEN
                         ALTER TABLE generation_jobs ALTER COLUMN completed_at TYPE TIMESTAMP WITH TIME ZONE USING (

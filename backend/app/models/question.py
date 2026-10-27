@@ -130,4 +130,3 @@ class QuestionModel(Base):
     job: Mapped["GenerationJobModel | None"] = relationship(
         "GenerationJobModel", back_populates="questions"
     )
-

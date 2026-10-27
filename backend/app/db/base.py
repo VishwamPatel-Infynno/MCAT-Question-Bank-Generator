@@ -32,4 +32,3 @@ def to_iso_str(val: Any) -> str:
     if hasattr(val, "isoformat"):
         return val.isoformat()
     return str(val)
-

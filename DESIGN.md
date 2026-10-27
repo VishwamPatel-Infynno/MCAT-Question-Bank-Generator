@@ -198,7 +198,7 @@ Renders pedagogical rationales across three distinct, beautifully styled visual 
 - Renders an active runtime duration stopwatch using `font-family: var(--font-mono)` with glowing amber pulse animation during active generation runs.
 
 ### 4.9 Top-Level Application Views (`views/`)
-1. **Generator Workspace View (`GeneratorWorkspaceView.jsx`)**: Coordinates the 7-step guided wizard dock alongside the single-canvas live generation desk, telemetry pipelines, and staged review decks.
+1. **Generator Workspace View (`GeneratorWorkspaceView.jsx`)**: Coordinates the 3-step guided wizard dock alongside the single-canvas live generation desk, telemetry pipelines, and staged review decks.
 2. **AI Validated Questions View (`AiValidatedQuestionsView.jsx`)**: Dedicated review deck for items generated in background batches that passed the >90 quality threshold, supporting one-click individual or bulk publishing into the primary Question Bank.
 3. **Question Bank View (`QuestionBankView.jsx`)**: Full-featured searchable, filterable repository table featuring multi-format CSV/JSON exports, bulk deletion, lifecycle status updates, and repository-wide token analytics.
 4. **Batch Activity View (`BatchActivityView.jsx`)**: Live and historical monitor displaying running batch jobs, per-job question counts, status indicators, and background worker progress. Features dedicated scope filtering (`All Batches`, `Live Mini-Sets [1 Job]`, `Full Sections [10 Jobs]`) and visual badges distinguishing 1-job live mini-sets from 10-job full mock sections.
