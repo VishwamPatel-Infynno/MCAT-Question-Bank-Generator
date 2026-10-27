@@ -34,6 +34,7 @@ export default function BatchActivityView({
   const [activeCount, setActiveCount] = useState(0);
 
   // Filters
+  const [scopeFilter, setScopeFilter] = useState('all'); // 'all' | 'mini' | 'full'
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'in_progress' | 'completed' | 'failed'
   const [sectionFilter, setSectionFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -354,6 +355,8 @@ export default function BatchActivityView({
 
   // Filtered batches
   const filteredBatches = batches.filter((b) => {
+    if (scopeFilter === 'mini' && !(b.total_jobs === 1 || b.target_count === 5)) return false;
+    if (scopeFilter === 'full' && !(b.total_jobs > 1 || b.target_count > 5)) return false;
     if (statusFilter !== 'all' && b.status !== statusFilter) return false;
     if (sectionFilter !== 'all') {
       const code = SECTION_CODE_MAP[b.section] || b.section;
@@ -425,7 +428,7 @@ export default function BatchActivityView({
                   margin: '2px 0 0 0'
                 }}
               >
-                Track 50-question background batches, inspect 10 constituent jobs, and monitor
+                Track 5-question Live Mini-Sets (1 Job) and 50-question mock sections (10 Jobs), inspect constituent jobs, and monitor
                 throughput in real-time. Batch activity preserves questions scoring &gt; 85; questions scoring &gt; 90 route to AI Validated.
               </p>
             </div>
@@ -465,7 +468,7 @@ export default function BatchActivityView({
             }}
           >
             <Sparkles size={14} />
-            <span>New 50-Question Batch</span>
+            <span>New Batch / Mini-Set</span>
           </button>
         </div>
       </div>
@@ -486,6 +489,8 @@ export default function BatchActivityView({
       <BatchFiltersBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        scopeFilter={scopeFilter}
+        onScopeFilterChange={setScopeFilter}
         sectionFilter={sectionFilter}
         onSectionFilterChange={setSectionFilter}
         statusFilter={statusFilter}

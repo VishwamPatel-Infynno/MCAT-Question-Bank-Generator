@@ -43,9 +43,9 @@ export default function GeneratorWorkspaceView({
   setViewMode
 }) {
   const isBatchMode =
-    stagedQuestions.length > 1 ||
-    (stagedQuestions.length > 0 && generatorForm.formData.totalQuestions > 1) ||
-    (isGenerating && (batchProgress?.total > 1 || generatorForm.formData.totalQuestions > 1));
+    stagedQuestions.length > 0 ||
+    isGenerating ||
+    (generatorForm?.formData?.totalQuestions || 50) >= 5;
 
   return (
     <div style={{ maxWidth: '1040px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>

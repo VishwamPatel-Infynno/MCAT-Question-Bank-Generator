@@ -377,14 +377,19 @@ async def launch_background_batch(
     batch_id: str | None = None,
 ) -> tuple[GenerationBatch, list[GenerationJob]]:
     """
-    Initializes a 50-question batch with 10 jobs in PostgreSQL and launches
+    Initializes a batch with constituent jobs in PostgreSQL and launches
     the background runner task governed by the global worker pool.
+    5 questions = 1 job; 50 questions = 10 jobs.
     """
     b_id = batch_id or str(uuid.uuid4())
     now_iso = datetime.now(UTC).isoformat()
 
     sec_val = req.section.value if hasattr(req.section, "value") else str(req.section)
     diff_val = req.difficulty.value if hasattr(req.difficulty, "value") else str(req.difficulty)
+
+    target_q = req.questions_to_generate or 50
+    total_jobs = 1 if target_q == 5 else 10
+    target_count = 5 if target_q == 5 else 50
 
     # Cache request for potential 1-click retries
     _batch_requests[b_id] = req
@@ -396,9 +401,9 @@ async def launch_background_batch(
         subtopic=req.subtopic or f"{sec_val} Comprehensive Set",
         difficulty=diff_val,
         passage_mode=req.passage_mode or "single_passage",
-        target_count=50,
+        target_count=target_count,
         actual_count=0,
-        total_jobs=10,
+        total_jobs=total_jobs,
         completed_jobs=0,
         failed_jobs=0,
         status="in_progress",
@@ -406,9 +411,9 @@ async def launch_background_batch(
     )
     await save_batch(batch)
 
-    # 2. Create 10 GenerationJob stubs
+    # 2. Create GenerationJob stubs
     jobs: list[GenerationJob] = []
-    for num in range(1, 11):
+    for num in range(1, total_jobs + 1):
         j = GenerationJob(
             id=str(uuid.uuid4()),
             batch_id=b_id,

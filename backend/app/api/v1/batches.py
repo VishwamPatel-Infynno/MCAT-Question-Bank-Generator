@@ -36,7 +36,7 @@ async def start_batch_generation(req: GenerationRequest):
         batch, jobs = await launch_background_batch(req)
         return {
             "success": True,
-            "message": f"Background batch {batch.id} launched with 10 jobs (50 questions total).",
+            "message": f"Background batch {batch.id} launched with {len(jobs)} {'job' if len(jobs) == 1 else 'jobs'} ({batch.target_count} questions total).",
             "batch": batch.model_dump(),
             "jobs": [j.model_dump() for j in jobs],
         }

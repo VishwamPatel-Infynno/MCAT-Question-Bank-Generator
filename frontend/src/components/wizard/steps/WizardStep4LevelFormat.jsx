@@ -215,40 +215,8 @@ export default function WizardStep4LevelFormat({
           </span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
-          {/* Preset 1: Quick Single Item */}
-          <div
-            className={`wizard-tier-card ${totalQuestions === 1 ? 'selected' : ''}`}
-            onClick={() => setTotalQuestions?.(1)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setTotalQuestions?.(1);
-              }
-            }}
-            role="button"
-            tabIndex={0}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '1rem' }}>⚡</span>
-                <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Quick Single Item (1 Q)
-                </span>
-              </div>
-              {totalQuestions === 1 && (
-                <CheckCircle2 size={16} style={{ color: 'var(--brand-primary)' }} />
-              )}
-            </div>
-            <div style={{ marginBottom: '6px' }}>
-              <span className="badge badge-emerald" style={{ fontSize: '0.675rem' }}>Live Workspace (~15-25s)</span>
-            </div>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
-              Live real-time stream into the interactive Question Desk with live conduit telemetry and inline editing.
-            </p>
-          </div>
-
-          {/* Preset 2: Live Mini-Set */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+          {/* Preset 1: Live Mini-Set */}
           <div
             className={`wizard-tier-card ${totalQuestions === 5 ? 'selected' : ''}`}
             onClick={() => setTotalQuestions?.(5)}
@@ -273,14 +241,14 @@ export default function WizardStep4LevelFormat({
               )}
             </div>
             <div style={{ marginBottom: '6px' }}>
-              <span className="badge badge-purple" style={{ fontSize: '0.675rem' }}>Staged Batch Desk (~35-50s)</span>
+              <span className="badge badge-purple" style={{ fontSize: '0.675rem' }}>1 Single Job (5 Qs) • Staged Batch Desk (~35-50s)</span>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
-              Parallel drafting linked to a shared reading passage (or 5 discretes) reviewed on the multi-slot staging desk.
+              1 single job of 5 questions linked to a shared reading passage (or 5 discretes), streamed live into the multi-slot staging desk and logged in Batch Activity.
             </p>
           </div>
 
-          {/* Preset 3: Full Mock Section */}
+          {/* Preset 2: Full Mock Section */}
           <div
             className={`wizard-tier-card ${totalQuestions === 50 ? 'selected' : ''}`}
             onClick={() => setTotalQuestions?.(50)}
@@ -305,10 +273,10 @@ export default function WizardStep4LevelFormat({
               )}
             </div>
             <div style={{ marginBottom: '6px' }}>
-              <span className="badge badge-cyan" style={{ fontSize: '0.675rem' }}>Background 10 Jobs (Async)</span>
+              <span className="badge badge-cyan" style={{ fontSize: '0.675rem' }}>10 Concurrent Jobs (50 Qs) • Global Worker Pool</span>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
-              Enterprise batch generation across 10 concurrent background worker jobs with automatic quality validation.
+              Enterprise mock section across 10 concurrent worker jobs (5 Qs each) governed by the global worker pool with automatic quality validation.
             </p>
           </div>
         </div>

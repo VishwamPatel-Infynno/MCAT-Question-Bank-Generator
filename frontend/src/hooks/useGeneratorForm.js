@@ -211,7 +211,7 @@ export function useGeneratorForm(initialValues = {}) {
   }, []);
 
   const setGenerationTotal = useCallback((total) => {
-    const validTotal = [1, 5, 50].includes(total) ? total : (total > 5 ? 50 : (total > 1 ? 5 : 1));
+    const validTotal = total === 5 ? 5 : 50;
     setFormData(prev => {
       const isPassage = prev.passageMode === 'single_passage';
       return {

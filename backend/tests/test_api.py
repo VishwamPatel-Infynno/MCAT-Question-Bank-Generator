@@ -276,23 +276,34 @@ async def test_batch_generation_and_staging_flow(monkeypatch):
     staged_qs = complete_evt["data"]["questions"]
     assert len(staged_qs) == 5
 
-    # Check that candidates are NOT automatically saved to DB
+    # Verify candidates are tracked under the live batch and job in PostgreSQL
+    live_batch_id = complete_evt["data"]["batch_id"]
+    live_job_id = complete_evt["data"]["job_id"]
+    assert live_batch_id is not None
+    assert live_job_id is not None
+
     for q_data in staged_qs:
         in_db = await get_question_by_id(q_data["id"])
-        assert in_db is None  # Not saved until user confirms!
+        assert in_db is not None
+        assert in_db.batch_id == live_batch_id
+        assert in_db.job_id == live_job_id
+        assert in_db.status in ("ai_validated", "batch_only")
 
-    chosen_to_approve = [Question(**staged_qs[0]), Question(**staged_qs[1])]
-    saved_ids = await save_questions_batch(chosen_to_approve)
-    assert len(saved_ids) == 2
+    # Test approving selected questions into the Question Bank
+    from app.repositories.question_repository import batch_update_question_status
+    approved_ids = [staged_qs[0]["id"], staged_qs[1]["id"]]
+    await batch_update_question_status(approved_ids, "in_bank")
 
-    # Verify the 2 approved are now in DB, and unapproved are not
-    assert await get_question_by_id(staged_qs[0]["id"]) is not None
-    assert await get_question_by_id(staged_qs[1]["id"]) is not None
-    assert await get_question_by_id(staged_qs[2]["id"]) is None
+    q0 = await get_question_by_id(staged_qs[0]["id"])
+    q1 = await get_question_by_id(staged_qs[1]["id"])
+    q2 = await get_question_by_id(staged_qs[2]["id"])
+    assert q0.status == "in_bank"
+    assert q1.status == "in_bank"
+    assert q2.status != "in_bank"
 
     # Clean up
-    await delete_question(staged_qs[0]["id"])
-    await delete_question(staged_qs[1]["id"])
+    for q_data in staged_qs:
+        await delete_question(q_data["id"])
 
 
 @pytest.mark.asyncio

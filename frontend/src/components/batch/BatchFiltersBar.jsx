@@ -4,6 +4,8 @@ import { Search } from 'lucide-react';
 export default function BatchFiltersBar({
   searchQuery = '',
   onSearchChange,
+  scopeFilter = 'all',
+  onScopeFilterChange,
   sectionFilter = 'all',
   onSectionFilterChange,
   statusFilter = 'all',
@@ -27,7 +29,7 @@ export default function BatchFiltersBar({
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', flex: 1 }}>
         {/* Search */}
-        <div style={{ position: 'relative', minWidth: '220px', flex: 1, maxWidth: '340px' }}>
+        <div style={{ position: 'relative', minWidth: '200px', flex: 1, maxWidth: '300px' }}>
           <Search
             size={14}
             style={{
@@ -53,6 +55,25 @@ export default function BatchFiltersBar({
               color: 'var(--text-primary)'
             }}
           />
+        </div>
+
+        {/* Scope Tabs */}
+        <div className="pill-track" style={{ padding: '2px' }}>
+          {[
+            { id: 'all', label: 'All Batches' },
+            { id: 'mini', label: '🎯 Live Mini-Sets [1 Job]' },
+            { id: 'full', label: '📚 Full Sections [10 Jobs]' }
+          ].map((scope) => (
+            <button
+              key={scope.id}
+              type="button"
+              onClick={() => onScopeFilterChange?.(scope.id)}
+              className={`pill-track-btn ${scopeFilter === scope.id ? 'active' : ''}`}
+              style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+            >
+              {scope.label}
+            </button>
+          ))}
         </div>
 
         {/* Section Filter */}

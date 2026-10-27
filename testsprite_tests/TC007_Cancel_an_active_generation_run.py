@@ -71,9 +71,9 @@ async def run_test():
         elem = page.get_by_role("button", name="Independent MCQ Standalone")
         await elem.click(timeout=10000)
 
-        # -> Choose “Quick Single Item (1 Q)” to use the live workspace generation mode.
-        # ⚡ Quick Single Item (1 Q) Live Workspace... button
-        elem = page.get_by_role("button", name="⚡ Quick Single Item (1 Q)")
+        # -> Choose “Live Mini-Set (5 Qs)” to use the live workspace generation mode.
+        # 🎯 Live Mini-Set (5 Qs) Staged Batch Desk... button
+        elem = page.get_by_role("button", name="🎯 Live Mini-Set (5 Qs)")
         await elem.click(timeout=10000)
 
         # -> Continue to the trap-settings screen using “Continue to Traps.”

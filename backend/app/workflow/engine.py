@@ -3,12 +3,22 @@ import json
 import logging
 import uuid
 from collections.abc import AsyncGenerator, Callable
+from datetime import UTC, datetime
 from typing import Any
 
 from app.agents.generator import generate_passage_stimulus
 from app.agents.image_generator import generate_image_stimulus
 from app.core.config import config
+from app.repositories.batch_repository import (
+    get_batch_by_id,
+    refresh_batch_aggregates,
+    save_batch,
+)
+from app.repositories.job_repository import save_job, update_job_progress
+from app.repositories.question_repository import save_question
 from app.schemas import (
+    GenerationBatch,
+    GenerationJob,
     GenerationRequest,
     MCATSection,
     OptionChoice,
@@ -334,7 +344,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
     culminating in workflow_complete with all staged questions for user confirmation.
     """
     total_qty = 5 if req.questions_to_generate != 1 else 1
-    batch_id = req.batch_id or (str(uuid.uuid4()) if total_qty > 1 else None)
+    batch_id = req.batch_id or str(uuid.uuid4())
+    job_id = req.job_id or str(uuid.uuid4())
+    is_standalone_live_run = req.job_id is None
 
     # Resolve binary passage mode: either all 5 linked or all 5 independent
     is_cars = req.section in (MCATSection.CARS, "cars", "CARS")
@@ -360,6 +372,44 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
     passage_completion_tokens = 0
     passage_cost = 0.0
 
+    # Auto-initialize Batch and Job records in PostgreSQL for live interactive runs
+    if is_standalone_live_run:
+        now_iso = datetime.now(UTC).isoformat()
+        sec_val = req.section.value if hasattr(req.section, "value") else str(req.section)
+        diff_val = req.difficulty.value if hasattr(req.difficulty, "value") else str(req.difficulty)
+
+        existing_b = await get_batch_by_id(batch_id)
+        if not existing_b:
+            batch_record = GenerationBatch(
+                id=batch_id,
+                section=sec_val,
+                subtopic=req.subtopic or f"{sec_val} Live Mini-Set",
+                difficulty=diff_val,
+                passage_mode=req.passage_mode
+                or ("single_passage" if is_single_passage_set else "independent"),
+                target_count=total_qty,
+                actual_count=0,
+                total_jobs=1,
+                completed_jobs=0,
+                failed_jobs=0,
+                status="in_progress",
+                created_at=now_iso,
+            )
+            await save_batch(batch_record)
+
+        job_record = GenerationJob(
+            id=job_id,
+            batch_id=batch_id,
+            job_number=1,
+            status="running",
+            target_count=total_qty,
+            actual_count=0,
+            passage_id=shared_passage_id,
+            created_at=now_iso,
+            started_at=now_iso,
+        )
+        await save_job(job_record)
+
     def make_event(
         event_type: str,
         agent_name: str,
@@ -367,13 +417,18 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         data: dict[str, Any] | None = None,
         run_id: str | None = None,
     ) -> WorkflowEvent:
+        event_data = dict(data or {})
+        if "batch_id" not in event_data and batch_id:
+            event_data["batch_id"] = batch_id
+        if "job_id" not in event_data and job_id:
+            event_data["job_id"] = job_id
         return WorkflowEvent(
             run_id=run_id or req.run_id,
             batch_id=batch_id,
             event_type=event_type,
             agent_name=agent_name,
             message=message,
-            data=data,
+            data=event_data,
         )
 
     all_staged_questions: list[dict[str, Any]] = []
@@ -759,7 +814,34 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
                             final_q_dict = state["final_question"]
                             final_q_dict["index"] = idx + 1
+                            final_q_dict["batch_id"] = batch_id
+                            final_q_dict["job_id"] = job_id
                             outcomes_questions[idx] = final_q_dict
+
+                            if is_standalone_live_run:
+                                try:
+                                    q_obj = Question(**final_q_dict)
+                                    q_obj.batch_id = batch_id
+                                    q_obj.job_id = job_id
+                                    q_obj.run_id = item_run_id
+                                    if shared_passage_id and not q_obj.passage_id:
+                                        q_obj.passage_id = shared_passage_id
+                                    final_score = q_obj.final_score or 0
+                                    if final_score > 90:
+                                        q_obj.status = "ai_validated"
+                                    elif final_score > 85:
+                                        q_obj.status = "batch_only"
+                                    else:
+                                        q_obj.status = "below_threshold"
+                                    await save_question(q_obj)
+                                    completed_so_far = sum(
+                                        1 for q in outcomes_questions if q is not None
+                                    )
+                                    await update_job_progress(job_id, actual_count=completed_so_far)
+                                except Exception as q_save_err:
+                                    logger.warning(
+                                        f"Could not auto-persist question {idx + 1} for live batch {batch_id}: {q_save_err}"
+                                    )
 
                             # Emit question_generated event
                             q_gen_evt = make_event(
@@ -771,6 +853,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                                     "index": idx + 1,
                                     "total": total_qty,
                                     "batch_id": batch_id,
+                                    "job_id": job_id,
                                     "stage": "completed",
                                 },
                                 run_id=item_run_id,
@@ -900,14 +983,61 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             },
         )
         yield f"data: {complete_evt.model_dump_json()}\n\n"
+
+        if is_standalone_live_run:
+            now_iso = datetime.now(UTC).isoformat()
+            completed_total = sum(1 for q in outcomes_questions if q is not None)
+            job_status = (
+                "completed"
+                if completed_total >= total_qty
+                else ("partially_completed" if completed_total > 0 else "failed")
+            )
+            await update_job_progress(
+                job_id,
+                status=job_status,
+                actual_count=completed_total,
+                total_tokens=cumulative_tokens,
+                prompt_tokens=cumulative_prompt_tokens,
+                completion_tokens=cumulative_completion_tokens,
+                cost_usd=cumulative_cost,
+                completed_at=now_iso,
+            )
+            await refresh_batch_aggregates(batch_id)
     except asyncio.CancelledError:
         logger.info("Workflow stream cancelled by client disconnect.")
         for t in tasks:
             if not t.done():
                 t.cancel()
+        if is_standalone_live_run:
+            try:
+                now_iso = datetime.now(UTC).isoformat()
+                completed_total = sum(1 for q in outcomes_questions if q is not None)
+                await update_job_progress(
+                    job_id,
+                    status="cancelled",
+                    actual_count=completed_total,
+                    completed_at=now_iso,
+                )
+                await refresh_batch_aggregates(batch_id)
+            except Exception as clean_err:
+                logger.warning(
+                    f"Error updating cancelled live batch {batch_id}: {clean_err}"
+                )
         raise
     except Exception as e:
         logger.error(f"Workflow stream error: {e}")
+        if is_standalone_live_run:
+            try:
+                now_iso = datetime.now(UTC).isoformat()
+                await update_job_progress(
+                    job_id,
+                    status="failed",
+                    error_message=str(e),
+                    completed_at=now_iso,
+                )
+                await refresh_batch_aggregates(batch_id)
+            except Exception as clean_err:
+                logger.warning(f"Error updating failed live batch {batch_id}: {clean_err}")
         err_msg = str(e)
         error_evt = make_event(
             event_type="workflow_error",

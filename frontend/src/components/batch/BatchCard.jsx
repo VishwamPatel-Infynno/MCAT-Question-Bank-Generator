@@ -124,6 +124,7 @@ export default function BatchCard({
   const completedJobs = batch.completed_jobs || 0;
   const totalTarget = batch.target_count || 50;
   const actualTotal = batch.actual_count || 0;
+  const isMiniSet = totalJobs === 1 || totalTarget === 5;
   const progressPercent = Math.min(
     100,
     Math.round((actualTotal / Math.max(1, totalTarget)) * 100)
@@ -173,9 +174,25 @@ export default function BatchCard({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                marginBottom: '3px'
+                marginBottom: '3px',
+                flexWrap: 'wrap'
               }}
             >
+              {isMiniSet ? (
+                <span
+                  className="badge badge-purple"
+                  style={{ fontSize: '0.7rem', fontWeight: 700 }}
+                >
+                  🎯 Live Mini-Set (1 Job • 5 Qs)
+                </span>
+              ) : (
+                <span
+                  className="badge badge-cyan"
+                  style={{ fontSize: '0.7rem', fontWeight: 700 }}
+                >
+                  📚 Full Section (10 Jobs • 50 Qs)
+                </span>
+              )}
               <span
                 className="badge"
                 style={{
@@ -238,7 +255,7 @@ export default function BatchCard({
             }}
           >
             <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-              {completedJobs} / {totalJobs} Jobs Completed
+              {completedJobs} / {totalJobs} {totalJobs === 1 ? 'Job' : 'Jobs'} Completed
             </span>
             <span style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>
               {actualTotal} / {totalTarget} Questions ({progressPercent}%)

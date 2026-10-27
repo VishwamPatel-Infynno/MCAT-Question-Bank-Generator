@@ -211,15 +211,14 @@ export function useAppState() {
     setIsQuestionSaved(false);
     setSavedQuestionIds(new Set());
     startGeneration(payload);
+    refreshActiveBatches?.();
     const isPassageBatch = passageMode === 'single_passage' || selectedSection === 'cars';
     showToast({
       type: 'info',
-      title: totalQuestions > 1 ? `Batch Generation Started (${totalQuestions})` : 'Generation Started',
-      message: totalQuestions > 1
-        ? (isPassageBatch
-            ? `Drafting ${totalQuestions}-question Passage-Based Set linked to a shared reading passage...`
-            : `Drafting ${totalQuestions} Independent Discrete Questions...`)
-        : `Multi-agent swarm drafting ${difficulty.toUpperCase()} question...`
+      title: 'Live Mini-Set Started (1 Job • 5 Qs)',
+      message: isPassageBatch
+        ? 'Drafting 5-question Passage-Based Set (1 Job) linked to a shared reading passage...'
+        : 'Drafting 5 Independent Discrete Questions (1 Job)...'
     });
   }, [
     isGenerating,

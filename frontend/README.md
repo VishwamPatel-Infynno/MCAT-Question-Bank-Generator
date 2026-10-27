@@ -11,9 +11,8 @@ Built with **React 19**, **Vite 8**, **Oxlint**, and a custom dark-glass precisi
 The frontend provides an intuitive, real-time command canvas for AAMC MCAT question generation, AI team tracking, and question bank management:
 
 - **Progressive 7-Step Guided Wizard**: Step-by-step authoring workflow for selecting official AAMC sections (Chemical and Physical Foundations, Critical Analysis and Reasoning Skills [CARS], Biological and Biochemical Foundations, Psychological, Social, and Biological Foundations), syllabus disciplines, major units, topics, subtopics, difficulty calibration, reading material stimuli, and cognitive distractor traps.
-- **3 Calibrated Generation Scopes**:
-  - **Quick Single Item (1 Q)**: Real-time SSE streaming into the interactive review desk (~15-25s) with live telemetry and inline editing.
-  - **Live Mini-Set (5 Qs)**: Parallel drafting on a shared passage or discrete set (~35-50s) staged in the interactive multi-slot desk.
+- **2 Calibrated Generation Scopes**:
+  - **Live Mini-Set (5 Qs)**: Parallel drafting on a shared passage or discrete set (~35-50s) staged in the interactive multi-slot desk with live telemetry and inline editing.
   - **Full Mock Section (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
 - **Live AI Team with Fused Draft-and-Critique**: Animated live tracker displaying the AI pipeline milestones (**Question Writer & Reviewer** with fused 100-pt self-critique for ~40% faster generation, **Question Improver** with smart status indicators, and **Diagram & Chart Maker**) with electric conduit telemetry.
 - **Staged Batch Review & Approval**: Interactive batch staging deck allowing educators to inspect, edit, discard, or approve multiple generated items before saving to the database.

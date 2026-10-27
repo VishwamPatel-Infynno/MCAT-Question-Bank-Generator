@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import delete, func, or_, select, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.db.session import async_session_factory
 from app.models.batch import GenerationBatchModel
@@ -135,11 +136,11 @@ async def save_question(q: Question) -> Question:
     q.updated_at = now_iso
 
     async with async_session_factory() as session:
-        # 1. Auto-sync Passage record if passage_id and stimulus_text exist
+        # 1. Auto-sync Passage record atomically if passage_id and stimulus_text exist
         if q.passage_id and q.stimulus_text and q.stimulus_text.strip():
-            existing_passage = await session.get(PassageModel, q.passage_id)
-            if not existing_passage:
-                p_model = PassageModel(
+            p_stmt = (
+                pg_insert(PassageModel)
+                .values(
                     id=q.passage_id,
                     title=f"{q.subtopic or q.section} Passage",
                     text=q.stimulus_text.strip(),
@@ -152,23 +153,22 @@ async def save_question(q: Question) -> Question:
                     created_at=q.created_at or now_iso,
                     updated_at=now_iso,
                 )
-                session.add(p_model)
-            else:
-                existing_passage.text = q.stimulus_text.strip()
-                existing_passage.word_count = len(q.stimulus_text.split())
-                if q.image_svg and not existing_passage.image_svg:
-                    existing_passage.image_svg = q.image_svg
-                if q.image_url and not existing_passage.image_url:
-                    existing_passage.image_url = q.image_url
-                if q.image_description and not existing_passage.image_description:
-                    existing_passage.image_description = q.image_description
-                existing_passage.updated_at = now_iso
+                .on_conflict_do_update(
+                    index_elements=["id"],
+                    set_={
+                        "text": q.stimulus_text.strip(),
+                        "word_count": len(q.stimulus_text.split()),
+                        "updated_at": now_iso,
+                    },
+                )
+            )
+            await session.execute(p_stmt)
 
-        # 2. Auto-sync GenerationBatch record if batch_id exists
+        # 2. Auto-sync GenerationBatch record atomically if batch_id exists
         if q.batch_id:
-            existing_batch = await session.get(GenerationBatchModel, q.batch_id)
-            if not existing_batch:
-                b_model = GenerationBatchModel(
+            b_stmt = (
+                pg_insert(GenerationBatchModel)
+                .values(
                     id=q.batch_id,
                     section=q.section,
                     subtopic=q.subtopic,
@@ -182,14 +182,17 @@ async def save_question(q: Question) -> Question:
                     created_at=q.created_at or now_iso,
                     updated_at=now_iso,
                 )
-                session.add(b_model)
-            else:
-                existing_batch.actual_count = (existing_batch.actual_count or 0) + 1
-                existing_batch.total_tokens = (existing_batch.total_tokens or 0) + (
-                    q.total_tokens or 0
+                .on_conflict_do_update(
+                    index_elements=["id"],
+                    set_={
+                        "actual_count": GenerationBatchModel.actual_count + 1,
+                        "total_tokens": GenerationBatchModel.total_tokens + (q.total_tokens or 0),
+                        "cost_usd": GenerationBatchModel.cost_usd + (q.cost_usd or 0.0),
+                        "updated_at": now_iso,
+                    },
                 )
-                existing_batch.cost_usd = (existing_batch.cost_usd or 0.0) + (q.cost_usd or 0.0)
-                existing_batch.updated_at = now_iso
+            )
+            await session.execute(b_stmt)
 
         # 3. Save QuestionModel
         model = _schema_to_model(q)

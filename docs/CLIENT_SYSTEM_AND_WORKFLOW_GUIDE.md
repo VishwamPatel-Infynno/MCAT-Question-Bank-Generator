@@ -22,8 +22,7 @@ Most off-the-shelf generative AI setups produce flawed test questions for four r
 The **Infynno MCAT Question Bank Generator v2.0** solves these challenges with five core pillars:
 
 - **Calibrated Multi-Tier Generation Scopes**:
-  - **Quick Single Item (1 Q)**: Real-time SSE streaming into the interactive review desk (~15-25s) with live telemetry and inline editing.
-  - **Live Mini-Set (5 Qs)**: Rapid parallel drafting on a shared passage or discrete set (~35-50s) staged in the interactive multi-slot desk.
+  - **Live Mini-Set (5 Qs)**: Rapid parallel drafting on a shared passage or discrete set (~35-50s) staged in the interactive multi-slot desk with live telemetry and inline editing.
   - **Full Mock Section (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
 - **Binary Passage Architecture**: In a generation run, the studio generates either:
   - **Passage-Based Set**: 1 comprehensive scientific or rhetoric passage linked to all questions in the set; OR
@@ -61,7 +60,7 @@ The workstation provides an interactive **7-Step Guided Wizard** docked beside t
 2. **Step 2: Choose Discipline & Major Unit**: Select discipline and major unit based on the official AAMC syllabus.
 3. **Step 3: Select Topic & Granular Concept**: Select targeted topic and granular subtopic concept.
 4. **Step 4: Calibrate Level, Scope & Question Format**:
-   - **Generation Scope**: Select Quick Single Item (1 Q), Live Mini-Set (5 Qs), or Full Mock Section (50 Qs).
+   - **Generation Scope**: Select Live Mini-Set (5 Qs) or Full Mock Section (50 Qs).
    - **Challenge Level**: Foundational, Standard MCAT, or Top Percentile.
    - **Binary Passage Mode**: Passage-Based Set vs Independent Discretes.
 5. **Step 5: Cognitive Traps & Reasoning Skills**: Calibrate specific AAMC cognitive distractor traps paired with official AAMC SIRS skills (Skill 1-4) or CARS reasoning skills.

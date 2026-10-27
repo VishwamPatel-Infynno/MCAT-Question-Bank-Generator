@@ -116,11 +116,9 @@ export default function WizardStep7Review({
               <span style={{ textTransform: 'capitalize', fontWeight: 600 }}>{difficulty} Difficulty</span>
               <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
               <span style={{ fontWeight: 700, color: 'var(--brand-primary)' }}>
-                {totalQuestions === 1
-                  ? 'Quick Single Item (1 Q, Live)'
-                  : totalQuestions === 5
-                  ? 'Live Mini-Set (5 Qs, Staged)'
-                  : `Full Mock Section (${totalQuestions} Qs, 10 Jobs)`}
+                {totalQuestions === 5
+                  ? 'Live Mini-Set (1 Job • 5 Qs, Staged)'
+                  : `Full Mock Section (10 Jobs • ${totalQuestions} Qs, Async)`}
               </span>
               <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
               <span className="badge-minimal">
@@ -131,9 +129,8 @@ export default function WizardStep7Review({
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px' }}>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Quick switch scope:</span>
                 {[
-                  { count: 1, label: '1 Q (Live)' },
-                  { count: 5, label: '5 Qs (Staged)' },
-                  { count: 50, label: '50 Qs (Batch)' }
+                  { count: 5, label: '1 Job (5 Qs Staged)' },
+                  { count: 50, label: '10 Jobs (50 Qs Batch)' }
                 ].map(({ count, label }) => (
                   <button
                     key={count}

@@ -2,7 +2,7 @@
 
 > **Infynno Solutions LLP • Infinite Innovations • [infynno.com](https://infynno.com/)**  
 > **Product**: Infynno MCAT Question Bank Generator v2.0  
-> **Aesthetic Philosophy**: Linear/Vercel-inspired high-precision minimalism, dark obsidian default with alabaster light mode, scientific research passages and CARS essays, and animated electric conduit telemetry.
+> **Aesthetic Philosophy**: Linear/Vercel-inspired high-precision minimalism, alabaster light mode default with dark obsidian mode, scientific research passages and CARS essays, and animated electric conduit telemetry.
 
 ---
 
@@ -13,7 +13,7 @@ The Infynno MCAT Question Studio is built for pre-med educators, test-prep autho
 1. **Precision Minimalism**: Quiet surfaces, hairline borders (`1px solid var(--border-light)`), subtle elevations, and zero card clutter.
 2. **Editorial Typographic Hierarchy**: Clinical reading passages rendered in warm, high-legibility serif type (`Newsreader`, line-height `1.68`), while UI controls and telemetry use modern sans-serif (`Plus Jakarta Sans`) and monospace (`JetBrains Mono`).
 3. **Reactive Observability**: Complex multi-agent workflow steps (Generator, Reviewer, Regenerator, Image Engine) are visualized through glowing electric conduit animations without distracting from the editorial workspace.
-4. **Seamless Dual-Theme Ergonomics**: First-class dark obsidian (`#080c14`) and alabaster light (`#f8fafc`) palettes toggled instantly with zero flicker (`T` shortcut or navbar control).
+4. **Seamless Dual-Theme Ergonomics**: First-class alabaster light (`#f8fafc`) default and dark obsidian (`#080c14`) palettes toggled instantly with zero flicker (`T` shortcut or navbar control).
 5. **Print & Export Fidelity**: Built-in `@media print` CSS rules and clean paper layouts for professional PDF exam booklets and student study packs.
 
 ---
@@ -39,15 +39,15 @@ These core gradient tokens anchor the brand identity across buttons, active tab 
 
 ```mermaid
 graph LR
-    subgraph "Dark Obsidian (Default)"
-        D_Canvas[--bg-canvas: #080c14] --> D_Surface[--bg-surface: #0d121d]
-        D_Surface --> D_Elevated[--bg-surface-elevated: #121826]
-        D_Elevated --> D_Border[--border-light: rgba(255,255,255,0.06)]
-    end
-    subgraph "Alabaster Light"
+    subgraph "Alabaster Light (Default)"
         L_Canvas[--bg-canvas: #f8fafc] --> L_Surface[--bg-surface: #ffffff]
         L_Surface --> L_Elevated[--bg-surface-elevated: #ffffff]
         L_Elevated --> L_Border[--border-light: #e8ecf2]
+    end
+    subgraph "Dark Obsidian"
+        D_Canvas[--bg-canvas: #080c14] --> D_Surface[--bg-surface: #0d121d]
+        D_Surface --> D_Elevated[--bg-surface-elevated: #121826]
+        D_Elevated --> D_Border[--border-light: rgba(255,255,255,0.06)]
     end
 ```
 
@@ -122,10 +122,9 @@ Psychological, Social & Biological (PS)  -> Royal Violet  (#a855f7 / #7c3aed)
 - **Step 1: Section & Exam Style**: Official AAMC section selection (CP, CARS, BB, PS) with authentic pacing badges (~96s to ~101s per question).
 - **Step 2: Discipline & Major Unit**: Discipline breakdown and major unit selection based on the official AAMC syllabus.
 - **Step 3: Topic & High-Yield Concept**: Targeted topic and granular subtopic concept selection.
-- **Step 4: Level, Scope & Question Format**: Calibrated challenge level (Foundational, Standard MCAT, Top Percentile), question format (Passage-Based vs Independent Single-Choice), and 3 calibrated Generation Scopes:
-  1. **Quick Single Item (1 Q)**: Real-time SSE streaming into the interactive Question Desk (~15-25s) with live telemetry and inline editing.
-  2. **Live Mini-Set (5 Qs)**: Parallel drafting on a shared passage or discrete set (~35-50s) staged in the interactive multi-slot desk.
-  3. **Full Mock Section (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
+- **Step 4: Level, Scope & Question Format**: Calibrated challenge level (Foundational, Standard MCAT, Top Percentile), question format (Passage-Based vs Independent Single-Choice), and 2 calibrated Generation Scopes governed by the unified 5-question Job architecture:
+  1. **Live Mini-Set (5 Qs)**: 1 Single Job consisting of 5 questions linked to a shared reading passage (or 5 discretes), streamed live over SSE into the multi-slot Staged Batch Desk (~35-50s) with real-time telemetry and inline editing, while simultaneously registered and tracked in PostgreSQL Batch Activity.
+  2. **Full Mock Section (50 Qs)**: Enterprise background multi-job batch across 10 concurrent worker jobs (5 questions each) governed by the Global Worker Pool with automatic AI validation.
 - **Step 5: Cognitive Traps & Reasoning Skills**: Deliberate AAMC distractor trap calibration (e.g., Extreme Language, Correlation vs Causation, Formula Trap) paired with official AAMC SIRS and CARS skills.
 - **Step 6: Visual Stimulus & Custom Guidance**: Programmatic SVG vector diagram generation, autonomous AI image generation toggle, and custom prompt directives.
 - **Step 7: Review & Multi-Agent Launch**: End-to-end parameter audit with quick scope switcher pills and dynamic launch action.
@@ -202,7 +201,7 @@ Renders pedagogical rationales across three distinct, beautifully styled visual 
 1. **Generator Workspace View (`GeneratorWorkspaceView.jsx`)**: Coordinates the 7-step guided wizard dock alongside the single-canvas live generation desk, telemetry pipelines, and staged review decks.
 2. **AI Validated Questions View (`AiValidatedQuestionsView.jsx`)**: Dedicated review deck for items generated in background batches that passed the >90 quality threshold, supporting one-click individual or bulk publishing into the primary Question Bank.
 3. **Question Bank View (`QuestionBankView.jsx`)**: Full-featured searchable, filterable repository table featuring multi-format CSV/JSON exports, bulk deletion, lifecycle status updates, and repository-wide token analytics.
-4. **Batch Activity View (`BatchActivityView.jsx`)**: Live and historical monitor displaying running batch jobs, per-job question counts, status indicators, and background worker progress.
+4. **Batch Activity View (`BatchActivityView.jsx`)**: Live and historical monitor displaying running batch jobs, per-job question counts, status indicators, and background worker progress. Features dedicated scope filtering (`All Batches`, `Live Mini-Sets [1 Job]`, `Full Sections [10 Jobs]`) and visual badges distinguishing 1-job live mini-sets from 10-job full mock sections.
 
 ---
 

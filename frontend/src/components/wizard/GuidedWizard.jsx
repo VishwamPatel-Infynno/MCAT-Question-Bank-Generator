@@ -55,14 +55,14 @@ const QUICK_PRESETS = [
     desc: '500-600 word dense humanities reasoning'
   },
   {
-    id: 'chem_phys_1',
-    label: '⚡ Physics Discrete',
-    tag: '1 Q • Instant',
+    id: 'chem_phys_5',
+    label: '⚡ Physics Discrete Set',
+    tag: '5 Qs • Live',
     section: 'chem_phys',
-    total: 1,
+    total: 5,
     passageRequired: 'No',
     passageMode: 'independent',
-    desc: 'Fluids, circuits, or thermodynamics problem'
+    desc: '5-question discrete set (fluids, circuits, thermodynamics)'
   },
   {
     id: 'psych_soc_5',
@@ -252,9 +252,7 @@ export default function GuidedWizard({
               </span>
             </div>
             <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
-              {totalQuestions === 1
-                ? 'Quick Single (1 Question)'
-                : totalQuestions === 5
+              {totalQuestions === 5
                 ? 'Live Mini-Set (5 Questions)'
                 : `Standard Batch: ${totalQuestions} Questions`}
             </span>
@@ -567,8 +565,6 @@ export default function GuidedWizard({
               <span>
                 {isLaunchingBatch
                   ? 'Launching Batch...'
-                  : totalQuestions === 1
-                  ? 'Generate Single Question (Live)'
                   : totalQuestions === 5
                   ? 'Generate 5-Question Set (Live)'
                   : 'Launch 50-Question Batch'}
