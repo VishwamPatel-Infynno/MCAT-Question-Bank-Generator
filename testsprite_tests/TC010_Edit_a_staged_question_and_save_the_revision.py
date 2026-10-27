@@ -66,9 +66,9 @@ async def run_test():
         elem = page.get_by_role("button", name="Independent MCQ Standalone")
         await elem.click(timeout=10000)
 
-        # -> Select the “Live Mini-Set (5 Qs)” staged batch desk option.
-        # 🎯 Live Mini-Set (5 Qs) Staged Batch Desk... button
-        elem = page.get_by_role("button", name="🎯 Live Mini-Set (5 Qs)")
+        # -> Select the “Mini-Batch (5 Questions)” batch desk option.
+        # 🎯 Mini-Batch (5 Questions) button
+        elem = page.get_by_role("button", name="🎯 Mini-Batch (5 Questions)")
         await elem.click(timeout=10000)
 
         # -> Continue to the traps configuration using the visible “Continue to Traps” button.

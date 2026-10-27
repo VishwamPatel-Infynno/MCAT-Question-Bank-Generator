@@ -66,9 +66,9 @@ async def run_test():
         elem = page.get_by_role("button", name="Foundational (~500 MCAT)")
         await elem.click(timeout=10000)
 
-        # -> Select “Live Mini-Set (5 Qs)” to enable the live generation workspace and conduit telemetry.
-        # 🎯 Live Mini-Set (5 Qs) Staged Batch Desk... button
-        elem = page.get_by_role("button", name="🎯 Live Mini-Set (5 Qs)")
+        # -> Select “Mini-Batch (5 Questions)” to enable the generation workspace and telemetry.
+        # 🎯 Mini-Batch (5 Questions) button
+        elem = page.get_by_role("button", name="🎯 Mini-Batch (5 Questions)")
         await elem.click(timeout=10000)
 
         # -> Continue to the Traps step using the visible “Continue to Traps” button.

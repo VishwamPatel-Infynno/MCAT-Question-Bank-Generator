@@ -1678,15 +1678,6 @@ input:focus, select:focus, textarea:focus {
   user-select: none;
 }
 
-.bank-grid-table thead th.th-selectable {
-  cursor: pointer;
-  transition: color var(--transition-fast);
-}
-
-.bank-grid-table thead th.th-selectable:hover {
-  color: var(--text-primary);
-}
-
 .bank-grid-table tbody tr.grid-row {
   transition: background var(--transition-fast), border-color var(--transition-fast);
 }

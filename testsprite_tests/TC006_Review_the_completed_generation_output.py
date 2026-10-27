@@ -61,9 +61,9 @@ async def run_test():
         elem = page.get_by_role("button", name="Continue to Level")
         await elem.click(timeout=10000)
 
-        # -> Select “Live Mini-Set (5 Qs)” to use the staged batch desk for reviewing generated questions.
-        # 🎯 Live Mini-Set (5 Qs) Staged Batch Desk... button
-        elem = page.get_by_role("button", name="🎯 Live Mini-Set (5 Qs)")
+        # -> Select “Mini-Batch (5 Questions)” to use the staged batch desk for reviewing generated questions.
+        # 🎯 Mini-Batch (5 Questions) button
+        elem = page.get_by_role("button", name="🎯 Mini-Batch (5 Questions)")
         await elem.click(timeout=10000)
 
         # -> Continue from the Level and Format step to the Traps step.

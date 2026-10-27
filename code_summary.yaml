@@ -57,7 +57,7 @@ features:
       - Select target subtopic or topic domain
       - Select question type and format
       - Set difficulty level
-      - Adjust batch size slider or input
+      - Select generation scope preset (Mini-Batch 5 Qs or Full Mock Section 50 Qs)
       - Toggle AI Diagram / Image Generation switch
       - Click 'Generate Questions' button to start pipeline
     api_calls:

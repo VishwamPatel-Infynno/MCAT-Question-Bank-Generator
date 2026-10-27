@@ -22,7 +22,7 @@ Most off-the-shelf generative AI setups produce flawed test questions for four r
 The **Infynno MCAT Question Bank Generator v2.0** solves these challenges with five core pillars:
 
 - **Calibrated Multi-Tier Generation Scopes**:
-  - **Live Mini-Set (5 Qs)**: Rapid parallel drafting on a shared passage or discrete set (~35-50s) staged in the interactive multi-slot desk with live telemetry and inline editing.
+  - **Mini-Batch (5 Qs)**: Rapid background worker drafting on a shared passage or discrete set (~35-50s) streamed into the AI Validated Bank and Batch Activity Desk with live telemetry.
   - **Full Mock Section (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
 - **Binary Passage Architecture**: In a generation run, the studio generates either:
   - **Passage-Based Set**: 1 comprehensive scientific or rhetoric passage linked to all questions in the set; OR
@@ -61,7 +61,7 @@ The workstation provides an interactive **Streamlined 3-Step Guided Wizard** doc
    - **Discipline & Major Unit**: Select syllabus discipline and unit taxonomy.
    - **High-Yield Concept Subtopics**: Multi-select granular subtopics or select all concepts for a balanced mix.
 2. **Step 2: Level, Format & Scope**:
-   - **Generation Scope**: Select Live Mini-Set (5 Qs) for immediate parallel drafting or Full Mock Section (50 Qs) for background multi-job batch execution.
+   - **Generation Scope**: Select Mini-Batch (5 Qs, 1 Job) or Full Mock Section (50 Qs, 10 Jobs) for background worker pool batch execution.
    - **Challenge Level**: Foundational, Standard MCAT, or Top Percentile tier calibration.
    - **Binary Passage Mode**: Passage-Based Set vs Independent Discretes.
    - **Question Breakdown**: Calibrate single-choice and multi-choice proportions.

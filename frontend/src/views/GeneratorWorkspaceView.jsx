@@ -42,12 +42,13 @@ export default function GeneratorWorkspaceView({
   setActiveTab,
   setViewMode
 }) {
-  // isBatchMode is true whenever questions are staged or generation is active.
-  // The totalQuestions fallback (always >= 5) keeps the batch review UI on by default.
-  const isBatchMode =
-    stagedQuestions.length > 0 ||
-    isGenerating ||
-    (generatorForm?.formData?.totalQuestions || 50) >= 5;
+  // Hierarchical view resolution:
+  // 1. Rejection state: prompt user with retry
+  // 2. Single-question inspection: active question loaded (e.g. from Bank or single review) while no batch is active
+  // 3. Staged batch review: questions are staged or batch generation is actively running
+  // 4. Skeleton preview during single question generation
+  // 5. Clean empty idle state
+  const isBatchMode = stagedQuestions.length > 0 || isGenerating;
 
   return (
     <div style={{ maxWidth: '1040px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -63,16 +64,26 @@ export default function GeneratorWorkspaceView({
         onCancel={handleCancelGeneration}
       />
 
-      {/* Output: Rejection Card, Staged Batch Review, Single Question Card, or Empty State */}
+      {/* Output: Rejection Card, Single Question Card, Staged Batch Review, Skeleton, or Empty State */}
       {rejectedData ? (
         <RejectionCard
           rejectionData={rejectedData}
           onRetry={handleGenerate}
         />
+      ) : activeQuestion && stagedQuestions.length === 0 && !isGenerating ? (
+        <QuestionCard
+          question={activeQuestion}
+          isSaved={isQuestionSaved}
+          onApprove={handleApproveQuestion}
+          onDiscard={handleDiscardQuestion}
+          onOpenAudit={(q) => setAuditQuestion(q)}
+          onNextQuestion={() => setViewMode('wizard')}
+          onUpdateQuestion={handleUpdateSingleQuestion}
+        />
       ) : isBatchMode ? (
         <StagedBatchReview
           stagedQuestions={stagedQuestions}
-          targetTotal={generatorForm.formData.totalQuestions}
+          targetTotal={generatorForm?.formData?.totalQuestions || 5}
           savedQuestionIds={savedQuestionIds}
           isGenerating={isGenerating}
           batchProgress={batchProgress}
@@ -87,22 +98,12 @@ export default function GeneratorWorkspaceView({
           onOpenAudit={(q) => setAuditQuestion(q)}
           onUpdateQuestion={handleUpdateQuestionInBatch}
         />
-      ) : activeQuestion ? (
-        <QuestionCard
-          question={activeQuestion}
-          isSaved={isQuestionSaved}
-          onApprove={handleApproveQuestion}
-          onDiscard={handleDiscardQuestion}
-          onOpenAudit={(q) => setAuditQuestion(q)}
-          onNextQuestion={() => setViewMode('wizard')}
-          onUpdateQuestion={handleUpdateSingleQuestion}
-        />
       ) : isGenerating ? (
         <QuestionDraftingSkeleton
-          sectionLabel={sectionsData?.find((s) => s.id === generatorForm.formData.section)?.label || 'MCAT Question'}
-          difficulty={generatorForm.formData.difficulty || 'Medium'}
-          interactionType={generatorForm.formData.interactionType || 'single_choice'}
-          isPassage={generatorForm.formData.passageRequired === 'Yes'}
+          sectionLabel={sectionsData?.find((s) => s.id === generatorForm?.formData?.section)?.label || 'MCAT Question'}
+          difficulty={generatorForm?.formData?.difficulty || 'Medium'}
+          interactionType={generatorForm?.formData?.interactionType || 'single_choice'}
+          isPassage={generatorForm?.formData?.passageRequired === 'Yes'}
           slotNumber={1}
         />
       ) : (

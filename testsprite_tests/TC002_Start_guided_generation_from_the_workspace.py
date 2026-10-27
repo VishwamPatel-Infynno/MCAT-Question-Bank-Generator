@@ -66,9 +66,9 @@ async def run_test():
         elem = page.get_by_role("button", name="Independent MCQ Standalone")
         await elem.click(timeout=10000)
 
-        # -> Choose the “Live Mini-Set (5 Qs)” generation mode for a staged run.
-        # 🎯 Live Mini-Set (5 Qs) Staged Batch Desk... button
-        elem = page.get_by_role("button", name="🎯 Live Mini-Set (5 Qs)")
+        # -> Choose the “Mini-Batch (5 Questions)” generation mode for a staged run.
+        # 🎯 Mini-Batch (5 Questions) button
+        elem = page.get_by_role("button", name="🎯 Mini-Batch (5 Questions)")
         await elem.click(timeout=10000)
 
         # -> Continue from the Level settings to configure the remaining question-generation options.

@@ -119,15 +119,12 @@ Psychological, Social & Biological (PS)  -> Royal Violet  (#a855f7 / #7c3aed)
 ## 4. Component Design Specifications
 
 ### 4.1 Guided Question Wizard (`GuidedWizard.jsx`)
-- **Step 1: Section & Exam Style**: Official AAMC section selection (CP, CARS, BB, PS) with authentic pacing badges (~96s to ~101s per question).
-- **Step 2: Discipline & Major Unit**: Discipline breakdown and major unit selection based on the official AAMC syllabus.
-- **Step 3: Topic & High-Yield Concept**: Targeted topic and granular subtopic concept selection.
-- **Step 4: Level, Scope & Question Format**: Calibrated challenge level (Foundational, Standard MCAT, Top Percentile), question format (Passage-Based vs Independent Single-Choice), and 2 calibrated Generation Scopes governed by the unified 5-question Job architecture:
-  1. **Live Mini-Set (5 Qs)**: 1 Single Job consisting of 5 questions linked to a shared reading passage (or 5 discretes), streamed live over SSE into the multi-slot Staged Batch Desk (~35-50s) with real-time telemetry and inline editing, while simultaneously registered and tracked in PostgreSQL Batch Activity.
+Streamlined 3-step authoring workflow:
+- **Step 1: Section & Focus (`WizardStep1SectionFocus.jsx`)**: Official AAMC exam section selection (CP, CARS, BB, PS) with authentic pacing guides (~96s to ~101s per question), quick-start presets, and granular topic/subtopic syllabus focus.
+- **Step 2: Level & Format (`WizardStep2LevelFormat.jsx`)**: Calibrated challenge level (Foundational, Standard MCAT, Top Percentile), question format (Passage-Based vs Independent Single-Choice), and 2 calibrated Generation Scopes governed by the unified 5-question Job architecture:
+  1. **Mini-Batch (5 Qs)**: 1 Single Job consisting of 5 questions linked to a shared reading passage (or 5 discretes), dispatched to the background worker pool (~35-50s) with automated AI validation and real-time telemetry streaming into Validated Bank and Batch Activity.
   2. **Full Mock Section (50 Qs)**: Enterprise background multi-job batch across 10 concurrent worker jobs (5 questions each) governed by the Global Worker Pool with automatic AI validation.
-- **Step 5: Cognitive Traps & Reasoning Skills**: Deliberate AAMC distractor trap calibration (e.g., Extreme Language, Correlation vs Causation, Formula Trap) paired with official AAMC SIRS and CARS skills.
-- **Step 6: Visual Stimulus & Custom Guidance**: Programmatic SVG vector diagram generation, autonomous AI image generation toggle, and custom prompt directives.
-- **Step 7: Review & Multi-Agent Launch**: End-to-end parameter audit with quick scope switcher pills and dynamic launch action.
+- **Step 3: Review & Advanced Calibration (`WizardStep3ReviewAdvanced.jsx`)**: Comprehensive review card with quick scope switcher, cognitive trap selection, reasoning skills, AI diagram toggle, and launch action.
 
 ### 4.2 Multi-Agent Conduit Telemetry (`MultiAgentPipelineVisualizer.jsx`)
 - Three connected functional milestones (**Question Writer & Reviewer**, **Question Improver**, **Diagram & Chart Maker**).
@@ -201,7 +198,7 @@ Renders pedagogical rationales across three distinct, beautifully styled visual 
 1. **Generator Workspace View (`GeneratorWorkspaceView.jsx`)**: Coordinates the 3-step guided wizard dock alongside the single-canvas live generation desk, telemetry pipelines, and staged review decks.
 2. **AI Validated Questions View (`AiValidatedQuestionsView.jsx`)**: Dedicated review deck for items generated in background batches that passed the >90 quality threshold, supporting one-click individual or bulk publishing into the primary Question Bank.
 3. **Question Bank View (`QuestionBankView.jsx`)**: Full-featured searchable, filterable repository table featuring multi-format CSV/JSON exports, bulk deletion, lifecycle status updates, and repository-wide token analytics.
-4. **Batch Activity View (`BatchActivityView.jsx`)**: Live and historical monitor displaying running batch jobs, per-job question counts, status indicators, and background worker progress. Features dedicated scope filtering (`All Batches`, `Live Mini-Sets [1 Job]`, `Full Sections [10 Jobs]`) and visual badges distinguishing 1-job live mini-sets from 10-job full mock sections.
+4. **Batch Activity View (`BatchActivityView.jsx`)**: Live and historical monitor displaying running batch jobs, per-job question counts, status indicators, and background worker progress. Features dedicated scope filtering (`All Batches`, `Mini-Batches [1 Job]`, `Full Sections [10 Jobs]`) and visual badges distinguishing 1-job mini-batches from 10-job full mock sections.
 
 ### 4.10 Common Primitives & Accessible Pagination (`PaginationBar.jsx`)
 - **Component**: [`frontend/src/components/common/PaginationBar.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/common/PaginationBar.jsx) provides a standardized, WCAG AA compliant pagination footer across all list-based views (`QuestionBankView.jsx`, `AiValidatedQuestionsView.jsx`, `BatchActivityView.jsx`).

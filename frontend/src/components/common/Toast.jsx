@@ -107,6 +107,7 @@ export function ToastContainer({ toasts, onDismiss }) {
 
   return (
     <div
+      className="toast-container"
       style={{
         position: 'fixed',
         bottom: '24px',

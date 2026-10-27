@@ -61,9 +61,9 @@ async def run_test():
         elem = page.get_by_role("button", name="Continue to Level")
         await elem.click(timeout=10000)
 
-        # -> Set the generation scope to “Live Mini-Set (5 Qs)” and inspect the updated generator state.
-        # 🎯 Live Mini-Set (5 Qs) Staged Batch Desk... button
-        elem = page.get_by_role("button", name="🎯 Live Mini-Set (5 Qs)")
+        # -> Set the generation scope to “Mini-Batch (5 Questions)” and inspect the updated generator state.
+        # 🎯 Mini-Batch (5 Questions) button
+        elem = page.get_by_role("button", name="🎯 Mini-Batch (5 Questions)")
         await elem.click(timeout=10000)
 
         # -> Continue from the Level & Format step to the Traps step.

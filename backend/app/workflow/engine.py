@@ -93,7 +93,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             batch_record = GenerationBatch(
                 id=batch_id,
                 section=sec_val,
-                subtopic=req.subtopic or f"{sec_val} Live Mini-Set",
+                subtopic=req.subtopic or f"{sec_val} Mini-Batch",
                 difficulty=diff_val,
                 passage_mode=req.passage_mode
                 or ("single_passage" if is_single_passage_set else "independent"),

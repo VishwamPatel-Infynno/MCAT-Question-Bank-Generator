@@ -61,14 +61,14 @@ async def run_test():
         elem = page.get_by_role("button", name="Continue to Level")
         await elem.click(timeout=10000)
 
-        # -> Choose Independent MCQ and Live Mini-Set so the workflow produces questions on the staged batch desk.
+        # -> Choose Independent MCQ and Mini-Batch (5 Questions) so the workflow produces questions on the batch desk.
         # Independent MCQ Standalone discrete single-choice... button
         elem = page.get_by_role("button", name="Independent MCQ Standalone")
         await elem.click(timeout=10000)
 
-        # -> Choose Independent MCQ and Live Mini-Set so the workflow produces questions on the staged batch desk.
-        # 🎯 Live Mini-Set (5 Qs) Staged Batch Desk... button
-        elem = page.get_by_role("button", name="🎯 Live Mini-Set (5 Qs)")
+        # -> Choose Independent MCQ and Mini-Batch (5 Questions) so the workflow produces questions on the batch desk.
+        # 🎯 Mini-Batch (5 Questions) button
+        elem = page.get_by_role("button", name="🎯 Mini-Batch (5 Questions)")
         await elem.click(timeout=10000)
 
         # -> Continue from the calibration screen to the trap-selection step.

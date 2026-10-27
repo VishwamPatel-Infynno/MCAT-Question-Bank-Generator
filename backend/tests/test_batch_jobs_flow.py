@@ -78,6 +78,7 @@ async def test_batch_and_jobs_lifecycle(monkeypatch):
 @pytest.mark.asyncio
 async def test_mini_batch_lifecycle(monkeypatch):
     """Verifies that launching a 5-question batch creates exactly 1 job (5 questions target) in background pool."""
+
     async def mock_execute(b_id, req):
         pass
 
@@ -131,4 +132,3 @@ async def test_mini_batch_lifecycle(monkeypatch):
         # 4. Clean up batch
         del_resp = await ac.delete(f"/api/batches/{batch_id}")
         assert del_resp.status_code == 200
-

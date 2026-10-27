@@ -12,7 +12,7 @@ The frontend provides an intuitive, real-time command canvas for AAMC MCAT quest
 
 - **Streamlined 3-Step Guided Wizard**: High-velocity authoring workflow consolidating section selection, syllabus disciplines, major units, multi-select subtopic concepts, difficulty & format calibration (Mini-Set vs Mock Section), visual stimuli, and advanced cognitive traps into three focused decision stages (Section & Topic Focus, Format & Scope, Review & Launch).
 - **2 Calibrated Generation Scopes**:
-  - **Live Mini-Set (5 Qs)**: Parallel drafting on a shared passage or discrete set (~35-50s) staged in the interactive multi-slot desk with live telemetry and inline editing.
+  - **Mini-Batch (5 Qs)**: Background worker drafting on a shared passage or discrete set (~35-50s) streamed into the AI Validated Bank and Batch Activity Desk with live telemetry.
   - **Full Mock Section (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
 - **Live AI Team with Fused Draft-and-Critique**: Animated live tracker displaying the AI pipeline milestones (**Question Writer & Reviewer** with fused 100-pt self-critique for ~40% faster generation, **Question Improver** with smart status indicators, and **Diagram & Chart Maker**) with electric conduit telemetry.
 - **Staged Batch Review & Approval**: Interactive batch staging deck allowing educators to inspect, edit, discard, or approve multiple generated items before saving to the database.
