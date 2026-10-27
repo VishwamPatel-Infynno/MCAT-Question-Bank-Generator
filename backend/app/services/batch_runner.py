@@ -52,7 +52,9 @@ async def _run_single_job(
     async with semaphore:
         now_iso = datetime.now(UTC).isoformat()
         total_jobs = len(await get_jobs_by_batch_id(batch_id)) or 10
-        logger.info(f"Starting Job {job.job_number}/{total_jobs} (ID: {job.id}) for Batch {batch_id}...")
+        logger.info(
+            f"Starting Job {job.job_number}/{total_jobs} (ID: {job.id}) for Batch {batch_id}..."
+        )
         await update_job_progress(job.id, status="running", started_at=now_iso)
 
         is_cars = (

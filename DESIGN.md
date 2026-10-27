@@ -203,6 +203,19 @@ Renders pedagogical rationales across three distinct, beautifully styled visual 
 3. **Question Bank View (`QuestionBankView.jsx`)**: Full-featured searchable, filterable repository table featuring multi-format CSV/JSON exports, bulk deletion, lifecycle status updates, and repository-wide token analytics.
 4. **Batch Activity View (`BatchActivityView.jsx`)**: Live and historical monitor displaying running batch jobs, per-job question counts, status indicators, and background worker progress. Features dedicated scope filtering (`All Batches`, `Live Mini-Sets [1 Job]`, `Full Sections [10 Jobs]`) and visual badges distinguishing 1-job live mini-sets from 10-job full mock sections.
 
+### 4.10 Common Primitives & Accessible Pagination (`PaginationBar.jsx`)
+- **Component**: [`frontend/src/components/common/PaginationBar.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/common/PaginationBar.jsx) provides a standardized, WCAG AA compliant pagination footer across all list-based views (`QuestionBankView.jsx`, `AiValidatedQuestionsView.jsx`, `BatchActivityView.jsx`).
+- **Features**:
+  - Live page range counter displaying `"Showing X - Y of Z items"`.
+  - Configurable page size selector (`10`, `25`, `50`, `100` items/page).
+  - Previous (`ChevronLeft`) and Next (`ChevronRight`) navigation buttons with disabled boundary states.
+  - Page number buttons with dynamic window truncation (ellipsis for $> 5$ pages) and active gradient pill indicators.
+- **Semantic CSS System Classes** defined in [`frontend/src/index.css`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/index.css):
+  - `.pagination-bar`: Flexbox footer container with surface background and hairline top border.
+  - `.view-loading-box`: Centered layout loading indicator container with pulse animation.
+  - `.view-empty-state`: Clean empty state box with icon badge and descriptive guidance.
+  - `.batch-activity-banner`: Top status information banner for batch execution monitors.
+
 ---
 
 ## 5. Micro-Animations & Dynamic Feedback

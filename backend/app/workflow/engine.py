@@ -1,8 +1,16 @@
+"""
+engine.py — Core streaming workflow engine for MCAT Question Generation.
+
+Orchestrates multi-agent pipelines for generating single or multiple questions
+(passage sets or independent discretes). Streams real-time Server-Sent Events (SSE)
+to the client, manages worker pool concurrency, and stages questions for user confirmation.
+"""
+
 import asyncio
 import json
 import logging
 import uuid
-from collections.abc import AsyncGenerator, Callable
+from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
 from typing import Any
 
@@ -11,257 +19,35 @@ from app.agents.image_generator import generate_image_stimulus
 from app.core.config import config
 from app.repositories.batch_repository import (
     get_batch_by_id,
-    refresh_batch_aggregates,
     save_batch,
 )
-from app.repositories.job_repository import save_job, update_job_progress
-from app.repositories.question_repository import save_question
+from app.repositories.job_repository import save_job
 from app.schemas import (
     GenerationBatch,
     GenerationJob,
     GenerationRequest,
     MCATSection,
-    OptionChoice,
     Question,
-    QuestionDraft,
     WorkflowEvent,
 )
 from app.workflow.engine_helpers import (
     _build_batch_worker_request,
     _determine_item_diagram_requirement,
+    _finalize_live_job_progress,
+    _handle_live_job_cancellation,
+    _handle_live_job_failure,
+    _persist_live_question,
+    _prepare_shared_passage_and_visual,
+    _run_question_review_loop,
 )
 from app.workflow.nodes import (
-    blind_solver_node,
     finalize_node,
     fused_generator_node,
     image_node,
-    regenerator_node,
-    reject_node,
-    reviewer_node,
 )
-from app.workflow.routes import route_after_review
 from app.workflow.state import AgentWorkflowState
 
 logger = logging.getLogger(__name__)
-
-
-
-async def _run_question_review_loop(
-    state: AgentWorkflowState,
-    idx: int,
-    total_qty: int,
-    item_run_id: str,
-    event_queue: asyncio.Queue[WorkflowEvent | None],
-    make_event: Callable[..., WorkflowEvent],
-) -> bool:
-    """
-    Executes the quality review, critique, remediation (regeneration), and quality gate routing
-    for a question draft. Integrates Blind-Solver Dual Validation to verify indisputability.
-    """
-    while True:
-        iteration = state.get("iteration_count", 1)
-
-        # Step 1: Run Reviewer if fused self-review is absent or unverified
-        if not state.get("fused_self_passed"):
-            rev_start_evt = make_event(
-                event_type="agent_start",
-                agent_name="Quality Reviewer",
-                message=f"Reviewing draft {idx + 1}/{total_qty} (Round {iteration}) against 90+ quality standards...",
-                data={
-                    "index": idx + 1,
-                    "total": total_qty,
-                    "stage": "reviewing",
-                    "iteration": iteration,
-                },
-                run_id=item_run_id,
-            )
-            await event_queue.put(rev_start_evt)
-
-            rev_res = await reviewer_node(state)
-            state.update(rev_res)
-
-            review = state["current_review"]
-            score = review["total_score"]
-            rev_usage = state.get("latest_usage", {})
-
-            rev_done_evt = make_event(
-                event_type="agent_complete",
-                agent_name="Quality Reviewer",
-                message=f"Quality review completed for Question {idx + 1}. Score: {score}/100.",
-                data={
-                    "review": review,
-                    "iteration": iteration,
-                    "latest_usage": rev_usage,
-                    "index": idx + 1,
-                    "total": total_qty,
-                    "stage": "reviewing",
-                    "score": score,
-                },
-                run_id=item_run_id,
-            )
-            await event_queue.put(rev_done_evt)
-
-            next_step = route_after_review(state)
-            if next_step == "regenerator":
-                regen_start_evt = make_event(
-                    event_type="agent_start",
-                    agent_name="Question Improver",
-                    message=f"Question {idx + 1} score {score}/100 needs improvement. Question Improver is refining answer options...",
-                    data={
-                        "index": idx + 1,
-                        "total": total_qty,
-                        "stage": "remediating",
-                        "iteration": iteration,
-                        "score": score,
-                    },
-                    run_id=item_run_id,
-                )
-                await event_queue.put(regen_start_evt)
-
-                regen_res = await regenerator_node(state)
-                state.update(regen_res)
-
-                regen_usage = state.get("latest_usage", {})
-                regen_done_evt = make_event(
-                    event_type="agent_complete",
-                    agent_name="Question Improver",
-                    message=f"Question {idx + 1} improved (Draft v{state['iteration_count']} • {regen_usage.get('total_tokens', 0)} tokens, ${regen_usage.get('cost_usd', 0.0):.5f}). Re-checking with Quality Reviewer...",
-                    data={
-                        "draft": state["current_draft"],
-                        "latest_usage": regen_usage,
-                        "index": idx + 1,
-                        "total": total_qty,
-                        "stage": "remediating",
-                    },
-                    run_id=item_run_id,
-                )
-                await event_queue.put(regen_done_evt)
-                continue
-            if next_step == "reject":
-                rej_res = await reject_node(state)
-                state.update(rej_res)
-                rej_data = state.get("rejection_data") or {}
-                if isinstance(rej_data, dict):
-                    rej_data["index"] = idx + 1
-                    rej_data["stage"] = "rejected"
-                rej_evt = make_event(
-                    event_type="workflow_rejected",
-                    agent_name="Quality Gate",
-                    message=f"Quality check not passed for Question {idx + 1} (Score {score}/100 after {iteration} attempts).",
-                    data=rej_data,
-                    run_id=item_run_id,
-                )
-                await event_queue.put(rej_evt)
-                return False
-
-        # Step 2: Blind-Solver Dual Validation Agent Pass
-        if config.ENABLE_BLIND_SOLVER:
-            bs_start_evt = make_event(
-                event_type="agent_start",
-                agent_name="Blind-Solver Dual Validation",
-                message=f"Running independent Blind-Solver Dual Validation on Question {idx + 1}...",
-                data={
-                    "index": idx + 1,
-                    "total": total_qty,
-                    "stage": "blind_solving",
-                    "iteration": iteration,
-                },
-                run_id=item_run_id,
-            )
-            await event_queue.put(bs_start_evt)
-
-            bs_res = await blind_solver_node(state)
-            state.update(bs_res)
-
-            bs_data = state.get("blind_solver_result") or {}
-            bs_passed = state.get("blind_solver_passed", True)
-            bs_usage = state.get("latest_usage", {})
-
-            if bs_passed:
-                bs_done_evt = make_event(
-                    event_type="agent_complete",
-                    agent_name="Blind-Solver Dual Validation",
-                    message=f"Blind-Solver validated Question {idx + 1} (Selected Option {bs_data.get('selected_key')} matches key, confidence: {bs_data.get('confidence')}%, unambiguous).",
-                    data={
-                        "blind_solver": bs_data,
-                        "latest_usage": bs_usage,
-                        "index": idx + 1,
-                        "total": total_qty,
-                        "stage": "blind_solving",
-                        "passed": True,
-                    },
-                    run_id=item_run_id,
-                )
-                await event_queue.put(bs_done_evt)
-                return True
-            else:
-                bs_fail_evt = make_event(
-                    event_type="agent_complete",
-                    agent_name="Blind-Solver Dual Validation",
-                    message=f"Blind-Solver flagged discrepancy for Question {idx + 1}: Selected Option {bs_data.get('selected_key')} (Confidence: {bs_data.get('confidence')}%). Remediation required.",
-                    data={
-                        "blind_solver": bs_data,
-                        "latest_usage": bs_usage,
-                        "index": idx + 1,
-                        "total": total_qty,
-                        "stage": "blind_solving",
-                        "passed": False,
-                    },
-                    run_id=item_run_id,
-                )
-                await event_queue.put(bs_fail_evt)
-
-                # Route to Question Improver for remediation if within attempt limits
-                max_attempts = config.MAX_REGENERATION_ATTEMPTS
-                if iteration < max_attempts:
-                    state["fused_self_passed"] = False
-                    regen_start_evt = make_event(
-                        event_type="agent_start",
-                        agent_name="Question Improver",
-                        message=f"Question Improver is remediating question {idx + 1} based on blind-solver critique...",
-                        data={
-                            "index": idx + 1,
-                            "total": total_qty,
-                            "stage": "remediating",
-                            "iteration": iteration,
-                        },
-                        run_id=item_run_id,
-                    )
-                    await event_queue.put(regen_start_evt)
-
-                    regen_res = await regenerator_node(state)
-                    state.update(regen_res)
-
-                    regen_usage = state.get("latest_usage", {})
-                    regen_done_evt = make_event(
-                        event_type="agent_complete",
-                        agent_name="Question Improver",
-                        message=f"Question {idx + 1} remediated (Draft v{state['iteration_count']}). Re-running validation...",
-                        data={
-                            "draft": state["current_draft"],
-                            "latest_usage": regen_usage,
-                            "index": idx + 1,
-                            "total": total_qty,
-                            "stage": "remediating",
-                        },
-                        run_id=item_run_id,
-                    )
-                    await event_queue.put(regen_done_evt)
-                    continue
-                else:
-                    rej_res = await reject_node(state)
-                    state.update(rej_res)
-                    rej_evt = make_event(
-                        event_type="workflow_rejected",
-                        agent_name="Quality Gate",
-                        message=f"Blind-Solver validation failed after {iteration} attempts for Question {idx + 1}.",
-                        data=state.get("rejection_data") or {},
-                        run_id=item_run_id,
-                    )
-                    await event_queue.put(rej_evt)
-                    return False
-        else:
-            return True
 
 
 async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, None]:
@@ -295,10 +81,6 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
     shared_passage_id = req.passage_id or (str(uuid.uuid4()) if is_single_passage_set else None)
     shared_passage_text = req.shared_stimulus
-    passage_tokens = 0
-    passage_prompt_tokens = 0
-    passage_completion_tokens = 0
-    passage_cost = 0.0
 
     # Auto-initialize Batch and Job records in PostgreSQL for live interactive runs
     if is_standalone_live_run:
@@ -364,142 +146,39 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         )
 
     all_staged_questions: list[dict[str, Any]] = []
-    cumulative_tokens = 0
-    cumulative_prompt_tokens = 0
-    cumulative_completion_tokens = 0
-    cumulative_cost = 0.0
-    all_agent_usage = []
+    all_agent_usage: list[dict[str, Any]] = []
     tasks: list[asyncio.Task] = []
 
-    passage_image_needed = False
-    passage_image_prompt = None
-
     try:
-        # If Single Passage Set mode, generate the shared reading passage first if not already provided
-        if is_single_passage_set and not shared_passage_text:
-            passage_start_evt = make_event(
-                event_type="agent_start",
-                agent_name="Passage Writer",
-                message=f"Writing 250-400 word shared reading passage for {effective_passage_count} linked questions ({req.section.value})...",
-                data={
-                    "stage": "passage_drafting",
-                    "total_questions": total_qty,
-                    "passage_question_count": effective_passage_count,
-                    "independent_question_count": independent_count,
-                    "batch_id": batch_id,
-                    "passage_id": shared_passage_id,
-                },
-            )
-            yield f"data: {passage_start_evt.model_dump_json()}\n\n"
+        # Step 0: Draft Shared Reading Passage and Diagram (if passage-set mode)
+        (
+            passage_state,
+            passage_events,
+        ) = await _prepare_shared_passage_and_visual(
+            req=req,
+            batch_id=batch_id,
+            shared_passage_id=shared_passage_id,
+            shared_passage_text=shared_passage_text,
+            is_single_passage_set=is_single_passage_set,
+            effective_passage_count=effective_passage_count,
+            independent_count=independent_count,
+            total_qty=total_qty,
+            make_event=make_event,
+            passage_generator_fn=generate_passage_stimulus,
+            image_generator_fn=generate_image_stimulus,
+        )
+        for p_evt in passage_events:
+            yield f"data: {p_evt.model_dump_json()}\n\n"
 
-            (
-                shared_passage_text,
-                passage_usage,
-                passage_image_needed,
-                passage_image_prompt,
-            ) = await generate_passage_stimulus(req)
-            passage_tokens = passage_usage.total_tokens
-            passage_prompt_tokens = passage_usage.prompt_tokens
-            passage_completion_tokens = passage_usage.completion_tokens
-            passage_cost = passage_usage.cost_usd
-
-            all_agent_usage.append(
-                {
-                    "agent": "Passage Writer",
-                    "iteration": 1,
-                    "prompt_tokens": passage_usage.prompt_tokens,
-                    "completion_tokens": passage_usage.completion_tokens,
-                    "total_tokens": passage_usage.total_tokens,
-                    "cost_usd": passage_usage.cost_usd,
-                }
-            )
-
-            word_count = len(shared_passage_text.split())
-            passage_done_evt = make_event(
-                event_type="agent_complete",
-                agent_name="Passage Writer",
-                message=f"Shared reading passage completed ({word_count} words). Now drafting questions ({effective_passage_count} linked, {independent_count} independent)...",
-                data={
-                    "stage": "passage_drafting",
-                    "passage_text": shared_passage_text,
-                    "passage_id": shared_passage_id,
-                    "word_count": word_count,
-                    "latest_usage": passage_usage.model_dump(),
-                },
-            )
-            yield f"data: {passage_done_evt.model_dump_json()}\n\n"
-
-        shared_passage_image_url: str | None = None
-        shared_passage_image_svg: str | None = None
-        shared_passage_image_desc: str | None = None
-
-        if req.allow_ai_images:
-            requires_passage_image = bool(req.section != MCATSection.CARS and passage_image_needed)
-        else:
-            requires_passage_image = bool(
-                req.section != MCATSection.CARS
-                and (
-                    req.require_passage_image
-                    or req.require_image
-                    or req.visual_type in ("SVG_Diagram", "AI_FLUX_Image")
-                )
-            )
-
-        # Generate shared visual stimulus diagram for the passage if required
-        if is_single_passage_set and requires_passage_image and shared_passage_text:
-            p_img_start_evt = make_event(
-                event_type="agent_start",
-                agent_name="Diagram & Chart Maker",
-                message="Drawing shared visual stimulus diagram for reading passage...",
-                data={
-                    "stage": "passage_image",
-                    "passage_id": shared_passage_id,
-                    "batch_id": batch_id,
-                },
-            )
-            yield f"data: {p_img_start_evt.model_dump_json()}\n\n"
-
-            p_draft = QuestionDraft(
-                stimulus_text=shared_passage_text,
-                question_stem=f"Visual stimulus diagram for {req.section.value} passage",
-                options=[
-                    OptionChoice(id="A", text="Option A"),
-                    OptionChoice(id="B", text="Option B"),
-                    OptionChoice(id="C", text="Option C"),
-                    OptionChoice(id="D", text="Option D"),
-                ],
-                correct_answer_id="A",
-                explanation="Shared passage visual stimulus reference",
-                image_needed=True,
-                image_prompt_or_type=passage_image_prompt
-                or req.custom_prompt
-                or f"Scientific clinical diagram for: {shared_passage_text[:120]}",
-            )
-
-            (
-                shared_passage_image_url,
-                shared_passage_image_svg,
-                shared_passage_image_desc,
-                p_img_usage,
-            ) = await generate_image_stimulus(p_draft, req)
-
-            if p_img_usage and p_img_usage.get("cost_usd"):
-                passage_cost += p_img_usage["cost_usd"]
-
-            p_img_done_evt = make_event(
-                event_type="agent_complete",
-                agent_name="Diagram & Chart Maker",
-                message="Shared visual stimulus diagram ready for reading passage.",
-                data={
-                    "stage": "passage_image",
-                    "passage_id": shared_passage_id,
-                    "image_url": shared_passage_image_url,
-                    "image_svg": shared_passage_image_svg,
-                    "image_description": shared_passage_image_desc,
-                    "batch_id": batch_id,
-                },
-            )
-            yield f"data: {p_img_done_evt.model_dump_json()}\n\n"
+        shared_passage_text = passage_state.passage_text
+        shared_passage_image_url = passage_state.image_url
+        shared_passage_image_svg = passage_state.image_svg
+        shared_passage_image_desc = passage_state.image_desc
+        passage_tokens = passage_state.tokens
+        passage_prompt_tokens = passage_state.prompt_tokens
+        passage_completion_tokens = passage_state.completion_tokens
+        passage_cost = passage_state.cost
+        all_agent_usage.extend(passage_state.usage_breakdown)
 
         # Initial workflow start
         if is_single_passage_set:
@@ -536,9 +215,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         )
         yield f"data: {start_evt.model_dump_json()}\n\n"
 
-        # Use the globally configured worker pool size (default: GLOBAL_MAX_CONCURRENT_JOBS)
-        MAX_CONCURRENCY = config.GLOBAL_MAX_CONCURRENT_JOBS
-        semaphore = asyncio.Semaphore(MAX_CONCURRENCY)
+        # Worker Pool Concurrency
+        semaphore = asyncio.Semaphore(config.GLOBAL_MAX_CONCURRENT_JOBS)
         event_queue: asyncio.Queue[WorkflowEvent | None] = asyncio.Queue()
 
         outcomes_questions: list[dict[str, Any] | None] = [None] * total_qty
@@ -687,7 +365,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                                 is_single_passage_set and idx < effective_passage_count
                             )
 
-                            # If this is a passage question and the passage has a visual stimulus diagram, attach reference
+                            # Attach shared passage diagram reference if applicable
                             if is_passage_item_check and (
                                 shared_passage_image_svg or shared_passage_image_url
                             ):
@@ -741,7 +419,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                                 )
                                 await event_queue.put(img_done_evt)
 
-                            # Finalize
+                            # Finalize Question Object
                             fin_res = await finalize_node(state)
                             state.update(fin_res)
 
@@ -752,29 +430,18 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             outcomes_questions[idx] = final_q_dict
 
                             if is_standalone_live_run:
-                                try:
-                                    q_obj = Question(**final_q_dict)
-                                    q_obj.batch_id = batch_id
-                                    q_obj.job_id = job_id
-                                    q_obj.run_id = item_run_id
-                                    if shared_passage_id and not q_obj.passage_id:
-                                        q_obj.passage_id = shared_passage_id
-                                    final_score = q_obj.final_score or 0
-                                    if final_score > 90:
-                                        q_obj.status = "ai_validated"
-                                    elif final_score > 85:
-                                        q_obj.status = "batch_only"
-                                    else:
-                                        q_obj.status = "below_threshold"
-                                    await save_question(q_obj)
-                                    completed_so_far = sum(
-                                        1 for q in outcomes_questions if q is not None
-                                    )
-                                    await update_job_progress(job_id, actual_count=completed_so_far)
-                                except Exception as q_save_err:
-                                    logger.warning(
-                                        f"Could not auto-persist question {idx + 1} for live batch {batch_id}: {q_save_err}"
-                                    )
+                                completed_so_far = sum(
+                                    1 for q in outcomes_questions if q is not None
+                                )
+                                await _persist_live_question(
+                                    final_q_dict=final_q_dict,
+                                    batch_id=batch_id,
+                                    job_id=job_id,
+                                    item_run_id=item_run_id,
+                                    shared_passage_id=shared_passage_id,
+                                    completed_so_far=completed_so_far,
+                                    idx=idx,
+                                )
 
                             # Emit question_generated event
                             q_gen_evt = make_event(
@@ -918,57 +585,38 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         yield f"data: {complete_evt.model_dump_json()}\n\n"
 
         if is_standalone_live_run:
-            now_iso = datetime.now(UTC).isoformat()
             completed_total = sum(1 for q in outcomes_questions if q is not None)
-            job_status = (
-                "completed"
-                if completed_total >= total_qty
-                else ("partially_completed" if completed_total > 0 else "failed")
+            await _finalize_live_job_progress(
+                job_id=job_id,
+                batch_id=batch_id,
+                completed_total=completed_total,
+                total_qty=total_qty,
+                cumulative_tokens=cumulative_tokens,
+                cumulative_prompt_tokens=cumulative_prompt_tokens,
+                cumulative_completion_tokens=cumulative_completion_tokens,
+                cumulative_cost=cumulative_cost,
             )
-            await update_job_progress(
-                job_id,
-                status=job_status,
-                actual_count=completed_total,
-                total_tokens=cumulative_tokens,
-                prompt_tokens=cumulative_prompt_tokens,
-                completion_tokens=cumulative_completion_tokens,
-                cost_usd=cumulative_cost,
-                completed_at=now_iso,
-            )
-            await refresh_batch_aggregates(batch_id)
     except asyncio.CancelledError:
         logger.info("Workflow stream cancelled by client disconnect.")
         for t in tasks:
             if not t.done():
                 t.cancel()
         if is_standalone_live_run:
-            try:
-                now_iso = datetime.now(UTC).isoformat()
-                completed_total = sum(1 for q in outcomes_questions if q is not None)
-                await update_job_progress(
-                    job_id,
-                    status="cancelled",
-                    actual_count=completed_total,
-                    completed_at=now_iso,
-                )
-                await refresh_batch_aggregates(batch_id)
-            except Exception as clean_err:
-                logger.warning(f"Error updating cancelled live batch {batch_id}: {clean_err}")
+            completed_total = sum(1 for q in outcomes_questions if q is not None)
+            await _handle_live_job_cancellation(
+                job_id=job_id,
+                batch_id=batch_id,
+                completed_total=completed_total,
+            )
         raise
     except Exception as e:
         logger.error(f"Workflow stream error: {e}")
         if is_standalone_live_run:
-            try:
-                now_iso = datetime.now(UTC).isoformat()
-                await update_job_progress(
-                    job_id,
-                    status="failed",
-                    error_message=str(e),
-                    completed_at=now_iso,
-                )
-                await refresh_batch_aggregates(batch_id)
-            except Exception as clean_err:
-                logger.warning(f"Error updating failed live batch {batch_id}: {clean_err}")
+            await _handle_live_job_failure(
+                job_id=job_id,
+                batch_id=batch_id,
+                error_msg=str(e),
+            )
         err_msg = str(e)
         error_evt = make_event(
             event_type="workflow_error",

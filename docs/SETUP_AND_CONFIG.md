@@ -48,6 +48,7 @@ cp .env.example .env
 | `REGENERATOR_TEMPERATURE` | `float` | `0.2` | Strict remediation temperature for Regenerator |
 | `REVIEWER_TEMPERATURE` | `float` | `0.1` | Deterministic temperature for 100-pt Psychometric Reviewer |
 | `BLIND_SOLVER_TEMPERATURE`| `float` | `0.1` | Ultra-deterministic temperature for Blind-Solver Agent |
+| `FAST_MODEL_CASCADE` | `list[str]` | `["deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017"]` | Dedicated DeepInfra fast model cascade list |
 | `ENABLE_BLIND_SOLVER` | `boolean` | `true` | Enables dual-validation blind solver agent |
 | `BLIND_SOLVER_CONFIDENCE_THRESHOLD` | `integer` | `88` | Minimum blind solver confidence percentage to pass without remediation |
 | `BLIND_SOLVER_MAX_TOKENS` | `integer` | `1200` | Max completion tokens budget for blind-solver inference |
@@ -55,6 +56,7 @@ cp .env.example .env
 | `GLOBAL_MAX_CONCURRENT_LLM_CALLS` | `integer` | `10` | Global limiter for simultaneous outward inference calls |
 | `LLM_MAX_RETRIES` | `integer` | `4` | Maximum exponential backoff retries on 429/503 errors |
 | `LLM_BASE_BACKOFF_SECONDS` | `float` | `1.5` | Base backoff interval in seconds before retry |
+| `WORKFLOW_MAX_WORKER_RETRIES` | `integer` | `2` | Per-worker retry attempts for individual question generation jobs within a batch |
 | `DB_POOL_SIZE` | `integer` | `20` | Core persistent asyncpg database connections |
 | `DB_MAX_OVERFLOW` | `integer` | `30` | Burst connection capacity beyond pool size |
 | `DB_POOL_TIMEOUT` | `integer` | `60` | Connection checkout timeout in seconds |

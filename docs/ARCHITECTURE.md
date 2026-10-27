@@ -128,6 +128,7 @@ The system coordinates specialized autonomous engines with a deterministic quali
 - **Routing Optimization**:
   - If self-critique score $> 90$, the workflow sets `fused_self_passed=True` and routes directly to the Visual Engine or Finalize Node, cutting latency by $35-45\%$ and saving ~590 tokens.
   - If self-critique score $\le 90$, the candidate draft is routed to the Remediation Engine and Independent Auditor loop.
+- **Modular Prompt Construction (`prompt_builder.py`)**: User-turn prompt assembly, section instructions, cognitive trap specifications, and cross-item diversity calibration strings are decoupled into [`backend/app/agents/prompt_builder.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/agents/prompt_builder.py) (`_build_generator_user_prompt`), ensuring pure deterministic string assembly without external LLM side effects.
 - **Inference Gateway**: High-throughput enterprise reasoning model (~110-140 tok/s, Temperature: `0.2` for strict instruction adherence).
 
 ### 3.2 Blind-Solver Dual-Validation Agent (`blind_solver.py` / `blind_solver_node`)
@@ -216,6 +217,12 @@ At each node execution, token consumption from the LLM response is unpacked and 
 3. `reviewer_node`: Accumulates independent audit tokens during remediation cycles and records usage in `iterations_history`.
 4. `image_node`: Accumulates visual stimulus synthesis tokens / compute units for `Diagram & Chart Maker`.
 5. `finalize_node`: Binds final accumulated totals and itemized breakdown directly into the `Question` schema for database persistence.
+
+### 4.2 Modular Execution Architecture (`engine.py` & `engine_helpers.py`)
+The streaming execution pipeline is implemented in [`backend/app/workflow/engine.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/workflow/engine.py) via `run_workflow_stream` and `run_workflow`. High-level orchestration helpers are decoupled into [`backend/app/workflow/engine_helpers.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/workflow/engine_helpers.py):
+- `_prepare_shared_passage_and_visual`: Asynchronously generates shared stimulus reading passages and visual diagrams.
+- `_run_review_and_repair_loop`: Coordinates iterative remediation cycles against the 100-point rubric.
+- `_persist_live_question`: Handles transactional database persistence of approved candidate items.
 
 ---
 
@@ -310,7 +317,7 @@ stateDiagram-v2
 
 ## 6. PostgreSQL 16 Database Architecture
 
-The persistence tier runs on **PostgreSQL 16** managed through **SQLAlchemy 2.0 Async** and the **`asyncpg`** driver, featuring enterprise connection pooling and zero-downtime startup migrations (`init_db()` in [`backend/app/db/session.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/db/session.py)):
+The persistence tier runs on **PostgreSQL 16** managed through **SQLAlchemy 2.0 Async** and the **`asyncpg`** driver, featuring enterprise connection pooling and zero-downtime startup migrations (`init_db()` in [`backend/app/db/session.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/db/session.py), delegating to schema and FTS verification in [`backend/app/db/init_db.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/db/init_db.py)):
 
 ### 6.1 Enterprise Connection Pooling Parameters
 To prevent database connection drops and handle parallel batch worker loads, the async engine is configured with:

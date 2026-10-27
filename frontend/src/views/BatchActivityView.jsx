@@ -369,65 +369,21 @@ export default function BatchActivityView({
   });
 
   return (
-    <div
-      style={{
-        maxWidth: '1240px',
-        margin: '0 auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px'
-      }}
-    >
+    <div className="batch-activity-container">
       {/* Header Bar */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '16px'
-        }}
-      >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: 'var(--radius-sm)',
-                background: 'var(--infynno-gradient)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                boxShadow: 'var(--infynno-glow)'
-              }}
-            >
-              <Layers size={20} />
-            </div>
-            <div>
-              <h1
-                style={{
-                  fontSize: '1.4rem',
-                  fontWeight: 800,
-                  color: 'var(--text-primary)',
-                  letterSpacing: '-0.02em',
-                  margin: 0
-                }}
-              >
-                Batch Activity &amp; Job Monitor
-              </h1>
-              <p
-                style={{
-                  fontSize: '0.825rem',
-                  color: 'var(--text-secondary)',
-                  margin: '2px 0 0 0'
-                }}
-              >
-                Track 5-question Live Mini-Sets (1 Job) and 50-question mock sections (10 Jobs), inspect constituent jobs, and monitor
-                throughput in real-time. Batch activity preserves questions scoring &gt; 85; questions scoring &gt; 90 route to AI Validated.
-              </p>
-            </div>
+      <div className="batch-activity-banner">
+        <div className="batch-activity-banner-left">
+          <div className="batch-activity-banner-icon">
+            <Layers size={20} />
+          </div>
+          <div>
+            <h1 className="batch-activity-banner-title">
+              Batch Activity &amp; Job Monitor
+            </h1>
+            <p className="batch-activity-banner-subtext">
+              Track 5-question Live Mini-Sets (1 Job) and 50-question mock sections (10 Jobs), inspect constituent jobs, and monitor
+              throughput in real-time. Batch activity preserves questions scoring &gt; 85; questions scoring &gt; 90 route to AI Validated.
+            </p>
           </div>
         </div>
 
@@ -497,90 +453,45 @@ export default function BatchActivityView({
 
       {/* Batches List Container */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-          <div
-            style={{
-              width: '28px',
-              height: '28px',
-              border: '2px solid var(--border-medium)',
-              borderTopColor: 'var(--brand-primary)',
-              borderRadius: '50%',
-              animation: 'spin 0.8s linear infinite',
-              margin: '0 auto 12px'
-            }}
-          />
-          <span style={{ fontSize: '0.85rem' }}>Loading batch records...</span>
+        <div className="view-loading-box">
+          <div className="view-loading-spinner" />
+          <span className="view-loading-text">Loading batch records...</span>
         </div>
       ) : filteredBatches.length === 0 ? (
-        <div
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-light)',
-            borderRadius: 'var(--radius-md)',
-            padding: '50px 24px',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '14px'
-          }}
-        >
-          <div
-            style={{
-              width: '52px',
-              height: '52px',
-              borderRadius: '50%',
-              background: 'rgba(79, 48, 185, 0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--brand-primary)'
-            }}
-          >
+        <div className="view-empty-state">
+          <div className="view-empty-icon-box">
             <Layers size={26} />
           </div>
           <div>
-            <h3
-              style={{
-                fontSize: '1.05rem',
-                fontWeight: 700,
-                color: 'var(--text-primary)',
-                marginBottom: '4px'
-              }}
-            >
+            <h3 className="view-empty-title">
               No Batches Found
             </h3>
-            <p
-              style={{
-                fontSize: '0.825rem',
-                color: 'var(--text-secondary)',
-                maxWidth: '420px',
-                margin: '0 auto'
-              }}
-            >
+            <p className="view-empty-desc">
               {searchQuery || statusFilter !== 'all' || sectionFilter !== 'all'
                 ? 'No generation batches match your active filters. Try clearing your search.'
                 : 'You have not executed any background batches yet. Launch a 50-question batch with 10 jobs to see live activity.'}
             </p>
           </div>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={onNavigateToWizard}
-            style={{
-              padding: '8px 20px',
-              fontSize: '0.85rem',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <Sparkles size={14} />
-            <span>Start Background Batch</span>
-          </button>
+          <div className="view-empty-actions">
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={onNavigateToWizard}
+              style={{
+                padding: '8px 20px',
+                fontSize: '0.85rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <Sparkles size={14} />
+              <span>Start Background Batch</span>
+            </button>
+          </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div className="batch-activity-list">
           {filteredBatches.map((batch) => (
             <BatchCard
               key={batch.id}

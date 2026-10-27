@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   CheckCircle2,
-  ArrowRight,
-  ChevronLeft,
-  ChevronRight
+  ArrowRight
 } from 'lucide-react';
-import CustomSelect from '../components/common/CustomSelect';
+import { PaginationBar } from '../components/common';
 import {
   fetchQuestions,
   fetchQuestionCounts,
@@ -118,9 +116,6 @@ export default function AiValidatedQuestionsView({
     const start = (safeCurrentPage - 1) * pageSize;
     return filteredQuestions.slice(start, start + pageSize);
   }, [filteredQuestions, safeCurrentPage, pageSize]);
-
-  const startIndex = filteredQuestions.length === 0 ? 0 : (pageSize === -1 ? 1 : (safeCurrentPage - 1) * pageSize + 1);
-  const endIndex = pageSize === -1 ? filteredQuestions.length : Math.min(safeCurrentPage * pageSize, filteredQuestions.length);
 
   // Toggle single selection
   const handleToggleSelect = (id) => {
@@ -314,72 +309,27 @@ export default function AiValidatedQuestionsView({
 
       {/* Main Content Area */}
       {loading ? (
-        <div
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-light)',
-            borderRadius: 'var(--radius-md)',
-            padding: '60px 20px',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '12px',
-            color: 'var(--text-muted)'
-          }}
-        >
-          <div
-            style={{
-              width: '32px',
-              height: '32px',
-              border: '2px solid var(--border-medium)',
-              borderTopColor: 'var(--brand-primary)',
-              borderRadius: '50%',
-              animation: 'spin 0.8s linear infinite'
-            }}
-          />
-          <span style={{ fontSize: '0.85rem' }}>Loading AI Validated Questions...</span>
+        <div className="view-loading-box">
+          <div className="view-loading-spinner" />
+          <span className="view-loading-text">Loading AI Validated Questions...</span>
         </div>
       ) : filteredQuestions.length === 0 ? (
         /* Empty State */
-        <div
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-light)',
-            borderRadius: 'var(--radius-md)',
-            padding: '50px 24px',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '14px'
-          }}
-        >
-          <div
-            style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '50%',
-              background: 'rgba(16, 185, 129, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--status-success)'
-            }}
-          >
+        <div className="view-empty-state">
+          <div className="view-empty-icon-box">
             <CheckCircle2 size={28} />
           </div>
           <div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+            <h3 className="view-empty-title">
               No Pending AI Validated Questions
             </h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '460px', margin: '0 auto' }}>
+            <p className="view-empty-desc">
               {searchQuery || sectionFilter
                 ? 'No questions matched your current filter criteria. Try clearing filters.'
                 : 'All validated questions have been placed into the Question Bank or discarded. Generate a new batch to review new questions here.'}
             </p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
+          <div className="view-empty-actions">
             {onNavigateToBatches && (
               <button
                 type="button"
@@ -426,79 +376,22 @@ export default function AiValidatedQuestionsView({
 
           {/* Pagination Bar */}
           {filteredQuestions.length > 0 && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 18px',
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-md)',
-                marginTop: '16px',
-                flexWrap: 'wrap',
-                gap: '12px'
-              }}
-            >
-              <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                Showing <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{startIndex}-{endIndex}</strong> of <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{filteredQuestions.length}</strong> validated questions
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  <span>Show</span>
-                  <CustomSelect
-                    id="select-validated-page-size"
-                    label="Questions per page"
-                    size="sm"
-                    value={pageSize}
-                    onChange={(newSize) => { setPageSize(Number(newSize)); setCurrentPage(1); }}
-                    options={[
-                      { value: 10, label: '10' },
-                      { value: 15, label: '15' },
-                      { value: 25, label: '25' },
-                      { value: 50, label: '50' },
-                      { value: -1, label: 'All' }
-                    ]}
-                    searchable={false}
-                    style={{ width: '75px' }}
-                  />
-                  <span>per page</span>
-                </div>
-
-                {pageSize !== -1 && totalPages > 1 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <button
-                      type="button"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={safeCurrentPage === 1}
-                      className="btn-secondary"
-                      style={{ padding: '5px 10px', fontSize: '0.76rem', gap: '4px' }}
-                      aria-label="Previous Page"
-                    >
-                      <ChevronLeft size={13} />
-                      <span>Prev</span>
-                    </button>
-
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', padding: '0 6px', fontWeight: 500 }}>
-                      Page {safeCurrentPage} of {totalPages}
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={safeCurrentPage >= totalPages}
-                      className="btn-secondary"
-                      style={{ padding: '5px 10px', fontSize: '0.76rem', gap: '4px' }}
-                      aria-label="Next Page"
-                    >
-                      <span>Next</span>
-                      <ChevronRight size={13} />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+            <PaginationBar
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalItems={filteredQuestions.length}
+              itemLabel="validated questions"
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+              pageSizeOptions={[
+                { value: 10, label: '10' },
+                { value: 15, label: '15' },
+                { value: 25, label: '25' },
+                { value: 50, label: '50' },
+                { value: -1, label: 'All' }
+              ]}
+            />
           )}
         </>
       )}

@@ -20,7 +20,6 @@ from app.schemas.workflow import GenerationRequest
 logger = logging.getLogger(__name__)
 
 
-
 def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDraft:
     # Validate options (4 or 5 allowed)
     raw_options = data.get("options", [])
@@ -94,7 +93,6 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
             ]
 
             for trap_key, pattern in taxonomies:
-
                 if re.search(pattern, expl, re.IGNORECASE):
                     detected = trap_key
                     break
