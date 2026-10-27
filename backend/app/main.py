@@ -1,8 +1,10 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.types import Receive, Scope, Send
 
 from app.api.router import api_router
 from app.core.config import config
@@ -18,11 +20,15 @@ async def lifespan(_app: FastAPI):
     configure_logging()
     logger.info("Initializing Infynno MCAT Question Bank Generator backend...")
     await init_db()
-    yield
-    logger.info("Shutting down backend...")
+    try:
+        yield
+    except (asyncio.CancelledError, KeyboardInterrupt):
+        pass
+    finally:
+        logger.info("Shutting down backend...")
 
 
-app = FastAPI(
+core_app = FastAPI(
     title="Infynno MCAT Question Bank Generator API",
     description="AI Question Writing & Verification System | An Infynno Solutions LLP Product",
     version="2.0.0",
@@ -31,7 +37,7 @@ app = FastAPI(
 
 
 # Security Headers Middleware
-@app.middleware("http")
+@core_app.middleware("http")
 async def add_security_headers(request, call_next):
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
@@ -43,7 +49,7 @@ async def add_security_headers(request, call_next):
 
 
 # Enable hardened CORS — origins sourced from Settings (localhost defaults + env overrides)
-app.add_middleware(
+core_app.add_middleware(
     CORSMiddleware,
     allow_origins=config.effective_allowed_origins,
     allow_credentials=True,
@@ -52,4 +58,28 @@ app.add_middleware(
 )
 
 # Mount versioned API routes under /api
-app.include_router(api_router)
+core_app.include_router(api_router)
+
+
+class CleanLifespanMiddleware:
+    """Wraps the ASGI application to gracefully handle cancellation on shutdown without traceback noise."""
+
+    def __init__(self, app: FastAPI):
+        self._app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] == "lifespan":
+            async def safe_receive():
+                try:
+                    return await receive()
+                except (asyncio.CancelledError, KeyboardInterrupt):
+                    return {"type": "lifespan.shutdown"}
+            await self._app(scope, safe_receive, send)
+        else:
+            await self._app(scope, receive, send)
+
+    def __getattr__(self, name: str):
+        return getattr(self._app, name)
+
+
+app = CleanLifespanMiddleware(core_app)
