@@ -11,9 +11,11 @@ def _is_image_required(req: GenerationRequest, draft: dict) -> bool:
     """Evaluates whether an image is required based on section restrictions, autonomous AI discretion, or explicit flags."""
     if req.section in (MCATSection.CARS, "CARS", "cars"):
         return False
+    if req.require_image or req.requires_visual_stimulus:
+        return True
     if req.allow_ai_images:
         return bool(draft.get("image_needed", False))
-    return req.requires_visual_stimulus or bool(draft.get("image_needed", False))
+    return bool(draft.get("image_needed", False))
 
 
 def route_after_fused_generation(state: AgentWorkflowState) -> str:

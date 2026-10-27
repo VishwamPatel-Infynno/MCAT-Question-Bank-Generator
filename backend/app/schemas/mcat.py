@@ -95,8 +95,10 @@ AAMC_SKILL_LABELS = {
 
 
 class Difficulty(str, Enum):
-    EASY = "easy"
+    LOW = "low"
     MEDIUM = "medium"
+    HIGH = "high"
+    EASY = "easy"
     HARD = "hard"
 
 

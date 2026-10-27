@@ -348,7 +348,15 @@ async def get_questions(
         if section:
             stmt = stmt.where(QuestionModel.section == section)
         if difficulty:
-            stmt = stmt.where(QuestionModel.difficulty == difficulty)
+            diff_lower = difficulty.strip().lower()
+            if diff_lower in ["low", "easy"]:
+                stmt = stmt.where(QuestionModel.difficulty.in_(["low", "Low", "easy", "Easy"]))
+            elif diff_lower in ["high", "hard"]:
+                stmt = stmt.where(QuestionModel.difficulty.in_(["high", "High", "hard", "Hard"]))
+            elif diff_lower in ["medium", "standard"]:
+                stmt = stmt.where(QuestionModel.difficulty.in_(["medium", "Medium", "standard", "Standard"]))
+            else:
+                stmt = stmt.where(QuestionModel.difficulty == difficulty)
         if combination_id:
             stmt = stmt.where(QuestionModel.combination_id == combination_id)
         if run_id:

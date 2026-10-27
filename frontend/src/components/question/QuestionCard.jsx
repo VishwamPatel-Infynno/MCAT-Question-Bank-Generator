@@ -24,6 +24,7 @@ import MentorExplanationView from './MentorExplanationView';
 import QuestionScorecardTab from './QuestionScorecardTab';
 import QuestionInlineEditor from './QuestionInlineEditor';
 import { getEffectiveTrapInfo } from '../../utils';
+import { formatDifficulty, getDifficultyBadgeClass } from '../../constants/mcat';
 
 export default function QuestionCard({ 
   question, 
@@ -138,8 +139,8 @@ export default function QuestionCard({
     { label: 'Explanation & Key Accuracy', score: review?.explanation_score ?? 24, max: 25, color: 'var(--status-success)' },
   ];
 
-  const diffLower = (question.difficulty || '').toLowerCase();
-  const diffBadgeClass = diffLower === 'easy' ? 'badge-emerald' : diffLower === 'hard' ? 'badge-rose' : 'badge-amber';
+  const diffBadgeClass = getDifficultyBadgeClass(question.difficulty);
+  const diffLabel = formatDifficulty(question.difficulty);
 
   const correctKeysList = Array.isArray(question.correct_answer_ids) && question.correct_answer_ids.length > 0
     ? question.correct_answer_ids.map(k => String(k).trim().toUpperCase())
@@ -192,7 +193,7 @@ export default function QuestionCard({
           </span>
 
           <span className={`badge ${diffBadgeClass}`} style={{ fontSize: '0.65rem', textTransform: 'capitalize' }}>
-            {question.difficulty}
+            {diffLabel}
           </span>
 
 

@@ -9,6 +9,7 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, Loader2, Clock, Check } from 'lucide-react';
 import QuestionCard from '../question/QuestionCard';
+import { formatDifficulty } from '../../constants/mcat';
 
 export default function StagedDetailedView({
   effectiveTotal,
@@ -108,7 +109,7 @@ export default function StagedDetailedView({
                   Q{q.index || slotNumber}
                 </span>
                 <span className="badge badge-neutral" style={{ fontSize: '0.625rem' }}>
-                  {q.difficulty}
+                  {formatDifficulty(q.difficulty)}
                 </span>
                 {isQuestionPassageLinked(q, slotNumber) ? (
                   <span className="badge badge-purple" style={{ fontSize: '0.625rem' }}>Passage</span>

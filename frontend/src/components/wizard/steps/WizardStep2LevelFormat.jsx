@@ -49,12 +49,16 @@ export default function WizardStep2LevelFormat({
             <span className="wizard-decision-num">1</span>
             <span className="wizard-decision-title">Question Difficulty</span>
           </div>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>AAMC Scaled</span>
         </div>
 
         <div className="wizard-difficulty-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
           {DIFFICULTY_TIERS.map((tier) => {
-            const isSelected = difficulty?.toLowerCase() === tier.id.toLowerCase();
+            const diffNormalized = (difficulty || '').toLowerCase();
+            const tierId = tier.id.toLowerCase();
+            const isSelected = diffNormalized === tierId ||
+              (tierId === 'low' && diffNormalized === 'easy') ||
+              (tierId === 'high' && diffNormalized === 'hard');
+
             return (
               <div
                 key={tier.id}
@@ -71,8 +75,20 @@ export default function WizardStep2LevelFormat({
                 aria-pressed={isSelected}
                 style={{ padding: '12px 14px' }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-                  <div className="wizard-tier-title" style={{ fontSize: '0.88rem', margin: 0 }}>{tier.title}</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <div className="wizard-tier-title" style={{ fontSize: '0.88rem', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span
+                      style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        backgroundColor: tier.color || 'var(--brand-primary)',
+                        display: 'inline-block',
+                        flexShrink: 0
+                      }}
+                    />
+                    {tier.title}
+                  </div>
                   {isSelected && (
                     <CheckCircle2 size={14} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
                   )}

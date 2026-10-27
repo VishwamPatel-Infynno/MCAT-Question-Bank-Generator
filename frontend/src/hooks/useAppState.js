@@ -206,9 +206,9 @@ export function useAppState() {
       content_domains: contentDomains && contentDomains.length > 0 ? contentDomains : undefined,
       content_domain: contentDomain || (contentDomains && contentDomains.length > 0 ? contentDomains.join(', ') : undefined),
       allow_ai_images: isVisualsPermitted,
-      require_image: false,
+      require_image: isVisualsPermitted && passageMode !== 'single_passage' && totalQuestions === 1,
       visual_type: isVisualsPermitted ? 'AI_FLUX_Image' : 'None',
-      require_passage_image: false
+      require_passage_image: isVisualsPermitted && passageMode === 'single_passage'
     };
 
     // All batches (both 5 Qs / 1 Job and 50 Qs / 10 Jobs) execute in background worker pool

@@ -30,9 +30,9 @@ const SECTION_FILTER_OPTIONS = [
 
 const DIFFICULTY_FILTER_OPTIONS = [
   { id: '', label: 'All Levels' },
-  { id: 'easy', label: 'Easy' },
+  { id: 'low', label: 'Low' },
   { id: 'medium', label: 'Medium' },
-  { id: 'hard', label: 'Hard' }
+  { id: 'high', label: 'High' }
 ];
 
 /**
@@ -135,7 +135,9 @@ export default function QuestionBankFilters({
         {/* Difficulty Filter Chips */}
         <div className="pill-track" style={{ flexShrink: 0 }}>
           {DIFFICULTY_FILTER_OPTIONS.map(d => {
-            const isActive = diffFilter === d.id;
+            const isActive = diffFilter === d.id ||
+              (d.id === 'low' && diffFilter === 'easy') ||
+              (d.id === 'high' && diffFilter === 'hard');
             return (
               <button
                 key={d.id}

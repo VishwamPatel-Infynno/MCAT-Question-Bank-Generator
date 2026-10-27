@@ -139,14 +139,14 @@ class GenerationRequest(BaseModel):
     def validate_difficulty(cls, v):
         if isinstance(v, str):
             lower = v.strip().lower()
-            if lower in ["easy", "foundational"]:
-                return Difficulty.EASY
+            if lower in ["low", "easy", "foundational"]:
+                return Difficulty.LOW
             if lower in ["medium", "standard", "standard exam"]:
                 return Difficulty.MEDIUM
-            if lower in ["hard", "top percentile", "mastery", "elite"]:
-                return Difficulty.HARD
+            if lower in ["high", "hard", "top percentile", "mastery", "elite"]:
+                return Difficulty.HIGH
             raise ValueError(
-                f"Invalid difficulty '{v}'. Difficulty must strictly be one of: easy, medium, hard."
+                f"Invalid difficulty '{v}'. Difficulty must strictly be one of: low, medium, high (or legacy: easy, hard)."
             )
         return v
 

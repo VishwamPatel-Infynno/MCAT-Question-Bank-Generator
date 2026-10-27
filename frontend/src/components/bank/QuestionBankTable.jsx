@@ -20,6 +20,7 @@ import VisualStimulusViewer from '../question/VisualStimulusViewer';
 import SharedPassageCard from '../question/SharedPassageCard';
 import MentorExplanationView from '../question/MentorExplanationView';
 import { getEffectiveTrapInfo } from '../../utils';
+import { formatDifficulty, getDifficultyBadgeClass } from '../../constants/mcat';
 
 const SECTION_BADGE_CLASS = {
   chem_phys: 'badge-purple',
@@ -264,10 +265,10 @@ export default function QuestionBankTable({
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
                         <span
-                          className={`badge ${(q.difficulty || '').toLowerCase() === 'easy' ? 'badge-emerald' : (q.difficulty || '').toLowerCase() === 'hard' ? 'badge-rose' : 'badge-amber'}`}
+                          className={`badge ${getDifficultyBadgeClass(q.difficulty)}`}
                           style={{ textTransform: 'capitalize', fontSize: '0.65rem' }}
                         >
-                          {q.difficulty || 'Medium'}
+                          {formatDifficulty(q.difficulty)}
                         </span>
                         {q.likely_mistake_pattern && (
                           <span
@@ -541,10 +542,10 @@ export default function QuestionBankTable({
                     )}
 
                     <span
-                      className={`badge ${(q.difficulty || '').toLowerCase() === 'easy' ? 'badge-emerald' : (q.difficulty || '').toLowerCase() === 'hard' ? 'badge-rose' : 'badge-amber'}`}
+                      className={`badge ${getDifficultyBadgeClass(q.difficulty)}`}
                       style={{ textTransform: 'capitalize', fontSize: '0.65rem' }}
                     >
-                      {q.difficulty || 'Medium'}
+                      {formatDifficulty(q.difficulty)}
                     </span>
 
                     <span className="badge badge-emerald" style={{ fontSize: '0.65rem', fontWeight: 600 }}>

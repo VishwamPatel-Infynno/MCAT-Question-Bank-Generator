@@ -11,7 +11,7 @@ import {
   AlertTriangle,
   Target
 } from 'lucide-react';
-import { MCAT_SECTION_LABELS } from '../../constants/mcat';
+import { MCAT_SECTION_LABELS, formatDifficulty } from '../../constants/mcat';
 import { getEffectiveTrapInfo } from '../../utils';
 
 export default function AiValidatedQuestionCard({
@@ -84,7 +84,7 @@ export default function AiValidatedQuestionCard({
               color: 'var(--text-muted)'
             }}
           >
-            {q.difficulty}
+            {formatDifficulty(q.difficulty)}
           </span>
           {trapInfo?.label && (
             <span

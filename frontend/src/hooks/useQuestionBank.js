@@ -100,7 +100,7 @@ export function useQuestionBank() {
       return list.sort((a, b) => (a.final_score || 0) - (b.final_score || 0));
     }
     if (sortBy === 'difficulty') {
-      const order = { easy: 1, medium: 2, hard: 3 };
+      const order = { low: 1, easy: 1, medium: 2, high: 3, hard: 3 };
       return list.sort(
         (a, b) => (order[(a.difficulty || '').toLowerCase()] || 0) - (order[(b.difficulty || '').toLowerCase()] || 0)
       );

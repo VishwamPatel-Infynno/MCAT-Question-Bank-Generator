@@ -218,10 +218,43 @@ export const SECTION_METADATA = {
 };
 
 export const DIFFICULTY_TIERS = [
-  { id: 'easy', title: 'Foundational (~500 MCAT)', desc: 'Direct clues and straightforward scientific concepts, ideal for foundational mastery.' },
-  { id: 'medium', title: 'Standard Exam (~508-512 MCAT)', desc: 'Matches authentic AAMC test-day experimental density and distractor complexity.' },
-  { id: 'hard', title: '99th Percentile Elite (~518-528 MCAT)', desc: 'Subtle data interpretation and multi-step biochemical deductions for top-decile scorers.' }
+  {
+    id: 'low',
+    title: 'Low',
+    desc: 'Basic concepts & direct questions, ideal for foundational review.',
+    color: '#10b981',
+    badgeClass: 'badge-emerald'
+  },
+  {
+    id: 'medium',
+    title: 'Medium',
+    desc: 'Standard balanced exam challenge matching authentic test-day pacing.',
+    color: '#f59e0b',
+    badgeClass: 'badge-amber'
+  },
+  {
+    id: 'high',
+    title: 'High',
+    desc: 'Advanced multi-step reasoning, complex data interpretation & tricky distractors.',
+    color: '#f43f5e',
+    badgeClass: 'badge-rose'
+  }
 ];
+
+export const formatDifficulty = (diff) => {
+  const d = (diff || '').toLowerCase();
+  if (d === 'low' || d === 'easy') return 'Low';
+  if (d === 'high' || d === 'hard') return 'High';
+  return 'Medium';
+};
+
+export const getDifficultyBadgeClass = (diff) => {
+  const d = (diff || '').toLowerCase();
+  if (d === 'low' || d === 'easy') return 'badge-emerald';
+  if (d === 'high' || d === 'hard') return 'badge-rose';
+  return 'badge-amber';
+};
+
 
 export * from './mcatTraps';
 

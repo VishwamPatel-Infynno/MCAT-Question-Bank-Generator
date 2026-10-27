@@ -150,13 +150,21 @@ Do NOT write a new passage. Formulate your question stem, options, correct key, 
         "cars",
     )
     if allow_visuals:
-        user_prompt += (
-            "\nVISUAL DIAGRAM AUTONOMOUS DISCRETION:\n"
-            "- Visual stimuli are ENABLED on-demand. If this question inherently requires an experimental diagram, "
-            "optical ray diagram, electrical circuit, metabolic pathway, Lineweaver-Burk plot, or reaction mechanism to solve, "
-            "set 'image_needed': true and provide a detailed scientific visual description in 'image_prompt_or_type'.\n"
-            "- If the question is purely conceptual, numerical, or fully solvable from text alone, strictly set 'image_needed': false and 'image_prompt_or_type': null."
-        )
+        if req.require_image:
+            user_prompt += (
+                "\nMANDATORY VISUAL STIMULUS DIAGRAM REQUIREMENT:\n"
+                "- This question MUST incorporate and directly test an accompanying scientific visual diagram (e.g. chemical structure, electrical circuit, ray optics diagram, metabolic pathway, reaction coordinate, or experimental graph).\n"
+                "- In your question stem, directly refer to the visual diagram (e.g., 'As shown in the diagram...', 'Based on the reaction scheme below...', 'In the circuit shown...').\n"
+                "- Strictly set 'image_needed': true and write a vivid, detailed scientific description of the diagram in 'image_prompt_or_type'.\n"
+            )
+        else:
+            user_prompt += (
+                "\nVISUAL DIAGRAM DISCRETION:\n"
+                "- Visual stimuli are ENABLED. If this question benefits from an experimental diagram, "
+                "optical ray diagram, electrical circuit, metabolic pathway, Lineweaver-Burk plot, molecular structure, or reaction mechanism to solve, "
+                "set 'image_needed': true and provide a detailed scientific visual description in 'image_prompt_or_type'.\n"
+                "- If the question is purely conceptual, numerical, or fully solvable from text alone, set 'image_needed': false and 'image_prompt_or_type': null."
+            )
     else:
         user_prompt += (
             "\nVISUAL DIAGRAM RESTRICTION:\n"

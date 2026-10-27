@@ -99,6 +99,21 @@ def _build_batch_worker_request(
         item_passage_id = None
         item_stimulus = None
 
+    # For independent questions in science sections, when AI diagrams are permitted,
+    # calibrate authentic AAMC frequency (~40%: items 0 and 2 in every 5 questions, or single question)
+    sec_is_cars = req.section in (MCATSection.CARS, "CARS", "cars")
+    has_diagrams_enabled = (
+        req.allow_ai_images
+        or req.require_image
+        or req.visual_type in ("SVG_Diagram", "AI_FLUX_Image")
+    )
+    should_require_item_image = bool(
+        not sec_is_cars
+        and not is_passage_item
+        and has_diagrams_enabled
+        and (total_qty == 1 or (idx % 5 in (0, 2)))
+    )
+
     item_req = req.model_copy(
         update={
             "run_id": item_run_id,
@@ -109,6 +124,8 @@ def _build_batch_worker_request(
             "passage_mode": item_passage_mode,
             "passage_id": item_passage_id,
             "shared_stimulus": item_stimulus,
+            "require_image": should_require_item_image or req.require_image,
+            "visual_type": "AI_FLUX_Image" if (should_require_item_image or req.require_image) else req.visual_type,
         }
     )
     return item_req, item_run_id, is_passage_item, item_interaction
@@ -155,6 +172,9 @@ def _determine_item_diagram_requirement(
     )
     if not visuals_permitted:
         return False
+
+    if explicit_image:
+        return True
 
     # Autonomous AI determination for independent items
     return bool(state.get("current_draft", {}).get("image_needed", False))
@@ -464,17 +484,16 @@ async def _prepare_shared_passage_and_visual(
         )
         events.append(passage_done_evt)
 
-    if req.allow_ai_images:
-        requires_passage_image = bool(req.section != MCATSection.CARS and passage_image_needed)
-    else:
-        requires_passage_image = bool(
-            req.section != MCATSection.CARS
-            and (
-                req.require_passage_image
-                or req.require_image
-                or req.visual_type in ("SVG_Diagram", "AI_FLUX_Image")
-            )
+    requires_passage_image = bool(
+        req.section not in (MCATSection.CARS, "CARS", "cars")
+        and (
+            req.allow_ai_images
+            or passage_image_needed
+            or req.require_passage_image
+            or req.require_image
+            or req.visual_type in ("SVG_Diagram", "AI_FLUX_Image")
         )
+    )
 
     # Generate shared visual stimulus diagram for the passage if required
     if is_single_passage_set and requires_passage_image and state.passage_text:

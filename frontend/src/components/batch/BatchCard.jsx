@@ -10,7 +10,7 @@ import {
   Square,
   RotateCcw
 } from 'lucide-react';
-import { MCAT_SECTION_LABELS } from '../../constants/mcat';
+import { MCAT_SECTION_LABELS, formatDifficulty } from '../../constants/mcat';
 import BatchJobCard from './BatchJobCard';
 
 function getSectionBadgeColor(sec) {
@@ -210,7 +210,7 @@ export default function BatchCard({
                 className="badge-minimal"
                 style={{ fontSize: '0.7rem', textTransform: 'capitalize' }}
               >
-                {batch.difficulty || 'Medium'}
+                {formatDifficulty(batch.difficulty)}
               </span>
               <span className="badge-minimal" style={{ fontSize: '0.7rem' }}>
                 {batch.passage_mode === 'single_passage' ? 'Passage Set' : 'Standalone'}

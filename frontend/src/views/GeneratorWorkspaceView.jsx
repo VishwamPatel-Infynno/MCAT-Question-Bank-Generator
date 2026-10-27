@@ -3,6 +3,7 @@ import { Sparkles } from 'lucide-react';
 import { AgentVisualizer, RejectionCard } from '../components/pipeline';
 import { StagedBatchReview } from '../components/staged';
 import { QuestionCard, QuestionDraftingSkeleton } from '../components/question';
+import { formatDifficulty } from '../constants/mcat';
 
 /**
  * GeneratorWorkspaceView
@@ -102,7 +103,7 @@ export default function GeneratorWorkspaceView({
       ) : isGenerating ? (
         <QuestionDraftingSkeleton
           sectionLabel={sectionsData?.find((s) => s.id === generatorForm?.formData?.section)?.label || 'MCAT Question'}
-          difficulty={generatorForm?.formData?.difficulty || 'Medium'}
+          difficulty={formatDifficulty(generatorForm?.formData?.difficulty)}
           interactionType={generatorForm?.formData?.interactionType || 'single_choice'}
           isPassage={generatorForm?.formData?.passageRequired === 'Yes'}
           slotNumber={1}

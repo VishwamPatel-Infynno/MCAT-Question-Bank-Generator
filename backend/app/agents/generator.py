@@ -198,19 +198,19 @@ Target Length: {target_length}.
 STANDARDS FOR AAMC MCAT PASSAGES:
 1. Formal, intellectual scholarly register using precise American English scientific or academic vocabulary.
 2. Structured in 3 to 5 coherent paragraphs.
-3. Substantive experimental or biomedical study detailing a research hypothesis, experimental methods (e.g. assays, Western blots, kinetic measurements), observed quantitative data or findings, and conclusions.
+3. Substantive experimental or biomedical study detailing a research hypothesis, experimental methods (e.g. assays, Western blots, kinetic measurements, reaction vessels), observed quantitative data or findings, and conclusions.
 4. Provides rich material for multiple distinct reasoning questions evaluating AAMC skills.
-5. VISUAL STIMULUS DETERMINATION:
-   - Carefully evaluate whether this passage requires an experimental data diagram, biochemical pathway chart, Lineweaver-Burk plot, or medical figure to be fully understood and tested.
-   - If an image/diagram is genuinely needed or high-yield for this study, set "image_needed": true and specify a clear description of the visual stimulus in "image_prompt".
-   - If the passage is self-contained and does NOT require a visual diagram, set "image_needed": false and "image_prompt": null.
+5. EXPERIMENTAL VISUAL STIMULUS REQUIREMENT (FIGURE 1):
+   - Because visual diagrams are enabled for this science passage, the study MUST describe and reference a central experimental figure or diagram labeled as "Figure 1" (e.g., Figure 1: Reaction coordinate diagram, Gel electrophoresis blot, Lineweaver-Burk kinetic plot, Metabolic pathway feedback, or Apparatus schematic).
+   - In the text of the passage, explicitly mention "Figure 1" so questions can test data interpretation.
+   - Strictly set "image_needed": true and provide a comprehensive, vivid scientific description in "image_prompt" for generating this diagram.
 
 OUTPUT FORMAT:
 Respond ONLY with a valid JSON object matching this exact structure:
 {{
-  "passage_text": "The full 3 to 5 paragraph reading passage text...",
-  "image_needed": false,
-  "image_prompt": null
+  "passage_text": "The full 3 to 5 paragraph reading passage text explicitly incorporating and describing Figure 1...",
+  "image_needed": true,
+  "image_prompt": "Detailed scientific description of Figure 1: high-contrast experimental diagram or plot with clearly labeled axes, legends, or molecular structures on a clean white background..."
 }}"""
     else:
         prompt = f"""Generate a high-yield, authentic AAMC MCAT Reading Passage for {section_name}.
@@ -256,11 +256,19 @@ STANDARDS FOR AAMC MCAT PASSAGES:
                 data = safe_json_loads(cleaned)
                 if isinstance(data, dict) and "passage_text" in data:
                     passage_text = str(data["passage_text"]).strip()
-                    image_needed = bool(data.get("image_needed", False))
+                    image_needed = bool(data.get("image_needed", True))
+                    image_prompt = data.get("image_prompt")
+                elif isinstance(data, dict) and "text" in data:
+                    passage_text = str(data["text"]).strip()
+                    image_needed = bool(data.get("image_needed", True))
                     image_prompt = data.get("image_prompt")
             except Exception:
-                image_needed = False
-                image_prompt = None
+                pass
+
+            # Guarantee that science passages have a diagram when visuals are permitted
+            image_needed = True
+            if not image_prompt:
+                image_prompt = f"Official AAMC MCAT scientific experimental diagram and data figure for {section_name} study on {topic}: {passage_text[:180]}"
 
         return passage_text, usage, image_needed, image_prompt
     except Exception as e:

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import VisualStimulusViewer from '../question/VisualStimulusViewer';
 import StagedSlotSkeleton from './StagedSlotSkeleton';
+import { formatDifficulty } from '../../constants/mcat';
 
 export default function StagedQuestionSlotCard({
   idx,
@@ -96,7 +97,7 @@ export default function StagedQuestionSlotCard({
             </span>
             <span style={{ color: 'var(--border-medium)' }}>•</span>
             <span style={{ fontSize: '0.725rem', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>
-              {q.difficulty}
+              {formatDifficulty(q.difficulty)}
             </span>
             <span className="badge badge-neutral" style={{ fontSize: '0.675rem' }}>
               Single Choice MCQ
