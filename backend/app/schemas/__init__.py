@@ -28,6 +28,7 @@ from app.schemas.question import (
     QuestionDraft,
     ReviewScore,
     StatusUpdateRequest,
+    determine_question_status,
 )
 from app.schemas.token import TokenUsage
 from app.schemas.workflow import GenerationRequest, WorkflowEvent
@@ -60,5 +61,6 @@ __all__ = [
     "TokenUsage",
     "WorkflowEvent",
     "calculate_mcat_scaled_score",
+    "determine_question_status",
     "normalize_section",
 ]

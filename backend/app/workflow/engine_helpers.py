@@ -27,6 +27,7 @@ from app.schemas import (
     Question,
     QuestionDraft,
     WorkflowEvent,
+    determine_question_status,
 )
 from app.workflow.nodes import (
     blind_solver_node,
@@ -577,13 +578,7 @@ async def _persist_live_question(
         q_obj.run_id = item_run_id
         if shared_passage_id and not q_obj.passage_id:
             q_obj.passage_id = shared_passage_id
-        final_score = q_obj.final_score or 0
-        if final_score > 90:
-            q_obj.status = "ai_validated"
-        elif final_score > 85:
-            q_obj.status = "batch_only"
-        else:
-            q_obj.status = "below_threshold"
+        q_obj.status = determine_question_status(q_obj.final_score)
         await save_question(q_obj)
         await update_job_progress(job_id, actual_count=completed_so_far)
     except Exception as q_save_err:

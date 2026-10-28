@@ -18,7 +18,13 @@ from app.repositories.job_repository import (
     update_job_progress,
 )
 from app.repositories.question_repository import save_question
-from app.schemas import GenerationBatch, GenerationJob, GenerationRequest, Question
+from app.schemas import (
+    GenerationBatch,
+    GenerationJob,
+    GenerationRequest,
+    Question,
+    determine_question_status,
+)
 from app.workflow.engine import run_workflow_stream
 
 logger = logging.getLogger(__name__)
@@ -106,13 +112,7 @@ async def _run_single_job(
                             q_obj.batch_id = batch_id
                             q_obj.job_id = job.id
                             q_obj.run_id = job.id
-                            final_score = q_obj.final_score or 0
-                            if final_score > 90:
-                                q_obj.status = "ai_validated"
-                            elif final_score > 85:
-                                q_obj.status = "batch_only"
-                            else:
-                                q_obj.status = "below_threshold"
+                            q_obj.status = determine_question_status(q_obj.final_score)
                             # Check if batch still exists before saving question
                             curr_b = await get_batch_by_id(batch_id)
                             if not curr_b:
@@ -138,13 +138,7 @@ async def _run_single_job(
                                 q_obj.batch_id = batch_id
                                 q_obj.job_id = job.id
                                 q_obj.run_id = job.id
-                                final_score = q_obj.final_score or 0
-                                if final_score > 90:
-                                    q_obj.status = "ai_validated"
-                                elif final_score > 85:
-                                    q_obj.status = "batch_only"
-                                else:
-                                    q_obj.status = "below_threshold"
+                                q_obj.status = determine_question_status(q_obj.final_score)
                                 curr_b = await get_batch_by_id(batch_id)
                                 if not curr_b:
                                     logger.info(

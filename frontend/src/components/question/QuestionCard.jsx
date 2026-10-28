@@ -20,7 +20,7 @@ import VisualStimulusViewer from './VisualStimulusViewer';
 import MentorExplanationView from './MentorExplanationView';
 import QuestionScorecardTab from './QuestionScorecardTab';
 import QuestionInlineEditor from './QuestionInlineEditor';
-import { getEffectiveTrapInfo } from '../../utils';
+import { getEffectiveTrapInfo, calculateOptionSymmetry } from '../../utils';
 import { formatDifficulty, getDifficultyBadgeClass } from '../../constants/mcat';
 
 export default function QuestionCard({ 
@@ -56,20 +56,7 @@ export default function QuestionCard({
       return question.stage_outcomes.option_symmetry;
     }
     const currentOptions = isEditing ? editedOptions : (question.options || []);
-    if (!currentOptions || currentOptions.length === 0) return null;
-    const counts = currentOptions.map(o => (o.text || '').trim().split(/\s+/).filter(Boolean).length);
-    const minW = Math.min(...counts);
-    const maxW = Math.max(...counts);
-    const ratio = minW > 0 ? Number((maxW / minW).toFixed(2)) : 1.0;
-    const isBalanced = ratio <= 1.25;
-    return {
-      disparity_ratio: ratio,
-      min_word_count: minW,
-      max_word_count: maxW,
-      is_balanced: isBalanced,
-      status: isBalanced ? 'Balanced' : (ratio <= 1.4 ? 'Moderate Disparity' : 'High Disparity'),
-      word_counts: Object.fromEntries(currentOptions.map((o, i) => [o.id || String.fromCharCode(65 + i), counts[i]])),
-    };
+    return calculateOptionSymmetry(currentOptions);
   }, [question, isEditing, editedOptions]);
 
   const hasStimulus = Boolean(

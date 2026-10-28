@@ -23,3 +23,8 @@ export {
   extractDistractorLines
 } from './explanationHelpers';
 
+export {
+  calculateOptionSymmetry
+} from './optionHelpers';
+
+

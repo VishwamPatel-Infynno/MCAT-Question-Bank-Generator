@@ -166,7 +166,7 @@ async def save_question(q: Question) -> Question:
             )
             await session.execute(p_stmt)
 
-        # 2. Auto-sync GenerationBatch record atomically if batch_id exists
+        # 2. Auto-sync GenerationBatch record atomically if batch_id exists (idempotent, no inflation on edit)
         if q.batch_id:
             b_stmt = (
                 pg_insert(GenerationBatchModel)
@@ -184,15 +184,7 @@ async def save_question(q: Question) -> Question:
                     created_at=to_datetime(q.created_at),
                     updated_at=now_dt,
                 )
-                .on_conflict_do_update(
-                    index_elements=["id"],
-                    set_={
-                        "actual_count": GenerationBatchModel.actual_count + 1,
-                        "total_tokens": GenerationBatchModel.total_tokens + (q.total_tokens or 0),
-                        "cost_usd": GenerationBatchModel.cost_usd + (q.cost_usd or 0.0),
-                        "updated_at": now_dt,
-                    },
-                )
+                .on_conflict_do_nothing(index_elements=["id"])
             )
             await session.execute(b_stmt)
 
@@ -275,7 +267,7 @@ async def save_questions_batch(questions: list[Question]) -> list[str]:
                     existing_p.image_description = p_mod.image_description
                 existing_p.updated_at = now_dt
 
-        # Upsert batches
+        # Upsert batches (create batch record if it doesn't exist, leave existing batch aggregates intact to avoid double-counting)
         for bid, b_info in batches_to_upsert.items():
             existing_b = await session.get(GenerationBatchModel, bid)
             if not existing_b:
@@ -295,9 +287,6 @@ async def save_questions_batch(questions: list[Question]) -> list[str]:
                 )
                 session.add(b_model)
             else:
-                existing_b.actual_count = (existing_b.actual_count or 0) + b_info["count"]
-                existing_b.total_tokens = (existing_b.total_tokens or 0) + b_info["tokens"]
-                existing_b.cost_usd = (existing_b.cost_usd or 0.0) + b_info["cost"]
                 existing_b.updated_at = now_dt
 
         # Upsert questions

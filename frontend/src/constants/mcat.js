@@ -1,4 +1,6 @@
 import { FlaskConical, BookOpen, Dna, Brain } from 'lucide-react';
+// Bundled manager taxonomy JSON provides zero-latency offline-first fallback
+// synchronized with backend/app/data/mcat_dependent_taxonomy.json
 import mcatTaxonomy from './mcat_dependent_taxonomy.json';
 
 export const SECTION_ICONS = {

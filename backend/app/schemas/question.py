@@ -266,3 +266,20 @@ class StatusUpdateRequest(BaseModel):
 
     ids: list[str]
     status: str  # 'in_bank', 'discarded', 'ai_validated', 'below_threshold', 'batch_only'
+
+
+def determine_question_status(score: float | int | None) -> str:
+    """
+    Determines question lifecycle status based on psychometric score thresholds.
+    Scores > PASSING_SCORE_THRESHOLD (90) become 'ai_validated'.
+    Scores > BATCH_PASSING_SCORE_THRESHOLD (85) become 'batch_only'.
+    Otherwise 'below_threshold'.
+    """
+    from app.core.config import config
+
+    s = score or 0
+    if s > config.PASSING_SCORE_THRESHOLD:
+        return "ai_validated"
+    if s > config.BATCH_PASSING_SCORE_THRESHOLD:
+        return "batch_only"
+    return "below_threshold"

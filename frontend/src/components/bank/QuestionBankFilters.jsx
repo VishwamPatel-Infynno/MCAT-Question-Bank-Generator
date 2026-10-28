@@ -7,9 +7,7 @@ import {
   CheckSquare,
   Square,
   RotateCcw,
-  Sparkles,
-  Table,
-  LayoutList
+  Sparkles
 } from 'lucide-react';
 import CustomSelect from '../common/CustomSelect';
 
@@ -39,7 +37,7 @@ const DIFFICULTY_FILTER_OPTIONS = [
  * QuestionBankFilters
  *
  * Renders the search bar, difficulty chips, status filter, section pills, sort selector,
- * view mode switcher (Table Grid vs Editorial Cards), and bulk-selection action bar.
+ * and bulk-selection action bar.
  */
 export default function QuestionBankFilters({
   searchQuery,
@@ -55,8 +53,6 @@ export default function QuestionBankFilters({
   selectedIds,
   isDeletingBulk,
   hasActiveFilters,
-  viewMode = 'grid',
-  setViewMode,
   onSelectAll,
   onBulkDelete,
   onClearAllFilters,
@@ -151,34 +147,6 @@ export default function QuestionBankFilters({
             );
           })}
         </div>
-
-        {/* View Mode Switcher */}
-        {setViewMode && (
-          <div className="view-mode-pill-group" style={{ flexShrink: 0 }} title="Toggle Table Grid or Editorial Cards">
-            <button
-              type="button"
-              id="btn-view-mode-grid"
-              onClick={() => setViewMode('grid')}
-              className={`view-mode-btn ${viewMode === 'grid' ? 'active' : ''}`}
-              title="Table Grid View"
-              style={{ padding: '4px 8px', fontSize: '0.72rem' }}
-            >
-              <Table size={12} />
-              <span>Table</span>
-            </button>
-            <button
-              type="button"
-              id="btn-view-mode-cards"
-              onClick={() => setViewMode('cards')}
-              className={`view-mode-btn ${viewMode === 'cards' ? 'active' : ''}`}
-              title="Editorial Cards View"
-              style={{ padding: '4px 8px', fontSize: '0.72rem' }}
-            >
-              <LayoutList size={12} />
-              <span>Cards</span>
-            </button>
-          </div>
-        )}
 
         {/* Sort Selector */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto', flexShrink: 0 }}>

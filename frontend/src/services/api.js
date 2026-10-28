@@ -35,6 +35,10 @@ export async function fetchSections() {
   return res.json();
 }
 
+/**
+ * Fetches the full manager MCAT dependent taxonomy directly from backend API.
+ * Used for dynamic outline updates and synchronizing runtime taxonomy state.
+ */
 export async function fetchTaxonomy() {
   const res = await fetch(`${API_BASE}/taxonomy`);
   await assertOk(res, 'Fetch taxonomy');

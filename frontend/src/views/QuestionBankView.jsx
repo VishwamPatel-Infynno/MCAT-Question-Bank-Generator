@@ -32,21 +32,6 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
   const [selectedIds, setSelectedIds] = useState([]);
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
-  const [viewMode, setViewMode] = useState(() => {
-    try {
-      return localStorage.getItem('infynno_qb_view_mode') || 'grid';
-    } catch {
-      return 'grid';
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('infynno_qb_view_mode', viewMode);
-    } catch {
-      // ignore
-    }
-  }, [viewMode]);
 
   const hasActiveFilters = Boolean(searchQuery.trim() || sectionFilter || diffFilter);
 
@@ -207,8 +192,6 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
         selectedIds={selectedIds}
         isDeletingBulk={isDeletingBulk}
         hasActiveFilters={hasActiveFilters}
-        viewMode={viewMode}
-        setViewMode={setViewMode}
         onSelectAll={handleSelectAll}
         onBulkDelete={handleBulkDelete}
         onClearAllFilters={handleClearAllFilters}
@@ -261,14 +244,12 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
         </div>
       ) : (
         <QuestionBankTable
-          viewMode={viewMode}
           paginatedQuestions={paginatedQuestions}
           selectedIds={selectedIds}
           expandedId={expandedId}
           setExpandedId={setExpandedId}
           copiedId={copiedId}
           onToggleSelect={handleToggleSelect}
-          onSelectAll={handleSelectAll}
           onCopy={handleCopy}
           onDelete={handleDelete}
           onSelectQuestion={onSelectQuestion}
