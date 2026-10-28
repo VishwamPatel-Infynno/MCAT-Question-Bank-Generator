@@ -78,13 +78,10 @@ export default function BatchProgressHeader({
             </h2>
             <span className="badge badge-indigo" style={{ fontSize: '0.7rem' }}>
               {isGenerating
-                ? `${totalCompleted} of ${effectiveTotal} Ready (Generating...)`
+                ? `${totalCompleted} of ${effectiveTotal} Ready`
                 : `${totalCompleted} Generated`}
             </span>
           </div>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px', margin: 0 }}>
-            Review the questions below. You can save all questions to your Question Bank, select individual ones, or edit them before saving.
-          </p>
         </div>
 
         <div className="pill-track">

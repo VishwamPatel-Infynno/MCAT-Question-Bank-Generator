@@ -7,16 +7,13 @@ import {
   ChevronUp, 
   Sparkles, 
   Trash2,
-  Check,
   Edit3,
   FileText,
   BarChart3,
   Code2,
   ShieldCheck,
   Scale,
-  Image as ImageIcon,
-  AlertTriangle,
-  Target
+  Image as ImageIcon
 } from 'lucide-react';
 import StageJsonInspector from '../staged/StageJsonInspector';
 import VisualStimulusViewer from './VisualStimulusViewer';
@@ -38,7 +35,6 @@ export default function QuestionCard({
   const [activeTab, setActiveTab] = useState('preview'); // 'preview' | 'scorecard' | 'telemetry'
   const [showExplanation, setShowExplanation] = useState(true);
   const [isApproving, setIsApproving] = useState(false);
-  const [copiedId, setCopiedId] = useState(null);
 
   // Quick Inline Edit Mode State
   const [isEditing, setIsEditing] = useState(false);
@@ -102,12 +98,6 @@ export default function QuestionCard({
     }
   };
 
-  const handleCopyText = (text, key) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(key);
-    setTimeout(() => setCopiedId(null), 1800);
-  };
-
   const handleSaveEdit = () => {
     const updated = {
       ...question,
@@ -146,9 +136,6 @@ export default function QuestionCard({
     ? question.correct_answer_ids.map(k => String(k).trim().toUpperCase())
     : (question.correct_answer_id || '').split(',').map(k => k.trim().toUpperCase()).filter(Boolean);
 
-  const wordCount = question.stimulus_text ? question.stimulus_text.trim().split(/\s+/).length : 0;
-  const isPassage = question.passage_required === 'Yes' || wordCount >= 180;
-
   return (
     <div
       className="glass-panel"
@@ -172,17 +159,16 @@ export default function QuestionCard({
           borderBottom: '1px solid var(--border-light)'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           {isSaved ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.725rem', fontWeight: 600, color: 'var(--status-success)' }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--status-success)' }} />
-              Saved in Question Bank
+              Saved
             </span>
           ) : (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.725rem', fontWeight: 600, color: 'var(--status-warning)' }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--status-warning)' }} />
-              Ready for Review
-              <span style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>Idle</span>
+              Ready
             </span>
           )}
 
@@ -196,117 +182,15 @@ export default function QuestionCard({
             {diffLabel}
           </span>
 
-
-
-          {question.passage_mode === 'single_passage' || question.passage_id ? (
-            <span className="badge badge-cyan" style={{ fontSize: '0.675rem' }}>
-              Passage Set Linked
-            </span>
-          ) : isPassage ? (
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              • Reading Passage ({wordCount} words)
-            </span>
-          ) : (
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              • Direct Question
-            </span>
-          )}
-
-          {effectiveTrapInfo && (
-            <span
-              className="badge badge-purple"
-              style={{
-                fontSize: '0.675rem',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                fontWeight: 600
-              }}
-              title={`Common Trap: ${effectiveTrapInfo.label}`}
-            >
-              <AlertTriangle size={11} /> Common Trap: {effectiveTrapInfo.label}
-            </span>
-          )}
-
-          {question.likely_mistake_pattern && (
-            <span
-              className="badge"
-              style={{
-                fontSize: '0.675rem',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                fontWeight: 600,
-                background: 'rgba(245, 158, 11, 0.12)',
-                color: 'var(--status-warning, #d97706)',
-                border: '1px solid rgba(245, 158, 11, 0.3)'
-              }}
-              title={`Targeted Student Misconception: ${question.likely_mistake_pattern}`}
-            >
-              <Target size={11} /> Watch Out: {question.likely_mistake_pattern}
-            </span>
-          )}
-
           {hasImage && (
             <span className="badge badge-purple" style={{ fontSize: '0.675rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              <ImageIcon size={11} /> {hasStimulus ? 'Passage Diagram' : 'Visual Diagram'}
+              <ImageIcon size={11} /> Diagram
             </span>
           )}
 
           <span className="badge badge-emerald" style={{ fontSize: '0.675rem', fontWeight: 600 }}>
-            <Award size={11} /> {question.final_score}/100 Quality
+            <Award size={11} /> {question.final_score}/100
           </span>
-
-          {/* Calibrated MCAT Scaled Score */}
-          {question.mcat_scaled_score && (
-            <span
-              className="badge"
-              style={{
-                fontSize: '0.675rem',
-                fontWeight: 700,
-                background: 'rgba(2, 132, 199, 0.12)',
-                color: '#0284c7',
-                border: '1px solid rgba(2, 132, 199, 0.28)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-              title={`Calibrated Section Score: ${question.mcat_scaled_score} / 132 (${question.mcat_percentile || 'Competitive'})`}
-            >
-              🎯 MCAT {question.mcat_scaled_score}
-            </span>
-          )}
-
-          {/* AAMC Reasoning Skill Badge */}
-          {question.aamc_skill && (
-            <span
-              className="badge"
-              style={{
-                fontSize: '0.675rem',
-                fontWeight: 600,
-                background: 'rgba(124, 58, 237, 0.1)',
-                color: '#8b5cf6',
-                border: '1px solid rgba(124, 58, 237, 0.25)'
-              }}
-            >
-              {question.aamc_skill.replace(/_/g, ' ')}
-            </span>
-          )}
-
-          {question.id && (
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.65rem',
-                color: 'var(--text-muted)',
-                cursor: 'pointer'
-              }}
-              title={`UUID: ${question.id} (Click to copy)`}
-              onClick={() => handleCopyText(question.id, 'id')}
-            >
-              {copiedId === 'id' ? <Check size={9} color="var(--status-success)" /> : null} {question.id.slice(0, 8)}
-            </span>
-          )}
         </div>
 
         {/* Top Actions */}

@@ -378,11 +378,8 @@ export default function BatchActivityView({
           </div>
           <div>
             <h1 className="batch-activity-banner-title">
-              Generation Progress &amp; History
+              Batch History
             </h1>
-            <p className="batch-activity-banner-subtext">
-              Track your question generation in real time. Questions scoring 90+ are ready for review, and all generated sets and exams are preserved here for reference.
-            </p>
           </div>
         </div>
 

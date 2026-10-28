@@ -80,13 +80,10 @@ export default function AgentVisualizer({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <CheckCircle2 size={16} color="var(--status-success)" />
           <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-            {totalBatch > 1 ? `All Questions Ready (${totalBatch} Questions Created)` : 'Quality Check Passed'}
+            {totalBatch > 1 ? `${totalBatch} Questions Ready` : 'Complete'}
           </span>
           <span className="badge badge-emerald" style={{ fontSize: '0.7rem' }}>
-            {latestReview?.total_score || 95}/100 Quality
-          </span>
-          <span style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>
-            Question Writer & Reviewer — Processing... Generation Started
+            {latestReview?.total_score || 95}/100
           </span>
         </div>
 
@@ -108,13 +105,13 @@ export default function AgentVisualizer({
                 fontWeight: 600,
                 cursor: 'pointer'
               }}
-              title="Stop generation workflow"
+              title="Stop generation"
             >
               Stop
             </button>
           )}
           <span style={{ fontFamily: 'var(--font-mono)' }}>
-            {totalTokens.toLocaleString()} Compute Units
+            {totalTokens.toLocaleString()} tokens
           </span>
           <button
             type="button"

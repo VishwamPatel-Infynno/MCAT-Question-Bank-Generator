@@ -104,7 +104,7 @@ export default function Navbar({
               transition: 'color var(--transition-fast)'
             }}
           >
-            Infynno MCAT Question Bank Generator
+            MCAT Question Studio
           </h1>
         </a>
       </div>
@@ -124,7 +124,7 @@ export default function Navbar({
           className={`pill-track-btn ${activeTab === 'generator' ? 'active' : ''}`}
         >
           <Sparkles size={12} color={activeTab === 'generator' ? 'var(--brand-primary)' : 'currentColor'} />
-          <span>Create Questions</span>
+          <span>Create</span>
         </button>
 
         <button
@@ -133,10 +133,10 @@ export default function Navbar({
           onClick={() => setActiveTab('batches')}
           className={`pill-track-btn ${activeTab === 'batches' ? 'active' : ''}`}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-          title="View running generation progress and past batch history"
+          title="View batch history and generation progress"
         >
           <Layers size={12} color={activeTab === 'batches' ? 'var(--brand-primary)' : 'currentColor'} />
-          <span>Progress &amp; History</span>
+          <span>Batches</span>
           {activeBatchCount > 0 && (
             <span
               style={{
@@ -160,10 +160,10 @@ export default function Navbar({
           onClick={() => setActiveTab('validated')}
           className={`pill-track-btn ${activeTab === 'validated' ? 'active' : ''}`}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-          title="Review high-quality questions ready to add to your bank"
+          title="Review validated questions"
         >
           <CheckCircle2 size={12} color={activeTab === 'validated' ? 'var(--brand-primary)' : 'currentColor'} />
-          <span>Ready for Review</span>
+          <span>Review</span>
           {validatedCount > 0 && (
             <span
               style={{
@@ -186,10 +186,10 @@ export default function Navbar({
           type="button"
           onClick={() => setActiveTab('bank')}
           className={`pill-track-btn ${activeTab === 'bank' ? 'active' : ''}`}
-          title="Browse, study, and export your saved questions"
+          title="Question Bank"
         >
           <Database size={12} color={activeTab === 'bank' ? 'var(--brand-primary)' : 'currentColor'} />
-          <span>Question Bank</span>
+          <span>Bank</span>
         </button>
       </nav>
 

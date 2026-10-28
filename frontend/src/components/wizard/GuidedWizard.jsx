@@ -20,16 +20,16 @@ import {
 } from './steps';
 
 const STEP_CONFIG = [
-  { num: 1, label: 'Section & Topic', short: 'Section', subtitle: 'Choose Exam Section & Topic Focus', nextLabel: 'Continue to Format & Size' },
-  { num: 2, label: 'Format & Size', short: 'Format', subtitle: 'Choose Difficulty, Format & Question Count', nextLabel: 'Review & Create' },
+  { num: 1, label: 'Section & Topic', short: 'Section', subtitle: 'Choose Exam Section & Topic', nextLabel: 'Continue' },
+  { num: 2, label: 'Difficulty & Format', short: 'Format', subtitle: 'Choose Difficulty & Format', nextLabel: 'Review & Create' },
   { num: 3, label: 'Review & Create', short: 'Review', subtitle: 'Review & Start Generation', nextLabel: 'Create Questions' }
 ];
 
 const QUICK_PRESETS = [
   {
     id: 'bio_biochem_5',
-    label: '⚡ Biochem Passage Set',
-    tag: '5 Qs • Set',
+    label: 'Biochem Passage Set',
+    tag: '5 Qs',
     section: 'bio_biochem',
     total: 5,
     passageRequired: 'Yes',
@@ -38,28 +38,28 @@ const QUICK_PRESETS = [
   },
   {
     id: 'cars_essay_5',
-    label: '⚡ CARS Philosophy Essay',
-    tag: '5 Qs • Set',
+    label: 'CARS Reasoning',
+    tag: '5 Qs',
     section: 'cars',
     total: 5,
     passageRequired: 'Yes',
     passageMode: 'single_passage',
-    desc: '500-600 word dense humanities reasoning'
+    desc: 'Humanities & social sciences reasoning passage'
   },
   {
     id: 'chem_phys_5',
-    label: '⚡ Physics Standalone Set',
-    tag: '5 Qs • Set',
+    label: 'Physics Standalone',
+    tag: '5 Qs',
     section: 'chem_phys',
     total: 5,
     passageRequired: 'No',
     passageMode: 'independent',
-    desc: '5-question standalone set (fluids, circuits, thermodynamics)'
+    desc: 'Discrete physics & chemistry questions'
   },
   {
     id: 'psych_soc_5',
-    label: '⚡ Psych / Sociology Set',
-    tag: '5 Qs • Set',
+    label: 'Psych / Sociology',
+    tag: '5 Qs',
     section: 'psych_soc',
     total: 5,
     passageRequired: 'Yes',
@@ -255,18 +255,13 @@ export default function GuidedWizard({
     <div className="wizard-card" id="guided-wizard-container">
       {/* Top Navigation & Interactive Progress Tracker */}
       <div className="wizard-topbar">
-        <div className="wizard-topbar-header" style={{ marginBottom: '14px' }}>
+        <div className="wizard-topbar-header" style={{ marginBottom: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span className="wizard-step-pill">Step {step} of {totalSteps}</span>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
-                {currentStepConfig.subtitle}
-              </span>
-            </div>
-            <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
-              {totalQuestions === 5
-                ? 'Mini-Batch (5 Questions)'
-                : `Standard Batch: ${totalQuestions} Questions`}
+            <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+              Step {step}: {currentStepConfig.label}
+            </span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              {totalQuestions} Questions
             </span>
           </div>
         </div>
@@ -466,20 +461,20 @@ export default function GuidedWizard({
               className="btn-secondary"
               onClick={handleInstantLaunch}
               disabled={isLaunchingBatch}
-              title="Start generating immediately using recommended defaults"
+              title="Start generating immediately"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '9px 16px',
-                fontSize: '0.84rem',
+                padding: '8px 14px',
+                fontSize: '0.82rem',
                 fontWeight: 600,
                 color: 'var(--brand-primary)',
                 borderColor: 'var(--border-brand)'
               }}
             >
               <Zap size={14} />
-              <span>Quick Start (Default Settings)</span>
+              <span>Quick Start</span>
             </button>
           )}
 
@@ -501,10 +496,8 @@ export default function GuidedWizard({
                 <Sparkles size={16} className={isLaunchingBatch ? 'spin-icon' : ''} />
                 <span>
                   {isLaunchingBatch
-                    ? 'Starting Generation...'
-                    : totalQuestions === 5
-                    ? 'Create 5-Question Practice Set'
-                    : 'Create 50-Question Full Exam'}
+                    ? 'Starting...'
+                    : `Generate ${totalQuestions} Questions`}
                 </span>
               </>
             ) : (

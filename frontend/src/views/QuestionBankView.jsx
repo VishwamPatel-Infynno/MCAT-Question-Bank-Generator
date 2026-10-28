@@ -145,24 +145,18 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
-              Question Bank
-            </h2>
-            <span className="badge badge-emerald" style={{ fontSize: '0.68rem' }}>Verified Library</span>
-          </div>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-            Verified exam questions with full answer explanations and quality metrics.
-          </p>
+          <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
+            Question Bank
+          </h2>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '12px',
-              padding: '6px 14px',
+              gap: '10px',
+              padding: '5px 12px',
               background: 'var(--bg-surface)',
               border: '1px solid var(--border-light)',
               borderRadius: 'var(--radius-sm)',
@@ -184,16 +178,16 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
             onClick={() => setShowExportModal(true)}
             className="btn-secondary"
             style={{
-              padding: '6px 14px',
+              padding: '6px 12px',
               fontSize: '0.78rem',
               gap: '6px',
               opacity: questions.length === 0 ? 0.5 : 1,
               cursor: questions.length === 0 ? 'not-allowed' : 'pointer'
             }}
             disabled={questions.length === 0}
-            title={questions.length > 0 ? 'Open Export & Print Exam' : 'No questions to export'}
+            title={questions.length > 0 ? 'Export & Print' : 'No questions to export'}
           >
-            <span>Export &amp; Print Exam</span>
+            <span>Export &amp; Print</span>
           </button>
         </div>
       </div>

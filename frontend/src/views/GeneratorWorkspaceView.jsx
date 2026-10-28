@@ -112,32 +112,24 @@ export default function GeneratorWorkspaceView({
         /* Clean Empty State */
         <div className="workspace-empty-state">
           <div className="workspace-empty-icon">
-            <Sparkles size={28} />
+            <Sparkles size={24} />
           </div>
           <div>
-            <div className="workspace-empty-badge-row">
-              <span className="badge badge-subtle" style={{ fontSize: '0.7rem', fontWeight: 600 }}>
-                Status: Idle
-              </span>
-              <span style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>
-                Ready for Review
-              </span>
-            </div>
             <h3 className="workspace-empty-heading">
               Ready to Create Questions
             </h3>
             <p className="workspace-empty-subtext">
-              Configure exam sections, difficulty, reading passages, and diagrams with the Guided Question Wizard.
+              Select an MCAT section to generate practice questions.
             </p>
           </div>
           <button
             type="button"
             className="btn-primary"
-            style={{ padding: '10px 22px', fontSize: '0.9rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+            style={{ padding: '9px 20px', fontSize: '0.88rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '8px' }}
             onClick={() => (onNavigateToWizard ? onNavigateToWizard(1) : setViewMode('wizard'))}
           >
-            <Sparkles size={16} />
-            <span>Open Question Wizard</span>
+            <Sparkles size={15} />
+            <span>Create Questions</span>
           </button>
         </div>
       )}

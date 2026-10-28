@@ -40,15 +40,9 @@ export default function AiValidatedStatsBar({
               <ShieldCheck size={15} />
             </div>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
-              Questions Ready for Review
+              Review Questions
             </h2>
-            <span className="badge badge-emerald" style={{ fontSize: '0.66rem' }}>
-              High Quality Score &gt; 90
-            </span>
           </div>
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-            High-quality questions scored above 90. Review and save them into your Question Bank.
-          </p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

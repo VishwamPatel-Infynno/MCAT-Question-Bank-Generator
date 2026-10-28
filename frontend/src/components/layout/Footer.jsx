@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, ShieldCheck, Sparkles, Cpu } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import InfynnoLogo from '../common/InfynnoLogo';
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -11,7 +11,7 @@ export default function Footer() {
         marginTop: 'auto',
         borderTop: '1px solid var(--border-light)',
         background: 'var(--bg-surface)',
-        padding: '20px 24px',
+        padding: '14px 24px',
         color: 'var(--text-secondary)',
         fontSize: '0.75rem'
       }}
@@ -24,11 +24,11 @@ export default function Footer() {
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '16px'
+          gap: '12px'
         }}
       >
-        {/* Left: Brand Identity & Tagline */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        {/* Left: Brand Identity */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <a
             href="https://infynno.com/"
             target="_blank"
@@ -36,32 +36,12 @@ export default function Footer() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
             title="Infynno Solutions LLP"
           >
-            <InfynnoLogo width={26} height={16} showText={true} />
+            <InfynnoLogo width={24} height={15} showText={true} />
           </a>
-          <span style={{ color: 'var(--border-medium)' }}>|</span>
-          <span style={{ color: 'var(--text-muted)' }}>
-            AI-powered question bank generator for AAMC MCAT medical admissions.
-          </span>
         </div>
 
-        {/* Center: Subtle Quality Assurance Indicators */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <Cpu size={12} style={{ color: 'var(--brand-primary)' }} />
-            3-Step AI Pipeline
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <ShieldCheck size={12} style={{ color: 'var(--status-success)' }} />
-            90+ Quality Threshold
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <Sparkles size={12} style={{ color: 'var(--status-purple)' }} />
-            Realistic Exam Traps
-          </span>
-        </div>
-
-        {/* Right: Corporate Links & Copyright */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+        {/* Right: Link & Copyright */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <a
             href="https://infynno.com/"
             target="_blank"

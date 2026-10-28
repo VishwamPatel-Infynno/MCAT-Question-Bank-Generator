@@ -28,27 +28,21 @@ export default function WizardStep2LevelFormat({
 
   const isPassage = isCars || passageMode === 'single_passage' || questionType === 'PASSAGE_BASED_MCQ';
 
+  const COUNT_OPTIONS = [
+    { count: 5, label: '5 Questions', tag: 'Practice Set' },
+    { count: 50, label: '50 Questions', tag: 'Full Exam' }
+  ];
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div className="wizard-heading-group">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-          <h2 className="wizard-step-title">Choose Difficulty, Format &amp; Question Count</h2>
-          <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
-            Difficulty &amp; Format &bull; Step 2 of 3
-          </span>
-        </div>
-        <p className="wizard-step-subtitle">
-          Select challenge difficulty, whether to include reading passages, and your desired question count.
-        </p>
+        <h2 className="wizard-step-title">Difficulty &amp; Format</h2>
       </div>
 
-      {/* Decision 1: Challenge Level */}
+      {/* Difficulty */}
       <div className="wizard-stacked-decision">
         <div className="wizard-decision-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="wizard-decision-num">1</span>
-            <span className="wizard-decision-title">Question Difficulty</span>
-          </div>
+          <span className="wizard-decision-title">Difficulty Level</span>
         </div>
 
         <div className="wizard-difficulty-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
@@ -75,7 +69,7 @@ export default function WizardStep2LevelFormat({
                 aria-pressed={isSelected}
                 style={{ padding: '12px 14px' }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div className="wizard-tier-title" style={{ fontSize: '0.88rem', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span
                       style={{
@@ -93,25 +87,16 @@ export default function WizardStep2LevelFormat({
                     <CheckCircle2 size={14} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
                   )}
                 </div>
-                <div className="wizard-tier-desc" style={{ fontSize: '0.72rem' }}>{tier.desc}</div>
               </div>
             );
           })}
         </div>
       </div>
 
-      <div className="wizard-decision-connector" />
-
-      {/* Decision 2: MCAT Question Format */}
+      {/* Passage & Question Format */}
       <div className="wizard-stacked-decision">
         <div className="wizard-decision-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="wizard-decision-num">2</span>
-            <span className="wizard-decision-title">Passage &amp; Question Format</span>
-          </div>
-          <span className="badge-minimal" style={{ fontSize: '0.7rem' }}>
-            Single Best Answer (A-D)
-          </span>
+          <span className="wizard-decision-title">Question Format</span>
         </div>
 
         {isCars ? (
@@ -121,31 +106,23 @@ export default function WizardStep2LevelFormat({
               padding: '12px 14px',
               borderRadius: 'var(--radius-sm)',
               background: 'var(--bg-surface-subtle)',
-              border: '1px solid rgba(225, 29, 72, 0.25)',
+              border: '1px solid var(--border-light)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: '12px'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <FileText size={18} style={{ color: '#e11d48', flexShrink: 0 }} />
-              <div>
-                <span style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Reading Passage + Questions (Official CARS Standard)
-                </span>
-                <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', margin: '2px 0 0' }}>
-                  Official AAMC CARS standard: strictly passage-based (500-650 words) with linked humanities reasoning questions.
-                </p>
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FileText size={16} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
+              <span style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                Reading Passage + Questions (CARS)
+              </span>
             </div>
-            <span className="badge badge-purple" style={{ fontSize: '0.68rem', flexShrink: 0 }}>
-              CARS Standard
-            </span>
           </div>
         ) : (
           /* Sciences Mode: Binary choice between Passage-Based MCQ OR Independent MCQ */
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
             {/* Mode A: Reading Passage + Questions */}
             <div
               className={`wizard-tier-card ${isPassage ? 'selected' : ''}`}
@@ -161,20 +138,17 @@ export default function WizardStep2LevelFormat({
               id="btn-question-type-passage"
               style={{ padding: '12px 14px' }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <FileText size={15} style={{ color: 'var(--brand-primary)' }} />
                   <span style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    Reading Passage + Questions
+                    Passage-Based Set
                   </span>
                 </div>
                 {isPassage && (
                   <CheckCircle2 size={14} style={{ color: 'var(--brand-primary)' }} />
                 )}
               </div>
-              <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-                Questions linked to a scientific experiment or clinical research study passage.
-              </p>
             </div>
 
             {/* Mode B: Standalone Questions */}
@@ -192,105 +166,67 @@ export default function WizardStep2LevelFormat({
               id="btn-question-type-independent"
               style={{ padding: '12px 14px' }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Layers size={15} style={{ color: 'var(--status-purple)' }} />
                   <span style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    Standalone Questions (No Passage)
+                    Standalone Questions
                   </span>
                 </div>
                 {!isPassage && (
                   <CheckCircle2 size={14} style={{ color: 'var(--brand-primary)' }} />
                 )}
               </div>
-              <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-                Individual questions testing science concepts directly without a passage.
-              </p>
             </div>
           </div>
         )}
       </div>
 
-      <div className="wizard-decision-connector" />
-
-      {/* Decision 3: Practice Size */}
+      {/* Question Count (Strictly 5 or 50) */}
       <div className="wizard-stacked-decision">
         <div className="wizard-decision-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="wizard-decision-num">3</span>
-            <span className="wizard-decision-title">Practice Size</span>
-          </div>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-            {totalQuestions === 50 ? '50 Questions Full Section' : '5 Questions Quick Set'}
-          </span>
+          <span className="wizard-decision-title">Question Count</span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
-          {/* Preset 1: Quick Practice Set */}
-          <div
-            className={`wizard-tier-card ${totalQuestions === 5 ? 'selected' : ''}`}
-            onClick={() => setTotalQuestions?.(5)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setTotalQuestions?.(5);
-              }
-            }}
-            role="button"
-            tabIndex={0}
-            style={{ padding: '12px 14px' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '0.9rem' }}>🎯</span>
-                <span style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Quick Practice Set (5 Questions)
-                </span>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+          {COUNT_OPTIONS.map((opt) => {
+            const isSelected = totalQuestions === opt.count;
+            return (
+              <div
+                key={opt.count}
+                className={`wizard-tier-card ${isSelected ? 'selected' : ''}`}
+                onClick={() => setTotalQuestions?.(opt.count)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setTotalQuestions?.(opt.count);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSelected}
+                style={{
+                  padding: '14px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.96rem', fontWeight: 700, color: isSelected ? 'var(--brand-primary)' : 'var(--text-primary)' }}>
+                    {opt.label}
+                  </span>
+                  <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
+                    {opt.tag}
+                  </span>
+                </div>
+                {isSelected && (
+                  <CheckCircle2 size={16} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
+                )}
               </div>
-              {totalQuestions === 5 && (
-                <CheckCircle2 size={14} style={{ color: 'var(--brand-primary)' }} />
-              )}
-            </div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--brand-primary)', fontWeight: 600, marginBottom: '2px' }}>
-              Fast Practice &bull; Ready in ~45 seconds
-            </div>
-            <p style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-              5 questions sharing a reading passage (or 5 standalone questions). Reviewed by AI and saved to your bank.
-            </p>
-          </div>
-
-          {/* Preset 2: Full Exam Section */}
-          <div
-            className={`wizard-tier-card ${totalQuestions === 50 ? 'selected' : ''}`}
-            onClick={() => setTotalQuestions?.(50)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setTotalQuestions?.(50);
-              }
-            }}
-            role="button"
-            tabIndex={0}
-            style={{ padding: '12px 14px' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '0.9rem' }}>📦</span>
-                <span style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Full Exam Section (50 Questions)
-                </span>
-              </div>
-              {totalQuestions === 50 && (
-                <CheckCircle2 size={14} style={{ color: 'var(--brand-primary)' }} />
-              )}
-            </div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--brand-primary)', fontWeight: 600, marginBottom: '2px' }}>
-              Complete Test &bull; Ready in ~1-2 minutes
-            </div>
-            <p style={{ fontSize: '0.73rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-              A full 50-question mock exam section generated in parallel in the background. Reviewed and organized for study.
-            </p>
-          </div>
+            );
+          })}
         </div>
       </div>
     </div>

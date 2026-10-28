@@ -16,8 +16,8 @@ export default function HeroLanding({
 }) {
   const PRESETS = [
     {
-      label: 'Chem / Phys Foundations',
-      tag: '50 Qs Passage Set',
+      label: 'Chem / Phys',
+      tag: '50 Qs',
       icon: FlaskConical,
       config: {
         section: 'chem_phys',
@@ -31,8 +31,8 @@ export default function HeroLanding({
       }
     },
     {
-      label: 'Critical Analysis (CARS)',
-      tag: '50 Qs Passage Set',
+      label: 'CARS',
+      tag: '50 Qs',
       icon: BookOpen,
       config: {
         section: 'cars',
@@ -46,8 +46,8 @@ export default function HeroLanding({
       }
     },
     {
-      label: 'Bio / Biochem Foundations',
-      tag: '50 Qs Passage Set',
+      label: 'Bio / Biochem',
+      tag: '50 Qs',
       icon: Dna,
       config: {
         section: 'bio_biochem',
@@ -61,8 +61,8 @@ export default function HeroLanding({
       }
     },
     {
-      label: 'Psych / Soc Foundations',
-      tag: '50 Qs Standalone Set',
+      label: 'Psych / Soc',
+      tag: '50 Qs',
       icon: Brain,
       config: {
         section: 'psych_soc',
@@ -81,27 +81,26 @@ export default function HeroLanding({
     <div className="hero-wrapper" id="hero-landing-view">
       <div className="hero-content">
         {/* Infynno Logo Anchor */}
-        <div style={{ marginBottom: '18px' }}>
+        <div style={{ marginBottom: '14px' }}>
           <a
             href="https://infynno.com/"
             target="_blank"
             rel="noopener noreferrer"
-            title="Visit Infynno Solutions LLP (https://infynno.com)"
+            title="Infynno Solutions"
             style={{ display: 'inline-block' }}
           >
-            <InfynnoLogo width={52} height={34} />
+            <InfynnoLogo width={44} height={28} />
           </a>
         </div>
 
         {/* Hero Title */}
         <h1 className="hero-title">
-          Infynno MCAT Question Studio
+          MCAT Question Studio
         </h1>
 
         {/* Tagline */}
         <p className="hero-tagline">
-          Create high-yield AAMC MCAT practice questions calibrated to official standards.
-          Fast, focused, and distraction-free.
+          Create calibrated AAMC MCAT practice questions.
         </p>
 
         {/* Centered CTA Buttons */}
@@ -112,7 +111,7 @@ export default function HeroLanding({
             id="btn-hero-get-started"
             onClick={onGetStarted}
           >
-            <span>Start Creating Questions</span>
+            <span>Create Questions</span>
             <ArrowRight size={16} />
           </button>
 
@@ -123,13 +122,13 @@ export default function HeroLanding({
             onClick={onOpenBank}
           >
             <Database size={15} />
-            <span>Browse Question Bank</span>
+            <span>Question Bank</span>
           </button>
         </div>
 
         {/* Quiet Preset Quick-Starts */}
         <div className="hero-presets-container">
-          <div className="hero-presets-label">Quick presets:</div>
+          <div className="hero-presets-label">Presets:</div>
           <div className="hero-presets-chips">
             {PRESETS.map((preset) => {
               const Icon = preset.icon;
@@ -143,7 +142,7 @@ export default function HeroLanding({
                 >
                   <Icon size={13} style={{ color: 'var(--brand-primary)' }} />
                   <span>{preset.label}</span>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>• {preset.tag}</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{preset.tag}</span>
                 </button>
               );
             })}
