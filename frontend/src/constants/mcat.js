@@ -65,6 +65,30 @@ export function getSectionBadgeClass(section) {
   return SECTION_BADGE_CLASSES[section] || SECTION_BADGE_CLASSES[SECTION_CODE_TO_ID[section]] || 'badge-neutral';
 }
 
+export const SECTION_COLORS = {
+  chem_phys: '#38bdf8',
+  cars: '#f43f5e',
+  bio_biochem: '#10b981',
+  psych_soc: '#a855f7',
+  CP: '#38bdf8',
+  CARS: '#f43f5e',
+  BB: '#10b981',
+  PS: '#a855f7'
+};
+
+export function getSectionColor(section) {
+  if (!section) return '#94a3b8';
+  if (SECTION_COLORS[section]) return SECTION_COLORS[section];
+  const normalized = SECTION_CODE_TO_ID[section];
+  if (normalized && SECTION_COLORS[normalized]) return SECTION_COLORS[normalized];
+  const s = String(section).toLowerCase();
+  if (s.includes('chem') || s.includes('cp')) return '#38bdf8';
+  if (s.includes('cars')) return '#f43f5e';
+  if (s.includes('bio') || s.includes('bb')) return '#10b981';
+  if (s.includes('psych') || s.includes('ps')) return '#a855f7';
+  return '#94a3b8';
+}
+
 export const MCAT_SECTION_LABELS = {
   chem_phys: 'Chemical and Physical Foundations',
   cars: 'Critical Analysis and Reasoning Skills',

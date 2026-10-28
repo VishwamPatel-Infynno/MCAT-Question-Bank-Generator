@@ -20,7 +20,7 @@ import PassageEditorialDesk from '../components/passage/PassageEditorialDesk';
  * Provides a master catalog list with filters and an in-depth
  * side-by-side MCAT editorial desk with full linked question support.
  */
-export default function PassageBankView({ onShowToast, onNavigateToWizard }) {
+export default function PassageBankView({ onShowToast, onNavigateToWizard, resetSignal }) {
   const [passages, setPassages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [questionCounts, setQuestionCounts] = useState({});
@@ -35,6 +35,14 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard }) {
   const [selectedPassage, setSelectedPassage] = useState(null);
   const [selectedPassageQuestions, setSelectedPassageQuestions] = useState([]);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+
+  // Return to master catalog whenever resetSignal changes (e.g. clicking Passages tab in Navbar)
+  const [prevResetSignal, setPrevResetSignal] = useState(resetSignal);
+  if (resetSignal !== prevResetSignal) {
+    setPrevResetSignal(resetSignal);
+    setSelectedPassage(null);
+    setSelectedPassageQuestions([]);
+  }
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);

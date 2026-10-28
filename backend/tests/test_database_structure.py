@@ -232,7 +232,10 @@ async def test_api_passages_and_batches():
         # Check that question stimulus_text was synced
         resp_q_check = await client.get(f"/api/questions/{q.id}")
         assert resp_q_check.status_code == 200
-        assert resp_q_check.json()["stimulus_text"] == "Medical triage protocols require rapid and systematic categorization."
+        assert (
+            resp_q_check.json()["stimulus_text"]
+            == "Medical triage protocols require rapid and systematic categorization."
+        )
 
         # 6. Test DELETE /api/passages/{passage_id} and verify question is unlinked (retained in bank)
         resp_del_p = await client.delete(f"/api/passages/{passage_id}")

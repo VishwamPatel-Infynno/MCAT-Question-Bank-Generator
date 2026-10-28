@@ -126,8 +126,6 @@ async def delete_passage(passage_id: str) -> bool:
             .values(passage_id=None)
         )
         # 2. Delete the passage row
-        res = await session.execute(
-            delete(PassageModel).where(PassageModel.id == passage_id)
-        )
+        res = await session.execute(delete(PassageModel).where(PassageModel.id == passage_id))
         await session.commit()
         return bool((res.rowcount or 0) > 0)

@@ -207,6 +207,91 @@ export default function WizardStep3ReviewAdvanced({
         </div>
       </div>
 
+      {/* Dedicated Scientific Diagrams & Reaction Schemes Card (Sciences Only) */}
+      {!isCars && (
+        <div
+          role="switch"
+          aria-checked={allowAiImages}
+          tabIndex={0}
+          onClick={() => setAllowAiImages?.(!allowAiImages)}
+          onKeyDown={(e) => {
+            if (e.key === ' ' || e.key === 'Enter') {
+              e.preventDefault();
+              setAllowAiImages?.(!allowAiImages);
+            }
+          }}
+          style={{
+            background: 'var(--bg-surface)',
+            border: allowAiImages ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
+            boxShadow: allowAiImages ? '0 0 0 1px var(--brand-primary), var(--shadow-sm)' : 'none',
+            borderRadius: 'var(--radius-sm)',
+            padding: '12px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '16px',
+            cursor: 'pointer',
+            transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: 'var(--radius-sm)',
+                background: allowAiImages ? 'rgba(51, 90, 207, 0.12)' : 'var(--bg-surface-subtle)',
+                border: allowAiImages ? '1px solid rgba(51, 90, 207, 0.25)' : '1px solid var(--border-light)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: allowAiImages ? 'var(--brand-primary)' : 'var(--text-muted)',
+                flexShrink: 0,
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <ImageIcon size={16} />
+            </div>
+            <span
+              style={{
+                fontSize: '0.84rem',
+                fontWeight: 600,
+                color: 'var(--text-primary)'
+              }}
+            >
+              Generate Scientific Diagrams &amp; Reaction Schemes
+            </span>
+          </div>
+
+          {/* Pill Toggle Switch */}
+          <div
+            style={{
+              width: '36px',
+              height: '20px',
+              borderRadius: '9999px',
+              background: allowAiImages ? 'var(--brand-primary)' : 'var(--border-medium)',
+              position: 'relative',
+              flexShrink: 0,
+              transition: 'background 0.2s ease'
+            }}
+          >
+            <div
+              style={{
+                width: '16px',
+                height: '16px',
+                borderRadius: '50%',
+                background: '#ffffff',
+                position: 'absolute',
+                top: '2px',
+                left: allowAiImages ? '18px' : '2px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                transition: 'left 0.2s ease'
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Advanced Options Collapsible Accordion */}
       <div
         style={{
@@ -237,7 +322,7 @@ export default function WizardStep3ReviewAdvanced({
             <Sliders size={14} style={{ color: 'var(--brand-primary)' }} />
             <span>Advanced Settings</span>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 400 }}>
-              (Cognitive Traps, Skills, Visuals)
+              (Cognitive Traps, Reasoning Skills, Misconceptions)
             </span>
           </div>
           {showAdvanced ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
@@ -432,32 +517,6 @@ export default function WizardStep3ReviewAdvanced({
                 })}
               </div>
             </div>
-
-            {/* AI Image Generation Toggle (Sciences only) */}
-            {!isCars && (
-              <div style={{ paddingTop: '8px', borderTop: '1px solid var(--border-light)' }}>
-                <label
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontSize: '0.78rem',
-                    fontWeight: 500,
-                    color: 'var(--text-primary)',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={allowAiImages}
-                    onChange={(e) => setAllowAiImages?.(e.target.checked)}
-                    style={{ accentColor: 'var(--brand-primary)', cursor: 'pointer' }}
-                  />
-                  <ImageIcon size={14} style={{ color: 'var(--brand-primary)' }} />
-                  <span>Generate Scientific Diagrams &amp; Reaction Schemes</span>
-                </label>
-              </div>
-            )}
           </div>
         )}
       </div>

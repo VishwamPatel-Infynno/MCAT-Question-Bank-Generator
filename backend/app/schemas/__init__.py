@@ -62,5 +62,7 @@ __all__ = [
     "WorkflowEvent",
     "calculate_mcat_scaled_score",
     "determine_question_status",
+    "normalize_mistake_pattern",
+    "normalize_primary_trap",
     "normalize_section",
 ]

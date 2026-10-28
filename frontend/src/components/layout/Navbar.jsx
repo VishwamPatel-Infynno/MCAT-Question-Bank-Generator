@@ -6,6 +6,7 @@ export default function Navbar({
   activeTab,
   setActiveTab,
   onNavigateToGenerator,
+  onNavigateToPassages,
   backendStatus,
   theme,
   onToggleTheme,
@@ -195,7 +196,13 @@ export default function Navbar({
         <button
           id="nav-tab-passages"
           type="button"
-          onClick={() => setActiveTab('passages')}
+          onClick={() => {
+            if (onNavigateToPassages) {
+              onNavigateToPassages();
+            } else {
+              setActiveTab('passages');
+            }
+          }}
           className={`pill-track-btn ${activeTab === 'passages' ? 'active' : ''}`}
           title="Passages Bank & Editorial Desk"
         >

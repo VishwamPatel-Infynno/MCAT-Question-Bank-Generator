@@ -103,6 +103,14 @@ export function useAppState() {
     setWizardStep(step);
   }, []);
 
+  // Passages tab navigation signal to return to catalog even when viewing a passage
+  const [passagesResetSignal, setPassagesResetSignal] = useState(0);
+
+  const handleNavigateToPassages = useCallback(() => {
+    setActiveTab('passages');
+    setPassagesResetSignal((prev) => prev + 1);
+  }, []);
+
   // ─── Bootstrap: Health + Sections ─────────────────────────────────────────
   useEffect(() => {
     fetchHealth()
@@ -502,6 +510,8 @@ export function useAppState() {
     setWizardStep,
     handleNavigateToGenerator,
     handleNavigateToWizard,
+    handleNavigateToPassages,
+    passagesResetSignal,
     // Data
     sectionsData,
     backendStatus,

@@ -42,6 +42,8 @@ export default function App() {
     setWizardStep,
     handleNavigateToGenerator,
     handleNavigateToWizard,
+    handleNavigateToPassages,
+    passagesResetSignal,
     // Data
     sectionsData,
     backendStatus,
@@ -93,6 +95,7 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onNavigateToGenerator={handleNavigateToGenerator}
+        onNavigateToPassages={handleNavigateToPassages}
         backendStatus={backendStatus}
         activeBatchCount={activeBatchCount}
         validatedCount={validatedCount}
@@ -209,6 +212,7 @@ export default function App() {
           <ErrorBoundary fallbackLabel="Passages Bank">
             <Suspense fallback={<LazyLoadingSpinner label="Loading Passages Bank..." />}>
               <PassageBankView
+                resetSignal={passagesResetSignal}
                 onShowToast={showToast}
                 onNavigateToWizard={() => handleNavigateToWizard(1)}
               />

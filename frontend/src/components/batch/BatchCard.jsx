@@ -10,17 +10,8 @@ import {
   Square,
   RotateCcw
 } from 'lucide-react';
-import { MCAT_SECTION_LABELS, formatDifficulty } from '../../constants/mcat';
+import { MCAT_SECTION_LABELS, formatDifficulty, getSectionColor } from '../../constants/mcat';
 import BatchJobCard from './BatchJobCard';
-
-function getSectionBadgeColor(sec) {
-  const s = (sec || '').toLowerCase();
-  if (s.includes('chem') || s.includes('cp')) return '#38bdf8';
-  if (s.includes('cars')) return '#f43f5e';
-  if (s.includes('bio') || s.includes('bb')) return '#10b981';
-  if (s.includes('psych') || s.includes('ps')) return '#a855f7';
-  return 'var(--brand-primary)';
-}
 
 function getStatusBadge(status) {
   switch (status) {
@@ -119,7 +110,7 @@ export default function BatchCard({
   onOpenAudit,
   onSaveToBank
 }) {
-  const secColor = getSectionBadgeColor(batch.section);
+  const secColor = getSectionColor(batch.section);
   const totalJobs = batch.total_jobs || 10;
   const completedJobs = batch.completed_jobs || 0;
   const totalTarget = batch.target_count || 50;
