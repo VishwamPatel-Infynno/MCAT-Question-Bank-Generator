@@ -220,6 +220,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         event_queue: asyncio.Queue[WorkflowEvent | None] = asyncio.Queue()
 
         outcomes_questions: list[dict[str, Any] | None] = [None] * total_qty
+        outcomes_rejections: list[dict[str, Any]] = []
         outcomes_tokens: list[int] = [0] * total_qty
         outcomes_prompt_tokens: list[int] = [0] * total_qty
         outcomes_completion_tokens: list[int] = [0] * total_qty
@@ -459,6 +460,12 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                                 run_id=item_run_id,
                             )
                             await event_queue.put(q_gen_evt)
+                        else:
+                            rej_data = state.get("rejection_data") or {
+                                "index": idx + 1,
+                                "stage": "rejected",
+                            }
+                            outcomes_rejections.append(rej_data)
 
                         outcomes_tokens[idx] = state.get("total_tokens", 0)
                         outcomes_prompt_tokens[idx] = state.get("total_prompt_tokens", 0)
@@ -534,15 +541,26 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
             all_agent_usage.extend(usage_list)
 
         if not all_staged_questions:
-            error_msg = f"All {total_qty} questions in the run failed to generate after retries."
-            error_evt = make_event(
-                event_type="workflow_error",
-                agent_name="System",
-                message=error_msg,
-                data={"error": error_msg},
-            )
-            yield f"data: {error_evt.model_dump_json()}\n\n"
-            return
+            if outcomes_rejections:
+                rej_msg = f"All {total_qty} questions in the run were rejected by the Quality Gate (score <= {config.PASSING_SCORE_THRESHOLD})."
+                rej_evt = make_event(
+                    event_type="workflow_rejected",
+                    agent_name="Quality Gate",
+                    message=rej_msg,
+                    data={"rejections": outcomes_rejections, "total_rejected": len(outcomes_rejections)},
+                )
+                yield f"data: {rej_evt.model_dump_json()}\n\n"
+                return
+            else:
+                error_msg = f"All {total_qty} questions in the run failed to generate after retries."
+                error_evt = make_event(
+                    event_type="workflow_error",
+                    agent_name="System",
+                    message=error_msg,
+                    data={"error": error_msg},
+                )
+                yield f"data: {error_evt.model_dump_json()}\n\n"
+                return
 
         if is_single_passage_set and total_qty > 1:
             complete_msg = f"Passage Set generated! {len(all_staged_questions)} questions linked to shared reading passage staged for Review. Total: {cumulative_tokens} tokens (${cumulative_cost:.5f})."
@@ -653,6 +671,7 @@ async def run_workflow(req: GenerationRequest) -> WorkflowRunResult:
                 status = "rejected_below_threshold"
                 final_data = evt.get("data", {})
             elif etype == "workflow_error":
-                status = "error"
-                final_data = evt.get("data", {})
+                if status != "rejected_below_threshold":
+                    status = "error"
+                    final_data = evt.get("data", {})
     return WorkflowRunResult(status, final_data)
