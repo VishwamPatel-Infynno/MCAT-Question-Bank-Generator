@@ -43,6 +43,9 @@ CORE STANDARDS FOR AAMC MCAT QUESTIONS:
 8. Anti-AI Punctuation Standard (CRITICAL):
    - Strictly NEVER use double dashes, en dashes, or em dashes ("—", "–", or "--") anywhere in question stems, passage text, options, or explanations.
    - Use only standard single hyphens ("-") where hyphenation or numerical ranges are strictly required (e.g. "pre-clinical", "15-20 minutes", "Option A - incorrect").
+9. Everyday Human Language Standard (CRITICAL):
+   - Avoid formulaic AI cliches and filler phrases (e.g., avoid "It is important to remember that", "Delving into", "Crucially", "Furthermore, it is evident that", "Testament to").
+   - Write like a thoughtful, experienced human educator speaking directly to a student. Use direct, clear, plain-spoken language and active voice.
 
 OUTPUT FORMAT:
 Respond ONLY with a valid JSON object matching this exact structure (strictly escape newlines in string properties as \\n; do NOT output unescaped raw control characters):

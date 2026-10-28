@@ -101,7 +101,7 @@ export default function QuestionDraftingSkeleton({
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
             <Layers size={13} color="var(--brand-primary)" />
             <span style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-              Passage Stimulus
+              Reading Passage
             </span>
           </div>
           <div className="skeleton-shimmer" style={{ height: '12px', width: '100%' }} />

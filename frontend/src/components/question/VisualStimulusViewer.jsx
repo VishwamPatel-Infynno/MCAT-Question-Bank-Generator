@@ -110,10 +110,10 @@ export default function VisualStimulusViewer({
       >
         <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '0.625rem', fontWeight: 700, color: '#0f172a', textTransform: 'uppercase' }}>
-            Visual Stimulus
+            Figure / Diagram
           </span>
           <span className="badge badge-purple" style={{ fontSize: '0.575rem', padding: '1px 5px' }}>
-            {isSvg ? 'SVG' : 'AI Diagram'}
+            {isSvg ? 'SVG' : 'Diagram'}
           </span>
         </div>
         <div 
@@ -175,7 +175,7 @@ export default function VisualStimulusViewer({
               }}
             >
               <ImageIcon size={13} color="var(--brand-primary)" />
-              Visual Stimulus Diagram
+              Figure / Diagram
             </span>
             <span 
               className="badge badge-purple" 
@@ -337,7 +337,7 @@ export default function VisualStimulusViewer({
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Visual Stimulus Inspector
+                Figure Inspector
               </span>
               <span className="badge badge-purple" style={{ fontSize: '0.675rem' }}>
                 {visualType}

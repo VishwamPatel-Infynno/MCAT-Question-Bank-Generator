@@ -132,7 +132,7 @@ export default function BatchJobCard({
           color: 'var(--text-muted)'
         }}
       >
-        <span>AI Tokens: {(job.total_tokens || 0).toLocaleString()}</span>
+        <span>Tokens: {(job.total_tokens || 0).toLocaleString()}</span>
         <span>${(job.cost_usd || 0).toFixed(4)}</span>
         {job.completed_at && (
           <span>
@@ -262,7 +262,7 @@ export default function BatchJobCard({
                 gap: '3px'
               }}
             >
-              <ImageIcon size={10} /> Visual Stimulus
+              <ImageIcon size={10} /> Figure / Diagram
             </span>
           )}
         </div>

@@ -16,7 +16,7 @@ export default function StageJsonInspector({ question }) {
       id: 'drafting',
       label: 'Drafting',
       icon: PenTool,
-      agent: 'Question Generator',
+      agent: 'Initial Drafting',
       data: stageOutcomes.drafting || {
         stimulus_text: question.stimulus_text,
         question_stem: question.question_stem,
@@ -31,9 +31,9 @@ export default function StageJsonInspector({ question }) {
     },
     {
       id: 'quality_audit',
-      label: 'Quality Audit',
+      label: 'Quality Review',
       icon: ShieldCheck,
-      agent: 'Question Reviewer',
+      agent: 'Quality Review',
       data: stageOutcomes.quality_audit || question.review_rubric || {
         audit_id: question.review_rubric?.audit_id,
         evaluated_at: question.review_rubric?.evaluated_at,
@@ -51,31 +51,31 @@ export default function StageJsonInspector({ question }) {
       id: 'polish_refine',
       label: 'Polish & Refine',
       icon: RotateCcw,
-      agent: 'Question Re-Generator',
+      agent: 'Refinement',
       data: stageOutcomes.polish_refine || (question.iteration_count > 1 ? {
         iteration_count: question.iteration_count,
         history: question.iterations_history
       } : null),
-      bypassedNote: question.iteration_count <= 1 ? 'Stage bypassed: 1st draft scored > 90 on rubric. No distractor remediation required.' : null
+      bypassedNote: question.iteration_count <= 1 ? 'First draft scored 90+ on the rubric, so no additional revisions were needed.' : null
     },
     {
       id: 'visual_stimulus',
-      label: 'Visual Stimulus',
+      label: 'Figures & Diagrams',
       icon: ImageIcon,
-      agent: 'Image Generator',
+      agent: 'Figure Generation',
       data: stageOutcomes.visual_stimulus || (question.image_svg || question.image_url ? {
         image_svg: question.image_svg ? `${question.image_svg.slice(0, 120)}...` : null,
         image_url: question.image_url,
         image_description: question.image_description,
         visual_type: question.visual_type || 'SVG_Diagram'
       } : null),
-      bypassedNote: (!question.image_svg && !question.image_url) ? 'Stage bypassed: No diagram or geometric stimulus required for this question.' : null
+      bypassedNote: (!question.image_svg && !question.image_url) ? 'No diagram or figure required for this question.' : null
     },
     {
       id: 'final_payload',
-      label: 'Final Payload',
+      label: 'Final Question',
       icon: Sparkles,
-      agent: 'System / Verified Record',
+      agent: 'Verified Question Record',
       data: stageOutcomes.final_payload || {
         id: question.id,
         run_id: question.run_id,
@@ -220,7 +220,7 @@ export default function StageJsonInspector({ question }) {
               color: 'var(--text-secondary)'
             }}
           >
-            <span>Agent Responsible: <strong>{currentStageObj.agent}</strong></span>
+            <span>Editorial Step: <strong>{currentStageObj.label}</strong></span>
             {question.combination_id && (
               <span className="badge badge-indigo" style={{ fontSize: '0.65rem' }}>
                 Combination: {question.combination_id}

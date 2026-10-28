@@ -211,8 +211,8 @@ export default function QuestionCard({
       <div className="pill-track">
         {[
           { id: 'preview', label: 'Question & Options', icon: FileText },
-          { id: 'scorecard', label: 'Quality & Score Review', icon: BarChart3 },
-          { id: 'telemetry', label: 'Technical Data', icon: Code2 }
+          { id: 'scorecard', label: 'Quality Scorecard', icon: BarChart3 },
+          { id: 'telemetry', label: 'Generation Details', icon: Code2 }
         ].map(tab => {
           const Icon = tab.icon;
           const isSel = activeTab === tab.id;
@@ -254,7 +254,7 @@ export default function QuestionCard({
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-sans)' }}>
-                  Scenario / Reading Passage
+                  Reading Passage
                 </span>
                 <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
                   ~{isEditing ? (editedStimulus ? editedStimulus.split(/\s+/).filter(Boolean).length : 0) : (question.stimulus_text ? question.stimulus_text.split(/\s+/).filter(Boolean).length : 0)} words
@@ -302,7 +302,7 @@ export default function QuestionCard({
                 className="btn-secondary"
                 style={{ fontSize: '0.75rem', padding: '4px 10px', color: 'var(--text-secondary)' }}
               >
-                + Add Passage / Stimulus
+                + Add Reading Passage
               </button>
             </div>
           ) : null}
@@ -563,7 +563,7 @@ export default function QuestionCard({
             title="Generate Next Question (Press ⌘↵)"
           >
             <Sparkles size={14} />
-            <span>Generate Next</span>
+            <span>Create Next Question</span>
             <span className="kbd-hint" style={{ fontSize: '0.6rem', color: '#ffffff', border: 'none', background: 'rgba(255,255,255,0.2)' }}>⌘↵</span>
           </button>
         )}

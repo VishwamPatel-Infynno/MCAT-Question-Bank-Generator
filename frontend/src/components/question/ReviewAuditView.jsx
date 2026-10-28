@@ -69,7 +69,7 @@ export default function ReviewAuditView({ question, onClose }) {
                 Question Quality Review
               </h2>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                Quality Score Breakdown &bull; AI Tokens &amp; Cost &bull; Exam Alignment
+                Quality Breakdown &bull; Usage &amp; Cost &bull; Exam Standards
               </p>
             </div>
           </div>
@@ -122,17 +122,17 @@ export default function ReviewAuditView({ question, onClose }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h4 style={{ fontSize: '0.775rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              AI Tokens &amp; Review Details
+              Usage &amp; Question Details
             </h4>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              AI Quality Evaluation
+              Quality Review Summary
             </span>
           </div>
 
           {/* Metric Cards Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
             <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>PROMPT TOKENS</div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>INPUT TOKENS</div>
               <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--brand-primary)' }}>{(question.prompt_tokens || 0).toLocaleString()}</div>
             </div>
             <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
@@ -241,10 +241,10 @@ export default function ReviewAuditView({ question, onClose }) {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <Target size={13} style={{ color: 'var(--brand-cyan, #06b6d4)' }} />
-                  Targeted Student Misconception
+                  Common Student Mistake
                 </span>
                 <span className="badge badge-cyan" style={{ fontSize: '0.68rem', padding: '2px 8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <Sparkles size={11} /> Common Misconception
+                  <Sparkles size={11} /> Common Mistake
                 </span>
               </div>
               <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -252,8 +252,8 @@ export default function ReviewAuditView({ question, onClose }) {
               </div>
               <p style={{ fontSize: '0.775rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
                 {mistakePattern
-                  ? 'Engine intentionally calibrated incorrect options to exploit and expose this specific reasoning flaw.'
-                  : 'Distractor choices test core scientific principles without targeting a specific reasoning defect.'}
+                  ? 'Incorrect choices were specifically crafted to highlight this common conceptual mistake.'
+                  : 'Incorrect choices test fundamental science concepts without relying on a specific trick.'}
               </p>
             </div>
           </div>
@@ -290,7 +290,7 @@ export default function ReviewAuditView({ question, onClose }) {
               </div>
               <div>
                 <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Visual Stimulus Evaluation: {hasVisual ? 'Diagram Generated & Attached' : 'Text-Only Question (No Diagram Needed)'}
+                  Figure Review: {hasVisual ? 'Diagram Generated & Attached' : 'Text-Only Question (No Diagram Needed)'}
                 </div>
                 <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
                   {hasVisual

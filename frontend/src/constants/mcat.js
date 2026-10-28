@@ -137,7 +137,7 @@ export const QUESTION_TYPES = (mcatTaxonomy.generation_options?.question_type ||
  * All 25 Primary Traps with Automatic option.
  */
 export const COGNITIVE_TRAPS = [
-  { id: 'Automatic', label: 'Automatic (Smart AI Choice)', desc: 'The AI picks the most realistic AAMC trap for this question type.' },
+  { id: 'Automatic', label: 'Automatic (Recommended)', desc: 'Selects the most realistic AAMC trap for this question type.' },
   ...(mcatTaxonomy.generation_options?.primary_trap || []).map((t) => ({
     id: t.id,
     label: t.value,

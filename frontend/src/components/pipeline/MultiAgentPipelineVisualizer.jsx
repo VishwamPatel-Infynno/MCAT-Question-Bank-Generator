@@ -89,18 +89,18 @@ export default function MultiAgentPipelineVisualizer({
           ? 'Polishing choices and answer explanations...'
           : isImgActive
           ? 'Creating scientific diagram...'
-          : 'AI creating questions...')
+          : 'Creating questions...')
       : null);
 
   const agents = [
     {
       id: 'writer_reviewer',
       stepNum: '01',
-      title: 'Writer & Reviewer',
-      subtitle: 'Fused Draft & Audit',
+      title: 'Drafting & Review',
+      subtitle: 'Initial Draft',
       guarantee: isSwarm
-        ? 'Parallel Drafting & Instant Audit'
-        : (latestReview?.total_score ? `${latestReview.total_score}/100 Quality Score` : 'Draft & Instant Audit (~40% Faster)'),
+        ? 'Parallel Drafting & Review'
+        : (latestReview?.total_score ? `${latestReview.total_score}/100 Quality Score` : 'Drafting & First-Pass Review'),
       icon: PenTool,
       accentColor: 'var(--brand-primary)',
       isActive: isWriterReviewerActive,
@@ -109,11 +109,11 @@ export default function MultiAgentPipelineVisualizer({
     {
       id: 'blind_solver',
       stepNum: '02',
-      title: 'Blind Solver',
-      subtitle: 'Dual Verification',
+      title: 'Answer Check',
+      subtitle: 'Double-Checking Solution',
       guarantee: hasBlindSolverCompleted
-        ? 'Indisputable Key (Verified)'
-        : (isBlindSolverActive ? 'Solving Blind (No Key)...' : 'Zero Ambiguity Standard'),
+        ? 'Answer Verified'
+        : (isBlindSolverActive ? 'Solving independently...' : 'Checking clarity & accuracy'),
       icon: ShieldCheck,
       accentColor: 'var(--status-success)',
       isActive: isBlindSolverActive,
@@ -122,11 +122,11 @@ export default function MultiAgentPipelineVisualizer({
     {
       id: 'regenerator',
       stepNum: '03',
-      title: 'Question Improver',
-      subtitle: 'Polish & Refine',
+      title: 'Question Polish',
+      subtitle: 'Refining Choices',
       guarantee: hasRegenFired
-        ? 'Remediated & Refined'
-        : (hasWriterReviewerCompleted && !isGenerating ? 'Passed (90+ Standard)' : 'Auto-Fixes Ambiguities'),
+        ? 'Reviewed & Polished'
+        : (hasWriterReviewerCompleted && !isGenerating ? 'Passed quality check' : 'Polishing question clarity'),
       icon: RotateCcw,
       accentColor: 'var(--status-warning)',
       isActive: isRegenActive,
@@ -135,11 +135,11 @@ export default function MultiAgentPipelineVisualizer({
     {
       id: 'image',
       stepNum: '04',
-      title: 'Diagram & Chart Maker',
-      subtitle: 'Visuals & Figures',
+      title: 'Figures & Diagrams',
+      subtitle: 'Charts & Illustrations',
       guarantee: hasImgCompleted
-        ? 'Visual Stimulus Attached'
-        : (hasWriterReviewerCompleted && !isGenerating ? 'Text-Only (No Diagram Needed)' : 'Clear Charts & Shapes'),
+        ? 'Figure Attached'
+        : (hasWriterReviewerCompleted && !isGenerating ? 'Text-Only (No figure needed)' : 'Clear Charts & Shapes'),
       icon: Sparkles,
       accentColor: 'var(--status-purple)',
       isActive: isImgActive,
@@ -170,15 +170,15 @@ export default function MultiAgentPipelineVisualizer({
                 color: 'var(--text-muted)'
               }}
             >
-              Pipeline Architecture
+              Editorial Process
             </span>
             <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>•</span>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-              3 Specialized AI Milestones
+              4 Quality Checks
             </span>
           </div>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', margin: '2px 0 0' }}>
-            {isGenerating ? (totalBatch > 1 ? `AI Team Creating ${totalBatch} Questions...` : 'AI Team Creating Question...') : 'Automated Quality Checking & Scoring'}
+            {isGenerating ? (totalBatch > 1 ? `Writing and reviewing ${totalBatch} questions...` : 'Writing and reviewing question...') : 'Quality Review & Scoring'}
           </h3>
           {isGenerating && activeMessage && (
             <div
@@ -238,7 +238,7 @@ export default function MultiAgentPipelineVisualizer({
               }}
             >
               <CheckCircle2 size={12} />
-              <span>Calibrated for 90+ Quality Standard</span>
+              <span>Meets 90+ Quality Standard</span>
             </span>
           )}
 
@@ -359,7 +359,7 @@ export default function MultiAgentPipelineVisualizer({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', color: 'var(--text-muted)', fontSize: '0.65rem' }}>
-            <span>Live Agent Event Stream ({events.length} events)</span>
+            <span>Live Activity Log ({events.length} events)</span>
           </div>
           {events.map((ev, i) => (
             <div

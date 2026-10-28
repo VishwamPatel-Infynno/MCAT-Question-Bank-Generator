@@ -398,7 +398,7 @@ export default function WizardStep3ReviewAdvanced({
                   }}
                 >
                   {effectiveMistakes.length === 0 && <CheckCircle2 size={11} />}
-                  <span>Automatic (AI Diagnosis)</span>
+                  <span>Automatic (Recommended)</span>
                 </button>
 
                 {(LIKELY_MISTAKE_PATTERNS || []).slice(0, 8).map((mp) => {

@@ -147,8 +147,8 @@ export default function StagedSlotSkeleton({
           color: 'var(--text-muted)'
         }}
       >
-        <span>Slot {slotNumber} of {effectiveTotal} • Calibrating options</span>
-        <span style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>Autonomous Pipeline Active</span>
+        <span>Question {slotNumber} of {effectiveTotal} • Drafting question...</span>
+        <span style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>Writing question...</span>
       </div>
     </div>
   );

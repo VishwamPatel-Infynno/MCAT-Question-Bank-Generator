@@ -330,7 +330,7 @@ export default function MentorExplanationView({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--status-purple)' }}>
               <Target size={13} />
-              <span>Exam Trap &amp; How to Avoid It &bull; {parsed.resolvedTrap.label}</span>
+              <span>Common Exam Trap &bull; {parsed.resolvedTrap.label}</span>
             </div>
           </div>
 
@@ -356,7 +356,7 @@ export default function MentorExplanationView({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--status-warning)' }}>
             <AlertTriangle size={13} />
-            <span>Watch Out: Common Misconception &bull; {likelyMistakePattern}</span>
+            <span>Watch Out: Common Student Mistake &bull; {likelyMistakePattern}</span>
           </div>
 
           <div style={{ fontSize: isCompact ? '0.76rem' : '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>

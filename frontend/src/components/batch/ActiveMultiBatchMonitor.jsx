@@ -257,7 +257,7 @@ export default function ActiveMultiBatchMonitor({
         >
           <Coins size={16} color="var(--status-success, #10b981)" />
           <div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>AI Tokens &amp; Cost</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Usage &amp; Cost</div>
             <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-primary)' }}>
               {totalTokens.toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--status-success)' }}>(${totalCost.toFixed(4)})</span>
             </div>
