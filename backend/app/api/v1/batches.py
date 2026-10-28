@@ -1,4 +1,5 @@
 import logging
+from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
 
@@ -50,8 +51,8 @@ async def start_batch_generation(req: GenerationRequest):
 
 @router.get("/batches")
 async def list_batches(
-    section: str | None = Query(None),
-    status: str | None = Query(None),
+    section: Annotated[str | None, Query()] = None,
+    status: Annotated[str | None, Query()] = None,
 ):
     """Lists generation batches in the question bank with job progress counts and concurrency metrics."""
     batches = await get_batches(section=section, status=status)

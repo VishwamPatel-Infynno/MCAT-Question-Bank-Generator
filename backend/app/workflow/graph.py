@@ -37,7 +37,22 @@ from app.workflow.state import AgentWorkflowState
 
 
 def create_mcat_graph() -> StateGraph:
-    """Builds and compiles the multi-agent LangGraph workflow for official AAMC MCAT."""
+    """
+    Builds and compiles the multi-agent LangGraph workflow for official AAMC MCAT.
+
+    Workflow Topology:
+    1. Entry Point -> fused_generator (combined drafting and self-critique)
+    2. route_after_fused_generation:
+       - Score > 90: image_generator (if diagram required) or finalize
+       - Score <= 90 or unverified: reviewer (for independent audit)
+    3. route_after_review:
+       - Score <= 90 and attempts < max: regenerator -> reviewer (remediation loop)
+       - Score <= 90 and attempts >= max: reject -> END (Strict Quality Gate)
+       - Score > 90: image_generator (if diagram required) or finalize -> END
+    4. Modular Pipeline Nodes:
+       - generator: Single-pass generator node for modular invocation.
+       - blind_solver: Blind-solver student dual-validation node (invoked in engine review loop).
+    """
     workflow = StateGraph(AgentWorkflowState)
 
     # Agent Nodes

@@ -2,6 +2,7 @@ import base64
 import csv
 import io
 import logging
+from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -27,40 +28,16 @@ router = APIRouter(tags=["Question Bank"])
 
 @router.get("/questions")
 async def list_questions(
-    section: str | None = Query(None),
-    difficulty: str | None = Query(None),
-    search: str | None = Query(None),
-    combination_id: str | None = Query(None),
-    run_id: str | None = Query(None),
-    batch_id: str | None = Query(None),
-    passage_id: str | None = Query(None),
-    status: str | None = Query("in_bank"),
+    section: Annotated[str | None, Query()] = None,
+    difficulty: Annotated[str | None, Query()] = None,
+    search: Annotated[str | None, Query()] = None,
+    combination_id: Annotated[str | None, Query()] = None,
+    run_id: Annotated[str | None, Query()] = None,
+    batch_id: Annotated[str | None, Query()] = None,
+    passage_id: Annotated[str | None, Query()] = None,
+    status: Annotated[str | None, Query()] = "in_bank",
 ):
     """Lists saved questions from the Question Bank repository along with aggregated metrics."""
-    # NOTE: FastAPI resolves Query(...) parameters during the dependency injection lifecycle.
-    # When this function is called directly in unit tests (bypassing FastAPI's request handling),
-    # parameters arrive as raw Query descriptor objects rather than resolved values.
-    # The isinstance checks below extract the default value in that case.
-    # Do NOT remove — this is required for test compatibility.
-    from fastapi.params import Query as QueryParam
-
-    if isinstance(status, QueryParam):
-        status = status.default
-    if isinstance(search, QueryParam):
-        search = search.default
-    if isinstance(section, QueryParam):
-        section = section.default
-    if isinstance(difficulty, QueryParam):
-        difficulty = difficulty.default
-    if isinstance(combination_id, QueryParam):
-        combination_id = combination_id.default
-    if isinstance(run_id, QueryParam):
-        run_id = run_id.default
-    if isinstance(batch_id, QueryParam):
-        batch_id = batch_id.default
-    if isinstance(passage_id, QueryParam):
-        passage_id = passage_id.default
-
     effective_status = None if status == "all" else (status or "in_bank")
     questions = await get_questions(
         section=section,
@@ -194,13 +171,10 @@ async def update_single_status(question_id: str, payload: dict):
 
 
 @router.get("/export")
-async def export_questions(format: str = Query("json", pattern="^(json|csv)$")):
+async def export_questions(
+    format: Annotated[str, Query(pattern="^(json|csv)$")] = "json",
+):
     """Exports Question Bank in JSON or CSV format including manager matrix fields and UUIDs."""
-    from fastapi.params import Query as QueryParam
-
-    if isinstance(format, QueryParam):
-        format = format.default
-
     questions = await get_questions(status="in_bank")
 
     if format == "json":

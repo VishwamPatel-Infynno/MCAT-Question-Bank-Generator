@@ -48,6 +48,14 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard, reset
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
 
+  // Store previous filter criteria to reset page to 1 during render without cascading effect lag
+  const filterKey = `${searchQuery}|${sectionFilter}|${sortBy}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setCurrentPage(1);
+  }
+
   // Focus search on '/'
   useEffect(() => {
     const handleSlash = (e) => {

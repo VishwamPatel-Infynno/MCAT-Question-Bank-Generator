@@ -1,4 +1,5 @@
 import logging
+from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query
 
@@ -18,9 +19,9 @@ router = APIRouter(tags=["Passages"])
 
 @router.get("/passages")
 async def list_passages(
-    section: str | None = Query(None),
-    subtopic: str | None = Query(None),
-    search: str | None = Query(None),
+    section: Annotated[str | None, Query()] = None,
+    subtopic: Annotated[str | None, Query()] = None,
+    search: Annotated[str | None, Query()] = None,
 ):
     """Lists reading passages in the question bank."""
     passages = await get_passages(section=section, subtopic=subtopic, search=search)

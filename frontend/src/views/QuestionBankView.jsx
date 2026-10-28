@@ -83,6 +83,7 @@ export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
 
+  // Store previous filter criteria to reset page to 1 during render without cascading effect lag
   const filterKey = `${searchQuery}|${sectionFilter}|${diffFilter}|${sortBy}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (prevFilterKey !== filterKey) {
