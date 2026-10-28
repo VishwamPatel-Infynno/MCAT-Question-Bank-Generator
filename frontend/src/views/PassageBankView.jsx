@@ -1,0 +1,466 @@
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { BookOpen, Sparkles, Plus } from 'lucide-react';
+import {
+  fetchPassages,
+  fetchSinglePassage,
+  savePassage,
+  deletePassage,
+  approveQuestion,
+  fetchQuestions
+} from '../services/api';
+import { PaginationBar } from '../components/common';
+import PassageBankFilters from '../components/passage/PassageBankFilters';
+import PassageBankTable from '../components/passage/PassageBankTable';
+import PassageEditorialDesk from '../components/passage/PassageEditorialDesk';
+
+/**
+ * PassageBankView
+ *
+ * Dedicated screen for reading passages in the question bank.
+ * Provides a master catalog list with filters and an in-depth
+ * side-by-side MCAT editorial desk with full linked question support.
+ */
+export default function PassageBankView({ onShowToast, onNavigateToWizard }) {
+  const [passages, setPassages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [questionCounts, setQuestionCounts] = useState({});
+
+  // Filter & Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sectionFilter, setSectionFilter] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
+  const searchInputRef = useRef(null);
+
+  // Master-Detail Selected State
+  const [selectedPassage, setSelectedPassage] = useState(null);
+  const [selectedPassageQuestions, setSelectedPassageQuestions] = useState([]);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
+
+  // Focus search on '/'
+  useEffect(() => {
+    const handleSlash = (e) => {
+      if (e.key === '/' && document.activeElement?.tagName.toLowerCase() !== 'input' && document.activeElement?.tagName.toLowerCase() !== 'textarea') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleSlash);
+    return () => window.removeEventListener('keydown', handleSlash);
+  }, []);
+
+  // Fetch all passages and build question counts
+  const loadPassages = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [passageRes, questionRes] = await Promise.all([
+        fetchPassages({
+          section: sectionFilter || undefined,
+          search: searchQuery || undefined
+        }),
+        fetchQuestions({ status: 'all' })
+      ]);
+
+      const fetchedPassages = passageRes?.passages || [];
+      const allQuestions = questionRes?.questions || [];
+
+      // Map question counts by passage_id
+      const counts = {};
+      allQuestions.forEach((q) => {
+        if (q.passage_id) {
+          counts[q.passage_id] = (counts[q.passage_id] || 0) + 1;
+        }
+      });
+      setQuestionCounts(counts);
+      setPassages(fetchedPassages);
+    } catch (err) {
+      console.error('Failed to load passages:', err);
+      if (onShowToast) {
+        onShowToast({
+          type: 'error',
+          title: 'Load Failed',
+          message: 'Could not retrieve reading passages from database.'
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [sectionFilter, searchQuery, onShowToast]);
+
+  useEffect(() => {
+    loadPassages();
+  }, [loadPassages]);
+
+  // Sort passages locally
+  const sortedPassages = useMemo(() => {
+    const list = [...passages];
+    if (sortBy === 'newest') {
+      list.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    } else if (sortBy === 'oldest') {
+      list.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+    } else if (sortBy === 'words_desc') {
+      list.sort((a, b) => (b.word_count || 0) - (a.word_count || 0));
+    } else if (sortBy === 'words_asc') {
+      list.sort((a, b) => (a.word_count || 0) - (b.word_count || 0));
+    } else if (sortBy === 'title_asc') {
+      list.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    }
+    return list;
+  }, [passages, sortBy]);
+
+  // Pagination calculation
+  const totalPages = pageSize === -1 ? 1 : Math.max(1, Math.ceil(sortedPassages.length / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedPassages = useMemo(() => {
+    if (pageSize === -1) return sortedPassages;
+    const start = (safeCurrentPage - 1) * pageSize;
+    return sortedPassages.slice(start, start + pageSize);
+  }, [sortedPassages, safeCurrentPage, pageSize]);
+
+  // Total word count & metrics
+  const totalWordCount = useMemo(() => {
+    return passages.reduce((acc, p) => acc + (p.word_count || 0), 0);
+  }, [passages]);
+
+  const avgWordCount = passages.length > 0 ? Math.round(totalWordCount / passages.length) : 0;
+
+  const hasActiveFilters = Boolean(searchQuery.trim() || sectionFilter);
+
+  const handleClearAllFilters = () => {
+    setSearchQuery('');
+    setSectionFilter('');
+  };
+
+  // Open Passage Editorial Desk
+  const handleSelectPassage = async (passage) => {
+    setIsLoadingDetail(true);
+    setSelectedPassage(passage);
+    try {
+      const res = await fetchSinglePassage(passage.id);
+      if (res?.passage) {
+        setSelectedPassage(res.passage);
+        setSelectedPassageQuestions(res.questions || []);
+      }
+    } catch (err) {
+      console.error('Failed to load passage detail:', err);
+      // Fallback: keep existing passage and questions if available
+      setSelectedPassageQuestions(passage.questions || []);
+    } finally {
+      setIsLoadingDetail(false);
+    }
+  };
+
+  // Manual New Passage Creation
+  const handleCreateNewPassage = () => {
+    const newId = `passage-${crypto.randomUUID().slice(0, 8)}`;
+    const blankPassage = {
+      id: newId,
+      title: 'New Reading Passage',
+      section: sectionFilter || 'cars',
+      subtopic: '',
+      text: '',
+      word_count: 0,
+      image_url: null,
+      image_svg: null,
+      image_description: null,
+      created_at: new Date().toISOString()
+    };
+    setSelectedPassage(blankPassage);
+    setSelectedPassageQuestions([]);
+  };
+
+  // Save Passage Handler
+  const handleSavePassage = async (updatedPassage) => {
+    try {
+      const res = await savePassage(updatedPassage);
+      const saved = res.passage || updatedPassage;
+      setSelectedPassage(saved);
+
+      // Also update stimulus_text in local questions state
+      setSelectedPassageQuestions(prev =>
+        prev.map(q => ({ ...q, stimulus_text: saved.text }))
+      );
+
+      // Refresh passages list
+      await loadPassages();
+
+      if (onShowToast) {
+        onShowToast({
+          type: 'success',
+          title: 'Passage Saved',
+          message: 'Reading passage and linked question stimuli updated successfully.'
+        });
+      }
+    } catch (err) {
+      console.error('Failed to save passage:', err);
+      if (onShowToast) {
+        onShowToast({
+          type: 'error',
+          title: 'Save Failed',
+          message: err.message || 'Could not save passage updates to database.'
+        });
+      }
+      throw err;
+    }
+  };
+
+  // Delete Passage Handler
+  const handleDeletePassage = async (passage) => {
+    const titleOrId = passage.title || passage.id;
+    if (!window.confirm(`Delete passage "${titleOrId}"? Associated questions will remain in the Question Bank as independent items.`)) {
+      return;
+    }
+
+    try {
+      await deletePassage(passage.id);
+      if (selectedPassage?.id === passage.id) {
+        setSelectedPassage(null);
+        setSelectedPassageQuestions([]);
+      }
+      await loadPassages();
+      if (onShowToast) {
+        onShowToast({
+          type: 'success',
+          title: 'Passage Deleted',
+          message: `Passage removed. Linked questions preserved in Question Bank.`
+        });
+      }
+    } catch (err) {
+      console.error('Failed to delete passage:', err);
+      if (onShowToast) {
+        onShowToast({
+          type: 'error',
+          title: 'Delete Failed',
+          message: err.message || 'Could not remove passage from database.'
+        });
+      }
+    }
+  };
+
+  // Update Individual Question inside Desk
+  const handleUpdateQuestion = async (updatedQ) => {
+    try {
+      await approveQuestion(updatedQ);
+      setSelectedPassageQuestions(prev =>
+        prev.map(q => q.id === updatedQ.id ? updatedQ : q)
+      );
+      if (onShowToast) {
+        onShowToast({
+          type: 'success',
+          title: 'Question Updated',
+          message: 'Question changes saved to Question Bank.'
+        });
+      }
+    } catch (err) {
+      console.error('Failed to update question:', err);
+      if (onShowToast) {
+        onShowToast({
+          type: 'error',
+          title: 'Update Failed',
+          message: err.message || 'Could not update question.'
+        });
+      }
+    }
+  };
+
+  // ── Render Editorial Desk Mode ─────────────────────────────────────────────
+  if (selectedPassage) {
+    if (isLoadingDetail) {
+      return (
+        <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--text-secondary)' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }}>
+            <Sparkles size={18} color="var(--brand-primary)" />
+            <span>Loading Passage Editorial Desk &amp; Questions...</span>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <PassageEditorialDesk
+        key={selectedPassage.id}
+        passage={selectedPassage}
+        questions={selectedPassageQuestions}
+        onBack={() => {
+          setSelectedPassage(null);
+          setSelectedPassageQuestions([]);
+        }}
+        onSavePassage={handleSavePassage}
+        onDeletePassage={handleDeletePassage}
+        onUpdateQuestion={handleUpdateQuestion}
+      />
+    );
+  }
+
+  // ── Render Master List Mode ────────────────────────────────────────────────
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* ── Header & Stats Strip ─────────────────────────────────────────── */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '16px',
+          paddingBottom: '4px'
+        }}
+      >
+        <div>
+          <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
+            Passages Bank
+          </h2>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '5px 12px',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-light)',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.78rem',
+              color: 'var(--text-secondary)'
+            }}
+          >
+            <span>
+              <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{passages.length}</strong> {passages.length === 1 ? 'passage' : 'passages'}
+            </span>
+            <span style={{ color: 'var(--border-light)' }}>•</span>
+            <span>
+              <strong style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>{avgWordCount}</strong>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}> words avg</span>
+            </span>
+          </div>
+
+          <button
+            type="button"
+            id="btn-new-passage-header"
+            onClick={handleCreateNewPassage}
+            className="btn-primary"
+            style={{ padding: '6px 12px', fontSize: '0.78rem', gap: '6px' }}
+          >
+            <Plus size={13} />
+            <span>Create New Passage</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Filter / Search Bar ──────────────────────────────────────────── */}
+      <PassageBankFilters
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        searchInputRef={searchInputRef}
+        sectionFilter={sectionFilter}
+        setSectionFilter={setSectionFilter}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        hasActiveFilters={hasActiveFilters}
+        onClearAllFilters={handleClearAllFilters}
+        onCreateNewPassage={handleCreateNewPassage}
+      />
+
+      {/* ── Passage List Content ─────────────────────────────────────────── */}
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-secondary)' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem' }}>
+            <Sparkles size={16} color="var(--brand-primary)" />
+            <span>Loading Passages Bank...</span>
+          </div>
+        </div>
+      ) : passages.length === 0 ? (
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '50px 20px',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-md)',
+            color: 'var(--text-secondary)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <BookOpen size={36} color="var(--text-muted)" style={{ marginBottom: '4px' }} />
+          <h3 style={{ fontSize: '0.96rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+            No Passages Found
+          </h3>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, maxWidth: '440px' }}>
+            {hasActiveFilters
+              ? 'No reading passages match your search query or section filter. Clear filters to see more.'
+              : 'Your Passages Bank is currently empty. Generate a passage set in the Generator Studio or create one manually!'}
+          </p>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
+            <button
+              type="button"
+              onClick={handleCreateNewPassage}
+              className="btn-primary"
+              style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
+            >
+              <Plus size={13} />
+              <span>Create New Passage</span>
+            </button>
+
+            {onNavigateToWizard && (
+              <button
+                type="button"
+                onClick={onNavigateToWizard}
+                className="btn-secondary"
+                style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
+              >
+                <Sparkles size={13} />
+                <span>Generate Questions Set</span>
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <PassageBankTable
+          passages={paginatedPassages}
+          questionCounts={questionCounts}
+          onSelectPassage={handleSelectPassage}
+          onDeletePassage={handleDeletePassage}
+          onCopyPassageId={(id) => {
+            if (onShowToast) {
+              onShowToast({
+                type: 'info',
+                title: 'ID Copied',
+                message: `Passage ID "${id}" copied to clipboard.`
+              });
+            }
+          }}
+        />
+      )}
+
+      {/* ── Pagination Bar ────────────────────────────────────────────────── */}
+      {!loading && passages.length > 0 && (
+        <PaginationBar
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={passages.length}
+          itemLabel="passages"
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[
+            { value: 10, label: '10' },
+            { value: 15, label: '15' },
+            { value: 25, label: '25' },
+            { value: 50, label: '50' },
+            { value: -1, label: 'All' }
+          ]}
+        />
+      )}
+    </div>
+  );
+}

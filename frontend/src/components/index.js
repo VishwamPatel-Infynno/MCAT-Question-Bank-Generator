@@ -19,6 +19,9 @@ export * from './wizard';
 // Question Bank Components
 export * from './bank';
 
+// Passage Bank Components
+export * from './passage';
+
 // Batch Activity & Job Monitoring
 export * from './batch';
 

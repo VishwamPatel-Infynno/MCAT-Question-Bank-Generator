@@ -1,11 +1,12 @@
 import logging
 from datetime import UTC, datetime
 
-from sqlalchemy import or_, select
+from sqlalchemy import delete, or_, select, update
 
 from app.db.base import to_datetime, to_iso_str
 from app.db.session import async_session_factory
 from app.models.passage import PassageModel
+from app.models.question import QuestionModel
 from app.schemas import Passage
 
 logger = logging.getLogger(__name__)
@@ -85,10 +86,48 @@ async def get_passage_by_id(passage_id: str) -> Passage | None:
 
 
 async def save_passage(passage: Passage) -> Passage:
-    """Creates or updates a passage record."""
+    """Creates or updates a passage record, syncing stimulus_text to linked questions."""
     passage.updated_at = datetime.now(UTC).isoformat()
+    word_count = len(passage.text.split()) if passage.text else 0
+    passage.word_count = word_count
     async with async_session_factory() as session:
         model = _passage_schema_to_model(passage)
         await session.merge(model)
+
+        # Synchronize stimulus_text and visual stimulus to all linked questions if text is present
+        if passage.id and passage.text is not None:
+            values_to_update: dict = {
+                "stimulus_text": passage.text,
+            }
+            if passage.image_url is not None:
+                values_to_update["image_url"] = passage.image_url
+            if passage.image_svg is not None:
+                values_to_update["image_svg"] = passage.image_svg
+            if passage.image_description is not None:
+                values_to_update["image_description"] = passage.image_description
+
+            await session.execute(
+                update(QuestionModel)
+                .where(QuestionModel.passage_id == passage.id)
+                .values(**values_to_update)
+            )
+
         await session.commit()
         return passage
+
+
+async def delete_passage(passage_id: str) -> bool:
+    """Deletes a passage record and safely unlinks any associated questions."""
+    async with async_session_factory() as session:
+        # 1. Unlink questions from this passage (retaining them as standalone questions)
+        await session.execute(
+            update(QuestionModel)
+            .where(QuestionModel.passage_id == passage_id)
+            .values(passage_id=None)
+        )
+        # 2. Delete the passage row
+        res = await session.execute(
+            delete(PassageModel).where(PassageModel.id == passage_id)
+        )
+        await session.commit()
+        return bool((res.rowcount or 0) > 0)

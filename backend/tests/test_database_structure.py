@@ -219,6 +219,35 @@ async def test_api_passages_and_batches():
         assert single_b_data["batch"]["id"] == batch_id
         assert len(single_b_data["questions"]) == 1
 
+        # 5. Test updating passage via POST /api/passages and verify stimulus_text auto-syncs
+        updated_passage_payload = {
+            "id": passage_id,
+            "title": "Updated Triage Protocol",
+            "text": "Medical triage protocols require rapid and systematic categorization.",
+            "section": "cars",
+            "subtopic": "Inference",
+        }
+        resp_update_p = await client.post("/api/passages", json=updated_passage_payload)
+        assert resp_update_p.status_code == 200
+        # Check that question stimulus_text was synced
+        resp_q_check = await client.get(f"/api/questions/{q.id}")
+        assert resp_q_check.status_code == 200
+        assert resp_q_check.json()["stimulus_text"] == "Medical triage protocols require rapid and systematic categorization."
+
+        # 6. Test DELETE /api/passages/{passage_id} and verify question is unlinked (retained in bank)
+        resp_del_p = await client.delete(f"/api/passages/{passage_id}")
+        assert resp_del_p.status_code == 200
+        assert resp_del_p.json()["success"] is True
+
+        # Passage should now be gone (404)
+        resp_gone = await client.get(f"/api/passages/{passage_id}")
+        assert resp_gone.status_code == 404
+
+        # Question should still exist in bank with passage_id == None
+        resp_q_unlinked = await client.get(f"/api/questions/{q.id}")
+        assert resp_q_unlinked.status_code == 200
+        assert resp_q_unlinked.json()["passage_id"] is None
+
     # Clean up
     await delete_question(q.id)
 
@@ -238,6 +267,7 @@ async def test_centralized_repository_package_exports():
         "get_batches",
         "save_batch",
         "delete_batch",
+        "delete_passage",
         "get_passage_by_id",
         "get_passages",
         "save_passage",

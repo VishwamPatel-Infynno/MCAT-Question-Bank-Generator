@@ -12,6 +12,7 @@ import { useAppState } from './hooks';
 
 // Dynamic code-split chunk imports for optimal bundle size
 const QuestionBankView = lazy(() => import('./views/QuestionBankView'));
+const PassageBankView = lazy(() => import('./views/PassageBankView'));
 const ReviewAuditView = lazy(() => import('./components/question/ReviewAuditView'));
 const BatchActivityView = lazy(() => import('./views/BatchActivityView'));
 const AiValidatedQuestionsView = lazy(() => import('./views/AiValidatedQuestionsView'));
@@ -197,6 +198,17 @@ export default function App() {
           <ErrorBoundary fallbackLabel="Question Bank">
             <Suspense fallback={<LazyLoadingSpinner label="Loading Question Bank..." />}>
               <QuestionBankView
+                onShowToast={showToast}
+                onNavigateToWizard={() => handleNavigateToWizard(1)}
+              />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+
+        {activeTab === 'passages' && (
+          <ErrorBoundary fallbackLabel="Passages Bank">
+            <Suspense fallback={<LazyLoadingSpinner label="Loading Passages Bank..." />}>
+              <PassageBankView
                 onShowToast={showToast}
                 onNavigateToWizard={() => handleNavigateToWizard(1)}
               />

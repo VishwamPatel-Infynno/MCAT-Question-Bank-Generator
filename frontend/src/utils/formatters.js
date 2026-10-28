@@ -59,3 +59,23 @@ export function formatTokenCount(tokens) {
   if (!tokens || isNaN(tokens)) return '0';
   return Number(tokens).toLocaleString();
 }
+
+/**
+ * Formats an ISO date string into a readable short date.
+ * @param {string} iso - ISO date string
+ * @returns {string} Formatted date e.g. "Oct 28, 2026"
+ */
+export function formatDate(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return String(iso);
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  } catch {
+    return String(iso);
+  }
+}

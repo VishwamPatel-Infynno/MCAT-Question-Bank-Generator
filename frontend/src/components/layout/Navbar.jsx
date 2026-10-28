@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Database, Layers, CheckCircle2, Sun, Moon } from 'lucide-react';
+import { Sparkles, Database, BookOpen, Layers, CheckCircle2, Sun, Moon } from 'lucide-react';
 import InfynnoLogo from '../common/InfynnoLogo';
 
 export default function Navbar({
@@ -190,6 +190,17 @@ export default function Navbar({
         >
           <Database size={12} color={activeTab === 'bank' ? 'var(--brand-primary)' : 'currentColor'} />
           <span>Bank</span>
+        </button>
+
+        <button
+          id="nav-tab-passages"
+          type="button"
+          onClick={() => setActiveTab('passages')}
+          className={`pill-track-btn ${activeTab === 'passages' ? 'active' : ''}`}
+          title="Passages Bank & Editorial Desk"
+        >
+          <BookOpen size={12} color={activeTab === 'passages' ? 'var(--brand-primary)' : 'currentColor'} />
+          <span>Passages</span>
         </button>
       </nav>
 

@@ -3,7 +3,8 @@ export {
   formatExamTime,
   countWords,
   formatCostUsd,
-  formatTokenCount
+  formatTokenCount,
+  formatDate
 } from './formatters';
 
 export {

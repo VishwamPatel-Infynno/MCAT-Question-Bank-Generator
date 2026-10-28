@@ -12,6 +12,7 @@ from app.repositories.job_repository import (
     update_job_progress,
 )
 from app.repositories.passage_repository import (
+    delete_passage,
     get_passage_by_id,
     get_passages,
     save_passage,
@@ -32,6 +33,7 @@ from app.repositories.question_repository import (
 __all__ = [
     "batch_update_question_status",
     "delete_batch",
+    "delete_passage",
     "delete_question",
     "delete_questions_batch",
     "get_batch_by_id",

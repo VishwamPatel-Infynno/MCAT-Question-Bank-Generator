@@ -3,6 +3,7 @@ import logging
 from fastapi import APIRouter, HTTPException, Query
 
 from app.repositories.passage_repository import (
+    delete_passage,
     get_passage_by_id,
     get_passages,
     save_passage,
@@ -45,3 +46,12 @@ async def create_or_update_passage(passage: Passage):
     """Admin endpoint to create or update a passage record."""
     saved = await save_passage(passage)
     return {"success": True, "passage": saved.model_dump()}
+
+
+@router.delete("/passages/{passage_id}")
+async def remove_passage(passage_id: str):
+    """Admin endpoint to delete a passage record and unlink its associated questions."""
+    success = await delete_passage(passage_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Passage not found")
+    return {"success": True, "deleted_id": passage_id}

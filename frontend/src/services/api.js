@@ -257,3 +257,38 @@ export async function cancelAllBatches() {
   await assertOk(res, 'Cancel all active batches');
   return res.json();
 }
+
+// ── Passages API ─────────────────────────────────────────────────────────────
+
+export async function fetchPassages(params = {}, signal = null) {
+  const query = new URLSearchParams();
+  if (params.section) query.append('section', params.section);
+  if (params.subtopic) query.append('subtopic', params.subtopic);
+  if (params.search) query.append('search', params.search);
+
+  const res = await fetch(`${API_BASE}/passages?${query.toString()}`, { signal });
+  await assertOk(res, 'Fetch passages');
+  return res.json();
+}
+
+export async function fetchSinglePassage(passageId, signal = null) {
+  const res = await fetch(`${API_BASE}/passages/${passageId}`, { signal });
+  await assertOk(res, `Fetch passage ${passageId}`);
+  return res.json();
+}
+
+export async function savePassage(passageData) {
+  const res = await fetch(`${API_BASE}/passages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(passageData)
+  });
+  await assertOk(res, 'Save passage');
+  return res.json();
+}
+
+export async function deletePassage(passageId) {
+  const res = await fetch(`${API_BASE}/passages/${passageId}`, { method: 'DELETE' });
+  await assertOk(res, `Delete passage ${passageId}`);
+  return res.json();
+}
