@@ -90,6 +90,12 @@ export function useQuestionBank() {
     setTimeout(() => setCopiedId(null), 2000);
   }, []);
 
+  const handleUpdate = useCallback((updatedQuestion) => {
+    setRawQuestions((prev) =>
+      prev.map((q) => (q.id === updatedQuestion.id ? { ...q, ...updatedQuestion } : q))
+    );
+  }, []);
+
   // Multi-criteria sorting executed in-memory with useMemo
   const questions = useMemo(() => {
     const list = [...rawQuestions];
@@ -133,6 +139,7 @@ export function useQuestionBank() {
     loadQuestions,
     handleDelete,
     handleCopy,
+    handleUpdate,
     avgScore
   };
 }

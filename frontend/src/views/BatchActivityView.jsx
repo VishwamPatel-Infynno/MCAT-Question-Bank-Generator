@@ -121,18 +121,27 @@ export default function BatchActivityView({
 
   const hasActiveBatches = activeCount > 0 || batches.some((b) => b.status === 'in_progress');
 
-  // Auto-polling effect (every 2.5s if active batches, else 8s)
+  // Auto-polling effect (every 2.5s if active batches, else 8s, paused if window hidden)
   useEffect(() => {
     if (!autoRefresh) return;
 
     const intervalMs = hasActiveBatches ? 2500 : 8000;
 
     pollTimerRef.current = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       loadBatches(true);
     }, intervalMs);
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadBatches(true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [autoRefresh, hasActiveBatches, loadBatches]);
 

@@ -81,7 +81,6 @@ export default function App() {
     handleFinishBatch,
     handleDiscardQuestionInBatch,
     handleApplyPreset,
-    handleSelectFromBank,
     handleUpdateQuestionInBatch,
     handleUpdateSingleQuestion,
     isLaunchingBatch
@@ -198,7 +197,6 @@ export default function App() {
           <ErrorBoundary fallbackLabel="Question Bank">
             <Suspense fallback={<LazyLoadingSpinner label="Loading Question Bank..." />}>
               <QuestionBankView
-                onSelectQuestion={handleSelectFromBank}
                 onShowToast={showToast}
                 onNavigateToWizard={() => handleNavigateToWizard(1)}
               />

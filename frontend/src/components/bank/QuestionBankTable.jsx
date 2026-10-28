@@ -200,7 +200,7 @@ export default function QuestionBankTable({
                   onClick={() => onSelectQuestion(q)}
                   className="btn-secondary"
                   style={{ padding: '6px 12px', fontSize: '0.78rem', whiteSpace: 'nowrap', gap: '6px' }}
-                  title="Open in Question Generator"
+                  title="Open question in editorial desk inspector"
                 >
                   <Eye size={13} /> Open Question
                 </button>

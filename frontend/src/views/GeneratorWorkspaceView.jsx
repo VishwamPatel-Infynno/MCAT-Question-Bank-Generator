@@ -51,20 +51,23 @@ export default function GeneratorWorkspaceView({
   // 4. Skeleton preview during single question generation
   // 5. Clean empty idle state
   const isBatchMode = stagedQuestions.length > 0 || isGenerating;
+  const showVisualizer = isGenerating || stagedQuestions.length > 0 || (events && events.length > 0) || activeAgent !== 'Idle';
 
   return (
     <div style={{ maxWidth: '1040px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Multi-Agent Command Rail */}
-      <AgentVisualizer
-        activeAgent={activeAgent}
-        iterationCount={iterationCount}
-        events={events}
-        latestReview={latestReview}
-        isGenerating={isGenerating}
-        batchProgress={batchProgress}
-        perQuestionState={perQuestionState}
-        onCancel={handleCancelGeneration}
-      />
+      {/* Multi-Agent Command Rail — only rendered when generating, staged questions exist, or events occurred */}
+      {showVisualizer && (
+        <AgentVisualizer
+          activeAgent={activeAgent}
+          iterationCount={iterationCount}
+          events={events}
+          latestReview={latestReview}
+          isGenerating={isGenerating}
+          batchProgress={batchProgress}
+          perQuestionState={perQuestionState}
+          onCancel={handleCancelGeneration}
+        />
+      )}
 
       {/* Output: Rejection Card, Single Question Card, Staged Batch Review, Skeleton, or Empty State */}
       {rejectedData ? (

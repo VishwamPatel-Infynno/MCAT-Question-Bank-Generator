@@ -5,7 +5,7 @@
  * purely assembles the layout while this hook owns all stateful logic,
  * side-effects, and event handlers.
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTheme } from './useTheme';
 import { useGeneratorForm } from './useGeneratorForm';
 import { useQuestionGenerator } from './useQuestionGenerator';
@@ -130,7 +130,15 @@ export function useAppState() {
   }, [updateFields]);
 
   // ─── Batch & Counts Polling ───────────────────────────────────────────────
+  const activeBatchCountRef = useRef(0);
+  useEffect(() => {
+    activeBatchCountRef.current = activeBatchCount;
+  }, [activeBatchCount]);
+
   const refreshGlobalCounts = useCallback(() => {
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+      return;
+    }
     fetchBatches()
       .then((data) => {
         setActiveBatchCount(data.active_running_batches || 0);
@@ -148,8 +156,34 @@ export function useAppState() {
 
   useEffect(() => {
     refreshGlobalCounts();
-    const timer = setInterval(refreshGlobalCounts, 4000);
-    return () => clearInterval(timer);
+
+    let timer = null;
+    let isCancelled = false;
+
+    const scheduleNext = () => {
+      if (isCancelled) return;
+      // If there are running background batches, poll every 4s; otherwise idle poll at 30s
+      const delay = activeBatchCountRef.current > 0 ? 4000 : 30000;
+      timer = setTimeout(() => {
+        refreshGlobalCounts();
+        scheduleNext();
+      }, delay);
+    };
+
+    scheduleNext();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshGlobalCounts();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      isCancelled = true;
+      if (timer) clearTimeout(timer);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [refreshGlobalCounts]);
 
   // ─── Save State ───────────────────────────────────────────────────────────
@@ -213,19 +247,16 @@ export function useAppState() {
       require_passage_image: isVisualsPermitted && passageMode === 'single_passage'
     };
 
-    // All batches (both 5 Qs / 1 Job and 50 Qs / 10 Jobs) execute in background worker pool
-    if (totalQuestions === 50 || totalQuestions === 5) {
+    // Full Exam (50 questions across 10 jobs) runs in background worker pool
+    if (totalQuestions === 50) {
       if (isLaunchingBatch) return;
       setIsLaunchingBatch(true);
-      const isMini = totalQuestions === 5;
       startBackgroundBatch(payload)
         .then(() => {
           showToast({
             type: 'success',
-            title: isMini ? 'Mini-Batch (5 Questions) Launched' : '50-Question Batch Launched',
-            message: isMini
-              ? 'Generating 5 questions (1 Job) in the background (Global Worker Pool).'
-              : 'Generating 50 questions across 10 jobs in the background (Global Worker Pool).'
+            title: '50-Question Exam Batch Launched',
+            message: 'Generating 50 questions across 10 jobs in the background (Global Worker Pool).'
           });
           setActiveTab('batches');
           refreshActiveBatches();
@@ -243,6 +274,7 @@ export function useAppState() {
       return;
     }
 
+    // Practice Set (5 questions) streams live into Generator Workspace via SSE
     setViewMode('workspace');
     setIsQuestionSaved(false);
     setSavedQuestionIds(new Set());
@@ -251,10 +283,10 @@ export function useAppState() {
     const isPassageBatch = passageMode === 'single_passage' || selectedSection === 'cars';
     showToast({
       type: 'info',
-      title: 'Generation Started',
+      title: 'Practice Set Started',
       message: isPassageBatch
-        ? 'Drafting passage-based set linked to a shared reading passage...'
-        : 'Drafting independent discrete questions...'
+        ? 'Drafting 5-question passage set with real-time multi-agent telemetry...'
+        : 'Drafting 5 independent discrete questions with real-time multi-agent telemetry...'
     });
   }, [
     isGenerating,

@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Database, Sparkles } from 'lucide-react';
-import { batchDeleteQuestions } from '../services/api';
+import { Database, Sparkles, Eye, X } from 'lucide-react';
+import { batchDeleteQuestions, approveQuestion } from '../services/api';
 import { useQuestionBank } from '../hooks/useQuestionBank';
 import { PaginationBar } from '../components/common';
+import { QuestionCard } from '../components/question';
 import ExportPrintModal from '../components/modals/ExportPrintModal';
 import QuestionBankFilters from '../components/bank/QuestionBankFilters';
 import QuestionBankTable from '../components/bank/QuestionBankTable';
 
 
-export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavigateToWizard }) {
+export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
   const {
     questions,
     loading,
@@ -24,6 +25,7 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
     loadQuestions,
     handleDelete,
     handleCopy,
+    handleUpdate,
     avgScore
   } = useQuestionBank();
 
@@ -32,6 +34,42 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
   const [selectedIds, setSelectedIds] = useState([]);
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [inspectingQuestion, setInspectingQuestion] = useState(null);
+
+  const handleUpdateInspectedQuestion = async (updated) => {
+    try {
+      await approveQuestion(updated);
+      setInspectingQuestion(updated);
+      if (handleUpdate) handleUpdate(updated);
+      if (onShowToast) {
+        onShowToast({
+          type: 'success',
+          title: 'Changes Applied',
+          message: 'Question updated in Question Bank.'
+        });
+      }
+    } catch (err) {
+      console.error('Failed to update question in bank:', err);
+      if (onShowToast) {
+        onShowToast({
+          type: 'error',
+          title: 'Update Failed',
+          message: 'Could not save question updates to database.'
+        });
+      }
+    }
+  };
+
+  // Close inspection modal on Escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && inspectingQuestion) {
+        setInspectingQuestion(null);
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [inspectingQuestion]);
 
   const hasActiveFilters = Boolean(searchQuery.trim() || sectionFilter || diffFilter);
 
@@ -252,7 +290,7 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
           onToggleSelect={handleToggleSelect}
           onCopy={handleCopy}
           onDelete={handleDelete}
-          onSelectQuestion={onSelectQuestion}
+          onSelectQuestion={(q) => setInspectingQuestion(q)}
         />
       )}
 
@@ -287,6 +325,83 @@ export default function QuestionBankView({ onSelectQuestion, onShowToast, onNavi
           hasActiveFilters={hasActiveFilters}
           onShowToast={onShowToast}
         />
+      )}
+
+      {/* ── In-Place Question Inspection & Edit Dialog ────────────────────── */}
+      {inspectingQuestion && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setInspectingQuestion(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="bank-inspect-modal-title"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(8, 12, 20, 0.75)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+        >
+          <div
+            className="modal-card"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: '960px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              background: 'var(--bg-canvas)',
+              border: '1px solid var(--border-light)',
+              borderRadius: 'var(--radius-lg)',
+              boxShadow: 'var(--shadow-lg)',
+              padding: '24px',
+              position: 'relative'
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '16px',
+                paddingBottom: '12px',
+                borderBottom: '1px solid var(--border-light)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Eye size={18} color="var(--brand-primary)" />
+                <h3
+                  id="bank-inspect-modal-title"
+                  style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}
+                >
+                  Question Inspector &amp; Editorial Desk
+                </h3>
+              </div>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setInspectingQuestion(null)}
+                style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                title="Close Inspector (Esc)"
+              >
+                <X size={14} />
+                <span>Close</span>
+                <span className="kbd-hint" style={{ fontSize: '0.62rem' }}>Esc</span>
+              </button>
+            </div>
+
+            <QuestionCard
+              question={inspectingQuestion}
+              isSaved={true}
+              onUpdateQuestion={handleUpdateInspectedQuestion}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
