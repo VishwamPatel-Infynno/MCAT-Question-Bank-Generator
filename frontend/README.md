@@ -14,7 +14,7 @@ The frontend provides an intuitive, real-time command canvas for AAMC MCAT quest
 - **2 Calibrated Generation Scopes**:
   - **Practice Set (5 Qs)**: 1 Single Job background worker drafting on a shared passage or discrete set (~35-50s) streamed into the AI Validated Bank and Batch Activity Desk with live telemetry.
   - **Full Exam (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
-- **Live AI Team with Fused Draft-and-Critique**: Animated live tracker displaying the AI pipeline milestones (**Question Writer & Reviewer** with fused 100-pt self-critique for ~40% faster generation, **Question Improver** with smart status indicators, and **Diagram & Chart Maker**) with electric conduit telemetry.
+- **Live Pipeline with 4 Editorial Milestones**: Animated live tracker displaying the review milestones (**Drafting & Review**, **Answer Check**, **Question Polish**, and **Figures & Diagrams**) with electric conduit telemetry.
 - **Staged Batch Review & Approval**: Interactive batch staging deck allowing educators to inspect, edit, discard, or approve multiple generated items before saving to the database.
 - **Question Quality & Cost Breakdown**: Comprehensive 100-point 4-pillar quality check with itemized token tracking and micro-dollar cost calculations.
 - **Export & Print Studio**: Professional modal for exporting PDF Exam Papers (with candidate headers and page breaks), Study Packs, CSV, and JSON bundles.
@@ -28,11 +28,11 @@ The frontend provides an intuitive, real-time command canvas for AAMC MCAT quest
 frontend/src/
 ├── views/                        # Top-level application view screens (code-split)
 │   ├── index.js                  # Views barrel export
-│   ├── AiValidatedQuestionsView.jsx # Dedicated AI-Validated (>90) quality bank
-│   ├── BatchActivityView.jsx     # Live & historical batch monitoring dashboard
-│   ├── GeneratorWorkspaceView.jsx# Interactive exam generation & pipeline workspace
-│   ├── PassageBankView.jsx       # Passage stimuli repository & editorial desk
-│   └── QuestionBankView.jsx      # Verified Question Bank view & repository table
+│   ├── AiValidatedQuestionsView.jsx # Dedicated review deck for AI-validated items (Review Queue)
+│   ├── BatchActivityView.jsx     # Live & historical batch monitoring dashboard (Batch Progress)
+│   ├── GeneratorWorkspaceView.jsx# Interactive exam generation & pipeline workspace (Create Questions)
+│   ├── PassageBankView.jsx       # Reading passages repository & editorial desk (Passage Bank)
+│   └── QuestionBankView.jsx      # Verified Question Bank view & editorial cards (Question Bank)
 ├── components/
 │   ├── index.js                  # Centralized barrel export for all components
 │   ├── bank/
@@ -68,11 +68,13 @@ frontend/src/
 │   │   ├── index.js              # Passage bank barrel export
 │   │   ├── PassageBankFilters.jsx# Passage search, section, and difficulty filters
 │   │   ├── PassageBankTable.jsx  # Passage stimuli repository cards & question sets
-│   │   └── PassageEditorialDesk.jsx # Reading passage editor & preview desk
+│   │   ├── PassageEditorialDesk.jsx # Reading passage editor & preview desk
+│   │   ├── PassageLinkedQuestionCard.jsx # Linked question card within passage editorial desk
+│   │   └── PassageVisualStimulusEditor.jsx # Passage diagram & figure attachment editor
 │   ├── pipeline/
 │   │   ├── index.js              # Pipeline barrel export
 │   │   ├── AgentVisualizer.jsx   # Live generating telemetry & compact stepper
-│   │   ├── MultiAgentPipelineVisualizer.jsx # 3-Milestone pipeline architecture & conduit visualizer
+│   │   ├── MultiAgentPipelineVisualizer.jsx # 4-Milestone pipeline visualizer with electric conduits
 │   │   └── RejectionCard.jsx     # Diagnostic display when score fails threshold
 │   ├── question/
 │   │   ├── index.js              # Question review desk barrel export
@@ -93,14 +95,6 @@ frontend/src/
 │   │   ├── StagedDetailedView.jsx# Expanded single question review panel
 │   │   ├── StagedQuestionSlotCard.jsx # Individual question slot reviewer card
 │   │   └── StagedSlotSkeleton.jsx# Slot loading pulse skeleton
-│   ├── batch/
-│   │   ├── index.js              # Batch barrel export
-│   │   ├── ActiveMultiBatchMonitor.jsx # Global concurrency metrics & live multi-batch controller
-│   │   ├── BatchCard.jsx         # Summary status card for generation batches
-│   │   ├── BatchFiltersBar.jsx   # Section, status, and search filters
-│   │   ├── BatchJobCard.jsx      # Per-question job card with lifecycle status
-│   │   ├── BatchQuestionItem.jsx # Staged question item with review modal
-│   │   └── BatchStatsHeader.jsx  # High-level aggregate batch statistics
 │   ├── validated/
 │   │   ├── index.js              # AI Validated barrel export
 │   │   ├── AiValidatedFiltersBar.jsx # Filters for AI-validated questions

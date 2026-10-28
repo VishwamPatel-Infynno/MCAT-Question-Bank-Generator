@@ -230,10 +230,10 @@ The streaming execution pipeline is implemented in [`backend/app/workflow/engine
 
 The backend utilizes an asynchronous worker pool managed by [`backend/app/services/batch_runner.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/services/batch_runner.py) supporting 2 calibrated Generation Scopes governed by the unified 5-question Job architecture:
 
-1. **Mini-Batch (5 Questions, 1 Single Job)**:
+1. **Practice Set (5 Questions, 1 Single Job)**:
    - Dispatches a single background worker job comprising 5 questions linked to a shared reading passage (or 5 discretes).
    - Generates and self-audits within ~35-50s, streaming real-time status and automatically staging passing items (`score > 90`) into the **AI Validated** bank (`status = 'ai_validated'`).
-2. **Full Mock Section (50 Questions, 10 Parallel Jobs)**:
+2. **Full Exam (50 Questions, 10 Parallel Jobs)**:
    - Enterprise background batch spawning 10 parallel jobs (5 questions each) across the global worker pool.
    - Automatically provisions shared passages per job, coordinates concurrent inference calls under rate-limit semaphores, and dynamically aggregates batch completion metrics.
 
@@ -243,7 +243,7 @@ graph TD
     API --> Runner[launch_background_batch]
     
     Runner --> BatchDB[Create Batch Record in DB]
-    Runner --> JobDB[Create Job Records in DB: 1 for Mini-Batch, 10 for Full Section]
+    Runner --> JobDB[Create Job Records in DB: 1 for Practice Set, 10 for Full Exam]
     Runner --> BackgroundTask[Spawn Async Background Worker Pool]
     
     API -->> Client|202 Accepted + Batch/Job UUIDs| Client
@@ -301,7 +301,7 @@ Every question in the system progresses through an explicit lifecycle state:
 ```mermaid
 stateDiagram-v2
     [*] --> ai_validated: Background Batch Generation (Score > 90)
-    [*] --> staged: Real-Time SSE Single / Mini-Batch Generation
+    [*] --> staged: Real-Time SSE Single / Practice Set Generation
     
     staged --> in_bank: Admin Approves Candidate
     staged --> discarded: Admin Discards Candidate
@@ -433,6 +433,11 @@ erDiagram
     }
 ```
 
+### 6.3 Passage Entity Lifecycle & Non-Destructive Unlinking
+When multiple questions are generated as a passage set, they share a foreign key reference (`passage_id`) pointing to the parent `PASSAGES` record:
+- **Passage Association**: Educators can browse shared passages in the Passage Bank and inspect all linked questions simultaneously.
+- **Non-Destructive Deletion (`DELETE /api/passages/{passage_id}`)**: When an administrator deletes a reading passage via `delete_passage`, the database repository explicitly unlinks the associated questions by setting their `passage_id = None`. The questions remain fully intact and accessible in the Question Bank as independent practice items, preventing accidental content loss.
+
 ---
 
 ## 7. Export & Print Studio Architecture
@@ -519,6 +524,8 @@ frontend/src/
 │   │   ├── PassageBankFilters.jsx# Passage search, section, and difficulty filters
 │   │   ├── PassageBankTable.jsx  # Passage stimuli repository cards & question sets
 │   │   ├── PassageEditorialDesk.jsx # Reading passage editor & preview desk
+│   │   ├── PassageLinkedQuestionCard.jsx # Linked question card within passage editorial desk
+│   │   ├── PassageVisualStimulusEditor.jsx # Passage diagram & figure attachment editor
 │   │   └── index.js              # Passage bank barrel export
 │   ├── bank/                     # Question Bank repository
 │   │   ├── QuestionBankFilters.jsx # Section, difficulty (Low/Medium/High), and search filters

@@ -14,12 +14,12 @@ The backend is engineered with clear separation of concerns across presentation,
 ```
 backend/
 ├── app/
-│   ├── api/                 # Presentation Layer (HTTP & SSE Routers)
+│   ├── api/                 # Presentation Layer (HTTP & SSE Routers - 28 operations across 22 paths)
 │   │   ├── router.py        # Central API v1 router aggregator
 │   │   └── v1/
 │   │       ├── generation.py # SSE streaming multi-agent orchestrator endpoint
 │   │       ├── questions.py  # Question Bank CRUD, review approval, status updates, CSV/JSON exports
-│   │       ├── passages.py   # Shared clinical stimulus passages endpoints
+│   │       ├── passages.py   # Shared clinical stimulus passages endpoints (list, retrieve, save, delete)
 │   │       ├── batches.py    # Multi-question batch execution run endpoints & background launcher
 │   │       ├── taxonomy.py   # AAMC syllabus hierarchy & dependent taxonomy tree endpoints
 │   │       ├── config.py     # Read-only runtime engine configuration & pricing
@@ -43,7 +43,7 @@ backend/
 │   │   ├── mock_fixtures.py # Deterministic fallback fixtures for offline resilience
 │   │   └── base.py          # LiteLLM execution wrapper & sub-micro-cent token cost engine
 │   ├── services/            # Background Worker & Asynchronous Services
-│   │   └── batch_runner.py  # Background pool managing 1-job mini-batches (5 Qs) and 10-job mock runs (50 Qs)
+│   │   └── batch_runner.py  # Background pool managing Practice Sets (1-job, 5 Qs) and Full Exams (10-job, 50 Qs)
 │   ├── repositories/        # Data Access Layer (DAL)
 │   │   ├── question_repository.py # Clean CRUD, idempotent batch counter updates, hybrid FTS & token analytics
 │   │   ├── batch_repository.py    # Staged batch run queries & persistence

@@ -22,8 +22,8 @@ Most off-the-shelf generative AI setups produce flawed test questions for four r
 The **Infynno MCAT Question Bank Generator v2.0** solves these challenges with five core pillars:
 
 - **Calibrated Multi-Tier Generation Scopes**:
-  - **Mini-Batch (5 Qs)**: Rapid background worker drafting on a shared passage or discrete set (~35-50s) streamed into the AI Validated Bank and Batch Activity Desk with live telemetry.
-  - **Full Mock Section (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
+  - **Practice Set (5 Qs)**: Rapid background worker drafting on a shared passage or discrete set (~35-50s) streamed into the AI Validated Bank and Batch Activity Desk with live telemetry.
+  - **Full Exam (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
 - **Binary Passage Architecture**: In a generation run, the studio generates either:
   - **Passage-Based Set**: 1 comprehensive scientific or rhetoric passage linked to all questions in the set; OR
   - **Independent Discretes**: Standalone scientific stems with zero stimulus text.
@@ -67,9 +67,9 @@ The workstation provides an interactive **Streamlined 3-Step Guided Wizard** doc
    - **Question Breakdown**: Calibrate single-choice and multi-choice proportions.
 3. **Step 3: Review & Launch (with Advanced Calibration)**:
    - **Compact Parameter Summary Table**: Review selected section, topics, difficulty, and question count at a glance in a high-density tabular summary card.
+   - **Dedicated Scientific Diagrams & Reaction Schemes Toggle Card**: Prominently positioned for all natural science sections with full-card clickability and animated pill switch, allowing educators to immediately enable or disable programmatic SVG diagrams and reaction schemes without opening advanced menus.
    - **Expandable Advanced Accordion**: Collapsible drawer giving fine-grained control over:
-     - *Scientific Figures & Visual Stimuli*: Enable/disable autonomous AI visual diagrams (reaction coordinates, Western blots, anatomical pathways).
-     - *Cognitive Distractor Traps*: Multi-select official AAMC cognitive traps (Formula Trap, Extreme Quantifiers, False Causation).
+     - *Cognitive Distractor Traps*: Multi-select official AAMC cognitive traps (Formula Trap, Extreme Quantifiers, False Causation, etc.).
      - *AAMC Reasoning Skills*: Target specific SIRS reasoning skills (Skill 1–4) and likely student mistake patterns.
    - **Unified Launch Action**: Launch real-time SSE streaming for practice sets or dispatch enterprise background mock runs.
 
@@ -151,7 +151,8 @@ $$\text{Total Cost} = \left(\frac{\text{Input Tokens}}{1{,}000{,}000} \times \$0
   - **1-Click Batch Stop**: Educators can pause a 50-question mock run at any time without losing items already generated and validated.
   - **1-Click Batch Retry**: If a job encounters temporary network latency, educators can re-launch incomplete jobs with a single click, picking up immediately from the exact point of interruption.
 - **Dedicated Application Views**: Seamlessly navigate between:
-  1. **Generator Workspace**: Interactive exam generation & pipeline workspace with AAMC Split-Pane mode.
-  2. **AI Validated Bank**: High-quality items (>90 points) awaiting one-click educator publishing.
-  3. **Question Bank**: Primary verified repository strictly presented in high-density **Editorial Cards** (with search, multi-factor filtering, in-place inline editing, bulk deletion, and PDF/CSV/JSON export; legacy table grid mode removed).
-  4. **Batch Activity**: Real-time monitor tracking background 50-question mock runs with live worker metrics.
+  1. **Create Questions (`GeneratorWorkspaceView.jsx`)**: Interactive exam generation & pipeline workspace with AAMC Split-Pane reading mode.
+  2. **Batch Progress (`BatchActivityView.jsx`)**: Real-time monitor tracking running batch jobs, per-job question counts, status indicators, and background worker progress.
+  3. **Review Queue (`AiValidatedQuestionsView.jsx`)**: High-quality items (>90 points) awaiting one-click educator publishing into the Question Bank.
+  4. **Question Bank (`QuestionBankView.jsx`)**: Primary verified repository strictly presented in high-density **Editorial Cards** (with search, multi-factor filtering, in-place inline editing, bulk deletion, and PDF/CSV/JSON export; legacy table grid mode removed).
+  5. **Passage Bank (`PassageBankView.jsx`)**: Comprehensive repository of reading passages and research narratives. Features the interactive **Passage Editorial Desk** for live editing of passage content, attaching and previewing figures/diagrams (`PassageVisualStimulusEditor.jsx`), reviewing all linked practice questions (`PassageLinkedQuestionCard.jsx`), and safe single-click passage deletion with automatic question unlinking.

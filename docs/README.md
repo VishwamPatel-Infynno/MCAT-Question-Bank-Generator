@@ -41,7 +41,7 @@ graph TD
 | :--- | :--- | :--- |
 | **[Client System & Workflow Guide](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)** | Product Stakeholders, Medical Admissions Educators | End-to-end operational walkthrough: 3-step Guided Wizard, 2 calibrated generation scopes (Practice Set [5 Qs] and Full Exam [50 Qs]), Low/Medium/High challenge levels, Blind-Solver safeguard, AAMC Split-Pane reading mode, canonical Editorial Cards Question Bank, 3-card mentor explanations, and financial transparency. |
 | **[System Architecture & Workflow](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/ARCHITECTURE.md)** | System Architects, AI Engineers | Multi-agent LangGraph StateGraph, Fused Draft-and-Critique engine, Blind-Solver Dual Validation agent, Autonomous Remediation loop, Strict Quality Gate, Two-Tier quality threshold model, Global Concurrency Semaphores, PostgreSQL 16 ERD, and batch execution pipeline. |
-| **[REST & SSE API Reference](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/API.md)** | Full-Stack & API Developers | Comprehensive reference of all 27 REST & SSE operations across 22 endpoint paths, request/response models, batch controls (`/start`, `/stop`, `/retry`, `/cancel-all`), lifecycle transitions, and cURL examples. |
+| **[REST & SSE API Reference](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/API.md)** | Full-Stack & API Developers | Comprehensive reference of all 28 REST & SSE operations across 22 endpoint paths, request/response models, batch controls (`/start`, `/stop`, `/retry`, `/cancel-all`), lifecycle transitions, and cURL examples. |
 | **[Testing & Quality Assurance Guide](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md)** | QA Engineers, DevOps, Full-Stack Developers | Full technical specification of the 48 passing deterministic unit/integration tests across 10 modules, 15 TestSprite Playwright E2E browser tests (100% pass rate), Ruff & Oxlint zero-defect policies, and CI pipeline workflows. |
 | **[Token Usage & Cost Tracking](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TOKEN_TRACKING.md)** | Finance, DevOps, Developers | DeepInfra pricing rate card ($0.098 input / $0.294 output per 1M tokens), FLUX image pricing ($0.014/unit), exact sub-micro-cent mathematical formulas, Blind-Solver token tracking, and UI observability. |
 | **[Installation, Setup & Deployment](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/SETUP_AND_CONFIG.md)** | DevOps, QA Engineers, Developers | Complete environment provisioning: Docker PostgreSQL 16 setup, virtual environment, all 34 configuration parameters, automated verification (48 unit tests), production servers, and FAQs. |
@@ -64,7 +64,7 @@ Find the most relevant starting point based on your objective:
 
 ### 2. Full-Stack / Backend Engineer
 - Start with **[ARCHITECTURE.md](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/ARCHITECTURE.md)** to understand the LangGraph state machine, Blind-Solver validation, and global concurrency semaphores.
-- Consult **[API.md](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/API.md)** for exact specifications of all 27 operations across 22 endpoint paths.
+- Consult **[API.md](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/API.md)** for exact specifications of all 28 operations across 22 endpoint paths.
 - Refer to **[backend/README.md](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/README.md)** for local development, repositories, and testing.
 
 ### 3. Frontend & UI Engineer
@@ -84,7 +84,7 @@ Find the most relevant starting point based on your objective:
 
 | Layer | Technologies | Key Responsibilities |
 | :--- | :--- | :--- |
-| **Backend Framework** | **Python 3.11+**, **FastAPI 0.115+**, **Uvicorn** | Asynchronous REST endpoints (27 operations), SSE event streaming, security headers. |
+| **Backend Framework** | **Python 3.11+**, **FastAPI 0.115+**, **Uvicorn** | Asynchronous REST endpoints (28 operations), SSE event streaming, security headers. |
 | **Workflow Engine** | **LangGraph 0.2+**, **LiteLLM 1.50+** | Multi-agent state graph, fused draft & self-critique, Blind-Solver dual-validation, autonomous remediation loop. |
 | **Persistence Tier** | **PostgreSQL 16**, **SQLAlchemy 2.0 (Async)**, **asyncpg** | Normalized 4-entity model (Passages, Batches, Jobs, Questions), connection pooling (`pool_size=20`), JSONB storage, hybrid FTS. |
 | **Frontend Framework**| **React 19**, **Vite 8** | Modern reactive workstation, single-canvas studio, AAMC Split-Pane reading mode, real-time live telemetry. |

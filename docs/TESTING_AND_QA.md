@@ -110,7 +110,7 @@ pytest backend/tests/test_e2e_live.py -v -m live_e2e
    - `test_question_status_lifecycle_and_counts`: Verifies question lifecycle counts and transitions.
 3. **`test_batch_jobs_flow.py` (2 tests)**:
    - `test_batch_and_jobs_lifecycle`: End-to-end multi-job batch lifecycle (10 jobs x 5 questions = 50 total).
-   - `test_mini_batch_lifecycle`: Validates single-job mini-batch lifecycle (1 job x 5 questions).
+   - `test_mini_batch_lifecycle`: Validates single-job Practice Set lifecycle (1 job x 5 questions).
 4. **`test_database_structure.py` (6 tests)**:
    - `test_database_schema_initialization`: Verifies PostgreSQL tables, columns, and foreign key relations.
    - `test_passage_auto_sync_and_retrieval`: Validates passage synchronization and caching.

@@ -162,10 +162,10 @@ This delivers global repository cost and token totals directly to the Question B
 
 ## 6. UI Observability & User Experience
 
-Token and cost data is surfaced across all 4 top-level views and specialized domain components in the frontend:
+Token and cost data is surfaced across all 5 top-level views and specialized domain components in the frontend:
 
-### 1. Multi-Agent Pipeline Stepper ([`MultiAgentPipelineVisualizer.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/pipeline/MultiAgentPipelineVisualizer.jsx))
-- **3-Milestone Live Stepper**: Tracks live computational usage across `Question Writer & Reviewer`, `Question Improver`, and `Diagram & Chart Maker`.
+### 1. Multi-Agent Pipeline Visualizer ([`MultiAgentPipelineVisualizer.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/pipeline/MultiAgentPipelineVisualizer.jsx))
+- **4-Milestone Pipeline Visualizer**: Tracks live computational usage across the four milestones: `Drafting & Review`, `Answer Check`, `Question Polish`, and `Figures & Diagrams`.
 - **Cumulative Header Badge**: Displays running totals during live generation:
   `🪙 2,850 tokens • $0.00053`
 - **Per-Agent Step Badges**: Each agent node shows its specific cycle tokens, cost, and status.

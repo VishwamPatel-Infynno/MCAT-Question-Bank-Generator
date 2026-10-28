@@ -16,7 +16,7 @@ This document provides a comprehensive technical reference for all REST endpoint
 
 ---
 
-## 2. API Endpoints Summary (27 Operations / 22 Endpoint Paths)
+## 2. API Endpoints Summary (28 Operations / 22 Endpoint Paths)
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -34,6 +34,7 @@ This document provides a comprehensive technical reference for all REST endpoint
 | `GET` | `/api/passages` | Lists shared reading passages with query filtering and question counts |
 | `GET` | `/api/passages/{passage_id}` | Retrieves a single reading passage along with all its linked questions |
 | `POST` | `/api/passages` | Admin endpoint to create or update a shared reading passage record |
+| `DELETE` | `/api/passages/{passage_id}` | Admin endpoint to delete a reading passage record and unlink associated questions |
 | `GET` | `/api/batches` | Lists generation batches with active running counts and global concurrency metrics |
 | `GET` | `/api/batches/{batch_id}` | Retrieves a generation batch with all 10 jobs and grouped questions |
 | `POST` | `/api/batches/start` | Launches an asynchronous background batch generation (10 jobs x 5 questions = 50 total) |
@@ -55,7 +56,7 @@ This document provides a comprehensive technical reference for all REST endpoint
 ### 3.1 Start Multi-Agent Generation (SSE Stream)
 `POST /api/generate`
 
-Initiates the multi-agent generation and psychometric evaluation workflow. Returns a live Server-Sent Events stream delivering step-by-step agent telemetry, intermediate drafts, review rubrics, token usage, and candidate question payloads. Supports single-item and live mini-batch generation.
+Initiates the multi-agent generation and psychometric evaluation workflow. Returns a live Server-Sent Events stream delivering step-by-step agent telemetry, intermediate drafts, review rubrics, token usage, and candidate question payloads. Supports single-item and live practice set generation.
 
 #### Request Headers
 ```http
@@ -601,11 +602,19 @@ Admin endpoint to create or update a generation batch entity directly in Postgre
 ---
 
 ### 3.20 Passages Management Endpoints
-`GET /api/passages` | `GET /api/passages/{passage_id}` | `POST /api/passages`
+`GET /api/passages` | `GET /api/passages/{passage_id}` | `POST /api/passages` | `DELETE /api/passages/{passage_id}`
 
-- **List Passages (`GET /api/passages`)**: Lists reading passages with optional `section`, `subtopic`, and `search` filters.
+- **List Passages (`GET /api/passages`)**: Lists reading passages with optional `section`, `subtopic`, and `search` query parameters.
 - **Get Single Passage (`GET /api/passages/{passage_id}`)**: Retrieves a reading passage along with its complete array of linked questions.
 - **Create/Update Passage (`POST /api/passages`)**: Admin endpoint to persist or modify a shared stimulus passage.
+- **Delete Passage (`DELETE /api/passages/{passage_id}`)**: Admin endpoint to delete a reading passage record and unlink its associated questions in the Question Bank without deleting the questions themselves.
+
+#### Query Parameters for Listing Passages (`GET /api/passages`)
+| Parameter | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `section` | `string` | No | Filter by section (`chem_phys`, `cars`, `bio_biochem`, `psych_soc`) |
+| `subtopic` | `string` | No | Filter by specific subtopic / foundational concept |
+| `search` | `string` | No | Search query matching passage text or subtopic |
 
 #### Single Passage Response (`GET /api/passages/{passage_id}`)
 ```json
@@ -619,10 +628,30 @@ Admin endpoint to create or update a generation batch entity directly in Postgre
     "created_at": "2026-10-26T12:00:00Z"
   },
   "questions": [
-    { "id": "q-1", "question_stem": "The author's central thesis...", ... },
-    { "id": "q-2", "question_stem": "Based on paragraph 3...", ... }
+    { "id": "q-1", "question_stem": "The author's central thesis...", "status": "in_bank" },
+    { "id": "q-2", "question_stem": "Based on paragraph 3...", "status": "in_bank" }
   ]
 }
+```
+
+#### Delete Passage Response (`DELETE /api/passages/{passage_id}`)
+```json
+{
+  "success": true,
+  "deleted_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+#### Delete Passage Error Response (`404 Not Found`)
+```json
+{
+  "detail": "Passage not found"
+}
+```
+
+#### cURL Example for Passage Deletion
+```bash
+curl -X DELETE "http://localhost:8000/api/passages/550e8400-e29b-41d4-a716-446655440000"
 ```
 
 ---

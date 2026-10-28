@@ -68,13 +68,13 @@ pnpm build
    - Text: $0.098 input / $0.294 output per 1M tokens.
    - Image: Flat baseline rate of $0.014 USD per image (scaled by $(\text{width}/1024) \times (\text{height}/1024)$).
 4. **Modular Layer Separation**:
-   - Routing: `backend/app/api/v1/` (27 operations across 22 endpoint paths)
+   - Routing: `backend/app/api/v1/` (28 operations across 22 endpoint paths)
    - Business/Agent Logic: `backend/app/agents/` (Generator, Blind Solver, Reviewer, Regenerator, Visuals)
    - Data Access Layer: `backend/app/repositories/`
    - Database Entities: `backend/app/models/`
    - Background Services: `backend/app/services/` (`batch_runner.py` with global job semaphores)
-   - Frontend: Top-level views (`views/`) with feature-based component directories (`wizard/`, `pipeline/`, `question/`, `staged/`, `bank/`, `batch/`, `validated/`, `layout/`, `modals/`, `common/`) and centralized hooks/constants.
-5. **3-Step AI Pipeline & Cognitive Fusion**: Milestone 01 fuses item authoring and 100-point rubric self-critique (`Question Writer & Reviewer`) into a single pass (~40% faster). Only drafts scoring $\le 90$ or failing blind-solver verification trigger Milestone 02 remediation (`Question Improver`), while Milestone 03 renders visual stimuli (`Diagram & Chart Maker`).
+   - Frontend: Top-level views (`views/`) with feature-based component directories (`wizard/`, `pipeline/`, `question/`, `passage/`, `staged/`, `bank/`, `batch/`, `validated/`, `layout/`, `modals/`, `common/`) and centralized hooks/constants.
+5. **Multi-Agent Pipeline & Cognitive Fusion**: Step 01 fuses item authoring and 100-point rubric self-critique (`Drafting & Review`) into a single pass. Step 02 executes independent dual validation (`Answer Check`). Step 03 executes remediation (`Question Polish`) for drafts scoring $\le 90$ or failing verification, while Step 04 renders visual stimuli (`Figures & Diagrams`).
 6. **AAMC Dual Split-Pane Reading Mode**: Ensures dense scientific research passages and CARS essays are presented side-by-side with sticky scrolling and synchronized candidate review.
 7. **Option Symmetry & Anti-AI Standard**: Enforce $\pm 15\%$ option length parity across strictly 4 options ($A, B, C, D$) and single hyphens (`-`) only; em dashes (`—`) and en dashes (`–`) are strictly forbidden across prompts and generation output.
 

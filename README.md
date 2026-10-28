@@ -19,7 +19,7 @@ For deep-dive technical specifications, architecture diagrams, API schemas, and 
 | **[Client System & Workflow Guide (docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)](docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)** | **Primary Client Deliverable**: End-to-end operational walkthrough, 3-step wizard, 2 calibrated generation scopes (Practice Set [5 Qs] and Full Exam [50 Qs]), Low/Medium/High difficulty tiers, Blind-Solver safeguard, AAMC Split-Pane reading mode, canonical Editorial Cards Question Bank, mentor explanations, and token transparency. |
 | **[UI/UX Design System (DESIGN.md)](DESIGN.md)** | Authoritative design tokens, dual obsidian/alabaster themes, streamlined 3-step wizard specs, canonical Question Bank Editorial Cards view, AAMC Dual Split-Pane reading mode, accessible modal focus-trapping contracts, typography scale, component contracts, accessibility criteria (WCAG AA), and micro-animations. |
 | **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 3-step pipeline specifications, Blind-Solver Dual Validation, Strict Quality Gate, Two-Tier quality threshold model, global worker semaphores, background batch runner, SSE pipeline, and PostgreSQL 16 ERD. |
-| **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation (27 operations across 22 endpoint paths), batch generation schemas, batch controls (`/stop`, `/retry`, `/cancel-all`), SSE event stream contracts, filter parameters, and cURL examples. |
+| **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation (28 operations across 22 endpoint paths), batch generation schemas, batch controls (`/stop`, `/retry`, `/cancel-all`), SSE event stream contracts, filter parameters, and cURL examples. |
 | **[Testing & Quality Assurance Guide](docs/TESTING_AND_QA.md)** | Complete test specifications for the 48 passing deterministic unit/integration tests, 15 TestSprite Playwright automated E2E browser tests (100% pass rate), Ruff & Oxlint code hygiene standards, and CI pipeline. |
 | **[Token Usage & Cost Tracking](docs/TOKEN_TRACKING.md)** | High-throughput rate card ($0.098 in / $0.294 out per 1M tokens), exact mathematical cost formulas, multi-agent accumulation, and UI observability. |
 | **[Installation, Setup & Deployment](docs/SETUP_AND_CONFIG.md)** | Step-by-step setup, Docker PostgreSQL 16 guide, environment variables reference (34 parameters), production deployment, linters, and troubleshooting. |
@@ -67,7 +67,7 @@ graph LR
 - **Micro-Dollar Tracking**: Every request computes exact USD costs:
   $$\text{Cost (USD)} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times 0.098\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times 0.294\right)$$
 - **Granular Observability**:
-  - Live 3-milestone pipeline stepper with active stopwatch, smart status indicators (*Passed (90+ Standard)*, *Text-Only (No Diagram Needed)*), and collapsible SSE telemetry tray.
+  - Live 4-milestone pipeline visualizer with active stopwatch, everyday status indicators (*Passed quality check*, *No figure needed*), and collapsible event log tray.
   - QuestionCard badges displaying total tokens and cost.
   - Psychometric Review Audit Modal itemized table showing prompt tokens, completion tokens, and cost per agent cycle.
   - Question Bank metrics strip tracking accumulated repository-wide tokens and total expenditure.
@@ -172,7 +172,7 @@ Question Bank Generator/
 ├── docs/                        # Comprehensive Documentation Suite
 │   ├── README.md                # Master Documentation Index & role-based sitemap
 │   ├── ARCHITECTURE.md          # Multi-agent architecture, Blind-Solver & LangGraph StateGraph
-│   ├── API.md                   # Complete REST & SSE API specification (27 operations / 22 paths)
+│   ├── API.md                   # Complete REST & SSE API specification (28 operations / 22 paths)
 │   ├── CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md # Client system & operational workflow guide
 │   ├── TESTING_AND_QA.md        # Pytest test suite & TestSprite Playwright E2E specifications
 │   ├── TOKEN_TRACKING.md        # Inference pricing & mathematical cost engine
@@ -336,10 +336,12 @@ Question Bank Generator/
         │   │   ├── PassageBankFilters.jsx # Passage search & section filters
         │   │   ├── PassageBankTable.jsx   # Passage repository table & question sets
         │   │   ├── PassageEditorialDesk.jsx # Reading passage editor & preview desk
+        │   │   ├── PassageLinkedQuestionCard.jsx # Linked question card within passage desk
+        │   │   ├── PassageVisualStimulusEditor.jsx # Passage diagram & figure attachment editor
         │   │   └── index.js
-        │   ├── pipeline/        # AI Pipeline visualizers
+        │   ├── pipeline/        # Pipeline visualizers
         │   │   ├── AgentVisualizer.jsx  # Live generating telemetry & compact stepper
-        │   │   ├── MultiAgentPipelineVisualizer.jsx # 3-Milestone pipeline conduit visualizer
+        │   │   ├── MultiAgentPipelineVisualizer.jsx # 4-Milestone pipeline visualizer with conduits
         │   │   ├── RejectionCard.jsx    # Diagnostic display when score fails threshold
         │   │   └── index.js
         │   ├── question/        # Single Question Review Desk

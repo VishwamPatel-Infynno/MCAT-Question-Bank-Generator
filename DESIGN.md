@@ -127,12 +127,14 @@ Streamlined 3-step authoring workflow:
 - **Step 3: Review & Advanced Calibration (`WizardStep3ReviewAdvanced.jsx`)**: Clean high-density review interface featuring a compact summary table of selected parameters, a dedicated prominent **Scientific Diagrams & Reaction Schemes** toggle card (visible for all science sections with full-card interactivity and pill switch), an expandable **Advanced Configuration** accordion (controlling cognitive distractor traps, reasoning skills, and student misconception targets), and a prominent launch action.
 
 ### 4.2 Multi-Agent Conduit Telemetry (`MultiAgentPipelineVisualizer.jsx`)
-- Three connected functional milestones (**Question Writer & Reviewer**, **Question Improver**, **Diagram & Chart Maker**).
-- **Grid Layout**: Structured via `.pipeline-stepper` as a balanced 3-column grid (`grid-template-columns: repeat(3, 1fr); gap: 10px;`) with single-column responsive stacking on viewports $\le 768\text{px}$.
-- **Fused Acceleration Badging**: Step 01 features the *"Fused Drafting & 100-pt Audit"* milestone with the *"~40% Faster"* efficiency tag, highlighting the single-pass authoring and instant audit breakthrough.
-- **Smart Conditional State Indicators**: Step 02 displays *"Passed (90+ Standard)"* when drafts exceed the strict quality threshold on the first pass; Step 03 displays *"Text-Only (No Diagram Needed)"* for questions without visual figures.
-- Conduits between nodes feature an animated electric gradient pulse (`conduit-flow-active`) during active streaming.
-- Collapsible SSE telemetry drawer displaying raw event stream timestamps, event types, token metrics, and per-step costs.
+- Four connected functional milestones presented in natural editorial language:
+  1. **Drafting & Review (01)**: Drafts question stem, 4 symmetric options, verified key, and initial quality score.
+  2. **Answer Check (02)**: Double-checks question independently without key access, verifying a single unambiguous correct answer.
+  3. **Question Polish (03)**: Automatically refines distractor choices and pedagogical explanations if score $\le 90$ or answer ambiguity is detected. Displays *"Passed quality check"* when first-pass draft meets the standard.
+  4. **Figures & Diagrams (04)**: Renders scientific reaction mechanisms, optics, or metabolic charts. Displays *"No figure needed"* for text-only questions.
+- **Grid Layout**: Structured via `.pipeline-stepper` with fluid responsive column wrapping (`gap: 10px;`) and single-column responsive stacking on mobile viewports ($\le 768\text{px}$).
+- Conduits between nodes feature an animated electric gradient pulse (`conduit-flow-active`) during active generation.
+- Collapsible event logs drawer displaying live step timestamps, milestones, token metrics, and per-step costs.
 
 ### 4.3 Editorial Review Desk & AAMC Dual Split-Pane Mode (`QuestionCard.jsx`, `StagedBatchReview.jsx`)
 - **Top Metadata Strip**: Displays section badge, difficulty chip, dual score pills (AAMC Scaled Score `118-132` + 100-pt Audit Score), AAMC Skill badge (SIRS 1-4 / CARS 1-3), cumulative token/cost telemetry, and a dedicated **Primary Cognitive Trap Badge Chip** (`rgba(139, 92, 246, 0.12)` background, purple border, `Tag` icon).
@@ -195,10 +197,11 @@ Renders pedagogical rationales across three distinct, beautifully styled visual 
 - Renders an active runtime duration stopwatch using `font-family: var(--font-mono)` with glowing amber pulse animation during active generation runs.
 
 ### 4.9 Top-Level Application Views (`views/`)
-1. **Generator Workspace View (`GeneratorWorkspaceView.jsx`)**: Coordinates the 3-step guided wizard dock alongside the single-canvas live generation desk, telemetry pipelines, and staged review decks.
-2. **AI Validated Questions View (`AiValidatedQuestionsView.jsx`)**: Dedicated review deck for items generated in background batches that passed the >90 quality threshold, supporting one-click individual or bulk publishing into the primary Question Bank.
-3. **Question Bank View (`QuestionBankView.jsx`, `QuestionBankTable.jsx`)**: Full-featured searchable, filterable repository strictly consolidated on the canonical **Editorial Cards** view. Legacy table grid mode and view-switcher toolbar controls have been deprecated and removed, dedicating the entire layout to high-density reading cards with inline editing, multi-format CSV/JSON exports, bulk deletion, lifecycle status updates, and repository-wide token analytics.
-4. **Batch Activity View (`BatchActivityView.jsx`)**: Live and historical monitor displaying running batch jobs, per-job question counts, status indicators, and background worker progress. Features dedicated scope filtering (`All Batches`, `Mini-Batches [1 Job]`, `Full Sections [10 Jobs]`) and visual badges distinguishing 1-job mini-batches from 10-job full mock sections.
+1. **Generator Workspace View (`GeneratorWorkspaceView.jsx`)**: Coordinates the 3-step guided wizard dock alongside the single-canvas live generation desk, telemetry pipelines, and staged review decks (Navigation Tab: `Create Questions`).
+2. **AI Validated Questions View (`AiValidatedQuestionsView.jsx`)**: Dedicated review deck for items generated in background batches that passed the >90 quality threshold, supporting one-click individual or bulk publishing into the primary Question Bank (Navigation Tab: `Review Queue`).
+3. **Question Bank View (`QuestionBankView.jsx`, `QuestionBankTable.jsx`)**: Full-featured searchable, filterable repository strictly consolidated on the canonical **Editorial Cards** view. Legacy table grid mode and view-switcher toolbar controls have been deprecated and removed, dedicating the entire layout to high-density reading cards with inline editing, multi-format CSV/JSON exports, bulk deletion, lifecycle status updates, and repository-wide token analytics (Navigation Tab: `Question Bank`).
+4. **Batch Activity View (`BatchActivityView.jsx`)**: Live and historical monitor displaying running batch jobs, per-job question counts, status indicators, and background worker progress. Features dedicated scope filtering (`All Batches`, `Mini-Batches [1 Job]`, `Full Sections [10 Jobs]`) and visual badges distinguishing 1-job mini-batches from 10-job full mock sections (Navigation Tab: `Batch Progress`).
+5. **Passage Bank View (`PassageBankView.jsx`)**: Full-featured reading passage stimuli repository and editorial workspace. Provides search by passage narrative or concept, section filtering (with instant return-to-catalog reset on tab navigation), and the interactive **Passage Editorial Desk** (`PassageEditorialDesk.jsx`). Supports in-place editing of passage text and metadata, attachment or discarding of figures (`PassageVisualStimulusEditor.jsx`), inspection of all linked questions (`PassageLinkedQuestionCard.jsx`), and safe single-click passage deletion with automatic question unlinking (Navigation Tab: `Passage Bank`).
 
 ### 4.10 Common Primitives & Accessible Pagination (`PaginationBar.jsx`)
 - **Component**: [`frontend/src/components/common/PaginationBar.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/common/PaginationBar.jsx) provides a standardized, WCAG AA compliant pagination footer across all list-based views (`QuestionBankView.jsx`, `AiValidatedQuestionsView.jsx`, `BatchActivityView.jsx`).
