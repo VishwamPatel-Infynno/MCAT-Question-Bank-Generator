@@ -13,7 +13,7 @@ import {
   X
 } from 'lucide-react';
 import VisualStimulusViewer from '../question/VisualStimulusViewer';
-import { formatDifficulty, getDifficultyBadgeClass } from '../../constants/mcat';
+import { formatDifficulty, getDifficultyBadgeClass, getSectionBadgeClass } from '../../constants/mcat';
 import { getEffectiveTrapInfo } from '../../utils';
 
 const SECTION_OPTIONS = [
@@ -22,13 +22,6 @@ const SECTION_OPTIONS = [
   { id: 'bio_biochem', label: 'Biological and Biochemical Foundations (BB)' },
   { id: 'psych_soc', label: 'Psychological, Social, and Biological Foundations (PS)' }
 ];
-
-const SECTION_BADGE_CLASS = {
-  chem_phys: 'badge-purple',
-  cars: 'badge-cyan',
-  bio_biochem: 'badge-emerald',
-  psych_soc: 'badge-rose'
-};
 
 /**
  * PassageEditorialDesk
@@ -117,7 +110,7 @@ export default function PassageEditorialDesk({
           <div style={{ width: '1px', height: '20px', background: 'var(--border-light)' }} />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className={`badge ${SECTION_BADGE_CLASS[section] || 'badge-purple'}`} style={{ fontSize: '0.68rem', fontWeight: 700 }}>
+            <span className={`badge ${getSectionBadgeClass(section)}`} style={{ fontSize: '0.68rem', fontWeight: 700 }}>
               {section.toUpperCase()}
             </span>
             <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>

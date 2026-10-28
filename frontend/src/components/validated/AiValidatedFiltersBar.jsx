@@ -5,6 +5,7 @@ import { MCAT_SECTIONS_FALLBACK } from '../../constants/mcat';
 export default function AiValidatedFiltersBar({
   searchQuery = '',
   onSearchChange,
+  searchInputRef,
   sectionFilter = '',
   onSectionFilterChange,
   totalFiltered = 0,
@@ -44,18 +45,21 @@ export default function AiValidatedFiltersBar({
             }}
           />
           <input
+            ref={searchInputRef}
             type="text"
-            placeholder="Search question, passage, topic..."
+            placeholder="Search questions (Press /)..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="input-field"
             style={{
               paddingLeft: '32px',
+              paddingRight: '30px',
               fontSize: '0.78rem',
               height: '34px',
               width: '100%'
             }}
           />
+          <span className="kbd-hint" style={{ fontSize: '0.6rem', position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)' }}>/</span>
         </div>
 
         <select

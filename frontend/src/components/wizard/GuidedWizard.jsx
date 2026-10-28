@@ -298,7 +298,7 @@ export default function GuidedWizard({
                     ? '1px solid var(--border-medium)'
                     : '1px solid var(--border-light)',
                   color: isCurrent
-                    ? '#ffffff'
+                    ? 'var(--text-on-brand)'
                     : isCompleted
                     ? 'var(--text-primary)'
                     : 'var(--text-muted)',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   CheckCircle2,
   ArrowRight
@@ -38,6 +38,19 @@ export default function AiValidatedQuestionsView({
   const [searchQuery, setSearchQuery] = useState('');
   const [sectionFilter, setSectionFilter] = useState('');
   const [expandedPassageIds, setExpandedPassageIds] = useState({});
+  const searchInputRef = useRef(null);
+
+  // Focus search on '/'
+  useEffect(() => {
+    const handleSlash = (e) => {
+      if (e.key === '/' && document.activeElement?.tagName.toLowerCase() !== 'input' && document.activeElement?.tagName.toLowerCase() !== 'textarea') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleSlash);
+    return () => window.removeEventListener('keydown', handleSlash);
+  }, []);
 
   // Multi-selection state
   const [selectedIds, setSelectedIds] = useState([]);
@@ -295,6 +308,7 @@ export default function AiValidatedQuestionsView({
       <AiValidatedFiltersBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        searchInputRef={searchInputRef}
         sectionFilter={sectionFilter}
         onSectionFilterChange={setSectionFilter}
         totalFiltered={filteredQuestions.length}

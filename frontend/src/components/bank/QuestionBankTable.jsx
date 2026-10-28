@@ -17,14 +17,7 @@ import VisualStimulusViewer from '../question/VisualStimulusViewer';
 import SharedPassageCard from '../question/SharedPassageCard';
 import MentorExplanationView from '../question/MentorExplanationView';
 import { getEffectiveTrapInfo } from '../../utils';
-import { formatDifficulty, getDifficultyBadgeClass } from '../../constants/mcat';
-
-const SECTION_BADGE_CLASS = {
-  chem_phys: 'badge-purple',
-  cars: 'badge-cyan',
-  bio_biochem: 'badge-emerald',
-  psych_soc: 'badge-rose'
-};
+import { formatDifficulty, getDifficultyBadgeClass, getSectionBadgeClass } from '../../constants/mcat';
 
 const SECTION_SHORT_LABEL = {
   chem_phys: 'Chem / Phys',
@@ -95,7 +88,7 @@ export default function QuestionBankTable({
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {/* Metadata Row */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', fontSize: '0.725rem' }}>
-                    <span className={`badge ${SECTION_BADGE_CLASS[q.section] || 'badge-purple'}`} style={{ fontSize: '0.66rem', fontWeight: 700 }}>
+                    <span className={`badge ${getSectionBadgeClass(q.section)}`} style={{ fontSize: '0.66rem', fontWeight: 700 }}>
                       {SECTION_SHORT_LABEL[q.section] || q.section_label || q.section}
                     </span>
 

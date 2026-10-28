@@ -31,6 +31,7 @@
 
 /* --- LIGHT THEME (DEFAULT) --- */
 :root, [data-theme="light"] {
+  --text-on-brand: #ffffff;
   --bg-app: #f8fafc;
   --bg-canvas: #f8fafc;
   --bg-surface: #ffffff;
@@ -84,6 +85,7 @@
 
 /* --- DARK THEME --- */
 [data-theme="dark"] {
+  --text-on-brand: #080c14;
   /* Precision Monochrome Surfaces */
   --bg-app: #080c14;
   --bg-canvas: #080c14;
@@ -833,7 +835,7 @@ input:focus, select:focus, textarea:focus {
   padding: 10px 20px;
   border-radius: var(--radius-sm);
   background: var(--brand-primary);
-  color: #ffffff;
+  color: var(--text-on-brand);
   font-size: 0.9rem;
   font-weight: 600;
   border: none;

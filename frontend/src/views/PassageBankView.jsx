@@ -91,7 +91,16 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard }) {
   }, [sectionFilter, searchQuery, onShowToast]);
 
   useEffect(() => {
-    loadPassages();
+    let ignore = false;
+    async function init() {
+      if (!ignore) {
+        await loadPassages();
+      }
+    }
+    init();
+    return () => {
+      ignore = true;
+    };
   }, [loadPassages]);
 
   // Sort passages locally
@@ -271,11 +280,9 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard }) {
   if (selectedPassage) {
     if (isLoadingDetail) {
       return (
-        <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--text-secondary)' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }}>
-            <Sparkles size={18} color="var(--brand-primary)" />
-            <span>Loading Passage Editorial Desk &amp; Questions...</span>
-          </div>
+        <div className="view-loading-box">
+          <div className="view-loading-spinner" />
+          <span className="view-loading-text">Loading Passage Editorial Desk &amp; Questions...</span>
         </div>
       );
     }
@@ -369,45 +376,34 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard }) {
 
       {/* ── Passage List Content ─────────────────────────────────────────── */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-secondary)' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem' }}>
-            <Sparkles size={16} color="var(--brand-primary)" />
-            <span>Loading Passages Bank...</span>
-          </div>
+        <div className="view-loading-box">
+          <div className="view-loading-spinner" />
+          <span className="view-loading-text">Loading Passages Bank...</span>
         </div>
       ) : passages.length === 0 ? (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '50px 20px',
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            color: 'var(--text-secondary)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <BookOpen size={36} color="var(--text-muted)" style={{ marginBottom: '4px' }} />
-          <h3 style={{ fontSize: '0.96rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
-            No Passages Found
-          </h3>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, maxWidth: '440px' }}>
-            {hasActiveFilters
-              ? 'No reading passages match your search query or section filter. Clear filters to see more.'
-              : 'Your Passages Bank is currently empty. Generate a passage set in the Generator Studio or create one manually!'}
-          </p>
+        <div className="view-empty-state">
+          <div className="view-empty-icon-box">
+            <BookOpen size={28} />
+          </div>
+          <div>
+            <h3 className="view-empty-title">
+              No Passages Found
+            </h3>
+            <p className="view-empty-desc">
+              {hasActiveFilters
+                ? 'No reading passages match your search query or section filter. Clear filters to see more.'
+                : 'Your Passages Bank is currently empty. Generate a passage set in the Generator Studio or create one manually!'}
+            </p>
+          </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
+          <div className="view-empty-actions">
             <button
               type="button"
               onClick={handleCreateNewPassage}
               className="btn-primary"
-              style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
+              style={{ padding: '8px 18px', fontSize: '0.825rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              <Plus size={13} />
+              <Plus size={14} />
               <span>Create New Passage</span>
             </button>
 
@@ -416,9 +412,9 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard }) {
                 type="button"
                 onClick={onNavigateToWizard}
                 className="btn-secondary"
-                style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px' }}
+                style={{ padding: '8px 18px', fontSize: '0.825rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               >
-                <Sparkles size={13} />
+                <Sparkles size={14} />
                 <span>Generate Questions Set</span>
               </button>
             )}

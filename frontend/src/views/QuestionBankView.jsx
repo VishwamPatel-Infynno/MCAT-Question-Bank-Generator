@@ -239,45 +239,36 @@ export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
 
       {/* ── Question List ─────────────────────────────────────────────────── */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-secondary)' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem' }}>
-            <Sparkles size={16} color="var(--brand-primary)" />
-            <span>Loading Question Bank...</span>
-          </div>
+        <div className="view-loading-box">
+          <div className="view-loading-spinner" />
+          <span className="view-loading-text">Loading Question Bank...</span>
         </div>
       ) : questions.length === 0 ? (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '50px 20px',
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            color: 'var(--text-secondary)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <Database size={36} color="var(--text-muted)" style={{ marginBottom: '4px' }} />
-          <h3 style={{ fontSize: '0.96rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>No Questions Found</h3>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, maxWidth: '440px' }}>
-            {hasActiveFilters
-              ? 'No questions match your current search or filters. Clear your filters to see more, or create questions.'
-              : 'Your Question Bank is currently empty. Create your first practice set to get started!'}
-          </p>
+        <div className="view-empty-state">
+          <div className="view-empty-icon-box">
+            <Database size={28} />
+          </div>
+          <div>
+            <h3 className="view-empty-title">No Questions Found</h3>
+            <p className="view-empty-desc">
+              {hasActiveFilters
+                ? 'No questions match your current search or filters. Clear your filters to see more, or create questions.'
+                : 'Your Question Bank is currently empty. Create your first practice set to get started!'}
+            </p>
+          </div>
           {!hasActiveFilters && onNavigateToWizard && (
-            <button
-              type="button"
-              id="btn-bank-empty-create"
-              onClick={onNavigateToWizard}
-              className="btn-primary"
-              style={{ padding: '6px 14px', fontSize: '0.78rem', gap: '6px', marginTop: '12px' }}
-            >
-              <Sparkles size={13} />
-              <span>Create New Questions</span>
-            </button>
+            <div className="view-empty-actions">
+              <button
+                type="button"
+                id="btn-bank-empty-create"
+                onClick={onNavigateToWizard}
+                className="btn-primary"
+                style={{ padding: '8px 18px', fontSize: '0.825rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Sparkles size={14} />
+                <span>Create New Questions</span>
+              </button>
+            </div>
           )}
         </div>
       ) : (

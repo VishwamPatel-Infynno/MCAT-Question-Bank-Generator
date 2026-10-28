@@ -4,6 +4,7 @@ import { Search } from 'lucide-react';
 export default function BatchFiltersBar({
   searchQuery = '',
   onSearchChange,
+  searchInputRef,
   scopeFilter = 'all',
   onScopeFilterChange,
   sectionFilter = 'all',
@@ -41,18 +42,21 @@ export default function BatchFiltersBar({
             }}
           />
           <input
+            ref={searchInputRef}
             type="text"
-            placeholder="Search by topic, section, or ID..."
+            placeholder="Search batches (Press /)..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="input-field"
             style={{
               width: '100%',
               paddingLeft: '32px',
+              paddingRight: '30px',
               fontSize: '0.78rem',
               height: '32px'
             }}
           />
+          <span className="kbd-hint" style={{ fontSize: '0.6rem', position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)' }}>/</span>
         </div>
 
         {/* Scope Tabs */}

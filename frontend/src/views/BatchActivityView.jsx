@@ -38,6 +38,19 @@ export default function BatchActivityView({
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'in_progress' | 'completed' | 'failed'
   const [sectionFilter, setSectionFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef(null);
+
+  // Focus search on '/'
+  useEffect(() => {
+    const handleSlash = (e) => {
+      if (e.key === '/' && document.activeElement?.tagName.toLowerCase() !== 'input' && document.activeElement?.tagName.toLowerCase() !== 'textarea') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleSlash);
+    return () => window.removeEventListener('keydown', handleSlash);
+  }, []);
 
   // Multi-expand batch details cache: Set of expanded batch IDs
   const [expandedBatchIds, setExpandedBatchIds] = useState(new Set());
@@ -446,6 +459,7 @@ export default function BatchActivityView({
       <BatchFiltersBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        searchInputRef={searchInputRef}
         scopeFilter={scopeFilter}
         onScopeFilterChange={setScopeFilter}
         sectionFilter={sectionFilter}

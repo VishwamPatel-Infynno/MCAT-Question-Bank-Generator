@@ -328,7 +328,7 @@ export default function WizardStep3ReviewAdvanced({
                       borderRadius: 'var(--radius-full)',
                       background: effectiveSubskills.length === 0 ? 'var(--brand-primary)' : 'var(--bg-surface-subtle)',
                       border: effectiveSubskills.length === 0 ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
-                      color: effectiveSubskills.length === 0 ? '#ffffff' : 'var(--text-secondary)',
+                      color: effectiveSubskills.length === 0 ? 'var(--text-on-brand)' : 'var(--text-secondary)',
                       fontSize: '0.72rem',
                       fontWeight: effectiveSubskills.length === 0 ? 600 : 500,
                       cursor: 'pointer'
@@ -356,7 +356,7 @@ export default function WizardStep3ReviewAdvanced({
                           borderRadius: 'var(--radius-full)',
                           background: isSubSelected ? 'var(--brand-primary)' : 'var(--bg-surface-subtle)',
                           border: isSubSelected ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
-                          color: isSubSelected ? '#ffffff' : 'var(--text-secondary)',
+                          color: isSubSelected ? 'var(--text-on-brand)' : 'var(--text-secondary)',
                           fontSize: '0.72rem',
                           fontWeight: isSubSelected ? 600 : 500,
                           cursor: 'pointer'
@@ -391,7 +391,7 @@ export default function WizardStep3ReviewAdvanced({
                     borderRadius: 'var(--radius-full)',
                     background: effectiveMistakes.length === 0 ? 'var(--brand-primary)' : 'var(--bg-surface-subtle)',
                     border: effectiveMistakes.length === 0 ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
-                    color: effectiveMistakes.length === 0 ? '#ffffff' : 'var(--text-secondary)',
+                    color: effectiveMistakes.length === 0 ? 'var(--text-on-brand)' : 'var(--text-secondary)',
                     fontSize: '0.72rem',
                     fontWeight: effectiveMistakes.length === 0 ? 600 : 500,
                     cursor: 'pointer'
@@ -419,7 +419,7 @@ export default function WizardStep3ReviewAdvanced({
                         borderRadius: 'var(--radius-full)',
                         background: isSelected ? 'var(--brand-primary)' : 'var(--bg-surface-subtle)',
                         border: isSelected ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
-                        color: isSelected ? '#ffffff' : 'var(--text-secondary)',
+                        color: isSelected ? 'var(--text-on-brand)' : 'var(--text-secondary)',
                         fontSize: '0.72rem',
                         fontWeight: isSelected ? 600 : 500,
                         cursor: 'pointer'

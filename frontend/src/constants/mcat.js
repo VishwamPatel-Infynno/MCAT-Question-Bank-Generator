@@ -49,6 +49,22 @@ export const SECTION_CODE_TO_ID = {
 
 export const SECTION_CODE_MAP = SECTION_ID_TO_CODE;
 
+export const SECTION_BADGE_CLASSES = {
+  chem_phys: 'badge-cyan',
+  cars: 'badge-rose',
+  bio_biochem: 'badge-emerald',
+  psych_soc: 'badge-purple',
+  CP: 'badge-cyan',
+  CARS: 'badge-rose',
+  BB: 'badge-emerald',
+  PS: 'badge-purple'
+};
+
+export function getSectionBadgeClass(section) {
+  if (!section) return 'badge-neutral';
+  return SECTION_BADGE_CLASSES[section] || SECTION_BADGE_CLASSES[SECTION_CODE_TO_ID[section]] || 'badge-neutral';
+}
+
 export const MCAT_SECTION_LABELS = {
   chem_phys: 'Chemical and Physical Foundations',
   cars: 'Critical Analysis and Reasoning Skills',

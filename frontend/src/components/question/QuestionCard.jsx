@@ -21,7 +21,7 @@ import MentorExplanationView from './MentorExplanationView';
 import QuestionScorecardTab from './QuestionScorecardTab';
 import QuestionInlineEditor from './QuestionInlineEditor';
 import { getEffectiveTrapInfo, calculateOptionSymmetry } from '../../utils';
-import { formatDifficulty, getDifficultyBadgeClass } from '../../constants/mcat';
+import { formatDifficulty, getDifficultyBadgeClass, getSectionBadgeClass } from '../../constants/mcat';
 
 export default function QuestionCard({ 
   question, 
@@ -161,7 +161,7 @@ export default function QuestionCard({
 
           <span style={{ color: 'var(--border-medium)' }}>|</span>
 
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+          <span className={`badge ${getSectionBadgeClass(question.section)}`} style={{ fontSize: '0.68rem', fontWeight: 700 }}>
             {question.section_label || question.section}
           </span>
 

@@ -9,13 +9,7 @@ import {
   Layers
 } from 'lucide-react';
 import { formatDate } from '../../utils';
-
-const SECTION_BADGE_CLASS = {
-  chem_phys: 'badge-purple',
-  cars: 'badge-cyan',
-  bio_biochem: 'badge-emerald',
-  psych_soc: 'badge-rose'
-};
+import { getSectionBadgeClass } from '../../constants/mcat';
 
 const SECTION_SHORT_LABEL = {
   chem_phys: 'Chem / Phys',
@@ -85,7 +79,7 @@ export default function PassageBankTable({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: 0 }}>
                 {/* Badges strip */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', fontSize: '0.725rem' }}>
-                  <span className={`badge ${SECTION_BADGE_CLASS[passage.section] || 'badge-purple'}`} style={{ fontSize: '0.66rem', fontWeight: 700 }}>
+                  <span className={`badge ${getSectionBadgeClass(passage.section)}`} style={{ fontSize: '0.66rem', fontWeight: 700 }}>
                     {SECTION_SHORT_LABEL[passage.section] || passage.section || 'General'}
                   </span>
 

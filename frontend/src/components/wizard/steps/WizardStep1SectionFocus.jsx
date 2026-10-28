@@ -216,7 +216,7 @@ export default function WizardStep1SectionFocus({
                     className="wizard-section-icon-badge"
                     style={{
                       background: isSelected ? 'var(--brand-primary)' : 'var(--bg-surface-hover)',
-                      color: isSelected ? '#ffffff' : 'var(--text-secondary)'
+                      color: isSelected ? 'var(--text-on-brand)' : 'var(--text-secondary)'
                     }}
                   >
                     <Icon size={16} />
@@ -411,7 +411,7 @@ export default function WizardStep1SectionFocus({
                   borderRadius: 'var(--radius-full)',
                   background: (!selectedSubtopics || selectedSubtopics.length === 0) ? 'var(--brand-primary)' : 'var(--bg-surface)',
                   border: (!selectedSubtopics || selectedSubtopics.length === 0) ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
-                  color: (!selectedSubtopics || selectedSubtopics.length === 0) ? '#ffffff' : 'var(--text-secondary)',
+                  color: (!selectedSubtopics || selectedSubtopics.length === 0) ? 'var(--text-on-brand)' : 'var(--text-secondary)',
                   fontSize: '0.72rem',
                   fontWeight: (!selectedSubtopics || selectedSubtopics.length === 0) ? 600 : 500,
                   cursor: 'pointer',
@@ -444,7 +444,7 @@ export default function WizardStep1SectionFocus({
                       borderRadius: 'var(--radius-full)',
                       background: isSelected ? 'var(--brand-primary)' : 'var(--bg-surface)',
                       border: isSelected ? '1px solid var(--brand-primary)' : '1px solid var(--border-light)',
-                      color: isSelected ? '#ffffff' : 'var(--text-secondary)',
+                      color: isSelected ? 'var(--text-on-brand)' : 'var(--text-secondary)',
                       fontSize: '0.72rem',
                       fontWeight: isSelected ? 600 : 500,
                       cursor: 'pointer',

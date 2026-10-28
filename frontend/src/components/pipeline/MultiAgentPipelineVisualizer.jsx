@@ -330,9 +330,9 @@ export default function MultiAgentPipelineVisualizer({
                 }}
               >
                 {isCurrentlyActive ? (
-                  <span title={`${agent.title} — Processing...`}>
+                  <span title={`${agent.title} - Processing...`}>
                     <span style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>
-                      {`${agent.title} — Processing...`}
+                      {`${agent.title} - Processing...`}
                     </span>
                     Processing...
                   </span>

@@ -371,12 +371,38 @@ export function useAppState() {
   }, [setStagedQuestions, showToast]);
 
   const handleFinishBatch = useCallback(() => {
+    const hasSavedItems = (savedQuestionIds && savedQuestionIds.size > 0) || isQuestionSaved;
     setStagedQuestions([]);
     setActiveQuestion(null);
     setIsQuestionSaved(false);
     setSavedQuestionIds(new Set());
-    showToast({ type: 'success', title: 'Batch Completed', message: 'Batch finished. All accepted questions are safely in your Question Bank.' });
-  }, [setStagedQuestions, setActiveQuestion, showToast]);
+
+    if (hasSavedItems) {
+      setActiveTab('bank');
+      showToast({
+        type: 'success',
+        title: 'Batch Completed',
+        message: 'Batch finished. Newly saved questions are ready in your Question Bank.'
+      });
+    } else {
+      setViewMode('wizard');
+      setWizardStep(1);
+      showToast({
+        type: 'info',
+        title: 'Batch Finished',
+        message: 'Batch review closed. Returned to Guided Wizard to configure a new set.'
+      });
+    }
+  }, [
+    savedQuestionIds,
+    isQuestionSaved,
+    setStagedQuestions,
+    setActiveQuestion,
+    setActiveTab,
+    setViewMode,
+    setWizardStep,
+    showToast
+  ]);
 
   const handleDiscardQuestionInBatch = useCallback((qId) => {
     setStagedQuestions(prev => prev.filter(q => q.id !== qId));

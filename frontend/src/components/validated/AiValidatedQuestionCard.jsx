@@ -11,7 +11,7 @@ import {
   AlertTriangle,
   Target
 } from 'lucide-react';
-import { MCAT_SECTION_LABELS, formatDifficulty } from '../../constants/mcat';
+import { MCAT_SECTION_LABELS, formatDifficulty, getSectionBadgeClass } from '../../constants/mcat';
 import { getEffectiveTrapInfo } from '../../utils';
 import VisualStimulusViewer from '../question/VisualStimulusViewer';
 
@@ -71,14 +71,10 @@ export default function AiValidatedQuestionCard({
             #{index + 1}
           </span>
           <span
+            className={`badge ${getSectionBadgeClass(q.section)}`}
             style={{
-              fontSize: '0.72rem',
-              fontWeight: 600,
-              padding: '2px 8px',
-              borderRadius: 'var(--radius-xs)',
-              background: 'var(--bg-surface-subtle)',
-              border: '1px solid var(--border-light)',
-              color: 'var(--text-secondary)'
+              fontSize: '0.68rem',
+              fontWeight: 700
             }}
           >
             {q.section_label || MCAT_SECTION_LABELS[q.section] || q.section}
