@@ -475,17 +475,17 @@ The frontend follows an enterprise domain-driven component architecture split in
 frontend/src/
 ├── views/                        # Top-level application view screens (code-split)
 │   ├── index.js                  # Views barrel export
-│   ├── GeneratorWorkspaceView.jsx# Interactive exam generation & pipeline workspace
-│   ├── QuestionBankView.jsx      # Verified Question Bank view & repository table
 │   ├── AiValidatedQuestionsView.jsx # Dedicated AI Validated (>90) quality bank
-│   └── BatchActivityView.jsx     # Live & historical batch monitoring dashboard
+│   ├── BatchActivityView.jsx     # Live & historical batch monitoring dashboard
+│   ├── GeneratorWorkspaceView.jsx# Interactive exam generation & pipeline workspace
+│   ├── PassageBankView.jsx       # Reading passages repository & editorial desk
+│   └── QuestionBankView.jsx      # Verified Question Bank view & repository table
 ├── components/
 │   ├── index.js                  # Centralized barrel export for all components
 │   ├── wizard/                   # Streamlined 3-Step Guided Question Wizard
 │   │   ├── GuidedWizard.jsx      # Central 3-step wizard controller
 │   │   ├── HeroLanding.jsx       # Welcome landing hero header
-│   │   ├── IndependentDiagramControls.jsx # Standalone diagram requirements selector
-│   │   ├── wizardConstants.js    # Presets, difficulty tiers, and step configs
+│   │   ├── index.js              # Wizard barrel export
 │   │   └── steps/                # Streamlined 3-step modular components
 │   │       ├── WizardStep1SectionFocus.jsx # Step 1: Section, pacing & focus
 │   │       ├── WizardStep2LevelFormat.jsx  # Step 2: Level (Low/Med/High), format & scope (5/50)
@@ -494,70 +494,91 @@ frontend/src/
 │   ├── pipeline/                 # Real-time multi-agent visualizer
 │   │   ├── AgentVisualizer.jsx   # Live generating telemetry & compact stepper
 │   │   ├── MultiAgentPipelineVisualizer.jsx # 3-Milestone pipeline visualizer with electric conduits
-│   │   └── RejectionCard.jsx     # Diagnostic display when score fails threshold
+│   │   ├── RejectionCard.jsx     # Diagnostic display when score fails threshold
+│   │   └── index.js              # Pipeline barrel export
 │   ├── staged/                   # Staged batch review deck
-│   │   ├── StagedBatchReview.jsx # Multi-question batch confirmation desk
+│   │   ├── BatchProgressHeader.jsx # Staged batch progress telemetry header & Split/Stacked toggle
+│   │   ├── StageJsonInspector.jsx# Deep stage outcome JSON inspector modal
 │   │   ├── StagedBatchGrid.jsx   # Grid of staged batch question slots
+│   │   ├── StagedBatchReview.jsx # Multi-question batch confirmation desk (AAMC Split-Pane Layout)
 │   │   ├── StagedDetailedView.jsx# Expanded single question review panel
 │   │   ├── StagedQuestionSlotCard.jsx # Individual question slot reviewer card
 │   │   ├── StagedSlotSkeleton.jsx# Slot loading pulse skeleton
-│   │   ├── BatchProgressHeader.jsx # Staged batch progress telemetry header
-│   │   └── StageJsonInspector.jsx# Deep stage outcome JSON inspector modal
+│   │   └── index.js              # Staged review deck barrel export
 │   ├── question/                 # Question presentation & editing
+│   │   ├── MentorExplanationView.jsx # 3-card mentor explanation view (Intuition, Distractors, Trap)
 │   │   ├── QuestionCard.jsx      # Interactive student practice & review card
-│   │   ├── QuestionScorecardTab.jsx # 100-point rubric breakdown accordion
+│   │   ├── QuestionDraftingSkeleton.jsx # Pulse skeleton for question creation
 │   │   ├── QuestionInlineEditor.jsx # In-place authoring & remediation editor
-│   │   ├── MentorExplanationView.jsx # 3-card mentor explanation view
+│   │   ├── QuestionScorecardTab.jsx # 100-point rubric breakdown accordion
 │   │   ├── ReviewAuditView.jsx   # 100-point rubric breakdown & token cost modal
 │   │   ├── SharedPassageCard.jsx # Shared reading passage stimulus display card
-│   │   └── VisualStimulusViewer.jsx # SVG & neural visual diagram renderer
+│   │   ├── VisualStimulusViewer.jsx # SVG & neural visual diagram renderer
+│   │   └── index.js              # Question barrel export
+│   ├── passage/                  # Reading passage bank components
+│   │   ├── PassageBankFilters.jsx# Passage search, section, and difficulty filters
+│   │   ├── PassageBankTable.jsx  # Passage stimuli repository cards & question sets
+│   │   ├── PassageEditorialDesk.jsx # Reading passage editor & preview desk
+│   │   └── index.js              # Passage bank barrel export
 │   ├── bank/                     # Question Bank repository
 │   │   ├── QuestionBankFilters.jsx # Section, difficulty (Low/Medium/High), and search filters
-│   │   └── QuestionBankTable.jsx # Canonical Editorial Cards view, batch selection, and actions
+│   │   ├── QuestionBankTable.jsx # Canonical Editorial Cards view, batch selection, and actions
+│   │   └── index.js              # Bank barrel export
 │   ├── batch/                    # Batch monitoring components
 │   │   ├── ActiveMultiBatchMonitor.jsx # Global concurrency metrics & live multi-batch controller
 │   │   ├── BatchCard.jsx         # Summary status card for generation batches
 │   │   ├── BatchFiltersBar.jsx   # Section, status, and search filters
 │   │   ├── BatchJobCard.jsx      # Per-question job card with lifecycle status
 │   │   ├── BatchQuestionItem.jsx # Staged question item with review modal
-│   │   └── BatchStatsHeader.jsx  # High-level aggregate batch statistics
+│   │   ├── BatchStatsHeader.jsx  # High-level aggregate batch statistics
+│   │   └── index.js              # Batch barrel export
 │   ├── validated/                # AI Validated bank components
-│   │   ├── AiValidatedQuestionCard.jsx # Card with direct bank approval actions
 │   │   ├── AiValidatedFiltersBar.jsx # Filters for AI-validated questions
-│   │   └── AiValidatedStatsBar.jsx # Quick-action statistics header
+│   │   ├── AiValidatedQuestionCard.jsx # Card with direct bank approval actions
+│   │   ├── AiValidatedStatsBar.jsx # Quick-action statistics header
+│   │   └── index.js              # Validated barrel export
 │   ├── modals/                   # Dialog modals
+│   │   ├── ExportPaperPreview.jsx# Live print layout previewer
 │   │   ├── ExportPrintModal.jsx  # Exam Paper (PDF), Study Pack, CSV and JSON export modal
-│   │   └── ExportPaperPreview.jsx# Live print layout previewer
+│   │   └── index.js              # Modals barrel export
 │   ├── layout/                   # Global layout
+│   │   ├── Footer.jsx            # Infynno Solutions LLP attribution & resource footer
 │   │   ├── Navbar.jsx            # Header with branding, navigation tabs, and theme toggle
-│   │   └── Footer.jsx            # Infynno Solutions LLP attribution & resource footer
+│   │   └── index.js              # Layout barrel export
 │   └── common/                   # Shared UI primitives
 │       ├── CustomSelect.jsx      # Accessible custom dropdown select primitive
+│       ├── ErrorBoundary.jsx     # Production React error boundary with fallback UI
 │       ├── FormattedText.jsx     # Inline markdown & cognitive trap chip highlighter
 │       ├── InfynnoLogo.jsx       # Official corporate vector logo primitive
 │       ├── LiveStopwatch.jsx     # High-precision live stopwatch timer
-│       ├── NumberStepper.jsx     # Accessible numerical stepper primitive
-│       └── Toast.jsx             # Floating toast notification system
+│       ├── PaginationBar.jsx     # Accessible pagination bar with page range counter & controls
+│       ├── Toast.jsx             # Floating toast notification system
+│       └── index.js              # Common primitives barrel export
 ├── constants/
 │   ├── config.js                 # Pricing models, image parameters, token rates
+│   ├── index.js                  # Constants barrel export
 │   ├── mcat.js                   # MCAT sections, pacing specs, icons, and fallback topics
-│   ├── mcat_dependent_taxonomy.json # AAMC-aligned foundational concepts and skills
-│   └── mcatTraps.js              # AAMC cognitive trap definitions and defense strategies
+│   ├── mcatTraps.js              # AAMC cognitive trap definitions and defense strategies
+│   └── mcat_dependent_taxonomy.json # AAMC-aligned foundational concepts and skills
 ├── hooks/
+│   ├── index.js                  # Barrel export for custom hooks
 │   ├── useAppState.js            # Centralized view routing & global event broker
+│   ├── useFocusTrap.js           # Accessible WCAG AA keyboard focus-trapping hook for modals
 │   ├── useGeneratorForm.js       # Form state & validation logic
 │   ├── useKeyboardShortcuts.js   # Global hotkeys (⌘↵, A, D, T, /, Esc)
 │   ├── useQuestionBank.js        # Debounced search, sorting, and bank fetching
 │   ├── useQuestionGenerator.js   # SSE streaming, batch progress, and state management
 │   └── useTheme.js               # Dual-theme engine (dark / light with localStorage)
 ├── services/
-│   └── api.js                    # FastAPI client & SSE stream reader
+│   ├── api.js                    # FastAPI client & SSE stream reader (24 methods)
+│   └── index.js                  # Services barrel export
 ├── utils/                        # Pure utility helpers
+│   ├── explanationHelpers.js     # Structured explanation parser
 │   ├── exportUtils.js            # A4 HTML print document builder, CSV & JSON serializers
 │   ├── formatters.js             # Time, word count, token & currency formatters
+│   ├── index.js                  # Utilities barrel export
 │   ├── optionHelpers.js          # Option length parity & calculateOptionSymmetry engine
-│   ├── trapHelpers.js            # Cognitive trap resolution & text detectors
-│   └── explanationHelpers.js     # Structured explanation parser
+│   └── trapHelpers.js            # Cognitive trap resolution & text detectors
 ├── index.css                     # Enterprise CSS design tokens, conduit animations, dual-theme styling
 └── main.jsx                      # React 19 application root
 ```

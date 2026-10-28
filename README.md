@@ -161,120 +161,230 @@ For complete test specifications and the 15 TestSprite Playwright E2E browser sc
 Question Bank Generator/
 ├── README.md                    # Project overview & documentation index
 ├── DESIGN.md                    # Authoritative UI/UX Design System Guide (tokens, dual themes, split-pane)
+├── CONTRIBUTING.md              # Engineering workflows, code conventions & quality policies
+├── LICENSE                      # MIT / Corporate License
 ├── docker-compose.yml           # PostgreSQL 16 container definition
+├── pyproject.toml               # Python build configuration (pytest, ruff, asyncio)
+├── package.json                 # Monorepo pnpm orchestration scripts
+├── pnpm-workspace.yaml          # Pnpm workspace definition
+├── pnpm-lock.yaml               # Deterministic package lockfile
 ├── .env.example                 # Environment variables template (29 parameters)
 ├── docs/                        # Comprehensive Documentation Suite
 │   ├── README.md                # Master Documentation Index & role-based sitemap
 │   ├── ARCHITECTURE.md          # Multi-agent architecture, Blind-Solver & LangGraph StateGraph
 │   ├── API.md                   # Complete REST & SSE API specification (27 operations / 22 paths)
+│   ├── CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md # Client system & operational workflow guide
 │   ├── TESTING_AND_QA.md        # Pytest test suite & TestSprite Playwright E2E specifications
 │   ├── TOKEN_TRACKING.md        # Inference pricing & mathematical cost engine
 │   ├── SETUP_AND_CONFIG.md      # Installation, deployment & troubleshooting
 │   └── MCAT_RUBRIC.md           # 100-point psychometric rubric & authoring standards
+├── testsprite_tests/            # TestSprite Playwright E2E Test Suite
+│   ├── TC001_*.py ... TC015_*.py# 15 automated test scenario scripts
+│   ├── standard_prd.json        # Standardized PRD feature map
+│   ├── testsprite_frontend_test_plan.json # Test plan definition
+│   ├── testsprite-mcp-test-report.md # Markdown test report
+│   └── testsprite-mcp-test-report.html # HTML visual test report
 ├── backend/
 │   ├── README.md                # Dedicated backend developer guide
 │   ├── requirements.txt         # Python dependencies
+│   ├── scripts/
+│   │   └── seed_questions.py    # CLI database seeding script with authentic AAMC rubrics
 │   ├── tests/
-│   │   ├── test_schemas.py      # Pydantic V2 schema validation & constraints
+│   │   ├── conftest.py          # Async fixtures & in-memory test database engine
 │   │   ├── test_agents.py       # Heuristics, agent mocking, blind solver & quality gates
-│   │   ├── test_workflow.py     # StateGraph multi-agent flow & bypass routing
-│   │   ├── test_visuals.py      # SVG & FLUX image generation and pricing
-│   │   ├── test_tokens.py       # Token counting, accumulation & DeepInfra limits
-│   │   ├── test_pedagogy.py     # Option symmetry, AAMC traps & taxonomy parity
 │   │   ├── test_api.py          # CRUD endpoints, batch staging & lifecycle
-│   │   ├── test_database_structure.py # Relational schema, passage & batch sync tests
 │   │   ├── test_batch_jobs_flow.py # Background jobs & batch execution flow
+│   │   ├── test_database_structure.py # Relational schema, passage & batch sync tests
+│   │   ├── test_e2e_live.py     # Live end-to-end integration test suite
 │   │   ├── test_multi_batch_concurrency.py # Global semaphores, rate limiting & metrics
-│   │   └── test_e2e_live.py     # Live end-to-end integration test suite
+│   │   ├── test_pedagogy.py     # Option symmetry, AAMC traps & taxonomy parity
+│   │   ├── test_schemas.py      # Pydantic V2 schema validation & constraints
+│   │   ├── test_tokens.py       # Token counting, accumulation & DeepInfra limits
+│   │   ├── test_visuals.py      # SVG & FLUX image generation and pricing
+│   │   └── test_workflow.py     # StateGraph multi-agent flow & bypass routing
 │   └── app/
 │       ├── main.py              # FastAPI app with modern lifespan context & security headers
 │       ├── core/                # Core configurations & Pydantic V2 settings
 │       │   ├── config.py        # Settings, model configuration & token pricing constants
+│       │   ├── logging.py       # Structured logging configuration
 │       │   └── __init__.py
+│       ├── data/                # Static taxonomy data
+│       │   └── mcat_dependent_taxonomy.json # AAMC-aligned foundational concepts and skills
 │       ├── db/                  # Database connectivity & session lifecycle
 │       │   ├── base.py          # SQLAlchemy declarative base
 │       │   ├── session.py       # Async engine, connection pool & auto-migrations
+│       │   ├── init_db.py       # Schema initialization, DDL migrations & FTS indexes
 │       │   └── __init__.py
 │       ├── models/              # SQLAlchemy ORM models
-│       │   ├── question.py      # QuestionModel with JSONB columns & B-tree indexes
+│       │   ├── batch.py         # GenerationBatchModel for multi-question generation runs
+│       │   ├── job.py           # GenerationJobModel for background worker jobs
 │       │   ├── passage.py       # PassageModel for shared reading stimuli
-│       │   ├── batch.py         # BatchModel for multi-question generation runs
+│       │   ├── question.py      # QuestionModel with JSONB columns & B-tree indexes
 │       │   └── __init__.py
 │       ├── repositories/        # Data Access Layer (DAL)
-│       │   ├── question_repository.py # Clean CRUD, hybrid FTS & aggregate token usage queries
 │       │   ├── batch_repository.py    # Staged batch run queries & persistence
+│       │   ├── job_repository.py      # Background worker job state tracking
 │       │   ├── passage_repository.py  # Shared stimulus reading passage queries
+│       │   ├── question_repository.py # Clean CRUD, hybrid FTS & aggregate token usage queries
 │       │   └── __init__.py
 │       ├── schemas/             # Domain Pydantic V2 schemas
 │       │   ├── mcat.py          # Official AAMC MCAT sections & subtopic taxonomy
+│       │   ├── question.py      # QuestionOption, QuestionDraft, Question, status helper
 │       │   ├── token.py         # TokenUsage & TokenCostAccumulator schemas
-│       │   ├── question.py      # QuestionOption, QuestionDraft, Question
 │       │   ├── workflow.py      # GenerationRequest, ReviewScore, WorkflowEvent
+│       │   └── __init__.py
+│       ├── services/            # Background Worker Services
+│       │   ├── batch_runner.py  # Asynchronous worker pool (5 Q single job / 50 Q 10 jobs)
 │       │   └── __init__.py
 │       ├── agents/              # Multi-agent decision logic & prompts
 │       │   ├── base.py          # LiteLLM client & calculate_token_cost()
-│       │   ├── prompts.py       # Centralized system prompts & rubrics
-│       │   ├── mock_fixtures.py # Mock fallback questions & heuristic rubrics
-│       │   ├── generator.py     # Question Generator Agent
-│       │   ├── reviewer.py      # Question Reviewer Agent (100-pt rubric)
-│       │   ├── regenerator.py   # Remediation Engine Agent (<= 90 trigger)
+│       │   ├── blind_solver.py  # Independent key validation & agreement agent
+│       │   ├── generator.py     # Fused question generator & self-critique agent
 │       │   ├── image_generator.py # Programmatic SVG & FLUX-2-klein-4b visual generator
+│       │   ├── mock_fixtures.py # Mock fallback questions & heuristic rubrics
+│       │   ├── option_balancer.py # Mathematical option length balancing (±15%)
+│       │   ├── prompt_builder.py# User prompt assembly & cross-item calibration
+│       │   ├── prompts.py       # Centralized system prompts & rubrics
+│       │   ├── regenerator.py   # Autonomous remediation engine agent (<= 90 trigger)
+│       │   ├── reviewer.py      # Question Reviewer Agent (100-pt rubric)
 │       │   └── __init__.py
 │       ├── workflow/            # LangGraph multi-agent state graph
 │       │   ├── engine.py        # Core asynchronous workflow runner & event emitters
+│       │   ├── engine_helpers.py# Review loop, passage preparation & persistence helpers
+│       │   ├── graph.py         # StateGraph with strict quality gate routing
 │       │   ├── nodes.py         # Discrete agent worker nodes (Generator, Reviewer, etc.)
 │       │   ├── routes.py        # Deterministic conditional edge routing (Quality Gate)
-│       │   ├── graph.py         # StateGraph with strict quality gate routing
 │       │   ├── state.py         # AgentWorkflowState typed dictionary
 │       │   └── __init__.py
 │       └── api/                 # Modular API Routers
 │           ├── router.py        # Central API v1 router aggregator
 │           └── v1/
-│               ├── generation.py # SSE streaming question generator endpoint
-│               ├── questions.py  # Question Bank CRUD & JSON/CSV exports
-│               ├── passages.py   # Shared passage stimuli listing & retrieval
-│               ├── batches.py    # Batch execution runs & staged item retrieval
-│               ├── config.py     # Read-only engine configuration & model settings
-│               ├── health.py     # Database connectivity & system health checks
+│               ├── batches.py   # Batch execution runs & staged item retrieval
+│               ├── config.py    # Read-only engine configuration & model settings
+│               ├── generation.py# SSE streaming question generator endpoint
+│               ├── health.py    # Database connectivity & system health checks
+│               ├── passages.py  # Shared passage stimuli listing & retrieval
+│               ├── questions.py # Question Bank CRUD & JSON/CSV exports
+│               ├── taxonomy.py  # AAMC syllabus hierarchy & dependent taxonomy
 │               └── __init__.py
 └── frontend/
     ├── README.md                # Modern React 19 architecture & component guide
     ├── package.json             # React 19 dependencies & scripts (pnpm workspace)
     ├── vite.config.js           # Vite build configuration with chunk splitting
+    ├── index.html               # Main HTML entry document
+    ├── public/                  # Static assets
+    │   ├── favicon.svg          # SVG brand favicon
+    │   └── icons.svg            # UI SVG sprite icons
     └── src/
         ├── App.jsx              # Main application shell & router
+        ├── main.jsx             # React 19 application entry point
         ├── index.css            # Modern Enterprise Minimalist design system (Dual Theme)
         ├── views/               # Top-level screen views (Code-split with React.lazy)
         │   ├── index.js         # Centralized views index
-        │   ├── GeneratorWorkspaceView.jsx # Multi-agent active generation & review desk
-        │   ├── QuestionBankView.jsx       # Question Bank search, filter, and export
+        │   ├── AiValidatedQuestionsView.jsx # Dedicated AI Validated (>90) quality bank
         │   ├── BatchActivityView.jsx      # Batch job lifecycle monitor
-        │   └── AiValidatedQuestionsView.jsx # Dedicated AI Validated (>90) quality bank
+        │   ├── GeneratorWorkspaceView.jsx # Multi-agent active generation & review desk
+        │   ├── PassageBankView.jsx        # Passage stimuli repository & editorial desk
+        │   └── QuestionBankView.jsx       # Question Bank search, filter, and export
         ├── constants/           # Centralized application constants
+        │   ├── index.js         # Constants barrel export
+        │   ├── config.js        # Model options & pricing constants
         │   ├── mcat.js          # MCAT sections, pacing targets, and skills
-        │   └── config.js        # Model options & pricing constants
+        │   ├── mcatTraps.js     # AAMC cognitive trap definitions and defense strategies
+        │   └── mcat_dependent_taxonomy.json # AAMC-aligned foundational concepts and skills
         ├── hooks/               # Custom stateful React hooks
         │   ├── index.js                 # Barrel export for custom hooks
-        │   ├── useTheme.js              # Theme manager (Dark/Light with localStorage)
-        │   ├── useKeyboardShortcuts.js  # Global hotkeys (⌘↵, T, A, D, /, Esc)
+        │   ├── useAppState.js           # Centralized view routing & global event broker
+        │   ├── useFocusTrap.js          # Accessible WCAG AA keyboard focus-trapping hook
         │   ├── useGeneratorForm.js      # Form state, validation & preset handlers
+        │   ├── useKeyboardShortcuts.js  # Global hotkeys (⌘↵, T, A, D, /, Esc)
+        │   ├── useQuestionBank.js       # Debounced search, sorting, and bank fetching
         │   ├── useQuestionGenerator.js  # SSE streaming multi-agent orchestrator hook
-        │   └── useQuestionBank.js       # CRUD, filtering, clipboard & repository stats hook
+        │   └── useTheme.js              # Theme manager (Dark/Light with localStorage)
         ├── components/          # Domain-organized UI components
         │   ├── index.js         # Barrel exports for clean component imports
-        │   ├── layout/          # Layout components (Navbar, Footer)
-        │   ├── wizard/          # Progressive 3-step Guided Wizard (HeroLanding, GuidedWizard, steps 1-3)
-        │   ├── pipeline/        # AI Pipeline (AgentVisualizer, MultiAgentPipelineVisualizer, RejectionCard)
-        │   ├── question/        # Single Question Review Desk (QuestionCard, ReviewAuditView, SharedPassageCard, VisualStimulusViewer)
-        │   ├── staged/          # Staged batch review (StagedBatchReview, StagedBatchGrid, StagedDetailedView, StagedQuestionSlotCard, StagedSlotSkeleton, BatchProgressHeader, StageJsonInspector)
         │   ├── bank/            # Question repository filters & table
+        │   │   ├── QuestionBankFilters.jsx # Section, difficulty & search filters
+        │   │   ├── QuestionBankTable.jsx   # Canonical Editorial Cards view & actions
+        │   │   └── index.js
         │   ├── batch/           # Batch Activity cards & job monitors
+        │   │   ├── ActiveMultiBatchMonitor.jsx # Global concurrency metrics & live monitor
+        │   │   ├── BatchCard.jsx               # Summary status card for generation batches
+        │   │   ├── BatchFiltersBar.jsx         # Section, status, and search filters
+        │   │   ├── BatchJobCard.jsx            # Per-question job card with lifecycle status
+        │   │   ├── BatchQuestionItem.jsx       # Staged question item with review modal trigger
+        │   │   ├── BatchStatsHeader.jsx        # High-level aggregate batch statistics
+        │   │   └── index.js
+        │   ├── common/          # Common primitives
+        │   │   ├── CustomSelect.jsx     # Accessible custom dropdown select primitive
+        │   │   ├── ErrorBoundary.jsx    # Production React error boundary with fallback UI
+        │   │   ├── FormattedText.jsx    # Inline markdown & cognitive trap chip highlighter
+        │   │   ├── InfynnoLogo.jsx      # Official corporate vector logo primitive
+        │   │   ├── LiveStopwatch.jsx    # High-precision live stopwatch timer
+        │   │   ├── PaginationBar.jsx    # Accessible pagination bar with page range counter
+        │   │   ├── Toast.jsx            # Floating toast notification system
+        │   │   └── index.js
+        │   ├── layout/          # Layout components (Navbar, Footer)
+        │   │   ├── Footer.jsx           # Infynno Solutions LLP attribution & resource footer
+        │   │   ├── Navbar.jsx           # Header with branding, navigation tabs, and theme toggle
+        │   │   └── index.js
+        │   ├── modals/          # Dialog modals
+        │   │   ├── ExportPaperPreview.jsx # Live print layout previewer
+        │   │   ├── ExportPrintModal.jsx   # Exam Paper (PDF), Study Pack, CSV/JSON export modal
+        │   │   └── index.js
+        │   ├── passage/         # Reading passage bank components
+        │   │   ├── PassageBankFilters.jsx # Passage search & section filters
+        │   │   ├── PassageBankTable.jsx   # Passage repository table & question sets
+        │   │   ├── PassageEditorialDesk.jsx # Reading passage editor & preview desk
+        │   │   └── index.js
+        │   ├── pipeline/        # AI Pipeline visualizers
+        │   │   ├── AgentVisualizer.jsx  # Live generating telemetry & compact stepper
+        │   │   ├── MultiAgentPipelineVisualizer.jsx # 3-Milestone pipeline conduit visualizer
+        │   │   ├── RejectionCard.jsx    # Diagnostic display when score fails threshold
+        │   │   └── index.js
+        │   ├── question/        # Single Question Review Desk
+        │   │   ├── MentorExplanationView.jsx # 3-card mentor explanation view
+        │   │   ├── QuestionCard.jsx     # Interactive student practice & review card
+        │   │   ├── QuestionDraftingSkeleton.jsx # Live drafting skeleton placeholder
+        │   │   ├── QuestionInlineEditor.jsx # In-place authoring & remediation editor
+        │   │   ├── QuestionScorecardTab.jsx # 100-point rubric breakdown accordion
+        │   │   ├── ReviewAuditView.jsx  # 100-point rubric breakdown & token cost modal
+        │   │   ├── SharedPassageCard.jsx# Shared reading passage stimulus display card
+        │   │   ├── VisualStimulusViewer.jsx # SVG & neural visual diagram renderer
+        │   │   └── index.js
+        │   ├── staged/          # Staged batch review
+        │   │   ├── BatchProgressHeader.jsx # Batch progress and count header
+        │   │   ├── StageJsonInspector.jsx  # Raw JSON inspection panel
+        │   │   ├── StagedBatchGrid.jsx     # Multi-card staged questions grid
+        │   │   ├── StagedBatchReview.jsx   # Split-pane batch review deck
+        │   │   ├── StagedDetailedView.jsx  # Expanded single question review panel
+        │   │   ├── StagedQuestionSlotCard.jsx # Individual question slot reviewer card
+        │   │   ├── StagedSlotSkeleton.jsx  # Slot loading pulse skeleton
+        │   │   └── index.js
         │   ├── validated/       # Dedicated AI Validated quality cards & filters
-        │   ├── modals/          # Dialog modals (ExportPrintModal, ExportPaperPreview)
-        │   └── common/          # Common primitives (CustomSelect, InfynnoLogo, NumberStepper, Toast, FormattedText)
+        │   │   ├── AiValidatedFiltersBar.jsx   # Filters for AI-validated questions
+        │   │   ├── AiValidatedQuestionCard.jsx # Card with direct bank approval actions
+        │   │   ├── AiValidatedStatsBar.jsx     # Quick-action statistics header
+        │   │   └── index.js
+        │   └── wizard/          # Progressive 3-step Guided Wizard
+        │       ├── GuidedWizard.jsx     # Streamlined 3-step guided exam generation wizard
+        │       ├── HeroLanding.jsx      # Welcome landing hero header
+        │       ├── steps/               # Wizard step components
+        │       │   ├── WizardStep1SectionFocus.jsx   # Step 1: Section, pacing & focus
+        │       │   ├── WizardStep2LevelFormat.jsx    # Step 2: Level, format & scope (5/50)
+        │       │   ├── WizardStep3ReviewAdvanced.jsx # Step 3: Compact review table & advanced
+        │       │   └── index.js
+        │       └── index.js
         ├── services/
-        │   └── api.js           # SSE event reader & REST API client
-        └── utils/               # Pure utility helpers (exportUtils, formatters, trapHelpers, explanationHelpers)
+        │   ├── api.js           # SSE event reader & REST API client (24 methods)
+        │   └── index.js
+        └── utils/               # Pure utility helpers
+            ├── explanationHelpers.js # Distractor line & cognitive trap parser
+            ├── exportUtils.js   # A4 HTML print document builder, CSV & JSON serializers
+            ├── formatters.js    # Time, word count, token & currency formatters
+            ├── optionHelpers.js # Option length parity & calculateOptionSymmetry engine
+            ├── trapHelpers.js   # Cognitive trap resolution & text detectors
+            └── index.js
 ```
 
 ---
