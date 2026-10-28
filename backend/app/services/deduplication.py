@@ -1,0 +1,396 @@
+"""
+deduplication.py — Multi-metric question similarity and collision detection engine.
+
+Evaluates lexical token overlap (Jaccard, n-grams, character edit distance) and
+concept overlap between candidate MCAT questions and existing items in the Question Bank
+or active batch siblings to prevent repetitive questions.
+"""
+
+from __future__ import annotations
+
+import difflib
+import logging
+import re
+from typing import Any
+
+from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
+
+# Common English stop words to exclude during token normalization
+STOP_WORDS = frozenset(
+    {
+        "a",
+        "an",
+        "the",
+        "and",
+        "or",
+        "but",
+        "in",
+        "on",
+        "at",
+        "to",
+        "for",
+        "of",
+        "with",
+        "by",
+        "from",
+        "up",
+        "about",
+        "into",
+        "over",
+        "after",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+        "shall",
+        "will",
+        "should",
+        "would",
+        "may",
+        "might",
+        "must",
+        "can",
+        "could",
+        "which",
+        "what",
+        "who",
+        "whom",
+        "this",
+        "that",
+        "these",
+        "those",
+        "it",
+        "its",
+        "as",
+        "if",
+        "than",
+        "then",
+        "so",
+    }
+)
+
+
+class DuplicateCheckResult(BaseModel):
+    """Encapsulates the evaluation outcome of duplicate collision checks."""
+
+    is_duplicate: bool = False
+    similarity_score: float = 0.0
+    matched_question_id: str | None = None
+    matched_question_stem: str | None = None
+    matched_options: list[dict[str, Any]] | None = None
+    matched_explanation: str | None = None
+    match_reason: str | None = None
+
+
+def normalize_text(text: str | None) -> str:
+    """
+    Normalizes text for linguistic comparison:
+    - Strips LaTeX delimiters and HTML/XML tags
+    - Replaces punctuation and special symbols with spaces
+    - Lowercases and collapses multiple whitespace characters
+    """
+    if not text:
+        return ""
+    # Strip HTML tags
+    clean = re.sub(r"<[^>]+>", " ", text)
+    # Strip LaTeX delimiters: $, $$, \(, \), \[, \]
+    clean = re.sub(r"(\$\$?|\\\(|\\\)|\\\[|\\\])", " ", clean)
+    # Remove LaTeX commands like \frac, \text, \times, etc.
+    clean = re.sub(r"\\[a-zA-Z]+", " ", clean)
+    # Replace non-alphanumeric characters with spaces (preserve digits and letters)
+    clean = re.sub(r"[^a-zA-Z0-9\s]", " ", clean)
+    # Lowercase and normalize whitespace
+    tokens = clean.lower().split()
+    return " ".join(tokens)
+
+
+def extract_content_tokens(text: str | None) -> list[str]:
+    """Returns filtered content tokens with stop words removed."""
+    normalized = normalize_text(text)
+    if not normalized:
+        return []
+    return [t for t in normalized.split() if t not in STOP_WORDS and len(t) > 1]
+
+
+def compute_token_jaccard(tokens1: list[str], tokens2: list[str], n_gram: int = 1) -> float:
+    """
+    Calculates Jaccard intersection-over-union similarity between token lists or n-grams.
+    """
+    if not tokens1 or not tokens2:
+        return 0.0
+
+    if n_gram <= 1:
+        s1, s2 = set(tokens1), set(tokens2)
+    else:
+        s1 = set(tuple(tokens1[i : i + n_gram]) for i in range(len(tokens1) - n_gram + 1))
+        s2 = set(tuple(tokens2[i : i + n_gram]) for i in range(len(tokens2) - n_gram + 1))
+
+    if not s1 or not s2:
+        return 0.0
+
+    intersection = len(s1 & s2)
+    union = len(s1 | s2)
+    return round(intersection / union, 4) if union > 0 else 0.0
+
+
+# In-memory LRU token cache for reference bank questions: keyed by reference ID or stem hash
+_STEM_TOKEN_CACHE: dict[str, tuple[str, list[str], set[str], set[tuple[str, str]]]] = {}
+_MAX_STEM_CACHE_SIZE = 2000
+
+
+def get_or_create_stem_tokens(
+    stem: str | None, ref_id: str | None = None
+) -> tuple[str, list[str], set[str], set[tuple[str, str]]]:
+    """
+    Returns normalized text, filtered tokens list, tokens set, and bigrams set for a stem.
+    Uses in-memory cache when ref_id is provided to eliminate redundant tokenization across batch runs.
+    """
+    if ref_id and ref_id in _STEM_TOKEN_CACHE:
+        return _STEM_TOKEN_CACHE[ref_id]
+
+    norm = normalize_text(stem)
+    tokens = [t for t in norm.split() if t not in STOP_WORDS and len(t) > 1] if norm else []
+    token_set = set(tokens)
+    bigrams = (
+        set(tuple(tokens[i : i + 2]) for i in range(len(tokens) - 1)) if len(tokens) >= 2 else set()
+    )
+    item = (norm, tokens, token_set, bigrams)
+
+    if ref_id:
+        if len(_STEM_TOKEN_CACHE) >= _MAX_STEM_CACHE_SIZE:
+            _STEM_TOKEN_CACHE.clear()
+        _STEM_TOKEN_CACHE[ref_id] = item
+
+    return item
+
+
+def compute_sequence_ratio(text1: str, text2: str) -> float:
+    """Calculates string gestalt pattern matching ratio via difflib.SequenceMatcher."""
+    n1 = normalize_text(text1)
+    n2 = normalize_text(text2)
+    if not n1 or not n2:
+        return 0.0
+    if n1 == n2:
+        return 1.0
+    matcher = difflib.SequenceMatcher(None, n1, n2)
+    return round(matcher.ratio(), 4)
+
+
+def compute_stem_similarity(stem1: str, stem2: str, ref_id: str | None = None) -> float:
+    """
+    Hybrid stem similarity combining token containment, 1-gram Jaccard, 2-gram Jaccard,
+    and character sequence ratio.
+    """
+    norm1, tokens1, s1, b1 = get_or_create_stem_tokens(stem1)
+    norm2, tokens2, s2, b2 = get_or_create_stem_tokens(stem2, ref_id)
+    if not tokens1 or not tokens2:
+        return 0.0
+
+    min_len = min(len(s1), len(s2))
+    containment = len(s1 & s2) / min_len if min_len > 0 else 0.0
+
+    u1 = len(s1 | s2)
+    jaccard_1 = len(s1 & s2) / u1 if u1 > 0 else 0.0
+
+    u2 = len(b1 | b2)
+    jaccard_2 = len(b1 & b2) / u2 if u2 > 0 else 0.0
+
+    seq_ratio = difflib.SequenceMatcher(None, norm1, norm2).ratio() if norm1 and norm2 else 0.0
+
+    # Weighted blend: 35% containment, 25% 1-gram Jaccard, 20% 2-gram Jaccard, 20% SequenceMatcher
+    score = (0.35 * containment) + (0.25 * jaccard_1) + (0.20 * jaccard_2) + (0.20 * seq_ratio)
+    return round(score, 4)
+
+
+def compute_options_overlap(
+    opts1: list[dict[str, Any] | Any],
+    opts2: list[dict[str, Any] | Any],
+) -> float:
+    """
+    Computes overlap between answer options based on normalized text matching with fast checks.
+    """
+    texts1 = [
+        normalize_text(o.get("text", "") if isinstance(o, dict) else getattr(o, "text", str(o)))
+        for o in (opts1 or [])
+    ]
+    texts2 = [
+        normalize_text(o.get("text", "") if isinstance(o, dict) else getattr(o, "text", str(o)))
+        for o in (opts2 or [])
+    ]
+    texts1 = [t for t in texts1 if t]
+    texts2 = [t for t in texts2 if t]
+
+    if not texts1 or not texts2:
+        return 0.0
+
+    matches = 0
+    for t1 in texts1:
+        # Check if t1 has high similarity with any option in texts2
+        for t2 in texts2:
+            # Fast check: exact text match
+            if t1 == t2:
+                matches += 1
+                break
+            # Length ratio heuristic before SequenceMatcher: if ratio < 0.6, sequence ratio cannot exceed 0.85
+            l1, l2 = len(t1), len(t2)
+            if max(l1, l2) > 0 and (min(l1, l2) / max(l1, l2)) < 0.60:
+                continue
+            if compute_sequence_ratio(t1, t2) > 0.85:
+                matches += 1
+                break
+
+    return round(matches / max(len(texts1), len(texts2)), 4)
+
+
+def compute_question_similarity(
+    candidate: dict[str, Any] | Any,
+    reference: dict[str, Any] | Any,
+) -> tuple[float, str]:
+    """
+    Computes comprehensive similarity between two questions.
+    Returns (similarity_score, reason).
+    """
+    stem1 = (
+        candidate.get("question_stem")
+        if isinstance(candidate, dict)
+        else getattr(candidate, "question_stem", "")
+    )
+    stem2 = (
+        reference.get("question_stem")
+        if isinstance(reference, dict)
+        else getattr(reference, "question_stem", "")
+    )
+    ref_id = reference.get("id") if isinstance(reference, dict) else getattr(reference, "id", None)
+
+    stem_sim = compute_stem_similarity(stem1, stem2, ref_id=str(ref_id) if ref_id else None)
+
+    # Early-exit prune: if stem similarity is below 0.40, composite similarity can NEVER reach 0.80
+    if stem_sim < 0.40:
+        overall = round(0.70 * stem_sim, 4)
+        return overall, f"Distinct question stem ({int(stem_sim * 100)}%)"
+
+    opts1 = (
+        candidate.get("options")
+        if isinstance(candidate, dict)
+        else getattr(candidate, "options", [])
+    )
+    opts2 = (
+        reference.get("options")
+        if isinstance(reference, dict)
+        else getattr(reference, "options", [])
+    )
+
+    opts_sim = compute_options_overlap(opts1, opts2)
+
+    # If stems are nearly identical (>0.80), that alone drives the collision
+    if stem_sim >= 0.80:
+        overall = stem_sim
+        reason = f"High question stem textual overlap ({int(stem_sim * 100)}%)"
+    # If options are identical or near-identical (>= 0.75) and stem has moderate-to-high overlap
+    elif opts_sim >= 0.75 and stem_sim >= 0.50:
+        overall = round((0.50 * stem_sim) + (0.50 * opts_sim), 4)
+        reason = f"Identical answer choices ({int(opts_sim * 100)}%) and conceptual stem match ({int(stem_sim * 100)}%)"
+    # If both stem and options have substantial overlap
+    elif stem_sim >= 0.60 and opts_sim >= 0.50:
+        overall = round((0.60 * stem_sim) + (0.40 * opts_sim), 4)
+        reason = f"Question stem ({int(stem_sim * 100)}%) and answer choice ({int(opts_sim * 100)}%) collision"
+    else:
+        overall = round((0.70 * stem_sim) + (0.30 * opts_sim), 4)
+        reason = f"Overall conceptual similarity ({int(overall * 100)}%)"
+
+    return overall, reason
+
+
+def evaluate_duplicate(
+    candidate: dict[str, Any] | Any,
+    reference_pool: list[dict[str, Any] | Any],
+    threshold: float = 0.80,
+) -> DuplicateCheckResult:
+    """
+    Evaluates a candidate question against a pool of reference questions (from DB or batch siblings).
+    Returns DuplicateCheckResult with details of the highest similarity match.
+    """
+    candidate_id = (
+        candidate.get("id") if isinstance(candidate, dict) else getattr(candidate, "id", None)
+    )
+    cand_stem = (
+        candidate.get("question_stem")
+        if isinstance(candidate, dict)
+        else getattr(candidate, "question_stem", "")
+    )
+    if cand_stem:
+        get_or_create_stem_tokens(cand_stem, str(candidate_id) if candidate_id else None)
+
+    highest_score = 0.0
+    matched_ref: dict[str, Any] | Any | None = None
+    best_reason = ""
+
+    for ref in reference_pool:
+        ref_id = ref.get("id") if isinstance(ref, dict) else getattr(ref, "id", None)
+        # Skip self-comparison
+        if candidate_id and ref_id and str(candidate_id) == str(ref_id):
+            continue
+
+        score, reason = compute_question_similarity(candidate, ref)
+        if score > highest_score:
+            highest_score = score
+            matched_ref = ref
+            best_reason = reason
+
+    is_duplicate = highest_score >= threshold
+
+    if matched_ref is not None:
+        matched_id = (
+            matched_ref.get("id")
+            if isinstance(matched_ref, dict)
+            else getattr(matched_ref, "id", None)
+        )
+        matched_stem = (
+            matched_ref.get("question_stem")
+            if isinstance(matched_ref, dict)
+            else getattr(matched_ref, "question_stem", None)
+        )
+        matched_expl = (
+            matched_ref.get("explanation")
+            if isinstance(matched_ref, dict)
+            else getattr(matched_ref, "explanation", None)
+        )
+        raw_opts = (
+            matched_ref.get("options")
+            if isinstance(matched_ref, dict)
+            else getattr(matched_ref, "options", [])
+        )
+
+        # Format options as dicts for serialization
+        formatted_opts = [
+            o
+            if isinstance(o, dict)
+            else {"id": getattr(o, "id", "A"), "text": getattr(o, "text", "")}
+            for o in (raw_opts or [])
+        ]
+
+        return DuplicateCheckResult(
+            is_duplicate=is_duplicate,
+            similarity_score=highest_score,
+            matched_question_id=str(matched_id) if matched_id else None,
+            matched_question_stem=matched_stem,
+            matched_options=formatted_opts,
+            matched_explanation=matched_expl,
+            match_reason=best_reason if is_duplicate else None,
+        )
+
+    return DuplicateCheckResult(
+        is_duplicate=False,
+        similarity_score=0.0,
+    )

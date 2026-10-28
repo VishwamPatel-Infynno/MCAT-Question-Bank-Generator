@@ -6,13 +6,15 @@ import {
   BookOpen,
   ChevronDown,
   ChevronUp,
-  Image as ImageIcon
+  Image as ImageIcon,
+  AlertTriangle,
+  ShieldCheck
 } from 'lucide-react';
 import VisualStimulusViewer from '../question/VisualStimulusViewer';
 import StagedSlotSkeleton from './StagedSlotSkeleton';
 import { formatDifficulty } from '../../constants/mcat';
 
-export default function StagedQuestionSlotCard({
+const StagedQuestionSlotCard = React.memo(function StagedQuestionSlotCard({
   idx,
   slotNumber,
   q,
@@ -28,7 +30,8 @@ export default function StagedQuestionSlotCard({
   onToggleExplanation,
   onApproveSingle,
   onOpenAudit,
-  onSelectDetailedView
+  onSelectDetailedView,
+  onOpenDuplicateModal
 }) {
   // State A: Question has been generated and ready for review
   if (q) {
@@ -37,6 +40,11 @@ export default function StagedQuestionSlotCard({
     const correctKeysList = Array.isArray(q.correct_answer_ids) && q.correct_answer_ids.length > 0
       ? q.correct_answer_ids.map(k => String(k).trim().toUpperCase())
       : (q.correct_answer_id || '').split(',').map(k => k.trim().toUpperCase()).filter(Boolean);
+
+    const dupInfo = q.duplicate_info || {};
+    const isDuplicate = Boolean(dupInfo.is_duplicate && !q.is_duplicate_override);
+    const isOverridden = Boolean(q.is_duplicate_override || dupInfo.is_overridden);
+    const simScore = Math.round((dupInfo.similarity_score || 0) * 100);
 
     return (
       <div
@@ -122,6 +130,52 @@ export default function StagedQuestionSlotCard({
             {!isLinked && (q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url || q.stage_outcomes?.passage_visual_stimulus?.image_svg || q.stage_outcomes?.passage_visual_stimulus?.image_url) && (
               <span className="badge badge-purple" style={{ fontSize: '0.675rem', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                 <ImageIcon size={10} /> Diagram
+              </span>
+            )}
+            {isDuplicate && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onOpenDuplicateModal) onOpenDuplicateModal(q);
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                  fontSize: '0.675rem',
+                  fontWeight: 700,
+                  background: 'rgba(245, 158, 11, 0.12)',
+                  color: '#d97706',
+                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  cursor: 'pointer'
+                }}
+                title="High similarity detected with an existing Question Bank item. Click to inspect side-by-side diff."
+              >
+                <AlertTriangle size={10} />
+                <span>Duplicate Risk ({simScore}%)</span>
+              </button>
+            )}
+            {isOverridden && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                  fontSize: '0.675rem',
+                  fontWeight: 700,
+                  background: 'rgba(16, 185, 129, 0.1)',
+                  color: 'var(--status-success)',
+                  border: '1px solid rgba(16, 185, 129, 0.25)'
+                }}
+                title="Duplicate collision was manually reviewed and overridden."
+              >
+                <ShieldCheck size={10} />
+                <span>Overridden</span>
               </span>
             )}
           </div>
@@ -379,4 +433,6 @@ export default function StagedQuestionSlotCard({
       effectiveTotal={effectiveTotal}
     />
   );
-}
+});
+
+export default StagedQuestionSlotCard;

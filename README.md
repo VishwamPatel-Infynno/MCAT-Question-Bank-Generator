@@ -16,11 +16,11 @@ For deep-dive technical specifications, architecture diagrams, API schemas, and 
 | Document | Description |
 | :--- | :--- |
 | **[Central Documentation Hub (docs/README.md)](docs/README.md)** | **Master Documentation Index**: Complete sitemap, role-based navigation paths, architectural overview, and cross-functional guide directory. |
-| **[Client System & Workflow Guide (docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)](docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)** | **Primary Client Deliverable**: End-to-end operational walkthrough, 3-step wizard, 2 calibrated generation scopes (Practice Set [5 Qs] and Full Exam [50 Qs]), Low/Medium/High difficulty tiers, Blind-Solver safeguard, AAMC Split-Pane reading mode, canonical Editorial Cards Question Bank, mentor explanations, and token transparency. |
-| **[UI/UX Design System (DESIGN.md)](DESIGN.md)** | Authoritative design tokens, dual obsidian/alabaster themes, streamlined 3-step wizard specs, canonical Question Bank Editorial Cards view, AAMC Dual Split-Pane reading mode, accessible modal focus-trapping contracts, typography scale, component contracts, accessibility criteria (WCAG AA), and micro-animations. |
-| **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 3-step pipeline specifications, Blind-Solver Dual Validation, Strict Quality Gate, Two-Tier quality threshold model, global worker semaphores, background batch runner, SSE pipeline, and PostgreSQL 16 ERD. |
-| **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation (28 operations across 22 endpoint paths), batch generation schemas, batch controls (`/stop`, `/retry`, `/cancel-all`), SSE event stream contracts, filter parameters, and cURL examples. |
-| **[Testing & Quality Assurance Guide](docs/TESTING_AND_QA.md)** | Complete test specifications for the 48 passing deterministic unit/integration tests, 15 TestSprite Playwright automated E2E browser tests (100% pass rate), Ruff & Oxlint code hygiene standards, and CI pipeline. |
+| **[Client System & Workflow Guide (docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)](docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)** | **Primary Client Deliverable**: End-to-end operational walkthrough, 3-step wizard, 2 calibrated generation scopes (Practice Set [5 Qs] and Full Exam [50 Qs]), Low/Medium/High difficulty tiers, Blind-Solver safeguard, Deduplication & Editorial Override workflow, AAMC Split-Pane reading mode, canonical Editorial Cards Question Bank, mentor explanations, and token transparency. |
+| **[UI/UX Design System (DESIGN.md)](DESIGN.md)** | Authoritative design tokens, dual obsidian/alabaster themes, streamlined 3-step wizard specs, canonical Question Bank Editorial Cards view, Duplicate Comparison Modal, AAMC Dual Split-Pane reading mode, accessible modal focus-trapping contracts, typography scale, component contracts, accessibility criteria (WCAG AA), and micro-animations. |
+| **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 3-step pipeline specifications, Blind-Solver Dual Validation, Deduplication & Anti-Collision Subsystem, Strict Quality Gate, Two-Tier quality threshold model, global worker semaphores, background batch runner, SSE pipeline, and PostgreSQL 16 ERD. |
+| **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation (30 operations across 24 endpoint paths), deduplication & override endpoints (`/override-duplicate`, `/check-duplicate`), batch generation schemas, batch controls (`/stop`, `/retry`, `/cancel-all`), SSE event stream contracts, filter parameters, and cURL examples. |
+| **[Testing & Quality Assurance Guide](docs/TESTING_AND_QA.md)** | Complete test specifications for the 54 passing deterministic unit/integration tests, 15 TestSprite Playwright automated E2E browser tests (100% pass rate), Ruff & Oxlint code hygiene standards, and CI pipeline. |
 | **[Token Usage & Cost Tracking](docs/TOKEN_TRACKING.md)** | High-throughput rate card ($0.098 in / $0.294 out per 1M tokens), exact mathematical cost formulas, multi-agent accumulation, and UI observability. |
 | **[Installation, Setup & Deployment](docs/SETUP_AND_CONFIG.md)** | Step-by-step setup, Docker PostgreSQL 16 guide, environment variables reference (34 parameters), production deployment, linters, and troubleshooting. |
 | **[MCAT Psychometric Rubric & Standards](docs/MCAT_RUBRIC.md)** | Official 4 AAMC sections pacing (~96s to ~101s), 100-point 4-pillar evaluation rubric, Blind-Solver algorithmic verification, $> 90$ quality benchmark, calibrated scaled score (118-132), and cognitive distractor trap engineering. |
@@ -92,6 +92,13 @@ graph LR
 - **Comprehensive Study Pack**: Pairs every research or CARS stimulus with its question stem, correct key, and complete step-by-step cognitive proof rationales.
 - **Direct Data Exports**: Download the entire repository or filtered subsets as standardized CSV files (`mcat_question_bank.csv`) or normalized JSON bundles (`mcat_question_bank.json`).
 
+### 6. Question Deduplication, Collision Avoidance & Editorial Override
+- **Multi-Metric Mathematical Similarity**: Hybrid algorithm combining Token Containment (35%), 1-Gram Jaccard (25%), 2-Gram Jaccard (20%), and SequenceMatcher Ratio (20%), elevated by an options set overlap penalty when distractor choices match ($\ge 75\%$).
+- **Scoped Reference Pool**: Real-time evaluation scoped to the exact **Section** and **Subtopic** in PostgreSQL, plus sibling items drafted in the active batch session.
+- **Autonomous Anti-Collision Loop**: If a candidate item triggers $\ge 0.80$ similarity, the engine re-prompts the generator with an explicit avoidance directive, steering generation toward alternative clinical presentations or distinct enzymatic mechanisms.
+- **Side-by-Side Duplicate Comparison Modal (`DuplicateComparisonModal.jsx`)**: Educators can inspect candidate questions alongside matched historical bank items with similarity scores, visual diff cues, and choice breakdowns.
+- **Permanent Audit Trail & Protected Shield**: Educators can **"Override & Approve"** legitimate edge cases (`is_duplicate_override = true`, `overridden_at = ISO_TIMESTAMP`), rendering a distinct blue shield badge (`🛡️ Overridden`) across question cards and bank tables. Alternatively, educators can choose **"Regenerate Fresh Angle"** or **"Discard"**.
+
 ---
 
 ## ⚡ Quickstart Guide
@@ -133,7 +140,7 @@ pnpm dev
 Run the full backend test suite covering schemas, routing logic, strict quality gates, SVG & FLUX synthesis, database operations, and token calculations:
 
 ```bash
-# Run backend deterministic test suite (48 passed)
+# Run backend deterministic test suite (54 passed)
 source .venv/bin/activate
 pytest backend/tests -v -k "not live_e2e"
 
@@ -144,7 +151,7 @@ ruff check backend
 Verify frontend code hygiene and production bundle:
 
 ```bash
-# Run frontend linter (oxlint: 0 warnings, 0 errors across 85 files)
+# Run frontend linter (oxlint: 0 warnings, 0 errors across 86 files)
 pnpm lint
 
 # Build production bundle (vite build: ~218ms)
@@ -172,7 +179,7 @@ Question Bank Generator/
 ├── docs/                        # Comprehensive Documentation Suite
 │   ├── README.md                # Master Documentation Index & role-based sitemap
 │   ├── ARCHITECTURE.md          # Multi-agent architecture, Blind-Solver & LangGraph StateGraph
-│   ├── API.md                   # Complete REST & SSE API specification (28 operations / 22 paths)
+│   ├── API.md                   # Complete REST & SSE API specification (30 operations / 24 paths)
 │   ├── CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md # Client system & operational workflow guide
 │   ├── TESTING_AND_QA.md        # Pytest test suite & TestSprite Playwright E2E specifications
 │   ├── TOKEN_TRACKING.md        # Inference pricing & mathematical cost engine
@@ -195,6 +202,8 @@ Question Bank Generator/
 │   │   ├── test_api.py          # CRUD endpoints, batch staging & lifecycle
 │   │   ├── test_batch_jobs_flow.py # Background jobs & batch execution flow
 │   │   ├── test_database_structure.py # Relational schema, passage & batch sync tests
+│   │   ├── test_deduplication.py# Multi-metric similarity, token containment & options overlap
+│   │   ├── test_deduplication_and_override_api.py # Duplicate check & override REST endpoints
 │   │   ├── test_e2e_live.py     # Live end-to-end integration test suite
 │   │   ├── test_multi_batch_concurrency.py # Global semaphores, rate limiting & metrics
 │   │   ├── test_pedagogy.py     # Option symmetry, AAMC traps & taxonomy parity
@@ -235,6 +244,7 @@ Question Bank Generator/
 │       │   └── __init__.py
 │       ├── services/            # Background Worker Services
 │       │   ├── batch_runner.py  # Asynchronous worker pool (5 Q single job / 50 Q 10 jobs)
+│       │   ├── deduplication.py # Real-time multi-metric similarity & anti-collision service
 │       │   └── __init__.py
 │       ├── agents/              # Multi-agent decision logic & prompts
 │       │   ├── base.py          # LiteLLM client & calculate_token_cost()

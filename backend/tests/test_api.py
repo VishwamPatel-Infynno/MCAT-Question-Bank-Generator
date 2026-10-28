@@ -759,3 +759,95 @@ async def test_question_status_lifecycle_and_counts():
     await delete_question(uid2)
     await delete_question(uid3)
     await delete_question(uid4)
+
+
+@pytest.mark.asyncio
+async def test_deduplication_and_override_api():
+    from app.api.v1.questions import (
+        check_question_duplicate_endpoint,
+        override_question_duplicate_endpoint,
+    )
+    from app.db.session import init_db
+    from app.schemas import DuplicateInfo
+
+    await init_db()
+
+    # 1. Seed original question
+    orig_id = f"test-orig-{uuid.uuid4().hex[:8]}"
+    orig_q = Question(
+        id=orig_id,
+        section="bio_biochem",
+        section_label="Biological and Biochemical Foundations",
+        subtopic="Enzyme Kinetics",
+        difficulty="medium",
+        stimulus_text="",
+        question_stem="How does an uncompetitive inhibitor affect the apparent Km and Vmax of an enzyme?",
+        options=[
+            OptionChoice(id="A", text="Decreases apparent Km and decreases Vmax"),
+            OptionChoice(id="B", text="Increases apparent Km and decreases Vmax"),
+            OptionChoice(id="C", text="Increases apparent Km and increases Vmax"),
+            OptionChoice(id="D", text="Leaves apparent Km unchanged"),
+        ],
+        correct_answer_id="A",
+        explanation="Uncompetitive inhibitors bind to the enzyme-substrate complex, decreasing both Km and Vmax in equal ratio.",
+        final_score=95,
+        status="in_bank",
+    )
+    await save_question(orig_q)
+
+    # 2. Test check_question_duplicate_endpoint with duplicate payload
+    dup_payload = {
+        "section": "bio_biochem",
+        "subtopic": "Enzyme Kinetics",
+        "question_stem": "How does an uncompetitive inhibitor alter the apparent Km and Vmax of an enzyme?",
+        "options": [
+            {"id": "A", "text": "Decreases apparent Km and decreases Vmax"},
+            {"id": "B", "text": "Increases apparent Km and decreases Vmax"},
+            {"id": "C", "text": "Increases apparent Km and increases Vmax"},
+            {"id": "D", "text": "Leaves apparent Km unchanged"},
+        ],
+    }
+    check_res = await check_question_duplicate_endpoint(dup_payload)
+    assert check_res["success"] is True
+    dup_info = check_res["duplicate_check"]
+    assert dup_info["is_duplicate"] is True
+    assert dup_info["similarity_score"] >= 0.80
+    assert dup_info["matched_question_id"] == orig_id
+
+    # 3. Test saving a duplicate candidate and overriding it
+    cand_id = f"test-cand-{uuid.uuid4().hex[:8]}"
+    cand_q = Question(
+        id=cand_id,
+        section="bio_biochem",
+        section_label="Biological and Biochemical Foundations",
+        subtopic="Enzyme Kinetics",
+        difficulty="medium",
+        stimulus_text="",
+        question_stem="How does an uncompetitive inhibitor alter the apparent Km and Vmax of an enzyme?",
+        options=orig_q.options,
+        correct_answer_id="A",
+        explanation=orig_q.explanation,
+        final_score=93,
+        status="ai_validated",
+        duplicate_info=DuplicateInfo(
+            is_duplicate=True,
+            similarity_score=dup_info["similarity_score"],
+            matched_question_id=orig_id,
+            matched_question_stem=orig_q.question_stem,
+            match_reason="Conceptual collision",
+        ),
+        is_duplicate_override=False,
+    )
+    await save_question(cand_q)
+
+    # 4. Invoke override endpoint
+    override_res = await override_question_duplicate_endpoint(cand_id)
+    assert override_res["success"] is True
+    updated = override_res["question"]
+    assert updated["is_duplicate_override"] is True
+    assert updated["duplicate_info"]["is_overridden"] is True
+    assert updated["status"] == "in_bank"
+
+    # Cleanup
+    await delete_question(orig_id)
+    await delete_question(cand_id)

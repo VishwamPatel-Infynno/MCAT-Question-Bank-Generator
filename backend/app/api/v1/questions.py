@@ -15,11 +15,20 @@ from app.repositories.question_repository import (
     get_question_status_counts,
     get_questions,
     get_repository_metrics,
+    get_subtopic_reference_questions,
+    override_question_duplicate,
     save_question,
     save_questions_batch,
     update_question_status,
 )
-from app.schemas import BatchDeleteRequest, Question, StatusUpdateRequest
+from app.schemas import (
+    BatchDeleteRequest,
+    DuplicateCheckRequest,
+    Question,
+    SingleStatusUpdateRequest,
+    StatusUpdateRequest,
+)
+from app.services.deduplication import evaluate_duplicate
 
 logger = logging.getLogger(__name__)
 
@@ -156,9 +165,11 @@ async def batch_update_status(payload: StatusUpdateRequest):
 
 
 @router.patch("/questions/{question_id}/status")
-async def update_single_status(question_id: str, payload: dict):
+async def update_single_status(question_id: str, payload: SingleStatusUpdateRequest | dict):
     """Update single question lifecycle status."""
-    new_status = payload.get("status")
+    if isinstance(payload, dict):
+        payload = SingleStatusUpdateRequest(**payload)
+    new_status = payload.status
     valid_statuses = {"in_bank", "discarded", "ai_validated", "below_threshold", "batch_only"}
     if not new_status or new_status not in valid_statuses:
         raise HTTPException(
@@ -168,6 +179,33 @@ async def update_single_status(question_id: str, payload: dict):
     if not success:
         raise HTTPException(status_code=404, detail="Question not found")
     return {"success": True, "question_id": question_id, "status": new_status}
+
+
+@router.post("/questions/{question_id}/override-duplicate")
+async def override_question_duplicate_endpoint(question_id: str):
+    """
+    Admin/Reviewer override endpoint: marks a question's duplicate alert as manually overridden
+    and updates its status to 'in_bank'.
+    """
+    updated_q = await override_question_duplicate(question_id)
+    if not updated_q:
+        raise HTTPException(status_code=404, detail="Question not found")
+    logger.info(f"Duplicate alert manually overridden for Question {question_id} by reviewer.")
+    return {"success": True, "question": updated_q.model_dump()}
+
+
+@router.post("/questions/check-duplicate")
+async def check_question_duplicate_endpoint(payload: DuplicateCheckRequest | dict):
+    """
+    On-demand deduplication check: evaluates a candidate question draft against existing bank items.
+    """
+    if isinstance(payload, dict):
+        payload = DuplicateCheckRequest(**payload)
+    section = payload.section or ""
+    subtopic = payload.subtopic or ""
+    ref_pool = await get_subtopic_reference_questions(section=section, subtopic=subtopic, limit=50)
+    dup_res = evaluate_duplicate(payload.model_dump(), ref_pool, threshold=0.80)
+    return {"success": True, "duplicate_check": dup_res.model_dump()}
 
 
 @router.get("/export")

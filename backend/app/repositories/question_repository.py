@@ -10,7 +10,7 @@ from app.db.session import async_session_factory
 from app.models.batch import GenerationBatchModel
 from app.models.passage import PassageModel
 from app.models.question import QuestionModel
-from app.schemas import OptionChoice, Question, ReviewScore
+from app.schemas import DuplicateInfo, OptionChoice, Question, ReviewScore
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,11 @@ def _model_to_schema(m: QuestionModel) -> Question:
     """Converts a SQLAlchemy QuestionModel to a Pydantic Question schema."""
     options = [OptionChoice(**o) for o in m.options]
     rubric = ReviewScore(**m.review_rubric) if m.review_rubric else None
+    dup_info = (
+        DuplicateInfo(**m.duplicate_info)
+        if getattr(m, "duplicate_info", None) and isinstance(m.duplicate_info, dict)
+        else None
+    )
 
     answer_ids = m.correct_answer_ids
     if not answer_ids and m.correct_answer_id:
@@ -71,6 +76,8 @@ def _model_to_schema(m: QuestionModel) -> Question:
         topic=getattr(m, "topic", None),
         subskill=getattr(m, "subskill", None),
         likely_mistake_pattern=getattr(m, "likely_mistake_pattern", None),
+        duplicate_info=dup_info,
+        is_duplicate_override=bool(getattr(m, "is_duplicate_override", False)),
         stage_outcomes=m.stage_outcomes or {},
     )
 
@@ -79,6 +86,7 @@ def _schema_to_model(q: Question) -> QuestionModel:
     """Converts a Pydantic Question schema to a SQLAlchemy QuestionModel."""
     options_data = [opt.model_dump() for opt in q.options]
     rubric_data = q.review_rubric.model_dump() if q.review_rubric else None
+    dup_data = q.duplicate_info.model_dump() if q.duplicate_info else None
 
     return QuestionModel(
         id=q.id,
@@ -127,6 +135,8 @@ def _schema_to_model(q: Question) -> QuestionModel:
         topic=q.topic,
         subskill=q.subskill,
         likely_mistake_pattern=q.likely_mistake_pattern,
+        duplicate_info=dup_data,
+        is_duplicate_override=q.is_duplicate_override,
         stage_outcomes=q.stage_outcomes,
     )
 
@@ -479,6 +489,62 @@ async def get_question_status_counts() -> dict[str, int]:
         }
 
 
+async def get_subtopic_reference_questions(
+    section: str,
+    subtopic: str | None = None,
+    limit: int = 50,
+) -> list[Question]:
+    """
+    Retrieves recent questions from the question bank matching the section and subtopic
+    to serve as the collision reference pool for deduplication.
+    """
+    async with async_session_factory() as session:
+        stmt = select(QuestionModel).where(
+            QuestionModel.status.in_(["in_bank", "ai_validated", "approved"])
+        )
+        if section:
+            sec_val = section.value if hasattr(section, "value") else str(section)
+            stmt = stmt.where(
+                or_(
+                    QuestionModel.section == sec_val,
+                    QuestionModel.section_label.ilike(f"%{sec_val}%"),
+                )
+            )
+        if subtopic and subtopic.strip():
+            sub_val = subtopic.strip()
+            stmt = stmt.where(
+                or_(
+                    QuestionModel.subtopic == sub_val,
+                    QuestionModel.subtopic.ilike(f"%{sub_val}%"),
+                )
+            )
+
+        stmt = stmt.order_by(QuestionModel.created_at.desc()).limit(limit)
+        result = await session.execute(stmt)
+        models = result.scalars().all()
+        return [_model_to_schema(m) for m in models]
+
+
+async def override_question_duplicate(question_id: str) -> Question | None:
+    """Marks a question's duplicate alert as manually overridden and approved in the database."""
+    now_iso = datetime.now(UTC).isoformat()
+    now_dt = datetime.now(UTC)
+    async with async_session_factory() as session:
+        model = await session.get(QuestionModel, question_id)
+        if not model:
+            return None
+        model.is_duplicate_override = True
+        dup_dict = dict(model.duplicate_info or {})
+        dup_dict["is_overridden"] = True
+        dup_dict["overridden_at"] = now_iso
+        model.duplicate_info = dup_dict
+        model.status = "in_bank"
+        model.updated_at = now_dt
+        await session.commit()
+        await session.refresh(model)
+        return _model_to_schema(model)
+
+
 __all__ = [
     "_model_to_schema",
     "_schema_to_model",
@@ -489,6 +555,8 @@ __all__ = [
     "get_question_status_counts",
     "get_questions",
     "get_repository_metrics",
+    "get_subtopic_reference_questions",
+    "override_question_duplicate",
     "save_question",
     "save_questions_batch",
     "update_question_status",

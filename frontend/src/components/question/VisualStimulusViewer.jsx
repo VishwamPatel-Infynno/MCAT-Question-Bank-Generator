@@ -18,7 +18,13 @@ import {
  * and inline description editing in Quick Edit mode.
  */
 export default function VisualStimulusViewer({
-  question,
+  question = null,
+  imageUrl: directImageUrl = null,
+  imageSvg: directImageSvg = null,
+  imageDescription: directImageDescription = '',
+  headerTitle = null,
+  badgeExtra = null,
+  actionsExtra = null,
   isEditing = false,
   editedDescription = '',
   onDescriptionChange = null,
@@ -28,20 +34,23 @@ export default function VisualStimulusViewer({
   const [zoomLevel, setZoomLevel] = useState(1.0);
   const [copiedSvg, setCopiedSvg] = useState(false);
 
-  // Extract visual data from question or stage outcomes (supporting both discrete and passage stimuli)
+  // Extract visual data from direct props or question or stage outcomes (supporting both discrete and passage stimuli)
   const svgContent =
+    directImageSvg ||
     question?.image_svg ||
     question?.stage_outcomes?.visual_stimulus?.image_svg ||
     question?.stage_outcomes?.passage_visual_stimulus?.image_svg ||
     null;
   const imageUrl =
+    directImageUrl ||
     question?.image_url ||
     question?.stage_outcomes?.visual_stimulus?.image_url ||
     question?.stage_outcomes?.passage_visual_stimulus?.image_url ||
     null;
   const rawDescription = isEditing 
-    ? (editedDescription ?? question?.image_description ?? '')
-    : (question?.image_description ||
+    ? (editedDescription ?? directImageDescription ?? question?.image_description ?? '')
+    : (directImageDescription ||
+       question?.image_description ||
        question?.stage_outcomes?.visual_stimulus?.image_description ||
        question?.stage_outcomes?.passage_visual_stimulus?.image_description ||
        '');
@@ -175,8 +184,9 @@ export default function VisualStimulusViewer({
               }}
             >
               <ImageIcon size={13} color="var(--brand-primary)" />
-              Figure / Diagram
+              {headerTitle || 'Figure / Diagram'}
             </span>
+            {badgeExtra}
             <span 
               className="badge badge-purple" 
               style={{ fontSize: '0.625rem', padding: '2px 6px', fontWeight: 600 }}
@@ -213,6 +223,8 @@ export default function VisualStimulusViewer({
               <Maximize2 size={11} />
               <span>Fullscreen</span>
             </button>
+
+            {actionsExtra}
           </div>
         </div>
 

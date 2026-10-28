@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   Layers,
   RefreshCw,
@@ -369,26 +369,28 @@ export default function BatchActivityView({
   };
 
   // Active batches list for multi-batch monitor
-  const activeBatchesList = batches.filter((b) => b.status === 'in_progress');
+  const activeBatchesList = useMemo(() => batches.filter((b) => b.status === 'in_progress'), [batches]);
 
   // Filtered batches
-  const filteredBatches = batches.filter((b) => {
-    if (scopeFilter === 'mini' && !(b.total_jobs === 1 || b.target_count === 5)) return false;
-    if (scopeFilter === 'full' && !(b.total_jobs > 1 || b.target_count > 5)) return false;
-    if (statusFilter !== 'all' && b.status !== statusFilter) return false;
-    if (sectionFilter !== 'all') {
-      const code = SECTION_CODE_MAP[b.section] || b.section;
-      if (code !== sectionFilter && b.section !== sectionFilter) return false;
-    }
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      const matchTopic = (b.subtopic || '').toLowerCase().includes(query);
-      const matchSection = (b.section || '').toLowerCase().includes(query);
-      const matchId = b.id.toLowerCase().includes(query);
-      if (!matchTopic && !matchSection && !matchId) return false;
-    }
-    return true;
-  });
+  const filteredBatches = useMemo(() => {
+    return batches.filter((b) => {
+      if (scopeFilter === 'mini' && !(b.total_jobs === 1 || b.target_count === 5)) return false;
+      if (scopeFilter === 'full' && !(b.total_jobs > 1 || b.target_count > 5)) return false;
+      if (statusFilter !== 'all' && b.status !== statusFilter) return false;
+      if (sectionFilter !== 'all') {
+        const code = SECTION_CODE_MAP[b.section] || b.section;
+        if (code !== sectionFilter && b.section !== sectionFilter) return false;
+      }
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchTopic = (b.subtopic || '').toLowerCase().includes(query);
+        const matchSection = (b.section || '').toLowerCase().includes(query);
+        const matchId = b.id.toLowerCase().includes(query);
+        if (!matchTopic && !matchSection && !matchId) return false;
+      }
+      return true;
+    });
+  }, [batches, scopeFilter, statusFilter, sectionFilter, searchQuery]);
 
   return (
     <div className="batch-activity-container">

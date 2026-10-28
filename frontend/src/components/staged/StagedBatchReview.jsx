@@ -4,6 +4,7 @@ import StagedQuestionSlotCard from './StagedQuestionSlotCard';
 import BatchProgressHeader from './BatchProgressHeader';
 import StagedBatchGrid from './StagedBatchGrid';
 import StagedDetailedView from './StagedDetailedView';
+import DuplicateComparisonModal from '../modals/DuplicateComparisonModal';
 import { useKeyboardShortcuts } from '../../hooks';
 
 const EMPTY_ARRAY = [];
@@ -33,6 +34,7 @@ export default function StagedBatchReview({
   const [passageLayoutMode, setPassageLayoutMode] = useState('split');
   const [isSaving, setIsSaving] = useState(false);
   const [expandedExplanationIds, setExpandedExplanationIds] = useState(() => new Set());
+  const [duplicateModalQuestion, setDuplicateModalQuestion] = useState(null);
 
   // ─── Batch Question Keyboard Hotkeys (J/K & Left/Right) ─────────────────
   useKeyboardShortcuts({
@@ -281,6 +283,25 @@ export default function StagedBatchReview({
     }
   };
 
+  const handleOverrideDuplicate = async (questionToOverride) => {
+    try {
+      const updated = {
+        ...questionToOverride,
+        is_duplicate_override: true,
+        duplicate_info: {
+          ...(questionToOverride.duplicate_info || {}),
+          is_overridden: true,
+          overridden_at: new Date().toISOString()
+        }
+      };
+      if (onUpdateQuestion) onUpdateQuestion(updated);
+      await handleApproveSingle(updated);
+      setDuplicateModalQuestion(null);
+    } catch (err) {
+      console.error('Failed to override duplicate:', err);
+    }
+  };
+
   // ─── Slot Card Factory ─────────────────────────────────────────────────────
   const renderSlotCard = (idx) => {
     const slotNumber = idx + 1;
@@ -310,6 +331,7 @@ export default function StagedBatchReview({
         onToggleExplanation={toggleExplanation}
         onApproveSingle={handleApproveSingle}
         onOpenAudit={onOpenAudit}
+        onOpenDuplicateModal={setDuplicateModalQuestion}
         onSelectDetailedView={(selectedIdx) => {
           setActiveIdx(selectedIdx);
           setViewMode('tabs');
@@ -463,6 +485,16 @@ export default function StagedBatchReview({
             </>
           )}
         </>
+      )}
+
+      {duplicateModalQuestion && (
+        <DuplicateComparisonModal
+          isOpen={Boolean(duplicateModalQuestion)}
+          onClose={() => setDuplicateModalQuestion(null)}
+          candidateQuestion={duplicateModalQuestion}
+          onOverrideApprove={handleOverrideDuplicate}
+          onDiscard={onDiscardQuestion}
+        />
       )}
     </div>
   );

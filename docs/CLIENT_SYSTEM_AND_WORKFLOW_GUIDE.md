@@ -156,3 +156,49 @@ $$\text{Total Cost} = \left(\frac{\text{Input Tokens}}{1{,}000{,}000} \times \$0
   3. **Review Queue (`AiValidatedQuestionsView.jsx`)**: High-quality items (>90 points) awaiting one-click educator publishing into the Question Bank.
   4. **Question Bank (`QuestionBankView.jsx`)**: Primary verified repository strictly presented in high-density **Editorial Cards** (with search, multi-factor filtering, in-place inline editing, bulk deletion, and PDF/CSV/JSON export; legacy table grid mode removed).
   5. **Passage Bank (`PassageBankView.jsx`)**: Comprehensive repository of reading passages and research narratives. Features the interactive **Passage Editorial Desk** for live editing of passage content, attaching and previewing figures/diagrams (`PassageVisualStimulusEditor.jsx`), reviewing all linked practice questions (`PassageLinkedQuestionCard.jsx`), and safe single-click passage deletion with automatic question unlinking.
+
+---
+
+## 7. Question Deduplication, Collision Avoidance & Editorial Override
+
+### 7.1 Why Duplicate Prevention is Serious for Medical Education
+In high-stakes MCAT preparation, item duplication severely damages product credibility:
+- **Artificially Inflated Diagnostic Scores**: If a student encounters two nearly identical questions across different practice exams, their score reflects rote memory rather than authentic scientific reasoning.
+- **Wasted Student Pacing**: Candidates have roughly ~96 seconds per question. Encountering repetitive stems wastes valuable mock testing stamina.
+- **Content Dilution**: High-value question banks must span comprehensive cognitive angles rather than clustering around identical textbook phrasing.
+
+### 7.2 The Autonomous Anti-Collision Loop
+During both live single-pass authoring and high-throughput batch generation:
+1. **Targeted Reference Scoping**: The candidate question is compared against all existing bank items within the **exact Section and Subtopic**, as well as sibling questions generated within the active batch.
+2. **Multi-Metric Textual & Distractor Evaluation**: Stems and options are evaluated using token containment, 1-gram/2-gram Jaccard overlap, SequenceMatcher ratio, and distractor set similarity.
+3. **Autonomous Pivot**: If composite similarity exceeds **80%**, the generator is automatically re-prompted with the colliding stem and instructed to pivot to an alternative clinical presentation, distinct enzymatic mechanism, or novel calculation angle.
+
+### 7.3 The Educator Review & Override Workflow
+When an item with potential overlap is presented for editorial review:
+
+```
+[ Candidate Question Staged ] ──> [ ⚠️ Duplicate Risk (XX%) Badge Displayed ]
+                                                 │
+                                                 ▼
+                                  [ Open Comparison Modal ]
+                                  (Candidate vs Conflicting Item)
+                                                 │
+             ┌───────────────────────────────────┼───────────────────────────────────┐
+             ▼                                   ▼                                   ▼
+    [ Override & Approve ]             [ Regenerate Fresh Angle ]                 [ Discard ]
+   • Stamps audit trail               • Re-prompts generator                     • Completely purges
+   • Status -> 'in_bank'              • Injects avoidance directive               substandard draft
+   • Badge -> 🛡️ Overridden          • Discards current candidate
+```
+
+1. **Visual Alert**: Question cards in the staging deck and bank display an unmistakable warning pill: `⚠️ Duplicate Risk (86%)`.
+2. **Side-by-Side Comparison Modal (`DuplicateComparisonModal.jsx`)**:
+   - Clicking **"Inspect Duplicate"** launches an accessible, dual-theme comparison modal.
+   - **Left Column**: Displays the candidate question draft, its 4 choices ($A, B, C, D$), correct key, and mentor rationale.
+   - **Right Column**: Displays the conflicting existing question already residing in the Question Bank.
+   - **Header Card**: Shows the exact similarity percentage and the primary collision cause (e.g. *"High question stem textual overlap (86%)"*).
+3. **Three Editorial Paths**:
+   - **Override & Approve (Emerald Shield)**: If the educator verifies that the question explores a distinct scientific principle (for example, competitive vs uncompetitive inhibition under identical kinetics conditions), clicking "Override & Approve" persists the item, sets `is_duplicate_override=true`, and records the exact override timestamp. The question card badge transitions to a protected blue badge: `🛡️ Overridden`.
+   - **Regenerate Fresh Angle (Indigo Refresh)**: Dispatches an autonomous re-generation task requiring the engine to pick a completely different scientific angle while discarding the collision.
+   - **Discard (Rose Trash)**: Discards the redundant draft from the active review deck.
+4. **Permanent Audit Trail**: All overrides are preserved in the PostgreSQL `duplicate_info` JSONB column and included in administrative JSON and CSV exports.

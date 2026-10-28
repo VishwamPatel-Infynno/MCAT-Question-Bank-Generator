@@ -22,6 +22,7 @@ from app.repositories.batch_repository import (
     save_batch,
 )
 from app.repositories.job_repository import save_job
+from app.repositories.question_repository import get_subtopic_reference_questions
 from app.schemas import (
     GenerationBatch,
     GenerationJob,
@@ -38,6 +39,7 @@ from app.workflow.engine_helpers import (
     _handle_live_job_failure,
     _persist_live_question,
     _prepare_shared_passage_and_visual,
+    _run_deduplication_anti_collision_loop,
     _run_question_review_loop,
 )
 from app.workflow.nodes import (
@@ -229,6 +231,18 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
         shared_used_traps: list[str] = []
         shared_used_mistakes: list[str] = []
 
+        # Reference pool for duplicate detection (same section & subtopic from DB)
+        db_reference_pool: list[Question] = []
+        try:
+            sec_str = req.section.value if hasattr(req.section, "value") else str(req.section)
+            db_reference_pool = await get_subtopic_reference_questions(
+                section=sec_str,
+                subtopic=req.subtopic,
+                limit=50,
+            )
+        except Exception as ref_err:
+            logger.warning(f"Could not load reference questions for deduplication: {ref_err}")
+
         async def _worker(idx: int) -> None:
             max_worker_retries = config.WORKFLOW_MAX_WORKER_RETRIES
             for attempt in range(max_worker_retries + 1):
@@ -323,6 +337,19 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
                         gen_res = await fused_generator_node(state)
                         state.update(gen_res)
+
+                        # Step 1.5: Deduplication Check & Anti-Collision Loop
+                        await _run_deduplication_anti_collision_loop(
+                            state=state,
+                            idx=idx,
+                            total_qty=total_qty,
+                            item_run_id=item_run_id,
+                            req=req,
+                            db_reference_pool=db_reference_pool,
+                            outcomes_questions=outcomes_questions,
+                            event_queue=event_queue,
+                            make_event=make_event,
+                        )
 
                         cur_draft = state.get("current_draft") or {}
                         c_trap = cur_draft.get("primary_trap")
@@ -547,12 +574,17 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                     event_type="workflow_rejected",
                     agent_name="Quality Gate",
                     message=rej_msg,
-                    data={"rejections": outcomes_rejections, "total_rejected": len(outcomes_rejections)},
+                    data={
+                        "rejections": outcomes_rejections,
+                        "total_rejected": len(outcomes_rejections),
+                    },
                 )
                 yield f"data: {rej_evt.model_dump_json()}\n\n"
                 return
             else:
-                error_msg = f"All {total_qty} questions in the run failed to generate after retries."
+                error_msg = (
+                    f"All {total_qty} questions in the run failed to generate after retries."
+                )
                 error_evt = make_event(
                     event_type="workflow_error",
                     agent_name="System",

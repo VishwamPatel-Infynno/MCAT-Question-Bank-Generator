@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Database, Sparkles, Eye, X } from 'lucide-react';
 import { batchDeleteQuestions, approveQuestion } from '../services/api';
 import { useQuestionBank } from '../hooks/useQuestionBank';
@@ -113,10 +113,10 @@ export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
   }, []);
 
   // ─── Selection Handlers ────────────────────────────────────────────────────
-  const handleToggleSelect = (id, e) => {
+  const handleToggleSelect = useCallback((id, e) => {
     e.stopPropagation();
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  };
+  }, []);
 
   const handleSelectAll = () => {
     const currentIds = paginatedQuestions.map(q => q.id);
@@ -282,7 +282,7 @@ export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
           onToggleSelect={handleToggleSelect}
           onCopy={handleCopy}
           onDelete={handleDelete}
-          onSelectQuestion={(q) => setInspectingQuestion(q)}
+          onSelectQuestion={setInspectingQuestion}
         />
       )}
 

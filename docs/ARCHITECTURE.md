@@ -179,6 +179,47 @@ The system coordinates specialized autonomous engines with a deterministic quali
   - *Programmatic SVG Renderer*: Generates clean, crisp, scalable vector graphics for reaction mechanisms, cell transport, coordinate grids, and statistical bar charts.
   - *FLUX-2-klein-4b Neural Visual Engine*: State-of-the-art rectified-flow transformer (`black-forest-labs/FLUX-2-klein-4b`) hosted on DeepInfra for photorealistic scientific illustrations with dynamic provider cost extraction and a flat $0.014 unit baseline rate.
 
+### 3.7 Question Deduplication & Collision Prevention Subsystem (`deduplication.py`)
+- **Mission**: Autonomous real-time safeguard against cognitive repetition, duplicate stems, and identical question angles across the question repository. Guarantees that neither live-generated items nor high-throughput batch sets introduce redundant questions into the bank.
+- **Multi-Metric Mathematical Similarity Scoring Model**:
+  Operates on normalized question stems (case-folding, alphanumeric filtering, and common English/scientific stopword removal) and 4-choice distractor sets:
+  $$\text{Composite Similarity} = 0.35 \times S_{\text{containment}} + 0.25 \times S_{\text{jaccard\_1gram}} + 0.20 \times S_{\text{jaccard\_2gram}} + 0.20 \times S_{\text{sequence\_ratio}}$$
+  1. *Token Containment Metric* ($S_{\text{containment}}$, 35% weight): Evaluates asymmetric lexical inclusion $\frac{|T_{\text{candidate}} \cap T_{\text{reference}}|}{\min(|T_{\text{candidate}}|, |T_{\text{reference}}|)}$ to detect paraphrased questions sharing the same scientific core despite differing introductory clauses.
+  2. *1-Gram Jaccard Metric* ($S_{\text{jaccard\_1gram}}$, 25% weight): Evaluates vocabulary overlap $\frac{|T_1 \cap T_2|}{|T_1 \cup T_2|}$.
+  3. *2-Gram Jaccard Metric* ($S_{\text{jaccard\_2gram}}$, 20% weight): Measures preservation of adjacent scientific bigrams (e.g., "activation energy", "uncompetitive inhibition", "capillary hydrostatic pressure").
+  4. *SequenceMatcher Ratio* ($S_{\text{sequence\_ratio}}$, 20% weight): Captures character-level longest contiguous matching sub-sequences via Gestalt pattern matching.
+  5. *Distractor Options Overlap Booster*: Evaluates pairwise lexical similarity across candidate and reference option sets ($A, B, C, D$). If $\ge 75\%$ of options are identical or near-identical, the engine applies an options collision penalty that elevates overall similarity or establishes an empirical collision floor.
+- **Collision Decision Boundary**:
+  - **Threshold $\ge 0.80$ (80%)**: Flagged as a duplicate collision (`is_duplicate = True`). Triggers the autonomous anti-collision loop or flags the item for educator review.
+  - **Score $< 0.80$**: Cleared as a distinct pedagogical item (`is_duplicate = False`).
+- **Autonomous Anti-Collision Loop (`_run_deduplication_anti_collision_loop`)**:
+  When drafting questions during batch or live generation, the candidate is compared against:
+  1. Existing questions in PostgreSQL matching the exact **Section** and **Subtopic**.
+  2. Previously generated sibling items within the active batch session.
+  If a collision ($\ge 0.80$) is detected during generation, the engine executes an autonomous anti-collision prompt injection:
+  ```
+  CRITICAL: The drafted question is too similar to an existing item in this subtopic.
+  Conflicting Item: "[matched_question_stem]"
+  You MUST pivot to a completely different clinical scenario, distinct biochemical mechanism,
+  or alternative calculation angle while preserving the target AAMC skill.
+  ```
+- **Administrative Inspection & Override Audit Trail**:
+  If a flagged question is presented to educators during review, the UI displays an amber badge `⚠️ Duplicate Risk (XX%)`. Educators can open the side-by-side **Duplicate Comparison Modal** to compare stems, options, and explanations. Choosing **"Override & Approve"** dispatches `POST /api/questions/{id}/override-duplicate`, stamping the record with:
+  ```json
+  {
+    "is_duplicate_override": true,
+    "duplicate_info": {
+      "is_duplicate": true,
+      "similarity_score": 0.88,
+      "matched_question_id": "ref-uuid",
+      "matched_question_stem": "Existing stem...",
+      "match_reason": "High question stem textual overlap (88%)",
+      "is_overridden": true,
+      "overridden_at": "2026-10-28T17:15:00Z"
+    }
+  }
+  ```
+
 ---
 
 ## 4. State Management & Lifecycle
@@ -428,6 +469,8 @@ erDiagram
         INTEGER passage_questions "Passage question count"
         VARCHAR(16) image_required "Yes or No"
         VARCHAR(64) visual_type "None, SVG_Diagram, AI_FLUX_Image"
+        JSONB duplicate_info "Collision metrics, matched stem & override timestamp"
+        BOOLEAN is_duplicate_override "Explicit administrative override flag"
         TSVECTOR tsv_content "PostgreSQL FTS token vector for hybrid search"
         VARCHAR(64) created_at "ISO-8601 UTC timestamp"
     }
@@ -437,6 +480,23 @@ erDiagram
 When multiple questions are generated as a passage set, they share a foreign key reference (`passage_id`) pointing to the parent `PASSAGES` record:
 - **Passage Association**: Educators can browse shared passages in the Passage Bank and inspect all linked questions simultaneously.
 - **Non-Destructive Deletion (`DELETE /api/passages/{passage_id}`)**: When an administrator deletes a reading passage via `delete_passage`, the database repository explicitly unlinks the associated questions by setting their `passage_id = None`. The questions remain fully intact and accessible in the Question Bank as independent practice items, preventing accidental content loss.
+
+### 6.4 Deduplication & Override Schema Architecture
+The deduplication subsystem extends the PostgreSQL schema with two persistent fields:
+1. `duplicate_info JSONB`: Stores the serialized collision payload:
+   ```json
+   {
+     "is_duplicate": true,
+     "similarity_score": 0.88,
+     "matched_question_id": "c1f7a012-3456-789a-bcde-f0123456789a",
+     "matched_question_stem": "Under physiological conditions, which factor...",
+     "match_reason": "High question stem textual overlap (88%)",
+     "is_overridden": true,
+     "overridden_at": "2026-10-28T17:15:00Z"
+   }
+   ```
+2. `is_duplicate_override BOOLEAN DEFAULT FALSE`: Indexed boolean enabling lightning-fast administrative filtering of overridden questions in the Question Bank table.
+- **Database Self-Healing**: Automated migration in [`init_db.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/db/init_db.py) applies idempotent DDL statements (`ALTER TABLE questions ADD COLUMN IF NOT EXISTS duplicate_info JSONB;` and `ALTER TABLE questions ADD COLUMN IF NOT EXISTS is_duplicate_override BOOLEAN DEFAULT FALSE;`) upon application bootstrap.
 
 ---
 
@@ -545,6 +605,7 @@ frontend/src/
 │   │   ├── AiValidatedStatsBar.jsx # Quick-action statistics header
 │   │   └── index.js              # Validated barrel export
 │   ├── modals/                   # Dialog modals
+│   │   ├── DuplicateComparisonModal.jsx # Side-by-side duplicate candidate vs bank comparison & override modal
 │   │   ├── ExportPaperPreview.jsx# Live print layout previewer
 │   │   ├── ExportPrintModal.jsx  # Exam Paper (PDF), Study Pack, CSV and JSON export modal
 │   │   └── index.js              # Modals barrel export
@@ -577,7 +638,7 @@ frontend/src/
 │   ├── useQuestionGenerator.js   # SSE streaming, batch progress, and state management
 │   └── useTheme.js               # Dual-theme engine (dark / light with localStorage)
 ├── services/
-│   ├── api.js                    # FastAPI client & SSE stream reader (24 methods)
+│   ├── api.js                    # FastAPI client & SSE stream reader (26 methods)
 │   └── index.js                  # Services barrel export
 ├── utils/                        # Pure utility helpers
 │   ├── explanationHelpers.js     # Structured explanation parser

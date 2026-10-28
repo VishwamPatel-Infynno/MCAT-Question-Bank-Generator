@@ -18,7 +18,7 @@ graph TD
     end
 
     subgraph "Tier 2: Backend Pytest Engine"
-        UnitTests[48 Deterministic Unit & Integration Tests]
+        UnitTests[54 Deterministic Unit & Integration Tests]
         LiveE2E[10 Live LLM API E2E Integration Tests]
     end
 
@@ -41,7 +41,7 @@ graph TD
 | Testing Layer | Scope | Tooling | Coverage / Status |
 | :--- | :--- | :--- | :--- |
 | **Static Code Hygiene** | PEP 8, syntax correctness, modern JS/JSX idioms | **Ruff** (Python 3.11), **Oxlint** (React 19) | 0 errors, 0 warnings policy (88 frontend files, 68 backend files) |
-| **Deterministic Unit & Integration** | Schemas, agents, DAL, API endpoints, tokens, batch runner | **Pytest**, **pytest-asyncio**, SQLite / PG Mock | **48 passing tests** (~16.0s) |
+| **Deterministic Unit & Integration** | Schemas, agents, DAL, API endpoints, tokens, batch runner, deduplication | **Pytest**, **pytest-asyncio**, SQLite / PG Mock | **54 passing tests** (~16.0s) |
 | **Live Multi-Agent Integration** | End-to-end LLM inference, DeepInfra gateways | **Pytest** (`-m live_e2e`) | 10 dedicated live tests |
 | **Automated Browser E2E** | Guided wizard, SSE streaming, UI modals, bank CRUD | **Playwright**, **TestSprite AI** | **15/15 passed (100.0%)** |
 | **Runtime Psychometric Gate** | 100-point 4-pillar rubric, AAMC distractor traps | **LangGraph StateGraph** | Threshold $> 90$ points |
@@ -61,6 +61,8 @@ backend/tests/
 ├── test_api.py                       # REST endpoints, CRUD, batch staging, and approval
 ├── test_batch_jobs_flow.py           # Background batch execution lifecycle (10 jobs x 5 questions)
 ├── test_database_structure.py        # SQLAlchemy schema, hybrid FTS, and atomic aggregations
+├── test_deduplication.py             # Multi-metric similarity scoring, token containment, and distractor overlap
+├── test_deduplication_and_override_api.py # On-demand duplicate check and manual override REST endpoints
 ├── test_multi_batch_concurrency.py   # Global semaphores, rate limiting backoff, and metrics
 ├── test_pedagogy.py                  # Option symmetry (±15%), distractor traps, and taxonomy parity
 ├── test_schemas.py                   # Pydantic V2 model validation and serialization
@@ -76,10 +78,11 @@ backend/tests/
 # 1. Activate backend virtual environment
 source .venv/bin/activate
 
-# 2. Run all 48 deterministic unit and integration tests
+# 2. Run all 54 deterministic unit and integration tests
 pytest backend/tests -v -k "not live_e2e"
 
 # 3. Run specific test modules
+pytest backend/tests/test_deduplication.py backend/tests/test_deduplication_and_override_api.py -v
 pytest backend/tests/test_multi_batch_concurrency.py -v
 pytest backend/tests/test_agents.py -v
 pytest backend/tests/test_pedagogy.py -v
@@ -148,6 +151,14 @@ pytest backend/tests/test_e2e_live.py -v -m live_e2e
     - `test_fused_generator_node_passing_and_routing`: Validates fused single-pass drafting and fast-path routing.
     - `test_fused_workflow_bypasses_reviewer_when_self_critique_passed`: Confirms reviewer bypass when score > 90.
     - `test_safe_json_loads_and_resilient_parsing`: Ensures resilient JSON parsing of LLM outputs.
+11. **`test_deduplication.py` (5 tests)**:
+    - `test_exact_duplicate_detection`: Validates 1.0 similarity for verbatim question stems and options.
+    - `test_paraphrased_high_similarity`: Evaluates token containment and hybrid similarity for paraphrased scientific stems sharing key terms ($> 0.80$).
+    - `test_different_subtopics_no_conflict`: Confirms scoping isolation; distinct scientific concepts evaluate below the collision threshold ($< 0.35$).
+    - `test_options_overlap_boost`: Tests distractor overlap penalty when $\ge 75\%$ of options are identical.
+    - `test_evaluate_duplicate_empty_and_normal_cases`: Verifies resilience with empty reference pools and boundary conditions.
+12. **`test_deduplication_and_override_api.py` (1 test)**:
+    - `test_deduplication_and_override_api_flow`: Full API workflow verification: creates reference question in bank, checks candidate collision via `POST /api/questions/check-duplicate` ($\ge 0.80$), triggers `POST /api/questions/{id}/override-duplicate`, verifies `is_duplicate_override=True`, `status='in_bank'`, and verifies DB persistence.
 
 ---
 
@@ -231,6 +242,6 @@ The repository integrates a GitHub Actions workflow (`.github/workflows/ci.yml`)
 3. Cache & install backend dependencies (pip) & frontend dependencies (pnpm)
 4. Execute Ruff linter and formatting checks
 5. Execute Oxlint frontend linter
-6. Run full Pytest deterministic test suite (48 tests)
+6. Run full Pytest deterministic test suite (54 tests)
 7. Execute frontend production build (Vite 8)
 ```

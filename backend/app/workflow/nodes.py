@@ -495,6 +495,8 @@ async def finalize_node(state: AgentWorkflowState) -> dict[str, Any]:
         topic=req.topic or getattr(draft, "topic", None),
         subskill=req.subskill or getattr(draft, "subskill", None),
         likely_mistake_pattern=effective_mistake,
+        duplicate_info=state.get("duplicate_info"),
+        is_duplicate_override=bool(state.get("is_duplicate_override", False)),
         stage_outcomes=outcomes,
         option_symmetry=symmetry,
     )

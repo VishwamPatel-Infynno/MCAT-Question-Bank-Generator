@@ -12,6 +12,18 @@ class OptionChoice(BaseModel):
     text: str
 
 
+class DuplicateInfo(BaseModel):
+    is_duplicate: bool = False
+    similarity_score: float = 0.0
+    matched_question_id: str | None = None
+    matched_question_stem: str | None = None
+    matched_options: list[dict[str, Any]] | None = None
+    matched_explanation: str | None = None
+    match_reason: str | None = None
+    is_overridden: bool = False
+    overridden_at: str | None = None
+
+
 class ReviewScore(BaseModel):
     audit_id: str = Field(
         default_factory=lambda: str(uuid.uuid4()),
@@ -174,6 +186,15 @@ class Question(BaseModel):
         None, description="Targeted student misconception or mistake pattern"
     )
 
+    # Deduplication & Collision Metadata
+    duplicate_info: DuplicateInfo | None = Field(
+        None, description="Collision evaluation details against existing bank or batch items"
+    )
+    is_duplicate_override: bool = Field(
+        False,
+        description="Whether an administrator or reviewer manually approved a flagged duplicate",
+    )
+
     # Multi-Stage Raw Outcome JSON
     stage_outcomes: dict[str, Any] | None = Field(
         default_factory=dict, description="Raw outcome JSON of all agent workflow stages"
@@ -266,6 +287,21 @@ class StatusUpdateRequest(BaseModel):
 
     ids: list[str]
     status: str  # 'in_bank', 'discarded', 'ai_validated', 'below_threshold', 'batch_only'
+
+
+class SingleStatusUpdateRequest(BaseModel):
+    """Request body for updating lifecycle status of a single question."""
+
+    status: str  # 'in_bank', 'discarded', 'ai_validated', 'below_threshold', 'batch_only'
+
+
+class DuplicateCheckRequest(BaseModel):
+    """Request body for evaluating candidate question duplicate similarity."""
+
+    section: str = ""
+    subtopic: str = ""
+    question_stem: str
+    options: list[OptionChoice] | list[dict[str, Any]] = Field(default_factory=list)
 
 
 def determine_question_status(score: float | int | None) -> str:

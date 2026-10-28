@@ -20,6 +20,8 @@ from app.schemas.mcat import (
 from app.schemas.question import (
     BatchDeleteRequest,
     BatchDetailResponse,
+    DuplicateCheckRequest,
+    DuplicateInfo,
     GenerationBatch,
     GenerationJob,
     OptionChoice,
@@ -27,6 +29,7 @@ from app.schemas.question import (
     Question,
     QuestionDraft,
     ReviewScore,
+    SingleStatusUpdateRequest,
     StatusUpdateRequest,
     determine_question_status,
 )
@@ -40,6 +43,8 @@ __all__ = [
     "BatchDetailResponse",
     "CONTENT_DOMAINS",
     "Difficulty",
+    "DuplicateCheckRequest",
+    "DuplicateInfo",
     "GenerationBatch",
     "GenerationJob",
     "GenerationRequest",
@@ -57,6 +62,7 @@ __all__ = [
     "QUESTION_TYPES",
     "ReviewScore",
     "SECTION_CODE_MAP",
+    "SingleStatusUpdateRequest",
     "StatusUpdateRequest",
     "TokenUsage",
     "WorkflowEvent",

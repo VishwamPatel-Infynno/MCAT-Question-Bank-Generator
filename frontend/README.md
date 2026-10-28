@@ -62,6 +62,7 @@ frontend/src/
 │   │   └── Navbar.jsx            # Header with branding, navigation tabs, status, and theme toggle
 │   ├── modals/
 │   │   ├── index.js              # Modals barrel export
+│   │   ├── DuplicateComparisonModal.jsx # Side-by-side duplicate candidate vs bank comparison & override modal
 │   │   ├── ExportPaperPreview.jsx# Live print layout previewer
 │   │   └── ExportPrintModal.jsx  # Exam Paper (PDF), Study Pack, CSV and JSON export modal (Focus Trapped)
 │   ├── passage/

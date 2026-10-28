@@ -119,6 +119,26 @@ async def init_db_schema(engine: AsyncEngine):
             text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS likely_mistake_pattern TEXT;")
         )
 
+        # Safe schema update for Deduplication & Collision Metadata
+        await conn.execute(
+            text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS duplicate_info JSONB;")
+        )
+        await conn.execute(
+            text(
+                "ALTER TABLE questions ADD COLUMN IF NOT EXISTS is_duplicate_override BOOLEAN DEFAULT FALSE;"
+            )
+        )
+        await conn.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_questions_section_subtopic ON questions (section, subtopic);"
+            )
+        )
+        await conn.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_questions_is_duplicate_override ON questions (is_duplicate_override);"
+            )
+        )
+
         # Safe schema update for Run and Batch UUID columns and timestamps
         await conn.execute(
             text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS run_id VARCHAR(64);")

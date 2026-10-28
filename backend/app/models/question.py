@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
     DateTime,
     Float,
@@ -41,6 +42,8 @@ class QuestionModel(Base):
         Index("ix_questions_status_created", "status", "created_at"),
         Index("ix_questions_section_created", "section", "created_at"),
         Index("ix_questions_batch_job", "batch_id", "job_id"),
+        Index("ix_questions_section_subtopic", "section", "subtopic"),
+        Index("ix_questions_is_duplicate_override", "is_duplicate_override"),
     )
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
@@ -116,6 +119,12 @@ class QuestionModel(Base):
     topic: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     subskill: Mapped[str | None] = mapped_column(String(256), nullable=True, index=True)
     likely_mistake_pattern: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Deduplication & Collision Metadata
+    duplicate_info: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    is_duplicate_override: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false", nullable=False
+    )
 
     # Multi-Stage Raw Outcome JSON
     stage_outcomes: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)

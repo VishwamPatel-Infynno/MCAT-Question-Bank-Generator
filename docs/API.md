@@ -16,7 +16,7 @@ This document provides a comprehensive technical reference for all REST endpoint
 
 ---
 
-## 2. API Endpoints Summary (28 Operations / 22 Endpoint Paths)
+## 2. API Endpoints Summary (30 Operations / 24 Endpoint Paths)
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -26,6 +26,8 @@ This document provides a comprehensive technical reference for all REST endpoint
 | `GET` | `/api/questions` | Lists saved questions with filtering, search, and repository token metrics |
 | `GET` | `/api/questions/counts` | Returns question counts grouped by lifecycle status (`in_bank`, `ai_validated`, etc.) |
 | `GET` | `/api/questions/{question_id}` | Retrieves a single question by UUID4 primary key |
+| `POST` | `/api/questions/{question_id}/override-duplicate` | **Admin Review Gate**: Explicitly overrides duplicate collision alert and approves into bank |
+| `POST` | `/api/questions/check-duplicate` | Evaluates a candidate question draft against the bank for similarity & collisions |
 | `DELETE` | `/api/questions/{question_id}` | Deletes a single question by UUID4 primary key |
 | `POST` | `/api/questions/delete-batch` | **Admin Action**: Bulk-deletes multiple questions atomically |
 | `POST` | `/api/questions/update-status` | **Admin Action**: Bulk-updates question lifecycle status (`in_bank`, `ai_validated`, `discarded`) |
@@ -217,6 +219,16 @@ Retrieves a single question by UUID4 primary key, including complete 4-pillar re
   "subtopic": "Thermodynamics & Reaction Kinetics",
   "difficulty": "medium",
   "status": "in_bank",
+  "is_duplicate_override": false,
+  "duplicate_info": {
+    "is_duplicate": false,
+    "similarity_score": 0.22,
+    "matched_question_id": null,
+    "matched_question_stem": null,
+    "match_reason": null,
+    "is_overridden": false,
+    "overridden_at": null
+  },
   "question_stem": "Under physiological conditions, which thermodynamic parameter...",
   "options": [
     {"id": "A", "text": "A negative enthalpy change from peptide bonds"},
@@ -362,7 +374,78 @@ Bulk updates lifecycle status for multiple questions in a single atomic transact
 
 ---
 
-### 3.10 Delete Question
+### 3.10 Manually Override Question Duplicate Alert
+`POST /api/questions/{question_id}/override-duplicate`
+
+Admin/Reviewer override endpoint: explicitly dismisses a duplicate collision alert on a question, marks `is_duplicate_override=true`, records the override timestamp in `duplicate_info`, and updates lifecycle status to `in_bank`.
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "question": {
+    "id": "e2a39281-b51c-4b6b-88a2-11e2f389a9c1",
+    "status": "in_bank",
+    "is_duplicate_override": true,
+    "duplicate_info": {
+      "is_duplicate": true,
+      "similarity_score": 0.86,
+      "matched_question_id": "ref-uuid-1",
+      "matched_question_stem": "Existing question stem...",
+      "match_reason": "High question stem textual overlap (86%)",
+      "is_overridden": true,
+      "overridden_at": "2026-10-28T17:15:00Z"
+    }
+  }
+}
+```
+
+#### cURL Example
+```bash
+curl -X POST http://localhost:8000/api/questions/e2a39281-b51c-4b6b-88a2-11e2f389a9c1/override-duplicate
+```
+
+---
+
+### 3.11 On-Demand Question Duplicate Check
+`POST /api/questions/check-duplicate`
+
+Evaluates a candidate question draft against the existing Question Bank repository (scoped to the same Section & Subtopic) and returns real-time similarity metrics and collision status.
+
+#### Request Body
+```json
+{
+  "section": "chem_phys",
+  "subtopic": "Thermodynamics & Reaction Kinetics",
+  "question_stem": "Under standard physiological conditions, which thermodynamic parameter...",
+  "options": [
+    {"id": "A", "text": "Option A"},
+    {"id": "B", "text": "Option B"},
+    {"id": "C", "text": "Option C"},
+    {"id": "D", "text": "Option D"}
+  ]
+}
+```
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "duplicate_check": {
+    "is_duplicate": true,
+    "similarity_score": 0.88,
+    "matched_question_id": "e2a39281-b51c-4b6b-88a2-11e2f389a9c1",
+    "matched_question_stem": "Under physiological conditions, which thermodynamic parameter...",
+    "match_reason": "High question stem textual overlap (88%)",
+    "is_overridden": false,
+    "overridden_at": null
+  }
+}
+```
+
+---
+
+### 3.12 Delete Question
 `DELETE /api/questions/{question_id}`
 
 Deletes a question by UUID4 primary key.
@@ -376,7 +459,7 @@ Deletes a question by UUID4 primary key.
 
 ---
 
-### 3.11 Bulk Delete Questions
+### 3.13 Bulk Delete Questions
 `POST /api/questions/delete-batch`
 
 Deletes multiple questions in a single atomic transaction.
@@ -398,7 +481,7 @@ Deletes multiple questions in a single atomic transaction.
 
 ---
 
-### 3.12 Start Background Batch Generation (50 Qs)
+### 3.14 Start Background Batch Generation (50 Qs)
 `POST /api/batches/start`
 
 Launches an asynchronous background batch generation. Creates 1 batch record and 10 parallel job records (each job producing 5 questions for 50 total items). Returns `202 Accepted` immediately while generation runs in the background.
@@ -432,7 +515,7 @@ Accepts a `GenerationRequest` payload (same schema as `POST /api/generate`).
 
 ---
 
-### 3.13 List Batches & Concurrency Metrics
+### 3.15 List Batches & Concurrency Metrics
 `GET /api/batches`
 
 Lists generation batches with job progress counts, active running batch numbers, and real-time global concurrency metrics.
@@ -471,7 +554,7 @@ Lists generation batches with job progress counts, active running batch numbers,
 
 ---
 
-### 3.14 Get Single Batch with Grouped Jobs & Questions
+### 3.16 Get Single Batch with Grouped Jobs & Questions
 `GET /api/batches/{batch_id}`
 
 Retrieves a generation batch along with all 10 jobs (augmented with their generated questions) and flat question records.
@@ -503,7 +586,7 @@ Retrieves a generation batch along with all 10 jobs (augmented with their genera
 
 ---
 
-### 3.15 Stop Single Batch
+### 3.17 Stop Single Batch
 `POST /api/batches/{batch_id}/stop`
 
 Gracefully halts active background jobs for a specific batch. Cancels running asyncio sub-tasks and updates remaining pending jobs to `"cancelled"` status without deleting questions already generated and saved to PostgreSQL.
@@ -522,7 +605,7 @@ Gracefully halts active background jobs for a specific batch. Cancels running as
 
 ---
 
-### 3.16 Retry Incomplete Batch Jobs
+### 3.18 Retry Incomplete Batch Jobs
 `POST /api/batches/{batch_id}/retry`
 
 Re-launches failed, cancelled, or pending jobs for an incomplete batch into the global worker pool. Re-engages the global semaphore without duplicating completed questions.
@@ -551,7 +634,7 @@ Optionally accepts an updated `GenerationRequest` payload to override parameters
 
 ---
 
-### 3.17 Cancel All Active Batches
+### 3.19 Cancel All Active Batches
 `POST /api/batches/cancel-all`
 
 System-wide administrative action that gracefully halts all currently executing background batches. Cancels active worker tasks, sets status to `"cancelled"` or `"partially_completed"`, and safely flushes aggregate metrics to the database.
@@ -567,7 +650,7 @@ System-wide administrative action that gracefully halts all currently executing 
 
 ---
 
-### 3.18 Delete Batch
+### 3.20 Delete Batch
 `DELETE /api/batches/{batch_id}`
 
 Cancels any active runner task for the batch, then permanently deletes the generation batch record and cascades deletion to all associated jobs and question items.
@@ -582,7 +665,7 @@ Cancels any active runner task for the batch, then permanently deletes the gener
 
 ---
 
-### 3.19 Create or Update Batch Record
+### 3.21 Create or Update Batch Record
 `POST /api/batches`
 
 Admin endpoint to create or update a generation batch entity directly in PostgreSQL.
@@ -601,7 +684,7 @@ Admin endpoint to create or update a generation batch entity directly in Postgre
 
 ---
 
-### 3.20 Passages Management Endpoints
+### 3.22 Passages Management Endpoints
 `GET /api/passages` | `GET /api/passages/{passage_id}` | `POST /api/passages` | `DELETE /api/passages/{passage_id}`
 
 - **List Passages (`GET /api/passages`)**: Lists reading passages with optional `section`, `subtopic`, and `search` query parameters.
@@ -656,7 +739,7 @@ curl -X DELETE "http://localhost:8000/api/passages/550e8400-e29b-41d4-a716-44665
 
 ---
 
-### 3.21 Export Repository
+### 3.23 Export Repository
 `GET /api/export`
 
 Exports the entire Question Bank (or filtered subsets) in standardized JSON or CSV format.
@@ -674,7 +757,7 @@ curl -X GET "http://localhost:8000/api/export?format=csv" -o mcat_question_bank.
 
 ---
 
-### 3.22 Service Health Check
+### 3.24 Service Health Check
 `GET /api/health`
 
 Evaluates system status, database connectivity, active text reasoning model, neural image model, and official token pricing.
@@ -696,7 +779,7 @@ Evaluates system status, database connectivity, active text reasoning model, neu
 
 ---
 
-### 3.23 Runtime Configuration & Settings
+### 3.25 Runtime Configuration & Settings
 `GET /api/config`
 
 Retrieves active runtime engine configuration, gateway secrets status (masked booleans), and pricing parameters.
@@ -719,7 +802,7 @@ Retrieves active runtime engine configuration, gateway secrets status (masked bo
 
 ---
 
-### 3.24 Official AAMC Sections & Syllabus Hierarchy
+### 3.26 Official AAMC Sections & Syllabus Hierarchy
 `GET /api/sections`
 
 Returns the complete cached syllabus hierarchy across all 4 official AAMC MCAT sections, including subjects, units, topics, subtopics, reasoning skills, and target pacing.
@@ -766,7 +849,7 @@ Returns the complete cached syllabus hierarchy across all 4 official AAMC MCAT s
 
 ---
 
-### 3.25 Official AAMC Dependent Taxonomy Tree
+### 3.27 Official AAMC Dependent Taxonomy Tree
 `GET /api/taxonomy`
 
 Returns the comprehensive hierarchical AAMC Dependent Taxonomy tree powering the multi-level Guided Wizard selection flow.

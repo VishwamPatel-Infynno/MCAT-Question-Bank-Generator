@@ -29,8 +29,10 @@ from app.schemas import (
     WorkflowEvent,
     determine_question_status,
 )
+from app.services.deduplication import evaluate_duplicate
 from app.workflow.nodes import (
     blind_solver_node,
+    fused_generator_node,
     regenerator_node,
     reject_node,
     reviewer_node,
@@ -653,3 +655,69 @@ async def _handle_live_job_failure(
         await refresh_batch_aggregates(batch_id)
     except Exception as clean_err:
         logger.warning(f"Error updating failed live batch {batch_id}: {clean_err}")
+
+
+async def _run_deduplication_anti_collision_loop(
+    state: AgentWorkflowState,
+    idx: int,
+    total_qty: int,
+    item_run_id: str,
+    req: GenerationRequest,
+    db_reference_pool: list[Question],
+    outcomes_questions: list[dict[str, Any] | None],
+    event_queue: asyncio.Queue[WorkflowEvent | None],
+    make_event: Callable[..., WorkflowEvent],
+    max_retries: int = 2,
+    threshold: float = 0.80,
+) -> None:
+    """
+    Evaluates candidate draft against database reference pool and sibling batch questions.
+    If similarity exceeds threshold, automatically re-prompts the fused generator
+    with anti-collision instructions up to max_retries.
+    """
+    cur_draft = state.get("current_draft") or {}
+    active_siblings = [q for q in outcomes_questions if q is not None]
+    ref_pool = list(db_reference_pool) + active_siblings
+    dup_result = evaluate_duplicate(cur_draft, ref_pool, threshold=threshold)
+
+    dedup_retry = 0
+    while dup_result.is_duplicate and dedup_retry < max_retries:
+        dedup_retry += 1
+        logger.warning(
+            f"Worker {idx + 1} generated duplicate question ({int(dup_result.similarity_score * 100)}% match). "
+            f"Triggering anti-collision regeneration (attempt {dedup_retry}/{max_retries})..."
+        )
+        dup_evt = make_event(
+            event_type="agent_action",
+            agent_name="Question Writer & Reviewer",
+            message=f"Duplicate question detected ({int(dup_result.similarity_score * 100)}% match with {dup_result.matched_question_id or 'existing'}). Regenerating with anti-collision prompt...",
+            data={
+                "index": idx + 1,
+                "total": total_qty,
+                "stage": "anti_collision_regeneration",
+                "similarity_score": dup_result.similarity_score,
+                "matched_question_stem": dup_result.matched_question_stem,
+                "reason": dup_result.match_reason,
+            },
+            run_id=item_run_id,
+        )
+        await event_queue.put(dup_evt)
+
+        collision_hint = (
+            f"CRITICAL ANTI-COLLISION REQUIREMENT: Your previous draft had high similarity ({int(dup_result.similarity_score * 100)}%) "
+            f"with existing question: '{dup_result.matched_question_stem}'. "
+            f"You MUST NOT write a question testing this same calculation or scenario. "
+            f"Formulate a completely distinct scientific scenario or question angle for {req.subtopic or 'this topic'}."
+        )
+        state["diversity_context"] = (
+            f"{state.get('diversity_context') or ''} {collision_hint}".strip()
+        )
+
+        regen_res = await fused_generator_node(state)
+        state.update(regen_res)
+        cur_draft = state.get("current_draft") or {}
+        dup_result = evaluate_duplicate(cur_draft, ref_pool, threshold=threshold)
+
+    state["duplicate_info"] = dup_result.model_dump()
+    stage_outcomes = state.setdefault("stage_outcomes", {})
+    stage_outcomes["duplicate_check"] = dup_result.model_dump()

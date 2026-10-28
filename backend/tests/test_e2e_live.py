@@ -544,7 +544,8 @@ async def test_e2e_question_image_endpoint():
         assert found_row is not None
         assert found_row[img_url_idx] == f"/api/questions/{test_id}/image"
         assert (
-            found_row[img_desc_idx] == "Reaction coordinate diagram showing activation energy profile"
+            found_row[img_desc_idx]
+            == "Reaction coordinate diagram showing activation energy profile"
         )
 
         # Cleanup

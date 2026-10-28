@@ -138,6 +138,35 @@ export async function batchApproveQuestions(questions) {
 }
 
 /**
+ * Manually overrides a duplicate warning on a question and approves it to Question Bank.
+ * @param {string} id - Question ID.
+ * @returns {Promise<Object>} The updated question record.
+ */
+export async function overrideQuestionDuplicate(id) {
+  const res = await fetch(`${API_BASE}/questions/${id}/override-duplicate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  await assertOk(res, `Override duplicate on question ${id}`);
+  return res.json();
+}
+
+/**
+ * Checks a candidate question for duplicates against the Question Bank on demand.
+ * @param {Object} payload - Question payload with section, subtopic, question_stem, options.
+ * @returns {Promise<Object>} Duplicate check result with similarity score and matched question.
+ */
+export async function checkQuestionDuplicate(payload) {
+  const res = await fetch(`${API_BASE}/questions/check-duplicate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  await assertOk(res, 'Check question duplicate');
+  return res.json();
+}
+
+/**
  * Streams SSE events from the multi-agent generation API in real time.
  *
  * Opens an HTTP POST to `/api/generate`, reads the response body as a

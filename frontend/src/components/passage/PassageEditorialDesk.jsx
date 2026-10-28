@@ -12,18 +12,11 @@ import { getSectionBadgeClass } from '../../constants/mcat';
 import PassageVisualStimulusEditor from './PassageVisualStimulusEditor';
 import PassageLinkedQuestionCard from './PassageLinkedQuestionCard';
 
-const SECTION_OPTIONS = [
-  { id: 'chem_phys', label: 'Chemical and Physical Foundations (CP)' },
-  { id: 'cars', label: 'Critical Analysis and Reasoning Skills (CARS)' },
-  { id: 'bio_biochem', label: 'Biological and Biochemical Foundations (BB)' },
-  { id: 'psych_soc', label: 'Psychological, Social, and Biological Foundations (PS)' }
-];
-
 /**
  * PassageEditorialDesk
  *
  * Dedicated side-by-side MCAT editorial workspace:
- * - Left Pane: Passage typography, metadata, live word counter, and visual stimulus figure showcase (with Discard option)
+ * - Left Pane: Passage typography, live word counter, and visual stimulus figure showcase (with Discard option)
  * - Right Pane: Interactive single-question carousel (<- Question 1 of N ->) with quick-jump pills and keyboard shortcuts
  */
 export default function PassageEditorialDesk({
@@ -34,10 +27,12 @@ export default function PassageEditorialDesk({
   onDeletePassage,
   onUpdateQuestion
 }) {
-  // Form State
-  const [title, setTitle] = useState(passage?.title || '');
-  const [section, setSection] = useState(passage?.section || 'cars');
-  const [subtopic, setSubtopic] = useState(passage?.subtopic || '');
+  // Immutable Passage Metadata
+  const title = passage?.title || '';
+  const section = passage?.section || 'cars';
+  const subtopic = passage?.subtopic || '';
+
+  // Editable Form State
   const [text, setText] = useState(passage?.text || '');
   const [imageUrl, setImageUrl] = useState(passage?.image_url || '');
   const [imageSvg, setImageSvg] = useState(passage?.image_svg || '');
@@ -156,12 +151,27 @@ export default function PassageEditorialDesk({
 
           <div style={{ width: '1px', height: '20px', background: 'var(--border-light)' }} />
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <span className={`badge ${getSectionBadgeClass(section)}`} style={{ fontSize: '0.68rem', fontWeight: 700 }}>
               {section.toUpperCase()}
             </span>
+            {subtopic && (
+              <span
+                style={{
+                  background: 'var(--bg-surface-subtle)',
+                  border: '1px solid var(--border-light)',
+                  borderRadius: 'var(--radius-full)',
+                  padding: '2px 8px',
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  color: 'var(--text-secondary)'
+                }}
+              >
+                {subtopic}
+              </span>
+            )}
             <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              {title || 'Draft Passage'}
+              {title || `${subtopic || 'MCAT'} Passage`}
             </span>
           </div>
 
@@ -257,87 +267,13 @@ export default function PassageEditorialDesk({
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <BookOpen size={16} color="var(--brand-primary)" />
               <h3 style={{ fontSize: '0.94rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
-                Passage Reading Text &amp; Metadata
+                Passage Content &amp; Reading Text
               </h3>
             </div>
 
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
               Live Word Count: <strong style={{ color: 'var(--text-primary)' }}>{liveWordCount}</strong>
             </div>
-          </div>
-
-          {/* Title & Section row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '12px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
-                Passage Title
-              </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Cognitive Biases in Diagnostic Medicine"
-                style={{
-                  width: '100%',
-                  padding: '7px 10px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border-light)',
-                  background: 'var(--bg-surface-elevated)',
-                  color: 'var(--text-primary)',
-                  fontSize: '0.82rem',
-                  outline: 'none'
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
-                MCAT Section
-              </label>
-              <select
-                value={section}
-                onChange={(e) => setSection(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '7px 10px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border-light)',
-                  background: 'var(--bg-surface-elevated)',
-                  color: 'var(--text-primary)',
-                  fontSize: '0.82rem',
-                  outline: 'none'
-                }}
-              >
-                {SECTION_OPTIONS.map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Subtopic */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '5px' }}>
-              Subtopic or Primary Concept
-            </label>
-            <input
-              type="text"
-              value={subtopic}
-              onChange={(e) => setSubtopic(e.target.value)}
-              placeholder="e.g. Heuristics, Enzyme Kinetics, Constitutional Law"
-              style={{
-                width: '100%',
-                padding: '7px 10px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border-light)',
-                background: 'var(--bg-surface-elevated)',
-                color: 'var(--text-primary)',
-                fontSize: '0.82rem',
-                outline: 'none'
-              }}
-            />
           </div>
 
           {/* Passage Textarea */}
@@ -379,6 +315,7 @@ export default function PassageEditorialDesk({
             imageUrl={imageUrl}
             imageSvg={imageSvg}
             imageDescription={imageDescription}
+            onDescriptionChange={setImageDescription}
             onDiscardImage={handleDiscardImage}
           />
         </div>

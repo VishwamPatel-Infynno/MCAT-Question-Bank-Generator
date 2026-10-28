@@ -14,11 +14,11 @@ The backend is engineered with clear separation of concerns across presentation,
 ```
 backend/
 ├── app/
-│   ├── api/                 # Presentation Layer (HTTP & SSE Routers - 28 operations across 22 paths)
+│   ├── api/                 # Presentation Layer (HTTP & SSE Routers - 30 operations across 24 paths)
 │   │   ├── router.py        # Central API v1 router aggregator
 │   │   └── v1/
 │   │       ├── generation.py # SSE streaming multi-agent orchestrator endpoint
-│   │       ├── questions.py  # Question Bank CRUD, review approval, status updates, CSV/JSON exports
+│   │       ├── questions.py  # Question Bank CRUD, review approval, duplicate check & override, CSV/JSON exports
 │   │       ├── passages.py   # Shared clinical stimulus passages endpoints (list, retrieve, save, delete)
 │   │       ├── batches.py    # Multi-question batch execution run endpoints & background launcher
 │   │       ├── taxonomy.py   # AAMC syllabus hierarchy & dependent taxonomy tree endpoints
@@ -43,14 +43,15 @@ backend/
 │   │   ├── mock_fixtures.py # Deterministic fallback fixtures for offline resilience
 │   │   └── base.py          # LiteLLM execution wrapper & sub-micro-cent token cost engine
 │   ├── services/            # Background Worker & Asynchronous Services
-│   │   └── batch_runner.py  # Background pool managing Practice Sets (1-job, 5 Qs) and Full Exams (10-job, 50 Qs)
+│   │   ├── batch_runner.py  # Background pool managing Practice Sets (1-job, 5 Qs) and Full Exams (10-job, 50 Qs)
+│   │   └── deduplication.py # Multi-metric similarity scoring & anti-collision service
 │   ├── repositories/        # Data Access Layer (DAL)
-│   │   ├── question_repository.py # Clean CRUD, idempotent batch counter updates, hybrid FTS & token analytics
+│   │   ├── question_repository.py # Clean CRUD, duplicate overrides, reference queries, hybrid FTS & token analytics
 │   │   ├── batch_repository.py    # Staged batch run queries & persistence
 │   │   ├── job_repository.py      # Background worker job state tracking
 │   │   └── passage_repository.py  # Shared stimulus reading passage queries
 │   ├── models/              # Persistence Layer (SQLAlchemy 2.0 ORM Entities)
-│   │   ├── question.py      # QuestionModel with JSONB columns & B-Tree indexes
+│   │   ├── question.py      # QuestionModel with JSONB duplicate_info, boolean is_duplicate_override & indexes
 │   │   ├── passage.py       # PassageModel for multi-item shared reading stimuli
 │   │   ├── batch.py         # BatchModel for multi-question generation runs
 │   │   └── job.py           # JobModel for tracking individual background batch jobs
@@ -70,12 +71,14 @@ backend/
 │       └── mcat_dependent_taxonomy.json # AAMC official syllabus foundational concepts & skills
 ├── scripts/                 # Maintenance & Seeding Utilities
 │   └── seed_questions.py    # Sample question bank seeder
-└── tests/                   # Deterministic Automated Test Suite (11 test modules)
+└── tests/                   # Deterministic Automated Test Suite (13 test modules)
     ├── conftest.py          # Pytest fixtures, mock LLM setups & test DB engine
     ├── test_agents.py       # Cognitive agent unit tests
     ├── test_api.py          # REST & SSE endpoint integration tests
     ├── test_batch_jobs_flow.py # Background batch runner & job concurrency tests
     ├── test_database_structure.py # SQLAlchemy models & constraint tests
+    ├── test_deduplication.py# Multi-metric similarity, token containment & options overlap tests
+    ├── test_deduplication_and_override_api.py # Duplicate check & override REST integration tests
     ├── test_e2e_live.py     # Live end-to-end integration tests
     ├── test_multi_batch_concurrency.py # Multi-batch semaphore stress tests
     ├── test_pedagogy.py     # Pedagogical format & 3-card explanation tests
@@ -177,7 +180,7 @@ PYTHONPATH=backend uvicorn app.main:app --port 8000 --reload
 Run the deterministic backend test suite covering endpoints, schemas, database operations, workflow routing, and token cost formulas (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full specs):
 
 ```bash
-# Run all unit and integration tests (48 passed)
+# Run all unit and integration tests (54 passed)
 source .venv/bin/activate
 pytest backend/tests -v -k "not live_e2e"
 
