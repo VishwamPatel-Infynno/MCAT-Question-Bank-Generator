@@ -61,14 +61,17 @@ The workstation provides an interactive **Streamlined 3-Step Guided Wizard** doc
    - **Discipline & Major Unit**: Select syllabus discipline and unit taxonomy.
    - **High-Yield Concept Subtopics**: Multi-select granular subtopics or select all concepts for a balanced mix.
 2. **Step 2: Level, Format & Scope**:
-   - **Generation Scope**: Select Mini-Batch (5 Qs, 1 Job) or Full Mock Section (50 Qs, 10 Jobs) for background worker pool batch execution.
-   - **Challenge Level**: Foundational, Standard MCAT, or Top Percentile tier calibration.
+   - **Generation Scope**: Select **Practice Set (5 Qs, 1 Job)** for fast iterative authoring (~35-50s) or **Full Exam (50 Qs, 10 Jobs)** for comprehensive background mock section generation.
+   - **Challenge Level**: Calibrate between **Low**, **Medium**, and **High** difficulty tiers with color-coded badges and plain-English descriptors.
    - **Binary Passage Mode**: Passage-Based Set vs Independent Discretes.
    - **Question Breakdown**: Calibrate single-choice and multi-choice proportions.
 3. **Step 3: Review & Launch (with Advanced Calibration)**:
-   - **Scientific Figures & Visual Stimuli**: Enable/disable autonomous AI visual diagrams (reaction coordinates, Western blots, anatomical pathways).
-   - **Expandable Advanced Directives**: Multi-select official AAMC cognitive distractor traps (Formula Trap, Extreme Quantifiers, False Causation), SIRS reasoning skills (Skill 1–4), and likely student mistake patterns.
-   - **Unified Review & Launch**: Inspect the live configuration summary and launch real-time SSE streaming or background worker pool batch generation.
+   - **Compact Parameter Summary Table**: Review selected section, topics, difficulty, and question count at a glance in a high-density tabular summary card.
+   - **Expandable Advanced Accordion**: Collapsible drawer giving fine-grained control over:
+     - *Scientific Figures & Visual Stimuli*: Enable/disable autonomous AI visual diagrams (reaction coordinates, Western blots, anatomical pathways).
+     - *Cognitive Distractor Traps*: Multi-select official AAMC cognitive traps (Formula Trap, Extreme Quantifiers, False Causation).
+     - *AAMC Reasoning Skills*: Target specific SIRS reasoning skills (Skill 1–4) and likely student mistake patterns.
+   - **Unified Launch Action**: Launch real-time SSE streaming for practice sets or dispatch enterprise background mock runs.
 
 
 ---
@@ -150,5 +153,5 @@ $$\text{Total Cost} = \left(\frac{\text{Input Tokens}}{1{,}000{,}000} \times \$0
 - **Dedicated Application Views**: Seamlessly navigate between:
   1. **Generator Workspace**: Interactive exam generation & pipeline workspace with AAMC Split-Pane mode.
   2. **AI Validated Bank**: High-quality items (>90 points) awaiting one-click educator publishing.
-  3. **Question Bank**: Primary verified repository with search, filtering, and export.
+  3. **Question Bank**: Primary verified repository strictly presented in high-density **Editorial Cards** (with search, multi-factor filtering, in-place inline editing, bulk deletion, and PDF/CSV/JSON export; legacy table grid mode removed).
   4. **Batch Activity**: Real-time monitor tracking background 50-question mock runs with live worker metrics.

@@ -43,9 +43,9 @@ backend/
 │   │   ├── mock_fixtures.py # Deterministic fallback fixtures for offline resilience
 │   │   └── base.py          # LiteLLM execution wrapper & sub-micro-cent token cost engine
 │   ├── services/            # Background Worker & Asynchronous Services
-│   │   └── batch_runner.py  # Background pool managing 10 parallel jobs x 5 questions (50 total)
+│   │   └── batch_runner.py  # Background pool managing 1-job mini-batches (5 Qs) and 10-job mock runs (50 Qs)
 │   ├── repositories/        # Data Access Layer (DAL)
-│   │   ├── question_repository.py # Clean CRUD, hybrid full-text search & token analytics
+│   │   ├── question_repository.py # Clean CRUD, idempotent batch counter updates, hybrid FTS & token analytics
 │   │   ├── batch_repository.py    # Staged batch run queries & persistence
 │   │   ├── job_repository.py      # Background worker job state tracking
 │   │   └── passage_repository.py  # Shared stimulus reading passage queries
@@ -55,9 +55,9 @@ backend/
 │   │   ├── batch.py         # BatchModel for multi-question generation runs
 │   │   └── job.py           # JobModel for tracking individual background batch jobs
 │   ├── schemas/             # Domain Transfer Layer (Pydantic V2)
-│   │   ├── mcat.py          # MCAT sections & subtopic taxonomy
+│   │   ├── mcat.py          # MCAT sections, difficulty tiers (low/medium/high) & subtopic taxonomy
 │   │   ├── token.py         # TokenUsage & TokenCostAccumulator schemas
-│   │   ├── question.py      # QuestionOption, QuestionDraft, Question
+│   │   ├── question.py      # QuestionOption, QuestionDraft, Question, determine_question_status helper
 │   │   └── workflow.py      # GenerationRequest, ReviewScore, WorkflowEvent
 │   ├── core/                # Configuration & Settings
 │   │   ├── config.py        # Pydantic SettingsConfigDict, gateway defaults & pricing
@@ -177,7 +177,7 @@ PYTHONPATH=backend uvicorn app.main:app --port 8000 --reload
 Run the deterministic backend test suite covering endpoints, schemas, database operations, workflow routing, and token cost formulas (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full specs):
 
 ```bash
-# Run all unit and integration tests (47 passed)
+# Run all unit and integration tests (48 passed)
 source .venv/bin/activate
 pytest backend/tests -v -k "not live_e2e"
 

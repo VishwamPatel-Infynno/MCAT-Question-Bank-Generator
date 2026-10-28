@@ -8,7 +8,7 @@ This document details the software architecture, multi-agent design patterns, st
 
 ## 1. High-Level Architecture Overview
 
-The system is constructed as an asynchronous, event-driven multi-agent workflow coordinated by **LangGraph** and served via **FastAPI** with **Server-Sent Events (SSE)** to a high-performance **React 19** frontend featuring an interactive **7-Step Guided Question Wizard**, a dedicated full-width **Generation & Review Workspace**, and an enterprise **Batch Execution Engine**.
+The system is constructed as an asynchronous, event-driven multi-agent workflow coordinated by **LangGraph** and served via **FastAPI** with **Server-Sent Events (SSE)** to a high-performance **React 19** frontend featuring a streamlined **3-Step Guided Question Wizard**, a dedicated full-width **Generation & Review Workspace**, and an enterprise **Batch Execution Engine**.
 
 ```mermaid
 graph TD
@@ -228,7 +228,14 @@ The streaming execution pipeline is implemented in [`backend/app/workflow/engine
 
 ## 5. Background Batch Execution Service (`batch_runner.py`)
 
-For large-scale question synthesis (e.g. **Full Mock Section [50 Questions]**), the backend utilizes an asynchronous worker pool managed by [`backend/app/services/batch_runner.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/services/batch_runner.py):
+The backend utilizes an asynchronous worker pool managed by [`backend/app/services/batch_runner.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/services/batch_runner.py) supporting 2 calibrated Generation Scopes governed by the unified 5-question Job architecture:
+
+1. **Mini-Batch (5 Questions, 1 Single Job)**:
+   - Dispatches a single background worker job comprising 5 questions linked to a shared reading passage (or 5 discretes).
+   - Generates and self-audits within ~35-50s, streaming real-time status and automatically staging passing items (`score > 90`) into the **AI Validated** bank (`status = 'ai_validated'`).
+2. **Full Mock Section (50 Questions, 10 Parallel Jobs)**:
+   - Enterprise background batch spawning 10 parallel jobs (5 questions each) across the global worker pool.
+   - Automatically provisions shared passages per job, coordinates concurrent inference calls under rate-limit semaphores, and dynamically aggregates batch completion metrics.
 
 ```mermaid
 graph TD
@@ -236,12 +243,12 @@ graph TD
     API --> Runner[launch_background_batch]
     
     Runner --> BatchDB[Create Batch Record in DB]
-    Runner --> JobDB[Create 10 Job Records in DB]
+    Runner --> JobDB[Create Job Records in DB: 1 for Mini-Batch, 10 for Full Section]
     Runner --> BackgroundTask[Spawn Async Background Worker Pool]
     
     API -->> Client|202 Accepted + Batch/Job UUIDs| Client
 
-    subgraph "Parallel Worker Execution (10 Jobs x 5 Qs = 50 Total)"
+    subgraph "Parallel Worker Execution (1 Job [5 Qs] or 10 Jobs [50 Qs])"
         BackgroundTask --> Job1[Job 1: 5 Qs]
         BackgroundTask --> Job2[Job 2: 5 Qs]
         BackgroundTask --> Job3[Job 3: 5 Qs]
@@ -308,10 +315,22 @@ stateDiagram-v2
     below_threshold --> discarded: Automatic Rejection Gate Halt
 ```
 
-- **`ai_validated`**: Background batch questions that cleared the 90+ quality gate and await educator review in the AI Validated bank.
+- **`ai_validated`**: Background batch questions that cleared the 90+ quality gate (`score > 90`) and await educator review in the AI Validated bank.
+- **`batch_only`**: Questions scoring between 86 and 90 (`85 < score <= 90`) retained in batch history for educational review.
 - **`in_bank`**: Formally approved questions published in the primary searchable Question Bank repository.
-- **`below_threshold`**: Drafts that failed to achieve >90 after 3 remediation cycles (discarded before DB persistence, or flagged).
+- **`below_threshold`**: Drafts that failed to achieve >85 points after remediation cycles (flagged or discarded).
 - **`discarded`**: Archived or rejected items removed from active question banks.
+
+### 5.3 Canonical Status Determination & Batch Idempotency
+
+1. **Centralized Status Determination (`determine_question_status`)**:
+   Implemented in [`backend/app/schemas/question.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/schemas/question.py), this helper function serves as the single source of truth for assigning initial persistence status based on psychometric scores:
+   - `score > PASSING_SCORE_THRESHOLD (90)` $\to$ `'ai_validated'`
+   - `score > BATCH_PASSING_SCORE_THRESHOLD (85)` $\to$ `'batch_only'`
+   - `score <= 85` $\to$ `'below_threshold'`
+
+2. **Idempotent Batch Counter Synchronization**:
+   [`backend/app/repositories/question_repository.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/repositories/question_repository.py) enforces idempotent batch counter updates in `save_question`. When editing an existing question or re-saving an approved item, the repository detects the existing record and skips counter increments, preventing counter inflation across re-edits or stage-to-bank transitions.
 
 ---
 
@@ -462,12 +481,16 @@ frontend/src/
 │   └── BatchActivityView.jsx     # Live & historical batch monitoring dashboard
 ├── components/
 │   ├── index.js                  # Centralized barrel export for all components
-│   ├── wizard/                   # Progressive 7-Step Guided Question Wizard
-│   │   ├── GuidedWizard.jsx      # Central wizard controller
+│   ├── wizard/                   # Streamlined 3-Step Guided Question Wizard
+│   │   ├── GuidedWizard.jsx      # Central 3-step wizard controller
 │   │   ├── HeroLanding.jsx       # Welcome landing hero header
 │   │   ├── IndependentDiagramControls.jsx # Standalone diagram requirements selector
 │   │   ├── wizardConstants.js    # Presets, difficulty tiers, and step configs
-│   │   └── steps/                # Step 1 through Step 7 modular step components
+│   │   └── steps/                # Streamlined 3-step modular components
+│   │       ├── WizardStep1SectionFocus.jsx # Step 1: Section, pacing & focus
+│   │       ├── WizardStep2LevelFormat.jsx  # Step 2: Level (Low/Med/High), format & scope (5/50)
+│   │       ├── WizardStep3ReviewAdvanced.jsx # Step 3: Compact review table & advanced accordion
+│   │       └── index.js          # Steps barrel export
 │   ├── pipeline/                 # Real-time multi-agent visualizer
 │   │   ├── AgentVisualizer.jsx   # Live generating telemetry & compact stepper
 │   │   ├── MultiAgentPipelineVisualizer.jsx # 3-Milestone pipeline visualizer with electric conduits
@@ -489,8 +512,8 @@ frontend/src/
 │   │   ├── SharedPassageCard.jsx # Shared reading passage stimulus display card
 │   │   └── VisualStimulusViewer.jsx # SVG & neural visual diagram renderer
 │   ├── bank/                     # Question Bank repository
-│   │   ├── QuestionBankFilters.jsx # Section, difficulty, and search filter controls
-│   │   └── QuestionBankTable.jsx # Tabular question rows, batch selection, and actions
+│   │   ├── QuestionBankFilters.jsx # Section, difficulty (Low/Medium/High), and search filters
+│   │   └── QuestionBankTable.jsx # Canonical Editorial Cards view, batch selection, and actions
 │   ├── batch/                    # Batch monitoring components
 │   │   ├── ActiveMultiBatchMonitor.jsx # Global concurrency metrics & live multi-batch controller
 │   │   ├── BatchCard.jsx         # Summary status card for generation batches
@@ -532,6 +555,7 @@ frontend/src/
 ├── utils/                        # Pure utility helpers
 │   ├── exportUtils.js            # A4 HTML print document builder, CSV & JSON serializers
 │   ├── formatters.js             # Time, word count, token & currency formatters
+│   ├── optionHelpers.js          # Option length parity & calculateOptionSymmetry engine
 │   ├── trapHelpers.js            # Cognitive trap resolution & text detectors
 │   └── explanationHelpers.js     # Structured explanation parser
 ├── index.css                     # Enterprise CSS design tokens, conduit animations, dual-theme styling

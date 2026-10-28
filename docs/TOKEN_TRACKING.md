@@ -182,7 +182,7 @@ Token and cost data is surfaced across all 4 top-level views and specialized dom
 ### 4. Question Bank Repository ([`QuestionBankView.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/views/QuestionBankView.jsx))
 - **Repository Stat Metric**: Displays total accumulated tokens and total expenditure for the entire database:
   `14,250 ($0.0027)`
-- **Table Row Chips**: Each question row includes a compact chip:
+- **Editorial Card Chips**: Each question card includes a compact chip:
   `🪙 2,850 tok • $0.00053`
 
 ### 5. Staged Batch Review Deck ([`StagedBatchReview.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/staged/StagedBatchReview.jsx))

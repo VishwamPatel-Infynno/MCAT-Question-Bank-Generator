@@ -144,12 +144,12 @@ The repository maintains an uncompromising **Zero-Defect Quality Policy** enforc
 
 ### 5.1 Backend Verification Suite
 
-Run the complete 47-test deterministic unit & integration suite using `pytest` (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full test specifications):
+Run the complete 48-test deterministic unit & integration suite using `pytest` (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full test specifications):
 
 ```bash
 source .venv/bin/activate
 
-# 1. Run all 47 backend unit and integration tests (100% pass guarantee)
+# 1. Run all 48 backend unit and integration tests (100% pass guarantee)
 PYTHONPATH=backend pytest backend/tests -v -k "not live_e2e"
 
 # 2. Run Python linting and code quality checks

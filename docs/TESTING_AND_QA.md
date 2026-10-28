@@ -18,7 +18,7 @@ graph TD
     end
 
     subgraph "Tier 2: Backend Pytest Engine"
-        UnitTests[47 Deterministic Unit & Integration Tests]
+        UnitTests[48 Deterministic Unit & Integration Tests]
         LiveE2E[10 Live LLM API E2E Integration Tests]
     end
 
@@ -41,7 +41,7 @@ graph TD
 | Testing Layer | Scope | Tooling | Coverage / Status |
 | :--- | :--- | :--- | :--- |
 | **Static Code Hygiene** | PEP 8, syntax correctness, modern JS/JSX idioms | **Ruff** (Python 3.11), **Oxlint** (React 19) | 0 errors, 0 warnings policy (88 frontend files, 68 backend files) |
-| **Deterministic Unit & Integration** | Schemas, agents, DAL, API endpoints, tokens, batch runner | **Pytest**, **pytest-asyncio**, SQLite / PG Mock | **47 passing tests** (~11.5s) |
+| **Deterministic Unit & Integration** | Schemas, agents, DAL, API endpoints, tokens, batch runner | **Pytest**, **pytest-asyncio**, SQLite / PG Mock | **48 passing tests** (~16.0s) |
 | **Live Multi-Agent Integration** | End-to-end LLM inference, DeepInfra gateways | **Pytest** (`-m live_e2e`) | 10 dedicated live tests |
 | **Automated Browser E2E** | Guided wizard, SSE streaming, UI modals, bank CRUD | **Playwright**, **TestSprite AI** | **15/15 passed (100.0%)** |
 | **Runtime Psychometric Gate** | 100-point 4-pillar rubric, AAMC distractor traps | **LangGraph StateGraph** | Threshold $> 90$ points |
@@ -76,7 +76,7 @@ backend/tests/
 # 1. Activate backend virtual environment
 source .venv/bin/activate
 
-# 2. Run all 47 deterministic unit and integration tests
+# 2. Run all 48 deterministic unit and integration tests
 pytest backend/tests -v -k "not live_e2e"
 
 # 3. Run specific test modules
@@ -88,9 +88,9 @@ pytest backend/tests/test_pedagogy.py -v
 pytest backend/tests/test_e2e_live.py -v -m live_e2e
 ```
 
-### 2.3 Detailed Test Module Coverage
+### 2.3 Detailed Test Module Coverage (48 Tests)
 
-1. **`test_agents.py`**:
+1. **`test_agents.py` (7 tests)**:
    - `test_all_mcat_sections_mock`: Verifies authentic section-specific mock fixtures for Chem/Phys, CARS, Bio/Biochem, and Psych/Soc.
    - `test_reviewer_heuristic_and_loop_routing`: Tests autonomous remediation loop triggers when score $\le 90$.
    - `test_strict_rejection_routing_when_score_le_90`: Verifies circuit-breaker termination when candidate fails after 3 cycles.
@@ -98,16 +98,56 @@ pytest backend/tests/test_e2e_live.py -v -m live_e2e
    - `test_generate_question_with_self_critique_structure`: Validates fused single-pass drafting and 100-pt self-critique.
    - `test_blind_solver_node_agreement`: Verifies agreement between blind solver and generator draft.
    - `test_blind_solver_node_discrepancy_triggers_critique`: Verifies that key discrepancies immediately route candidate to reviewer critique.
-2. **`test_multi_batch_concurrency.py`**:
+2. **`test_api.py` (9 tests)**:
+   - `test_database_crud`: Full CRUD lifecycle verification against question repository.
+   - `test_admin_approval_and_persistence_endpoints`: Verifies admin approval workflow and PostgreSQL persistence.
+   - `test_multichoice_and_passage_support`: Validates 4-choice purity and shared stimulus passage handling.
+   - `test_batch_generation_and_staging_flow`: End-to-end multi-question staging and approval cycle.
+   - `test_single_passage_multi_question_set`: Verifies multiple questions sharing a single passage stimulus.
+   - `test_binary_passage_and_independent_batches`: Confirms binary passage mode (all passage-linked or all independent).
+   - `test_independent_question_direct_no_stimulus`: Ensures independent questions omit stimulus without errors.
+   - `test_passage_set_with_passage_level_visual_stimulus`: Validates shared reading passage diagrams.
+   - `test_question_status_lifecycle_and_counts`: Verifies question lifecycle counts and transitions.
+3. **`test_batch_jobs_flow.py` (2 tests)**:
+   - `test_batch_and_jobs_lifecycle`: End-to-end multi-job batch lifecycle (10 jobs x 5 questions = 50 total).
+   - `test_mini_batch_lifecycle`: Validates single-job mini-batch lifecycle (1 job x 5 questions).
+4. **`test_database_structure.py` (6 tests)**:
+   - `test_database_schema_initialization`: Verifies PostgreSQL tables, columns, and foreign key relations.
+   - `test_passage_auto_sync_and_retrieval`: Validates passage synchronization and caching.
+   - `test_batch_auto_sync_and_atomic_aggregation`: Ensures atomic calculation of batch metrics.
+   - `test_hybrid_full_text_search`: Validates PostgreSQL tsvector hybrid FTS queries.
+   - `test_api_passages_and_batches`: Confirms passage and batch REST endpoint contracts.
+   - `test_centralized_repository_package_exports`: Ensures clean package exports across DAL layers.
+5. **`test_multi_batch_concurrency.py` (4 tests)**:
    - `test_global_concurrency_semaphores`: Confirms `GLOBAL_MAX_CONCURRENT_JOBS = 4` prevents thread saturation.
    - `test_call_llm_rate_limit_backoff`: Validates exponential backoff and jitter under HTTP 429 rate limit responses.
    - `test_refresh_batch_aggregates_atomic`: Ensures atomic SQL aggregation eliminates race conditions between parallel jobs.
    - `test_simultaneous_multi_batch_launch_and_metrics`: Tests simultaneous execution of multiple 50-question batches.
-3. **`test_pedagogy.py`**:
+6. **`test_pedagogy.py` (4 tests)**:
    - `test_option_symmetry_and_anti_guessability_engine`: Mathematical validation that options stay within $\pm 15\%$ word count.
    - `test_smart_ai_trap_and_explanation_breakdown`: Tests automatic cognitive trap assignment and 3-card mentor breakdown.
    - `test_manager_dependent_taxonomy_integration`: Verifies official AAMC syllabus tree mapping.
    - `test_taxonomy_json_parity_between_backend_and_frontend`: Enforces identical taxonomy trees across client and server.
+7. **`test_schemas.py` (1 test)**:
+   - `test_schemas_validation`: Comprehensive Pydantic V2 schema boundary and validation tests.
+8. **`test_tokens.py` (6 tests)**:
+   - `test_deepinfra_model_configuration`: Verifies model identifier and endpoint settings.
+   - `test_token_and_cost_calculation`: Sub-micro-cent mathematical calculation verification ($0.098/$0.294 per 1M).
+   - `test_workflow_token_accumulation`: Verifies cumulative token tracking across multi-agent cycles.
+   - `test_deepinfra_strict_api_key_enforcement`: Ensures missing API keys fail fast with actionable guidance.
+   - `test_max_tokens_settings_and_config_endpoint`: Validates token limit configuration contracts.
+   - `test_call_llm_effective_max_tokens_and_temperature`: Confirms temperature and token constraints per agent.
+9. **`test_visuals.py` (5 tests)**:
+   - `test_strict_ai_image_generator`: Validates SVG vector generator and AI visual filters.
+   - `test_flux_image_cost_formula`: Verifies FLUX unit cost scaling ($0.014 normalized baseline).
+   - `test_image_node_workflow_accumulation`: Ensures visual synthesis costs accumulate into total run cost.
+   - `test_visual_stimulus_persistence_in_finalize_node`: Confirms diagram SVG/URL persistence to PostgreSQL.
+   - `test_autonomous_ai_determined_image_workflow`: Validates AI-determined visual stimulus routing.
+10. **`test_workflow.py` (4 tests)**:
+    - `test_per_question_stage_metadata_in_events`: Verifies SSE event payload metadata and stage tracking.
+    - `test_fused_generator_node_passing_and_routing`: Validates fused single-pass drafting and fast-path routing.
+    - `test_fused_workflow_bypasses_reviewer_when_self_critique_passed`: Confirms reviewer bypass when score > 90.
+    - `test_safe_json_loads_and_resilient_parsing`: Ensures resilient JSON parsing of LLM outputs.
 
 ---
 
@@ -119,7 +159,7 @@ The application includes an automated End-to-End browser test suite executed wit
 
 | ID | Test Scenario | Primary User Flow | Automated Verification | Status |
 | :---: | :--- | :--- | :--- | :---: |
-| **TC001** | Configure and start guided generation | 7-Step Guided Wizard navigation | Validates all wizard step transitions (Section, Topic, Level, Traps, Visuals, Review) and launches pipeline. | ✅ Passed |
+| **TC001** | Configure and start guided generation | 3-Step Guided Wizard navigation | Validates all 3 wizard step transitions (Section Focus, Level & Format, Review & Launch) and initiates generation. | ✅ Passed |
 | **TC002** | Start guided generation from workspace | Generator tab interaction | Launches configuration modal directly from the single-canvas workspace without regressions. | ✅ Passed |
 | **TC003** | Complete generation run & review output | Full item generation | Streams single question, verifies 4 options, balanced word counts, and transition to Staged Review. | ✅ Passed |
 | **TC004** | Live generation progress & logs | SSE Telemetry tray | Verifies step-by-step agent milestones, stopwatch timer, and collapsible log tray rendering. | ✅ Passed |
@@ -191,6 +231,6 @@ The repository integrates a GitHub Actions workflow (`.github/workflows/ci.yml`)
 3. Cache & install backend dependencies (pip) & frontend dependencies (pnpm)
 4. Execute Ruff linter and formatting checks
 5. Execute Oxlint frontend linter
-6. Run full Pytest deterministic test suite (47 tests)
+6. Run full Pytest deterministic test suite (48 tests)
 7. Execute frontend production build (Vite 8)
 ```

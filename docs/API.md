@@ -89,13 +89,13 @@ Accept: text/event-stream
 | :--- | :--- | :--- | :--- | :--- |
 | `section` | `string` | **Yes** | - | `chem_phys`, `cars`, `bio_biochem`, `psych_soc` |
 | `subtopic` | `string` | No | `null` | Categorized syllabus topic |
-| `difficulty` | `string` | No | `"medium"` | `easy`, `medium`, `hard` |
+| `difficulty` | `string` | No | `"medium"` | `low`, `medium`, `high` (with backward-compatible support for `easy`, `hard`, `foundational`, `top percentile`) |
 | `aamc_skill` | `string` | No | `null` | Official AAMC SIRS Skill (1-4) or CARS Skill |
 | `allow_ai_images` | `boolean` | No | `false` | Whether AI is permitted to generate visual stimuli when deemed necessary |
 | `require_image` | `boolean` | No | `false` | Force visual stimulus generation for the question stem |
 | `require_passage_image`| `boolean` | No | `false` | Force visual diagram generation for the shared passage stimulus |
 | `custom_prompt` | `string` | No | `null` | Contextual steer or clinical vignette guidance |
-| `questions_to_generate` | `integer` | No | `5` | Quantity to generate in batch (1 to 50 questions) |
+| `questions_to_generate` | `integer` | No | `5` | Quantity to generate (Wizard UI provides `5` [Practice Set] and `50` [Full Exam]; backend permits 1 to 50) |
 | `passage_mode` | `string` | No | `"single_passage"` | `"single_passage"` (all Qs linked to 1 passage) or `"independent"` (standalone discretes) |
 | `interaction_type` | `string` | No | `"single_choice"` | Standard 4-choice single choice item |
 | `primary_trap` | `string` | No | `"Automatic"` | Cognitive trap selection: `"Automatic"` (Smart AI choice) or explicit key (`Scope_Shift`, `Keyword_Trap`, `Extreme_Language`, `Correlation_vs_Causation`, `Partial_Match`, `Half_Truth`, `Unwarranted_Assumption`, `Calculation_Formula_Trap`, `Out_of_Scope`, `False_Dichotomy`, `Over_generalisation`) |
@@ -135,13 +135,13 @@ Lists saved questions from the Question Bank repository with optional filtering,
 | Parameter | Type | Required | Description |
 | :--- | :--- | :--- | :--- |
 | `section` | `string` | No | Filter by section (`chem_phys`, `cars`, `bio_biochem`, `psych_soc`) |
-| `difficulty` | `string` | No | Filter by difficulty (`easy`, `medium`, `hard`) |
+| `difficulty` | `string` | No | Filter by difficulty (`low`, `medium`, `high`) |
 | `search` | `string` | No | Hybrid full-text lexical search query on stem, passage, and subtopic |
 | `combination_id`| `string` | No | Filter by matrix combination code |
 | `run_id` | `string` | No | Filter by execution run UUID4 |
 | `batch_id` | `string` | No | Filter by batch run UUID4 |
 | `passage_id` | `string` | No | Filter by shared stimulus passage UUID4 |
-| `status` | `string` | No | Filter by lifecycle status: `in_bank`, `ai_validated`, `below_threshold`, `discarded` |
+| `status` | `string` | No | Filter by lifecycle status: `in_bank`, `ai_validated`, `batch_only`, `below_threshold`, `discarded` |
 
 #### Response (`200 OK`)
 ```json
@@ -727,7 +727,7 @@ Returns the complete cached syllabus hierarchy across all 4 official AAMC MCAT s
   "skills": [...],
   "aamc_skills": [...],
   "generation_options": {
-    "difficulty": ["Foundational", "Standard MCAT", "Top Percentile"],
+    "difficulty": ["Low", "Medium", "High"],
     "question_type": [...],
     "content_domain": [...],
     "primary_trap": [...]

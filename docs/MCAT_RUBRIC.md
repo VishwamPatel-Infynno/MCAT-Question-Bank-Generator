@@ -123,7 +123,19 @@ The engine applies an authoritative taxonomy of 11 psychological traps:
 
 ---
 
-## 5. Calibrated AAMC Scaled Score Mapping
+## 5. Calibrated Difficulty Calibration Tiers (Low, Medium, High)
+
+The generator calibrates questions into 3 difficulty tiers across the authoring wizard, question cards, and repository filters:
+
+| Difficulty Tier | Cognitive Complexity | Typical AAMC Reasoning Skill | Characteristics & Trap Sophistication |
+| :---: | :--- | :--- | :--- |
+| **Low** | Direct recall & single-step deduction | Skill 1 (Knowledge of Concepts) / CARS Skill 1 | Direct application of core definitions, single-variable calculations, direct passage fact extraction; clear distractors targeting basic misconceptions. |
+| **Medium** | Multi-step reasoning & graphical data | Skill 2 (Scientific Problem Solving) / CARS Skill 2 | Multi-step deduction, two-variable data analysis (e.g., standard Michaelis-Menten curve or Lineweaver-Burk interpretation), standard distractor traps (e.g. calculation formula traps, sign inversions). |
+| **High** | Multi-component synthesis & research design | Skill 3 (Research Design) & Skill 4 (Data/Stats) / CARS Skill 3 | Novel experimental setups, subtle rhetorical tone shifts, conflicting hypotheses, multi-step stoichiometry or kinetics, highly sophisticated distractors (e.g., subtle half-truths, unwarranted assumptions). |
+
+---
+
+## 6. Calibrated AAMC Scaled Score Mapping
 
 Internal 100-point psychometric audit scores are mathematically calibrated to the official AAMC scaled score ranges:
 - **Individual Section Scale**: `118` to `132` (Median: `125`)
@@ -140,7 +152,7 @@ Internal 100-point psychometric audit scores are mathematically calibrated to th
 
 ---
 
-## 6. Two-Tier Quality Threshold Model & Quality Gates
+## 7. Two-Tier Quality Threshold Model & Quality Gates
 
 The system enforces a calibrated two-tier quality evaluation framework that balances uncompromising question-bank admission with high-throughput batch evaluation:
 
@@ -157,7 +169,7 @@ The system enforces a calibrated two-tier quality evaluation framework that bala
 
 ---
 
-## 7. Smart AI Choice & Targeted Misconception Calibration (`likely_mistake_pattern`)
+## 8. Smart AI Choice & Targeted Misconception Calibration (`likely_mistake_pattern`)
 
 Beyond standard cognitive traps, the engine operationalizes pedagogical misconception diagnosis:
 1. **Automatic (Smart AI Choice)**: The generator agent analyzes the scientific research study, equations, and question stem to autonomously diagnose the most authentic student calculation or conceptual error for the tested concept (e.g., `USES_WRONG_REFERENCE_VALUE`, `INVERTS_FRACTION`, `FORGETS_SQUARE_ROOT`, `CONFUSES_ENANTIOMERS_DIASTEREOMERS`, `MISREADS_GRAPH_AXES`, `FAILS_TO_SUBTRACT_BASELINE`, `CONFUSES_KM_VMAX`, `DROPS_NEGATIVE_SIGN`).

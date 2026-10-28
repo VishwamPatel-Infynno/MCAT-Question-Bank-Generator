@@ -10,10 +10,10 @@ Built with **React 19**, **Vite 8**, **Oxlint**, and a custom dark-glass precisi
 
 The frontend provides an intuitive, real-time command canvas for AAMC MCAT question generation, AI team tracking, and question bank management:
 
-- **Streamlined 3-Step Guided Wizard**: High-velocity authoring workflow consolidating section selection, syllabus disciplines, major units, multi-select subtopic concepts, difficulty & format calibration (Mini-Set vs Mock Section), visual stimuli, and advanced cognitive traps into three focused decision stages (Section & Topic Focus, Format & Scope, Review & Launch).
+- **Streamlined 3-Step Guided Wizard**: High-velocity authoring workflow consolidating section selection, syllabus disciplines, major units, multi-select subtopic concepts, difficulty calibration (**Low**, **Medium**, **High**), format (Passage-Based vs Independent Single-Choice), generation scope (**Practice Set [5 Qs]** vs **Full Exam [50 Qs]**), visual stimuli, and advanced cognitive traps into three focused decision stages (Section & Focus, Level & Format, Review & Launch with expandable advanced accordion).
 - **2 Calibrated Generation Scopes**:
-  - **Mini-Batch (5 Qs)**: Background worker drafting on a shared passage or discrete set (~35-50s) streamed into the AI Validated Bank and Batch Activity Desk with live telemetry.
-  - **Full Mock Section (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
+  - **Practice Set (5 Qs)**: 1 Single Job background worker drafting on a shared passage or discrete set (~35-50s) streamed into the AI Validated Bank and Batch Activity Desk with live telemetry.
+  - **Full Exam (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
 - **Live AI Team with Fused Draft-and-Critique**: Animated live tracker displaying the AI pipeline milestones (**Question Writer & Reviewer** with fused 100-pt self-critique for ~40% faster generation, **Question Improver** with smart status indicators, and **Diagram & Chart Maker**) with electric conduit telemetry.
 - **Staged Batch Review & Approval**: Interactive batch staging deck allowing educators to inspect, edit, discard, or approve multiple generated items before saving to the database.
 - **Question Quality & Cost Breakdown**: Comprehensive 100-point 4-pillar quality check with itemized token tracking and micro-dollar cost calculations.
@@ -35,8 +35,8 @@ frontend/src/
 ├── components/
 │   ├── index.js                  # Centralized barrel export for all components
 │   ├── bank/
-│   │   ├── QuestionBankFilters.jsx # Section, difficulty, and search filter controls
-│   │   └── QuestionBankTable.jsx # Tabular question rows, batch selection, and actions
+│   │   ├── QuestionBankFilters.jsx # Section, difficulty (Low/Medium/High), and search filters
+│   │   └── QuestionBankTable.jsx # Canonical Editorial Cards view, batch selection, and actions (legacy grid mode removed)
 │   ├── common/
 │   │   ├── CustomSelect.jsx      # Accessible custom dropdown select primitive
 │   │   ├── ErrorBoundary.jsx     # Production React error boundary with fallback UI
@@ -87,7 +87,11 @@ frontend/src/
 │   └── wizard/
 │       ├── GuidedWizard.jsx      # Streamlined 3-step guided exam generation wizard dock
 │       ├── HeroLanding.jsx       # Welcome landing hero header
-│       └── steps/                # Progressive 3-step subcomponents (WizardStep1SectionFocus, WizardStep2LevelFormat, WizardStep3ReviewAdvanced)
+│       └── steps/                # Streamlined 3-step modular components
+│           ├── WizardStep1SectionFocus.jsx   # Step 1: Section, pacing & focus
+│           ├── WizardStep2LevelFormat.jsx    # Step 2: Level (Low/Med/High), format & scope (5/50)
+│           ├── WizardStep3ReviewAdvanced.jsx # Step 3: Compact review table & advanced accordion
+│           └── index.js          # Steps barrel export
 ├── constants/
 │   ├── index.js                  # Constants barrel export
 │   ├── config.js                 # Pricing models, image parameters, token rates
@@ -110,6 +114,7 @@ frontend/src/
 │   ├── explanationHelpers.js     # Pure JS distractor line & trap parser
 │   ├── exportUtils.js            # CSV, JSON, and print-ready HTML doc generators
 │   ├── formatters.js             # Currency, pacing, and token formatting
+│   ├── optionHelpers.js          # Option length parity & calculateOptionSymmetry engine
 │   └── trapHelpers.js            # Cognitive trap detection & resolution
 ├── index.css                     # Design tokens, electric conduit animations, and typography
 └── main.jsx                      # Application entry point
