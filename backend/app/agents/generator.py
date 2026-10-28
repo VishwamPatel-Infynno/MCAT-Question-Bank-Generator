@@ -205,17 +205,17 @@ STANDARDS FOR AAMC MCAT PASSAGES:
 2. Structured in 3 to 5 coherent paragraphs.
 3. Substantive experimental or biomedical study detailing a research hypothesis, experimental methods (e.g. assays, Western blots, kinetic measurements, reaction vessels), observed quantitative data or findings, and conclusions.
 4. Provides rich material for multiple distinct reasoning questions evaluating AAMC skills.
-5. EXPERIMENTAL VISUAL STIMULUS REQUIREMENT (FIGURE 1):
-   - Because visual diagrams are enabled for this science passage, the study MUST describe and reference a central experimental figure or diagram labeled as "Figure 1" (e.g., Figure 1: Reaction coordinate diagram, Gel electrophoresis blot, Lineweaver-Burk kinetic plot, Metabolic pathway feedback, or Apparatus schematic).
-   - In the text of the passage, explicitly mention "Figure 1" so questions can test data interpretation.
-   - Strictly set "image_needed": true and provide a comprehensive, vivid scientific description in "image_prompt" for generating this diagram.
+5. EXPERIMENTAL & SCHOLARLY VISUAL STIMULUS REQUIREMENT (FIGURE 1):
+   - Because visual stimuli are enabled for this passage, the study MUST describe and reference a central figure, chart, experimental setup, or diagram labeled as "Figure 1" (e.g., Figure 1: Experimental apparatus schematic, anatomical diagram, Western blot / gel electrophoresis, Lineweaver-Burk kinetic plot, reaction mechanism, or metabolic pathway).
+   - In the text of the passage, explicitly mention "Figure 1" so questions can test visual data interpretation.
+   - Strictly set "image_needed": true and provide a comprehensive, vivid description in "image_prompt" for generating this figure.
 
 OUTPUT FORMAT:
 Respond ONLY with a valid JSON object matching this exact structure:
 {{
   "passage_text": "The full 3 to 5 paragraph reading passage text explicitly incorporating and describing Figure 1...",
   "image_needed": true,
-  "image_prompt": "Detailed scientific description of Figure 1: high-contrast experimental diagram or plot with clearly labeled axes, legends, or molecular structures on a clean white background..."
+  "image_prompt": "Detailed description of Figure 1: high-contrast experimental figure, chart, illustration, or diagram on a clean white background with clearly labeled axes, legends, or structures..."
 }}"""
     else:
         prompt = f"""Generate a high-yield, authentic AAMC MCAT Reading Passage for {section_name}.

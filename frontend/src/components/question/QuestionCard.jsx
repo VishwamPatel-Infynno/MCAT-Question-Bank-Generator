@@ -212,7 +212,7 @@ export default function QuestionCard({
         {[
           { id: 'preview', label: 'Question & Options', icon: FileText },
           { id: 'scorecard', label: 'Quality Scorecard', icon: BarChart3 },
-          { id: 'telemetry', label: 'Generation Details', icon: Code2 }
+          { id: 'telemetry', label: 'Usage & Details', icon: Code2 }
         ].map(tab => {
           const Icon = tab.icon;
           const isSel = activeTab === tab.id;

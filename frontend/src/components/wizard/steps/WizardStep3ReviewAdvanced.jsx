@@ -259,7 +259,7 @@ export default function WizardStep3ReviewAdvanced({
                 color: 'var(--text-primary)'
               }}
             >
-              Generate Scientific Diagrams &amp; Reaction Schemes
+              Include Diagrams &amp; Figures
             </span>
           </div>
 
@@ -322,7 +322,7 @@ export default function WizardStep3ReviewAdvanced({
             <Sliders size={14} style={{ color: 'var(--brand-primary)' }} />
             <span>Advanced Settings</span>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 400 }}>
-              (Cognitive Traps, Reasoning Skills, Misconceptions)
+              (Common Traps, Reasoning Skills, Student Mistakes)
             </span>
           </div>
           {showAdvanced ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
@@ -333,7 +333,7 @@ export default function WizardStep3ReviewAdvanced({
             {/* Cognitive Traps */}
             <div>
               <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
-                Cognitive Trap Focus
+                Common Traps to Test
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 <button
@@ -459,7 +459,7 @@ export default function WizardStep3ReviewAdvanced({
             {/* Misconception Patterns */}
             <div>
               <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
-                Student Misconception Targets
+                Common Student Mistakes to Target
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 <button

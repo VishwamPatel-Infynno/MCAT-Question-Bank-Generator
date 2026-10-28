@@ -38,7 +38,7 @@ export default function StagedBatchGrid({
               </h3>
             </div>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              Questions 1-{effectivePassageCount} reference the shared stimulus above
+              Questions 1-{effectivePassageCount} reference the reading passage above
             </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '16px' }}>
@@ -68,7 +68,7 @@ export default function StagedBatchGrid({
               </h3>
             </div>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              Questions {effectivePassageCount + 1}-{effectiveTotal} are independent with individual vignettes
+              Questions {effectivePassageCount + 1}-{effectiveTotal} are independent questions
             </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '16px' }}>

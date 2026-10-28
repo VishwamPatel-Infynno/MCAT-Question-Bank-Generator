@@ -66,7 +66,7 @@ export default function VisualStimulusViewer({
   }
 
   const isSvg = Boolean(svgContent);
-  const visualType = isSvg ? 'SVG Vector Diagram' : 'Infynno Neural Diagram';
+  const visualType = isSvg ? 'SVG Vector Diagram' : 'Scientific Figure';
 
   const handleCopySvg = (e) => {
     e?.stopPropagation();
@@ -127,7 +127,7 @@ export default function VisualStimulusViewer({
           ) : (
             <img 
               src={imageUrl} 
-              alt={rawDescription || 'Stimulus'} 
+              alt={rawDescription || 'Figure diagram'} 
               style={{ maxHeight: '85px', maxWidth: '100%', objectFit: 'contain' }} 
             />
           )}

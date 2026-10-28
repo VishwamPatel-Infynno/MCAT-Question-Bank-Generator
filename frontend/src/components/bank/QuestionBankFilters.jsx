@@ -92,7 +92,7 @@ export default function QuestionBankFilters({
           <input
             ref={searchInputRef}
             id="input-bank-search"
-            aria-label="Search questions by stem, stimulus, topic, or trap"
+            aria-label="Search questions by question, passage, topic, or trap"
             type="text"
             placeholder="Search questions (Press /)..."
             value={searchQuery}

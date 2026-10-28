@@ -40,7 +40,7 @@ export default function AiValidatedStatsBar({
               <ShieldCheck size={15} />
             </div>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
-              Review Questions
+              Review Queue
             </h2>
           </div>
         </div>

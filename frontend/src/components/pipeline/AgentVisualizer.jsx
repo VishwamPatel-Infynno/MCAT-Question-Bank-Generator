@@ -127,7 +127,7 @@ export default function AgentVisualizer({
               alignItems: 'center',
               gap: '4px'
             }}
-            title="View event logs and processing telemetry"
+            title="View editorial activity log"
           >
             <Terminal size={12} />
             <span>{showTelemetry ? 'Hide Logs' : 'Logs'}</span>
@@ -152,7 +152,7 @@ export default function AgentVisualizer({
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', color: 'var(--text-muted)', fontSize: '0.65rem' }}>
-              <span>Live Agent Event Stream & Processing Stage Logs ({events.length} events)</span>
+              <span>Editorial Activity Log ({events.length} events)</span>
             </div>
             {events.map((ev, i) => (
               <div

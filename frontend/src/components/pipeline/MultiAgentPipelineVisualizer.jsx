@@ -88,7 +88,7 @@ export default function MultiAgentPipelineVisualizer({
           : isRegenActive
           ? 'Polishing choices and answer explanations...'
           : isImgActive
-          ? 'Creating scientific diagram...'
+          ? 'Creating diagrams & figures...'
           : 'Creating questions...')
       : null);
 
@@ -99,7 +99,7 @@ export default function MultiAgentPipelineVisualizer({
       title: 'Drafting & Review',
       subtitle: 'Initial Draft',
       guarantee: isSwarm
-        ? 'Parallel Drafting & Review'
+        ? 'Drafting & Initial Review'
         : (latestReview?.total_score ? `${latestReview.total_score}/100 Quality Score` : 'Drafting & First-Pass Review'),
       icon: PenTool,
       accentColor: 'var(--brand-primary)',
@@ -170,7 +170,7 @@ export default function MultiAgentPipelineVisualizer({
                 color: 'var(--text-muted)'
               }}
             >
-              Editorial Process
+              Editorial Review
             </span>
             <span style={{ fontSize: '0.675rem', color: 'var(--text-muted)' }}>•</span>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>

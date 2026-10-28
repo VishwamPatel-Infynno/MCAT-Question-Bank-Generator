@@ -264,7 +264,7 @@ export function useAppState() {
           showToast({
             type: 'success',
             title: '50-Question Exam Batch Launched',
-            message: 'Generating 50 questions across 10 jobs in the background (Global Worker Pool).'
+            message: 'Generating 50 questions across 10 jobs in the background.'
           });
           setActiveTab('batches');
           refreshActiveBatches();
@@ -293,8 +293,8 @@ export function useAppState() {
       type: 'info',
       title: 'Practice Set Started',
       message: isPassageBatch
-        ? 'Drafting 5-question passage set with real-time multi-agent telemetry...'
-        : 'Drafting 5 independent discrete questions with real-time multi-agent telemetry...'
+        ? 'Creating 5-question passage set...'
+        : 'Creating 5 independent practice questions...'
     });
   }, [
     isGenerating,

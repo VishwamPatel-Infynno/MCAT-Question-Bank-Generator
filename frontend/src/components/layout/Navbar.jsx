@@ -125,7 +125,7 @@ export default function Navbar({
           className={`pill-track-btn ${activeTab === 'generator' ? 'active' : ''}`}
         >
           <Sparkles size={12} color={activeTab === 'generator' ? 'var(--brand-primary)' : 'currentColor'} />
-          <span>Create</span>
+          <span>Create Questions</span>
         </button>
 
         <button
@@ -137,7 +137,7 @@ export default function Navbar({
           title="View batch history and generation progress"
         >
           <Layers size={12} color={activeTab === 'batches' ? 'var(--brand-primary)' : 'currentColor'} />
-          <span>Batches</span>
+          <span>Batch Progress</span>
           {activeBatchCount > 0 && (
             <span
               style={{
@@ -161,10 +161,10 @@ export default function Navbar({
           onClick={() => setActiveTab('validated')}
           className={`pill-track-btn ${activeTab === 'validated' ? 'active' : ''}`}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-          title="Review validated questions"
+          title="Review validated questions in queue"
         >
           <CheckCircle2 size={12} color={activeTab === 'validated' ? 'var(--brand-primary)' : 'currentColor'} />
-          <span>Review</span>
+          <span>Review Queue</span>
           {validatedCount > 0 && (
             <span
               style={{
@@ -190,7 +190,7 @@ export default function Navbar({
           title="Question Bank"
         >
           <Database size={12} color={activeTab === 'bank' ? 'var(--brand-primary)' : 'currentColor'} />
-          <span>Bank</span>
+          <span>Question Bank</span>
         </button>
 
         <button
@@ -204,10 +204,10 @@ export default function Navbar({
             }
           }}
           className={`pill-track-btn ${activeTab === 'passages' ? 'active' : ''}`}
-          title="Passages Bank & Editorial Desk"
+          title="Passage Bank & Editorial Desk"
         >
           <BookOpen size={12} color={activeTab === 'passages' ? 'var(--brand-primary)' : 'currentColor'} />
-          <span>Passages</span>
+          <span>Passage Bank</span>
         </button>
       </nav>
 

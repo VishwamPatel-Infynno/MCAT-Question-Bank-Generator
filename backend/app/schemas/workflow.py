@@ -17,7 +17,7 @@ class GenerationRequest(BaseModel):
     )
     allow_ai_images: bool = Field(
         default=False,
-        description="Whether AI is permitted to generate visual stimuli (diagrams/charts) when deemed pedagogically necessary",
+        description="Whether AI is permitted to generate visual stimuli (figures, diagrams, illustrations, plots) when deemed pedagogically necessary",
     )
     require_image: bool = False
     require_passage_image: bool = Field(

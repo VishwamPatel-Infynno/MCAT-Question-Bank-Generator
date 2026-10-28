@@ -168,11 +168,11 @@ async def generate_image_stimulus(
 
     prompt_for_image = (
         draft.image_prompt_or_type
-        or f"AAMC MCAT scientific medical college admission exam stimulus diagram for {req.section.value}: {draft.question_stem}"
+        or f"AAMC MCAT educational exam visual stimulus for {req.section.value}: {draft.question_stem}"
     )
     flux_prompt = (
-        f"Scientific research and medical educational test diagram on clean white background, high contrast, "
-        f"clear labeling for AAMC MCAT exam: {prompt_for_image}"
+        f"High-quality educational test figure, scientific illustration, or medical diagram on clean white background, high contrast, "
+        f"clear professional labeling for AAMC MCAT exam: {prompt_for_image}"
     )
     logger.info(f"Generating AI image with {model_id} ({width}x{height}, {iters} iters)...")
 

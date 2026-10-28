@@ -118,7 +118,7 @@ export default function ReviewAuditView({ question, onClose }) {
           </div>
         </div>
 
-        {/* AI Compute Units & Workload Audit Section */}
+        {/* Usage & Cost Details Section */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h4 style={{ fontSize: '0.775rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>

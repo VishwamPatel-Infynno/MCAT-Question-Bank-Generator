@@ -140,7 +140,7 @@ export default function BatchProgressHeader({
             {isMixedBatch
               ? `Mixed Set: ${effectivePassageCount} Passage + ${effectiveTotal - effectivePassageCount} Standalone`
               : isPassageSet
-                ? '1 Shared Passage Set'
+                ? '1 Shared Reading Passage Set'
                 : `${passageCount} With Reading Passage${passageCount !== 1 ? 's' : ''}`}
           </span>
         </div>
@@ -281,7 +281,7 @@ export default function BatchProgressHeader({
               <Check size={14} />
               <span>
                 {isSaving ? 'Saving...' : unsavedSelectedCount > 0
-                  ? `Save Selected (${unsavedSelectedCount}) to Question Bank`
+                  ? `Save Selected (${unsavedSelectedCount}) to Bank`
                   : 'No Unsaved Selected'}
               </span>
             </button>
@@ -308,8 +308,8 @@ export default function BatchProgressHeader({
               {allAccepted
                 ? 'All Saved in Question Bank'
                 : isPassageSet
-                  ? `Save Passage Set (${totalCompleted} Qs) to Question Bank`
-                  : `Save All Questions (${totalCompleted}) to Question Bank`}
+                  ? `Save Passage Set (${totalCompleted} Qs) to Bank`
+                  : `Save All Ready (${totalCompleted}) to Bank`}
             </span>
           </button>
         </div>

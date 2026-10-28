@@ -67,8 +67,8 @@ export default function SharedPassageCard({
     : 'Single Shared Reading Passage';
 
   const subtitle = isMixedBatch
-    ? `Questions 1 to ${questionCount} evaluate comprehension directly from this stimulus. Questions ${questionCount + 1} to ${effectiveTotal} are independent direct questions (no passage).`
-    : `All ${effectiveTotal} questions in this set evaluate comprehension, logic, or inference directly from this stimulus.`;
+    ? `Questions 1 to ${questionCount} reference this reading passage directly. Questions ${questionCount + 1} to ${effectiveTotal} are independent questions without a passage.`
+    : `All ${effectiveTotal} questions in this set reference this reading passage directly.`;
 
   return (
     <div

@@ -1,20 +1,16 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   ArrowLeft,
   Save,
   Trash2,
   BookOpen,
-  Edit3,
-  CheckCircle2,
   Layers,
-  Image as ImageIcon,
-  ChevronDown,
-  ChevronUp,
-  X
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
-import VisualStimulusViewer from '../question/VisualStimulusViewer';
-import { formatDifficulty, getDifficultyBadgeClass, getSectionBadgeClass } from '../../constants/mcat';
-import { getEffectiveTrapInfo } from '../../utils';
+import { getSectionBadgeClass } from '../../constants/mcat';
+import PassageVisualStimulusEditor from './PassageVisualStimulusEditor';
+import PassageLinkedQuestionCard from './PassageLinkedQuestionCard';
 
 const SECTION_OPTIONS = [
   { id: 'chem_phys', label: 'Chemical and Physical Foundations (CP)' },
@@ -27,8 +23,8 @@ const SECTION_OPTIONS = [
  * PassageEditorialDesk
  *
  * Dedicated side-by-side MCAT editorial workspace:
- * - Left Pane: Passage typography, metadata, live word counter, and visual stimulus
- * - Right Pane: Linked questions stream with expandable inline editors
+ * - Left Pane: Passage typography, metadata, live word counter, and visual stimulus figure showcase (with Discard option)
+ * - Right Pane: Interactive single-question carousel (<- Question 1 of N ->) with quick-jump pills and keyboard shortcuts
  */
 export default function PassageEditorialDesk({
   passage,
@@ -49,13 +45,64 @@ export default function PassageEditorialDesk({
 
   // UI state
   const [isSaving, setIsSaving] = useState(false);
-  const [showVisualEditor, setShowVisualEditor] = useState(Boolean(passage?.image_url || passage?.image_svg));
+  const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const [editingQuestionId, setEditingQuestionId] = useState(null);
 
   // Dynamic Word Count
   const liveWordCount = useMemo(() => {
     return text.trim() ? text.trim().split(/\s+/).length : 0;
   }, [text]);
+
+  // Safe question index calculation
+  const totalQuestions = questions.length;
+  const safeIndex = totalQuestions > 0 ? Math.min(Math.max(0, activeQuestionIndex), totalQuestions - 1) : 0;
+  const activeQuestion = totalQuestions > 0 ? questions[safeIndex] : null;
+
+  // Question navigation handlers
+  const goToPrev = () => {
+    if (totalQuestions <= 1) return;
+    setActiveQuestionIndex((prev) => (prev > 0 ? prev - 1 : totalQuestions - 1));
+    setEditingQuestionId(null);
+  };
+
+  const goToNext = () => {
+    if (totalQuestions <= 1) return;
+    setActiveQuestionIndex((prev) => (prev < totalQuestions - 1 ? prev + 1 : 0));
+    setEditingQuestionId(null);
+  };
+
+  // Keyboard navigation shortcuts (ArrowLeft / ArrowRight)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (totalQuestions <= 1) return;
+      const activeEl = document.activeElement;
+      const isInput =
+        activeEl &&
+        (activeEl.tagName === 'INPUT' ||
+          activeEl.tagName === 'TEXTAREA' ||
+          activeEl.isContentEditable);
+      if (isInput) return;
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setActiveQuestionIndex((prev) => (prev > 0 ? prev - 1 : totalQuestions - 1));
+        setEditingQuestionId(null);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setActiveQuestionIndex((prev) => (prev < totalQuestions - 1 ? prev + 1 : 0));
+        setEditingQuestionId(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [totalQuestions]);
+
+  const handleDiscardImage = () => {
+    setImageUrl('');
+    setImageSvg('');
+    setImageDescription('');
+  };
 
   const handleSave = async () => {
     if (isSaving) return;
@@ -147,7 +194,7 @@ export default function PassageEditorialDesk({
             }}
           >
             <Layers size={11} />
-            <span>{questions.length} {questions.length === 1 ? 'question' : 'questions'} linked</span>
+            <span>{totalQuestions} {totalQuestions === 1 ? 'question' : 'questions'} linked</span>
           </span>
         </div>
 
@@ -327,126 +374,16 @@ export default function PassageEditorialDesk({
             />
           </div>
 
-          {/* ── Visual Stimulus Editor Accordion ─────────────────────────── */}
-          <div
-            style={{
-              border: '1px solid var(--border-light)',
-              borderRadius: 'var(--radius-sm)',
-              overflow: 'hidden'
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setShowVisualEditor(!showVisualEditor)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                background: 'var(--bg-surface-subtle)',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                color: 'var(--text-primary)',
-                fontSize: '0.78rem',
-                fontWeight: 600
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ImageIcon size={14} color="var(--brand-primary)" />
-                <span>Visual Stimulus (Scientific Figure / Vector Diagram)</span>
-                {Boolean(imageUrl || imageSvg) && (
-                  <span className="badge badge-emerald" style={{ fontSize: '0.62rem' }}>Configured</span>
-                )}
-              </div>
-              {showVisualEditor ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
-
-            {showVisualEditor && (
-              <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--bg-surface)' }}>
-                {/* Visual Preview */}
-                {(imageUrl || imageSvg) && (
-                  <div style={{ marginBottom: '8px' }}>
-                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                      Current Figure Preview:
-                    </span>
-                    <VisualStimulusViewer
-                      imageUrl={imageUrl}
-                      imageSvg={imageSvg}
-                      imageDescription={imageDescription}
-                    />
-                  </div>
-                )}
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                    Image URL (PNG / JPG / WebP or Base64 data URL)
-                  </label>
-                  <input
-                    type="text"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://... or data:image/png;base64,..."
-                    style={{
-                      width: '100%',
-                      padding: '6px 10px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-light)',
-                      background: 'var(--bg-surface-elevated)',
-                      color: 'var(--text-primary)',
-                      fontSize: '0.78rem'
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                    SVG Code (Scalable Vector Diagram XML)
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={imageSvg}
-                    onChange={(e) => setImageSvg(e.target.value)}
-                    placeholder="<svg ...> ... </svg>"
-                    style={{
-                      width: '100%',
-                      padding: '6px 10px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-light)',
-                      background: 'var(--bg-surface-elevated)',
-                      color: 'var(--text-primary)',
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '0.72rem'
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                    Figure Caption / Accessibility Description
-                  </label>
-                  <input
-                    type="text"
-                    value={imageDescription}
-                    onChange={(e) => setImageDescription(e.target.value)}
-                    placeholder="Figure 1: Lineweaver-Burk double reciprocal plot with inhibitor curves."
-                    style={{
-                      width: '100%',
-                      padding: '6px 10px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-light)',
-                      background: 'var(--bg-surface-elevated)',
-                      color: 'var(--text-primary)',
-                      fontSize: '0.78rem'
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
+          {/* ── Visual Stimulus Showcase & Discard Option ─────────────────── */}
+          <PassageVisualStimulusEditor
+            imageUrl={imageUrl}
+            imageSvg={imageSvg}
+            imageDescription={imageDescription}
+            onDiscardImage={handleDiscardImage}
+          />
         </div>
 
-        {/* ── RIGHT COLUMN: Linked Questions Desk ───────────────────────── */}
+        {/* ── RIGHT COLUMN: Linked Questions Carousel ───────────────────── */}
         <div
           style={{
             display: 'flex',
@@ -456,7 +393,7 @@ export default function PassageEditorialDesk({
             top: '80px'
           }}
         >
-          {/* Header */}
+          {/* Header with Stepper Carousel */}
           <div
             style={{
               background: 'var(--bg-surface)',
@@ -465,23 +402,78 @@ export default function PassageEditorialDesk({
               padding: '12px 18px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '8px'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Layers size={16} color="var(--brand-primary)" />
               <h3 style={{ fontSize: '0.94rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
-                Linked Questions ({questions.length})
+                Linked Questions ({totalQuestions})
               </h3>
             </div>
 
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-              Passage Set Questions
-            </span>
+            {totalQuestions > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button
+                  type="button"
+                  onClick={goToPrev}
+                  disabled={totalQuestions <= 1}
+                  className="btn-secondary"
+                  style={{
+                    padding: '4px 8px',
+                    fontSize: '0.75rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    opacity: totalQuestions <= 1 ? 0.5 : 1
+                  }}
+                  title="Previous Question (Left Arrow ←)"
+                >
+                  <ChevronLeft size={14} />
+                  <span>Prev</span>
+                </button>
+
+                <span
+                  style={{
+                    background: 'var(--bg-surface-elevated)',
+                    border: '1px solid var(--border-light)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '4px 10px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    color: 'var(--text-primary)',
+                    userSelect: 'none'
+                  }}
+                >
+                  Question {safeIndex + 1} of {totalQuestions}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={goToNext}
+                  disabled={totalQuestions <= 1}
+                  className="btn-secondary"
+                  style={{
+                    padding: '4px 8px',
+                    fontSize: '0.75rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    opacity: totalQuestions <= 1 ? 0.5 : 1
+                  }}
+                  title="Next Question (Right Arrow →)"
+                >
+                  <span>Next</span>
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Question Cards List */}
-          {questions.length === 0 ? (
+          {/* Active Question Card / Empty State */}
+          {totalQuestions === 0 ? (
             <div
               style={{
                 textAlign: 'center',
@@ -501,283 +493,22 @@ export default function PassageEditorialDesk({
               </p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {questions.map((q, idx) => {
-                const isEditingThis = editingQuestionId === q.id;
-                const trapInfo = getEffectiveTrapInfo(q);
-
-                return (
-                  <div
-                    key={q.id}
-                    style={{
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border-light)',
-                      borderRadius: 'var(--radius-md)',
-                      padding: '16px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '12px'
-                    }}
-                  >
-                    {/* Header Strip */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span
-                          style={{
-                            background: 'var(--bg-surface-elevated)',
-                            border: '1px solid var(--border-light)',
-                            borderRadius: 'var(--radius-sm)',
-                            padding: '2px 8px',
-                            fontSize: '0.72rem',
-                            fontWeight: 700,
-                            color: 'var(--text-primary)'
-                          }}
-                        >
-                          Q{idx + 1} of {questions.length}
-                        </span>
-
-                        <span className={`badge ${getDifficultyBadgeClass(q.difficulty)}`} style={{ fontSize: '0.64rem' }}>
-                          {formatDifficulty(q.difficulty)}
-                        </span>
-
-                        {q.final_score && (
-                          <span className="badge badge-emerald" style={{ fontSize: '0.64rem' }}>
-                            Score: {q.final_score}/100
-                          </span>
-                        )}
-
-                        {trapInfo?.label && (
-                          <span className="badge badge-purple" style={{ fontSize: '0.64rem' }} title={`Primary AAMC Distractor Trap: ${trapInfo.label}`}>
-                            {trapInfo.label}
-                          </span>
-                        )}
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setEditingQuestionId(isEditingThis ? null : q.id)}
-                        className="btn-secondary"
-                        style={{ padding: '4px 8px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                        title={isEditingThis ? 'Close editor' : 'Edit question stem, choices, or explanation'}
-                      >
-                        {isEditingThis ? <X size={12} /> : <Edit3 size={12} color="var(--brand-primary)" />}
-                        <span>{isEditingThis ? 'Cancel' : 'Edit Question'}</span>
-                      </button>
-                    </div>
-
-                    {isEditingThis ? (
-                      /* Inline Editor Component */
-                      <QuestionInlineEditorWrapper
-                        question={q}
-                        onSave={(updatedQ) => {
-                          if (onUpdateQuestion) onUpdateQuestion(updatedQ);
-                          setEditingQuestionId(null);
-                        }}
-                        onCancel={() => setEditingQuestionId(null)}
-                      />
-                    ) : (
-                      /* Standard Question Card Summary */
-                      <>
-                        {/* Question Stem */}
-                        <div style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.45 }}>
-                          {q.question_stem}
-                        </div>
-
-                        {/* Options A-D */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          {q.options?.map((opt) => {
-                            const isCorrect = String(opt.id).toUpperCase() === String(q.correct_answer_id).toUpperCase() ||
-                              (q.correct_answer_ids && q.correct_answer_ids.includes(opt.id));
-
-                            return (
-                              <div
-                                key={opt.id}
-                                style={{
-                                  padding: '8px 10px',
-                                  borderRadius: 'var(--radius-sm)',
-                                  border: isCorrect ? '1px solid var(--status-success)' : '1px solid var(--border-light)',
-                                  background: isCorrect ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-surface-elevated)',
-                                  display: 'flex',
-                                  alignItems: 'flex-start',
-                                  gap: '8px',
-                                  fontSize: '0.78rem'
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    fontWeight: 700,
-                                    color: isCorrect ? 'var(--status-success)' : 'var(--text-secondary)',
-                                    minWidth: '18px'
-                                  }}
-                                >
-                                  {opt.id}.
-                                </span>
-                                <span style={{ flex: 1, color: isCorrect ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
-                                  {opt.text}
-                                </span>
-                                {isCorrect && <CheckCircle2 size={13} color="var(--status-success)" style={{ marginTop: '2px' }} />}
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                        {/* Pedagogical Explanation Preview */}
-                        {q.explanation && (
-                          <div
-                            style={{
-                              padding: '10px 12px',
-                              borderRadius: 'var(--radius-sm)',
-                              background: 'var(--bg-surface-subtle)',
-                              border: '1px solid var(--border-light)',
-                              fontSize: '0.75rem',
-                              color: 'var(--text-secondary)',
-                              lineHeight: 1.45
-                            }}
-                          >
-                            <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '3px' }}>
-                              Rationale &amp; Explanation:
-                            </strong>
-                            <p style={{ margin: 0, whiteSpace: 'pre-line' }}>{q.explanation}</p>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * QuestionInlineEditorWrapper
- * Compact form for editing question details directly from the Passage Desk.
- */
-function QuestionInlineEditorWrapper({ question, onSave, onCancel }) {
-  const [stem, setStem] = useState(question.question_stem || '');
-  const [options, setOptions] = useState(question.options || []);
-  const [correctId, setCorrectId] = useState(question.correct_answer_id || 'A');
-  const [explanation, setExplanation] = useState(question.explanation || '');
-
-  const handleOptionChange = (idx, newText) => {
-    setOptions(prev => prev.map((opt, i) => i === idx ? { ...opt, text: newText } : opt));
-  };
-
-  const handleSaveClick = () => {
-    onSave({
-      ...question,
-      question_stem: stem,
-      options,
-      correct_answer_id: correctId,
-      explanation
-    });
-  };
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '6px' }}>
-      <div>
-        <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '3px', fontWeight: 600 }}>
-          Question Stem
-        </label>
-        <textarea
-          rows={3}
-          value={stem}
-          onChange={(e) => setStem(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '6px 8px',
-            fontSize: '0.8rem',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--border-light)',
-            background: 'var(--bg-surface-elevated)',
-            color: 'var(--text-primary)'
-          }}
-        />
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <label style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-          Options &amp; Correct Answer Key
-        </label>
-        {options.map((opt, idx) => (
-          <div key={opt.id} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <button
-              type="button"
-              onClick={() => setCorrectId(opt.id)}
-              style={{
-                width: '26px',
-                height: '26px',
-                borderRadius: 'var(--radius-sm)',
-                border: correctId === opt.id ? '2px solid var(--status-success)' : '1px solid var(--border-light)',
-                background: correctId === opt.id ? 'rgba(16, 185, 129, 0.15)' : 'var(--bg-surface-elevated)',
-                color: correctId === opt.id ? 'var(--status-success)' : 'var(--text-secondary)',
-                fontWeight: 700,
-                fontSize: '0.75rem',
-                cursor: 'pointer'
-              }}
-              title={`Mark Option ${opt.id} as Correct Answer`}
-            >
-              {opt.id}
-            </button>
-            <input
-              type="text"
-              value={opt.text}
-              onChange={(e) => handleOptionChange(idx, e.target.value)}
-              style={{
-                flex: 1,
-                padding: '5px 8px',
-                fontSize: '0.78rem',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border-light)',
-                background: 'var(--bg-surface-elevated)',
-                color: 'var(--text-primary)'
+            <PassageLinkedQuestionCard
+              key={activeQuestion.id}
+              question={activeQuestion}
+              index={safeIndex}
+              totalQuestions={totalQuestions}
+              isEditing={editingQuestionId === activeQuestion.id}
+              onToggleEdit={() =>
+                setEditingQuestionId(editingQuestionId === activeQuestion.id ? null : activeQuestion.id)
+              }
+              onSaveQuestion={(updatedQ) => {
+                if (onUpdateQuestion) onUpdateQuestion(updatedQ);
+                setEditingQuestionId(null);
               }}
             />
-          </div>
-        ))}
-      </div>
-
-      <div>
-        <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '3px', fontWeight: 600 }}>
-          Explanation &amp; Distractor Traps
-        </label>
-        <textarea
-          rows={3}
-          value={explanation}
-          onChange={(e) => setExplanation(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '6px 8px',
-            fontSize: '0.78rem',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--border-light)',
-            background: 'var(--bg-surface-elevated)',
-            color: 'var(--text-primary)'
-          }}
-        />
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px', marginTop: '4px' }}>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="btn-ghost"
-          style={{ padding: '4px 8px', fontSize: '0.72rem' }}
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={handleSaveClick}
-          className="btn-primary"
-          style={{ padding: '4px 10px', fontSize: '0.72rem' }}
-        >
-          Save Question Updates
-        </button>
+          )}
+        </div>
       </div>
     </div>
   );
