@@ -559,24 +559,61 @@ input:focus, select:focus, textarea:focus {
 }
 
 .pipeline-stepper {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.conduit-connector {
+  height: 2px;
+  width: 18px;
+  background: var(--border-light);
+  flex-shrink: 0;
+  transition: all var(--transition-normal);
+  position: relative;
+  margin: 0 4px;
+}
+
+.conduit-connector.completed {
+  background: var(--status-success);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.3);
+}
+
+.conduit-connector.active,
+.conduit-flow-active {
+  background: var(--infynno-gradient);
+  background-size: 200% 200%;
+  animation: conduitFlowPulse 1.8s linear infinite;
+  box-shadow: 0 0 10px rgba(51, 90, 207, 0.5);
+}
+
+@keyframes conduitFlowPulse {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 @media (max-width: 900px) {
   .pipeline-stepper {
-    grid-template-columns: repeat(2, 1fr);
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .conduit-connector {
+    display: none !important;
   }
 }
 
 @media (max-width: 600px) {
   .pipeline-stepper {
-    grid-template-columns: 1fr;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
   }
 }
 
 .pipeline-step-node {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1297,10 +1334,14 @@ input:focus, select:focus, textarea:focus {
    AAMC Dual Split-Pane Reading Mode Layout
    ========================================================================== */
 .aamc-split-layout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
   transition: all 0.25s ease;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1024px) {
   .aamc-split-layout-grid {
     grid-template-columns: 1fr !important;
   }

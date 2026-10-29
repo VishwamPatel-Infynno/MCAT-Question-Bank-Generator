@@ -278,9 +278,9 @@ export default function MultiAgentPipelineVisualizer({
         </div>
       </div>
 
-      {/* 3-Milestone Stepper Grid */}
+      {/* 4-Milestone Stepper Grid with Animated Conduits */}
       <div className="pipeline-stepper">
-        {agents.map((agent) => {
+        {agents.map((agent, index) => {
           const Icon = agent.icon;
           const isCurrentlyActive = isGenerating && agent.isActive;
           const isFinished = agent.isDone || (!isGenerating && events.length > 0 && !agent.isActive);
@@ -289,56 +289,72 @@ export default function MultiAgentPipelineVisualizer({
           if (isCurrentlyActive) nodeClass += ' active';
           else if (isFinished) nodeClass += ' completed';
 
+          const nextAgent = agents[index + 1];
+          let conduitClass = '';
+          if (isGenerating && (isCurrentlyActive || (nextAgent && nextAgent.isActive))) {
+            conduitClass = 'active conduit-flow-active';
+          } else if (isFinished && nextAgent && (nextAgent.isDone || (!isGenerating && events.length > 0))) {
+            conduitClass = 'completed';
+          }
+
           return (
-            <div
-              key={agent.id}
-              className={nodeClass}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                gap: '6px',
-                padding: '10px 12px'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Icon size={13} color={isCurrentlyActive ? 'var(--brand-primary)' : 'var(--text-muted)'} />
-                  <span style={{ fontSize: '0.675rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                    {agent.stepNum}
-                  </span>
-                </div>
-                {isCurrentlyActive && <span className="agent-pulse-dot" />}
-                {isFinished && <CheckCircle2 size={12} color="var(--status-success)" />}
-              </div>
-
-              <div>
-                <div style={{ fontSize: '0.775rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {agent.title}
-                </div>
-                <div style={{ fontSize: '0.675rem', color: 'var(--text-muted)', marginTop: '1px' }}>
-                  {agent.subtitle}
-                </div>
-              </div>
-
+            <React.Fragment key={agent.id}>
               <div
+                className={nodeClass}
                 style={{
-                  fontSize: '0.65rem',
-                  color: isCurrentlyActive ? 'var(--brand-primary)' : 'var(--text-secondary)',
-                  marginTop: 'auto',
-                  paddingTop: '4px'
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  gap: '6px',
+                  padding: '10px 12px'
                 }}
               >
-                {isCurrentlyActive ? (
-                  <span title={`${agent.title} - Processing...`}>
-                    <span style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>
-                      {`${agent.title} - Processing...`}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Icon size={13} color={isCurrentlyActive ? 'var(--brand-primary)' : 'var(--text-muted)'} />
+                    <span style={{ fontSize: '0.675rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                      {agent.stepNum}
                     </span>
-                    Processing...
-                  </span>
-                ) : agent.guarantee}
+                  </div>
+                  {isCurrentlyActive && <span className="agent-pulse-dot" />}
+                  {isFinished && <CheckCircle2 size={12} color="var(--status-success)" />}
+                </div>
+
+                <div>
+                  <div style={{ fontSize: '0.775rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {agent.title}
+                  </div>
+                  <div style={{ fontSize: '0.675rem', color: 'var(--text-muted)', marginTop: '1px' }}>
+                    {agent.subtitle}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    fontSize: '0.65rem',
+                    color: isCurrentlyActive ? 'var(--brand-primary)' : 'var(--text-secondary)',
+                    marginTop: 'auto',
+                    paddingTop: '4px'
+                  }}
+                >
+                  {isCurrentlyActive ? (
+                    <span title={`${agent.title} - Processing...`}>
+                      <span style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0, overflow: 'hidden' }}>
+                        {`${agent.title} - Processing...`}
+                      </span>
+                      Processing...
+                    </span>
+                  ) : agent.guarantee}
+                </div>
               </div>
-            </div>
+
+              {index < agents.length - 1 && (
+                <div
+                  className={`conduit-connector ${conduitClass}`}
+                  title={conduitClass.includes('active') ? 'Data transferring between agents...' : ''}
+                />
+              )}
+            </React.Fragment>
           );
         })}
       </div>

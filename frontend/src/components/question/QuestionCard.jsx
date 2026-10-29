@@ -241,6 +241,24 @@ function QuestionCard({
             </span>
           )}
 
+          {effectiveTrapInfo?.label && (
+            <span
+              className="badge badge-purple"
+              style={{
+                fontSize: '0.675rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: 'rgba(139, 92, 246, 0.12)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                color: 'var(--status-purple)'
+              }}
+              title={`Primary Cognitive Trap: ${effectiveTrapInfo.label}`}
+            >
+              <AlertTriangle size={11} /> {effectiveTrapInfo.label}
+            </span>
+          )}
+
           <span className="badge badge-emerald" style={{ fontSize: '0.675rem', fontWeight: 600 }}>
             <Award size={11} /> {question.final_score}/100
           </span>

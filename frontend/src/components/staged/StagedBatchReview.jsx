@@ -404,15 +404,7 @@ export default function StagedBatchReview({
         <>
           {isPassageSet && sharedStimulusText && effectivePassageCount > 0 && passageLayoutMode === 'split' ? (
             /* AAMC Split-Pane Dual Layout */
-            <div
-              className="aamc-split-layout-grid"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'minmax(340px, 0.95fr) minmax(380px, 1.25fr)',
-                gap: '20px',
-                alignItems: 'start'
-              }}
-            >
+            <div className="aamc-split-layout-grid">
               <div>
                 <SharedPassageCard
                   passageText={sharedStimulusText}

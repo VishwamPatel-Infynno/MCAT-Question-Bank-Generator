@@ -167,8 +167,8 @@ export default function MentorExplanationView({
       {/* SECTION 1: Why Option [Key] is Correct */}
       <div
         style={{
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-light)',
+          background: 'var(--status-success-bg)',
+          border: '1px solid var(--status-success-border)',
           borderRadius: 'var(--radius-sm)',
           padding: isCompact ? '10px 12px' : '12px 14px',
           display: 'flex',
@@ -193,8 +193,8 @@ export default function MentorExplanationView({
                   <div key={stepKey} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: isCompact ? '0.8rem' : '0.84rem' }}>
                     <span
                       style={{
-                        background: 'var(--bg-surface-subtle)',
-                        border: '1px solid var(--border-light)',
+                        background: 'var(--bg-surface)',
+                        border: '1px solid var(--status-success-border)',
                         color: 'var(--status-success)',
                         padding: '1px 5px',
                         borderRadius: 'var(--radius-xs)',
@@ -237,8 +237,8 @@ export default function MentorExplanationView({
       {parsed.distractors && parsed.distractors.length > 0 && (
         <div
           style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-light)',
+            background: 'var(--status-warning-bg)',
+            border: '1px solid var(--status-warning-border)',
             borderRadius: 'var(--radius-sm)',
             padding: isCompact ? '10px 12px' : '12px 14px',
             display: 'flex',
@@ -247,7 +247,7 @@ export default function MentorExplanationView({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--status-warning)' }}>
               <AlertTriangle size={13} color="var(--status-warning)" />
               <span>Why other choices are wrong</span>
             </div>
@@ -264,8 +264,8 @@ export default function MentorExplanationView({
                   display: 'flex',
                   alignItems: 'flex-start',
                   gap: '8px',
-                  background: 'var(--bg-surface-subtle)',
-                  border: '1px solid var(--border-hairline)',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-light)',
                   borderRadius: 'var(--radius-xs)',
                   padding: '6px 8px',
                   lineHeight: 1.5
@@ -274,8 +274,8 @@ export default function MentorExplanationView({
                 {item.label && (
                   <span
                     style={{
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border-light)',
+                      background: 'var(--status-danger-bg)',
+                      border: '1px solid var(--status-danger-border)',
                       color: 'var(--status-danger)',
                       padding: '1px 5px',
                       borderRadius: 'var(--radius-xs)',
@@ -292,8 +292,8 @@ export default function MentorExplanationView({
                 {item.trap && (
                   <span
                     style={{
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border-light)',
+                      background: 'var(--status-purple-bg)',
+                      border: '1px solid var(--status-purple-border)',
                       color: 'var(--status-purple)',
                       padding: '1px 5px',
                       borderRadius: 'var(--radius-xs)',
@@ -318,8 +318,8 @@ export default function MentorExplanationView({
       {parsed.resolvedTrap && (
         <div
           style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-light)',
+            background: 'var(--status-purple-bg)',
+            border: '1px solid var(--status-purple-border)',
             borderRadius: 'var(--radius-sm)',
             padding: isCompact ? '10px 12px' : '12px 14px',
             display: 'flex',
@@ -345,8 +345,8 @@ export default function MentorExplanationView({
       {likelyMistakePattern && (
         <div
           style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-light)',
+            background: 'var(--status-warning-bg)',
+            border: '1px solid var(--status-warning-border)',
             borderRadius: 'var(--radius-sm)',
             padding: isCompact ? '10px 12px' : '12px 14px',
             display: 'flex',

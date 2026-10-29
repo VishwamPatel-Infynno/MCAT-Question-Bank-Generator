@@ -87,7 +87,7 @@ export default function SharedPassageCard({
               maxHeight: 'calc(100vh - 120px)',
               overflowY: 'auto',
               position: 'sticky',
-              top: '84px'
+              top: '88px'
             }
           : {}),
         ...style
@@ -234,8 +234,8 @@ export default function SharedPassageCard({
               background: 'var(--bg-surface-subtle)',
               borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border-light)',
-              maxHeight: isSplitPane ? 'calc(100vh - 280px)' : '300px',
-              overflowY: 'auto',
+              maxHeight: isSplitPane ? 'none' : '300px',
+              overflowY: isSplitPane ? 'visible' : 'auto',
               fontFamily: 'var(--font-serif)',
               fontSize: fontSizes[fontSizeLevel],
               lineHeight: '1.7',
