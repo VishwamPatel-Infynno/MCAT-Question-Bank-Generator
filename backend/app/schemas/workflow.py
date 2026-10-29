@@ -80,6 +80,9 @@ class GenerationRequest(BaseModel):
     likely_mistake_pattern: str | None = Field(
         None, description="Targeted student misconception pattern"
     )
+    thematic_angle: str | None = Field(
+        None, description="Optional angle/scenario focus to guarantee cross-job passage diversity"
+    )
     content_domains: list[str] | None = Field(None, description="Multi-selected content domains")
 
     questions_to_generate: int = Field(

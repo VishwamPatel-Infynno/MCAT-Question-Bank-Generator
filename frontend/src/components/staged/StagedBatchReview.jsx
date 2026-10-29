@@ -4,8 +4,10 @@ import StagedQuestionSlotCard from './StagedQuestionSlotCard';
 import BatchProgressHeader from './BatchProgressHeader';
 import StagedBatchGrid from './StagedBatchGrid';
 import StagedDetailedView from './StagedDetailedView';
+import StagedDuplicateClustersView from './StagedDuplicateClustersView';
 import DuplicateComparisonModal from '../modals/DuplicateComparisonModal';
 import { useKeyboardShortcuts } from '../../hooks';
+import { findDuplicateClusters } from '../../utils';
 
 const EMPTY_ARRAY = [];
 const EMPTY_OBJECT = Object.freeze({});
@@ -35,6 +37,11 @@ export default function StagedBatchReview({
   const [isSaving, setIsSaving] = useState(false);
   const [expandedExplanationIds, setExpandedExplanationIds] = useState(() => new Set());
   const [duplicateModalQuestion, setDuplicateModalQuestion] = useState(null);
+
+  // ─── Duplicate Clusters Detection ──────────────────────────────────────────
+  const duplicateClusters = useMemo(() => {
+    return findDuplicateClusters(stagedQuestions, 0.75);
+  }, [stagedQuestions]);
 
   // ─── Derived State ─────────────────────────────────────────────────────────
   const savedIds = useMemo(() => {
@@ -348,6 +355,7 @@ export default function StagedBatchReview({
         totalCompleted={totalCompleted}
         effectiveTotal={effectiveTotal}
         isSaving={isSaving}
+        clusterCount={duplicateClusters.length}
         singleCount={singleCount}
         passageCount={passageCount}
         isPassageSet={isPassageSet}
@@ -477,6 +485,19 @@ export default function StagedBatchReview({
             </>
           )}
         </>
+      )}
+
+      {/* ── VIEW MODE 3: DUPLICATE CLUSTERS VIEW ───────────────────────── */}
+      {viewMode === 'clusters' && (
+        <StagedDuplicateClustersView
+          clusters={duplicateClusters}
+          stagedQuestions={stagedQuestions}
+          savedIds={savedIds}
+          onDiscardQuestion={onDiscardQuestion}
+          onApproveSingle={handleApproveSingle}
+          onOpenAudit={onOpenAudit}
+          onSwitchToGrid={() => setViewMode('grid')}
+        />
       )}
 
       {duplicateModalQuestion && (

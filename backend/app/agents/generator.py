@@ -198,10 +198,18 @@ async def generate_passage_stimulus(
         or req.visual_type in ("SVG_Diagram", "AI_FLUX_Image")
     ) and not is_cars
 
+    angle_instruction = (
+        f"\nPedagogical / Experimental Angle: {req.thematic_angle}\n"
+        f"CRITICAL DIVERSITY MANDATE: You MUST anchor this passage study and experimental context around this distinct thematic angle "
+        f"so it does not duplicate other reading passages on {topic}."
+        if req.thematic_angle
+        else ""
+    )
+
     if allow_visuals:
         prompt = f"""Generate a high-yield, authentic AAMC MCAT Reading Passage for {section_name}.
 Content Domain: {domain}
-Topic Focus: {topic}
+Topic Focus: {topic}{angle_instruction}
 Difficulty Calibration: {req.difficulty.value}
 Target Length: {target_length}.
 
@@ -225,7 +233,7 @@ Respond ONLY with a valid JSON object matching this exact structure:
     else:
         prompt = f"""Generate a high-yield, authentic AAMC MCAT Reading Passage for {section_name}.
 Content Domain: {domain}
-Topic Focus: {topic}
+Topic Focus: {topic}{angle_instruction}
 Difficulty Calibration: {req.difficulty.value}
 Target Length: {target_length}.
 
@@ -242,12 +250,14 @@ STANDARDS FOR AAMC MCAT PASSAGES:
     )
 
     try:
+        # Use slightly elevated temperature (0.45) for passage diversity across jobs
+        passage_temp = max(config.GENERATOR_TEMPERATURE, 0.45)
         raw_output, usage = await call_llm(
             prompt=prompt,
             system_prompt=system_prompt,
             model=req.model_name,
             api_key=req.api_key,
-            temperature=config.GENERATOR_TEMPERATURE,
+            temperature=passage_temp,
             max_tokens=config.DEFAULT_MAX_TOKENS,
         )
         cleaned = raw_output.strip()

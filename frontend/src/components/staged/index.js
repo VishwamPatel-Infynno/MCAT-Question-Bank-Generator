@@ -5,3 +5,4 @@ export { default as StagedQuestionSlotCard } from './StagedQuestionSlotCard';
 export { default as StagedSlotSkeleton } from './StagedSlotSkeleton';
 export { default as BatchProgressHeader } from './BatchProgressHeader';
 export { default as StageJsonInspector } from './StageJsonInspector';
+export { default as StagedDuplicateClustersView } from './StagedDuplicateClustersView';

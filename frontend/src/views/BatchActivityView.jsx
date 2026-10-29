@@ -549,6 +549,8 @@ export default function BatchActivityView({
                 onNavigateToValidated={onNavigateToValidated}
                 onOpenAudit={onOpenAudit}
                 onSaveToBank={handleSaveQuestionToBank}
+                onRefreshBatch={performFetchBatches}
+                onShowToast={onShowToast}
               />
             ))}
           </div>

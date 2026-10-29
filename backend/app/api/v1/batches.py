@@ -2,24 +2,32 @@ import logging
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, status
+from pydantic import BaseModel
 
 from app.repositories.batch_repository import (
     delete_batch,
     get_batch_by_id,
     get_batches,
+    refresh_batch_aggregates,
     save_batch,
 )
 from app.repositories.job_repository import get_jobs_by_batch_id
-from app.repositories.question_repository import get_questions
+from app.repositories.question_repository import (
+    batch_update_question_status,
+    delete_questions_batch,
+    get_questions,
+)
 from app.schemas import GenerationBatch, GenerationRequest
 from app.services.batch_runner import (
     cancel_all_background_batches,
     cancel_background_batch,
     get_active_batch_metrics,
     launch_background_batch,
+    refill_batch_deficit,
     retry_incomplete_jobs_for_batch,
     stop_background_batch,
 )
+from app.services.deduplication import cluster_questions
 
 logger = logging.getLogger(__name__)
 
@@ -156,3 +164,160 @@ async def create_or_update_batch(batch: GenerationBatch):
     """Admin endpoint to create or update a generation batch record."""
     saved = await save_batch(batch)
     return {"success": True, "batch": saved.model_dump()}
+
+
+class ResolveDuplicatesRequest(BaseModel):
+    action: str = "archive"  # "archive" (mark status='rejected') or "delete"
+    cluster_ids: list[str] | None = None  # Specific cluster IDs, or None for all
+    custom_leader_ids: list[str] | None = None  # Optional custom leader question IDs
+
+
+@router.get("/batches/{batch_id}/duplicate-clusters")
+async def get_batch_duplicate_clusters(
+    batch_id: str,
+    threshold: Annotated[float, Query(ge=0.5, le=1.0)] = 0.75,
+):
+    """
+    Performs pairwise similarity clustering on questions within a batch.
+    Returns grouped clusters with designated leader questions and redundant duplicate siblings.
+    """
+    b = await get_batch_by_id(batch_id)
+    if not b:
+        raise HTTPException(status_code=404, detail="Batch not found")
+
+    linked_questions = await get_questions(batch_id=batch_id)
+    # Only evaluate active questions (ignore previously discarded questions)
+    active_questions = [
+        q
+        for q in linked_questions
+        if q.status not in ("discarded", "rejected_below_threshold", "error", "failed")
+    ]
+    q_dumps = [q.model_dump() for q in active_questions]
+
+    clusters = cluster_questions(q_dumps, threshold=threshold)
+    total_duplicates = sum(len(c["duplicates"]) for c in clusters)
+    unique_count = len(active_questions) - total_duplicates
+
+    return {
+        "batch_id": batch_id,
+        "total_active_questions": len(active_questions),
+        "unique_questions_count": unique_count,
+        "duplicate_clusters_count": len(clusters),
+        "total_duplicate_questions": total_duplicates,
+        "clusters": clusters,
+    }
+
+
+@router.post("/batches/{batch_id}/resolve-duplicates")
+async def resolve_batch_duplicates(
+    batch_id: str,
+    payload: ResolveDuplicatesRequest | None = None,
+):
+    """
+    Resolves duplicate clusters in a batch by preserving the designated leader question
+    and archiving or deleting the redundant duplicate questions.
+    """
+    req_data = payload or ResolveDuplicatesRequest()
+    b = await get_batch_by_id(batch_id)
+    if not b:
+        raise HTTPException(status_code=404, detail="Batch not found")
+
+    linked_questions = await get_questions(batch_id=batch_id)
+    active_questions = [
+        q
+        for q in linked_questions
+        if q.status not in ("discarded", "rejected_below_threshold", "error", "failed")
+    ]
+    q_dumps = [q.model_dump() for q in active_questions]
+
+    clusters = cluster_questions(q_dumps, threshold=0.75)
+    if not clusters:
+        return {
+            "success": True,
+            "message": "No duplicate clusters found in this batch.",
+            "resolved_clusters": 0,
+            "archived_count": 0,
+            "remaining_active": len(active_questions),
+        }
+
+    target_clusters = clusters
+    if req_data.cluster_ids:
+        target_clusters = [c for c in clusters if c["cluster_id"] in req_data.cluster_ids]
+
+    custom_leaders = set(req_data.custom_leader_ids or [])
+    duplicate_ids_to_purge: list[str] = []
+
+    for c in target_clusters:
+        leader_id = c["leader_question"]["id"]
+        # If user picked a custom leader from within this cluster
+        member_ids = [leader_id] + [d["question"]["id"] for d in c["duplicates"]]
+        picked_custom = next((cid for cid in member_ids if cid in custom_leaders), None)
+        effective_leader_id = picked_custom or leader_id
+
+        for m_id in member_ids:
+            if m_id != effective_leader_id:
+                duplicate_ids_to_purge.append(m_id)
+
+    modified_count = 0
+    if duplicate_ids_to_purge:
+        if req_data.action == "delete":
+            modified_count = await delete_questions_batch(duplicate_ids_to_purge)
+        else:
+            # Default: Archive (mark status='discarded')
+            modified_count = await batch_update_question_status(
+                duplicate_ids_to_purge, status="discarded"
+            )
+
+    await refresh_batch_aggregates(batch_id)
+    refreshed_b = await get_batch_by_id(batch_id)
+    refreshed_questions = await get_questions(batch_id=batch_id)
+    remaining_active = sum(
+        1
+        for q in refreshed_questions
+        if q.status not in ("discarded", "rejected_below_threshold", "error", "failed")
+    )
+
+    return {
+        "success": True,
+        "message": f"Successfully resolved {len(target_clusters)} cluster(s). {modified_count} duplicate question(s) {req_data.action}d.",
+        "action": req_data.action,
+        "resolved_clusters_count": len(target_clusters),
+        "archived_count": modified_count,
+        "remaining_active_questions": remaining_active,
+        "target_count": refreshed_b.target_count if refreshed_b else 50,
+        "deficit": (refreshed_b.target_count if refreshed_b else 50) - remaining_active,
+    }
+
+
+@router.post("/batches/{batch_id}/refill")
+async def refill_batch_questions(batch_id: str):
+    """
+    Replenishes a batch up to its target_count by launching targeted jobs for
+    archived or missing questions with diverse pedagogical thematic angles.
+    """
+    b = await get_batch_by_id(batch_id)
+    if not b:
+        raise HTTPException(status_code=404, detail="Batch not found")
+
+    linked_questions = await get_questions(batch_id=batch_id)
+    active_count = sum(1 for q in linked_questions if q.status != "rejected")
+    deficit = max(0, b.target_count - active_count)
+
+    if deficit <= 0:
+        return {
+            "success": True,
+            "message": f"Batch already has {active_count} active questions (target: {b.target_count}). No refill needed.",
+            "deficit": 0,
+            "active_count": active_count,
+        }
+
+    updated_batch, new_jobs = await refill_batch_deficit(batch_id, deficit)
+
+    return {
+        "success": True,
+        "message": f"Launched refill generation for {deficit} replacement questions across {len(new_jobs)} job(s).",
+        "deficit": deficit,
+        "jobs_launched": len(new_jobs),
+        "jobs": [j.model_dump() for j in new_jobs],
+        "batch": updated_batch.model_dump() if updated_batch else None,
+    }

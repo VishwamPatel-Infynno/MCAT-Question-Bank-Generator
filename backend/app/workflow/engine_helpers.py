@@ -660,6 +660,46 @@ async def _handle_live_job_failure(
         logger.warning(f"Error updating failed live batch {batch_id}: {clean_err}")
 
 
+_IN_FLIGHT_BATCH_STEMS: dict[str, list[dict[str, Any]]] = {}
+_IN_FLIGHT_LOCK = asyncio.Lock()
+
+
+async def register_in_flight_draft(
+    batch_id: str | None, draft: dict[str, Any], worker_idx: int
+) -> None:
+    """Registers a freshly drafted question stem into the active batch pool to alert concurrent siblings."""
+    if not batch_id:
+        return
+    async with _IN_FLIGHT_LOCK:
+        pool = _IN_FLIGHT_BATCH_STEMS.setdefault(batch_id, [])
+        pool[:] = [item for item in pool if item.get("_worker_idx") != worker_idx]
+        item = dict(draft)
+        item["_worker_idx"] = worker_idx
+        pool.append(item)
+
+
+async def get_in_flight_drafts(
+    batch_id: str | None, current_worker_idx: int
+) -> list[dict[str, Any]]:
+    """Returns all active in-flight candidate questions in this batch excluding the current worker."""
+    if not batch_id:
+        return []
+    async with _IN_FLIGHT_LOCK:
+        pool = _IN_FLIGHT_BATCH_STEMS.get(batch_id, [])
+        return [item for item in pool if item.get("_worker_idx") != current_worker_idx]
+
+
+async def remove_in_flight_draft(batch_id: str | None, worker_idx: int) -> None:
+    """Removes a worker's draft from in-flight cache when finalized or cancelled."""
+    if not batch_id:
+        return
+    async with _IN_FLIGHT_LOCK:
+        pool = _IN_FLIGHT_BATCH_STEMS.get(batch_id, [])
+        pool[:] = [item for item in pool if item.get("_worker_idx") != worker_idx]
+        if not pool and batch_id in _IN_FLIGHT_BATCH_STEMS:
+            _IN_FLIGHT_BATCH_STEMS.pop(batch_id, None)
+
+
 async def _run_deduplication_anti_collision_loop(
     state: AgentWorkflowState,
     idx: int,
@@ -670,30 +710,54 @@ async def _run_deduplication_anti_collision_loop(
     outcomes_questions: list[dict[str, Any] | None],
     event_queue: asyncio.Queue[WorkflowEvent | None],
     make_event: Callable[..., WorkflowEvent],
-    max_retries: int = 2,
-    threshold: float = 0.80,
+    max_retries: int = 3,
+    threshold: float = 0.75,
+    soft_threshold: float = 0.60,
 ) -> None:
     """
-    Evaluates candidate draft against database reference pool and sibling batch questions.
-    If similarity exceeds threshold, automatically re-prompts the fused generator
-    with anti-collision instructions up to max_retries.
+    Evaluates candidate draft against database reference pool, sibling batch questions,
+    and active in-flight drafted stems. Uses a two-tier threshold:
+    - If similarity >= 0.75 (Hard Duplicate): automatically re-prompts the fused generator with
+      anti-collision instructions and alternate trap re-seeding up to max_retries.
+    - If 0.60 <= similarity < 0.75 (Soft Warning): emits a variety warning and logs collision rationale.
     """
     cur_draft = state.get("current_draft") or {}
+    batch_key = req.batch_id or req.run_id
+
+    # Immediately register candidate draft so concurrent siblings detect this stem in flight
+    await register_in_flight_draft(batch_key, cur_draft, idx)
+
+    in_flight = await get_in_flight_drafts(batch_key, idx)
     active_siblings = [q for q in outcomes_questions if q is not None]
-    ref_pool = list(db_reference_pool) + active_siblings
-    dup_result = evaluate_duplicate(cur_draft, ref_pool, threshold=threshold)
+    ref_pool = list(db_reference_pool) + active_siblings + in_flight
+
+    dup_result = evaluate_duplicate(
+        cur_draft, ref_pool, threshold=threshold, soft_threshold=soft_threshold
+    )
+
+    alt_traps = [
+        "CONCEPT_CONFUSION",
+        "FORMULA_MISAPPLICATION",
+        "SIGN_CONVENTION",
+        "PROPORTIONALITY_ERROR",
+        "VARIABLE_CONFUSION",
+        "CAUSE_EFFECT_CONFUSION",
+        "TREND_EXTRAPOLATION",
+        "ASSUMPTION_MISSED",
+    ]
 
     dedup_retry = 0
     while dup_result.is_duplicate and dedup_retry < max_retries:
         dedup_retry += 1
+        alt_trap = alt_traps[(idx + dedup_retry) % len(alt_traps)]
         logger.warning(
             f"Worker {idx + 1} generated duplicate question ({int(dup_result.similarity_score * 100)}% match). "
-            f"Triggering anti-collision regeneration (attempt {dedup_retry}/{max_retries})..."
+            f"Triggering anti-collision regeneration with trap '{alt_trap}' (attempt {dedup_retry}/{max_retries})..."
         )
         dup_evt = make_event(
             event_type="agent_action",
             agent_name="Question Writer & Reviewer",
-            message=f"Duplicate question detected ({int(dup_result.similarity_score * 100)}% match with {dup_result.matched_question_id or 'existing'}). Regenerating with anti-collision prompt...",
+            message=f"Duplicate question detected ({int(dup_result.similarity_score * 100)}% match with {dup_result.matched_question_id or 'existing'}). Regenerating with alternate trap '{alt_trap}'...",
             data={
                 "index": idx + 1,
                 "total": total_qty,
@@ -701,6 +765,7 @@ async def _run_deduplication_anti_collision_loop(
                 "similarity_score": dup_result.similarity_score,
                 "matched_question_stem": dup_result.matched_question_stem,
                 "reason": dup_result.match_reason,
+                "assigned_trap": alt_trap,
             },
             run_id=item_run_id,
         )
@@ -710,7 +775,7 @@ async def _run_deduplication_anti_collision_loop(
             f"CRITICAL ANTI-COLLISION REQUIREMENT: Your previous draft had high similarity ({int(dup_result.similarity_score * 100)}%) "
             f"with existing question: '{dup_result.matched_question_stem}'. "
             f"You MUST NOT write a question testing this same calculation or scenario. "
-            f"Formulate a completely distinct scientific scenario or question angle for {req.subtopic or 'this topic'}."
+            f"Formulate a completely distinct scientific scenario testing cognitive trap {alt_trap} for {req.subtopic or 'this topic'}."
         )
         state["diversity_context"] = (
             f"{state.get('diversity_context') or ''} {collision_hint}".strip()
@@ -719,7 +784,31 @@ async def _run_deduplication_anti_collision_loop(
         regen_res = await fused_generator_node(state)
         state.update(regen_res)
         cur_draft = state.get("current_draft") or {}
-        dup_result = evaluate_duplicate(cur_draft, ref_pool, threshold=threshold)
+
+        # Update in-flight registration with new draft
+        await register_in_flight_draft(batch_key, cur_draft, idx)
+        in_flight = await get_in_flight_drafts(batch_key, idx)
+        ref_pool = list(db_reference_pool) + active_siblings + in_flight
+        dup_result = evaluate_duplicate(
+            cur_draft, ref_pool, threshold=threshold, soft_threshold=soft_threshold
+        )
+
+    if dup_result.is_soft_warning and not dup_result.is_duplicate:
+        soft_evt = make_event(
+            event_type="agent_action",
+            agent_name="Question Writer & Reviewer",
+            message=f"Soft conceptual overlap detected ({int(dup_result.similarity_score * 100)}% match with '{dup_result.matched_question_stem}'). Retaining as valid variation.",
+            data={
+                "index": idx + 1,
+                "total": total_qty,
+                "stage": "soft_collision_warning",
+                "similarity_score": dup_result.similarity_score,
+                "matched_question_stem": dup_result.matched_question_stem,
+                "reason": dup_result.match_reason,
+            },
+            run_id=item_run_id,
+        )
+        await event_queue.put(soft_evt)
 
     state["duplicate_info"] = dup_result.model_dump()
     stage_outcomes = state.setdefault("stage_outcomes", {})

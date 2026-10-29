@@ -288,6 +288,31 @@ export async function cancelAllBatches() {
   return res.json();
 }
 
+export async function fetchBatchDuplicateClusters(batchId, threshold = 0.75, signal = null) {
+  const res = await fetch(`${API_BASE}/batches/${batchId}/duplicate-clusters?threshold=${threshold}`, { signal });
+  await assertOk(res, `Fetch duplicate clusters for batch ${batchId}`);
+  return res.json();
+}
+
+export async function resolveBatchDuplicates(batchId, payload = { action: 'archive' }) {
+  const res = await fetch(`${API_BASE}/batches/${batchId}/resolve-duplicates`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  await assertOk(res, `Resolve duplicates for batch ${batchId}`);
+  return res.json();
+}
+
+export async function refillBatchQuestions(batchId) {
+  const res = await fetch(`${API_BASE}/batches/${batchId}/refill`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  await assertOk(res, `Refill batch ${batchId}`);
+  return res.json();
+}
+
 // ── Passages API ─────────────────────────────────────────────────────────────
 
 export async function fetchPassages(params = {}, signal = null) {

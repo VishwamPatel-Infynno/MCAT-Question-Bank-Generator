@@ -18,7 +18,8 @@ import {
   Sparkles,
   ShieldCheck,
   FolderCheck,
-  Loader2
+  Loader2,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function BatchProgressHeader({
@@ -27,6 +28,7 @@ export default function BatchProgressHeader({
   totalCompleted,
   effectiveTotal,
   isSaving,
+  clusterCount = 0,
   // Derived stats
   singleCount,
   passageCount,
@@ -103,6 +105,19 @@ export default function BatchProgressHeader({
             <Eye size={13} />
             <span>Detailed View</span>
           </button>
+          {clusterCount > 0 && (
+            <button
+              type="button"
+              id="btn-view-clusters"
+              onClick={() => setViewMode('clusters')}
+              className={`pill-track-btn ${viewMode === 'clusters' ? 'active' : ''}`}
+              style={viewMode === 'clusters' ? { borderColor: 'rgba(245, 158, 11, 0.5)', color: 'var(--status-warning)' } : {}}
+              title={`${clusterCount} duplicate cluster(s) detected`}
+            >
+              <AlertTriangle size={13} color="var(--status-warning)" />
+              <span>Duplicate Clusters ({clusterCount})</span>
+            </button>
+          )}
           {isPassageSet && viewMode === 'tabs' && setPassageLayoutMode && (
             <button
               type="button"

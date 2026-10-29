@@ -28,4 +28,11 @@ export {
   calculateOptionSymmetry
 } from './optionHelpers';
 
+export {
+  normalizeStem,
+  extractTokens,
+  computeStemSimilarity,
+  findDuplicateClusters
+} from './deduplication';
+
 

@@ -853,3 +853,93 @@ async def test_deduplication_and_override_api():
     # Cleanup
     await delete_question(orig_id)
     await delete_question(cand_id)
+
+
+@pytest.mark.asyncio
+async def test_batch_duplicate_clusters_and_resolve_endpoints():
+    from app.api.v1.batches import (
+        ResolveDuplicatesRequest,
+        get_batch_duplicate_clusters,
+        resolve_batch_duplicates,
+    )
+    from app.repositories.batch_repository import delete_batch, save_batch
+    from app.schemas import GenerationBatch
+
+    b_id = f"test-b-{uuid.uuid4().hex[:8]}"
+    batch = GenerationBatch(
+        id=b_id,
+        section="chem_phys",
+        difficulty="medium",
+        subtopic="Test Topic",
+        passage_mode="independent",
+        target_count=50,
+        status="completed",
+    )
+    await save_batch(batch)
+
+    # Create 3 questions: 2 duplicates + 1 unique
+    opts = [OptionChoice(id="A", text="Test")]
+    q1 = Question(
+        id=f"q1-{uuid.uuid4().hex[:6]}",
+        batch_id=b_id,
+        section="chem_phys",
+        section_label="Chemical and Physical Foundations",
+        difficulty="medium",
+        subtopic="Test Topic",
+        stimulus_text="",
+        explanation="Test explanation",
+        question_stem="What is the nuclear charge of a proton in the nucleus?",
+        options=opts,
+        correct_answer_id="A",
+        final_score=97,
+        status="batch_only",
+    )
+    q2 = Question(
+        id=f"q2-{uuid.uuid4().hex[:6]}",
+        batch_id=b_id,
+        section="chem_phys",
+        section_label="Chemical and Physical Foundations",
+        difficulty="medium",
+        subtopic="Test Topic",
+        stimulus_text="",
+        explanation="Test explanation",
+        question_stem="What is the nuclear charge of a proton in an atomic nucleus?",
+        options=opts,
+        correct_answer_id="A",
+        final_score=91,
+        status="batch_only",
+    )
+    q3 = Question(
+        id=f"q3-{uuid.uuid4().hex[:6]}",
+        batch_id=b_id,
+        section="chem_phys",
+        section_label="Chemical and Physical Foundations",
+        difficulty="medium",
+        subtopic="Test Topic",
+        stimulus_text="",
+        explanation="Test explanation",
+        question_stem="How does wavelength relate to frequency for light in a vacuum?",
+        options=opts,
+        correct_answer_id="A",
+        final_score=95,
+        status="batch_only",
+    )
+    await save_question(q1)
+    await save_question(q2)
+    await save_question(q3)
+
+    # 1. Cluster endpoint
+    cluster_res = await get_batch_duplicate_clusters(b_id, threshold=0.75)
+    assert cluster_res["batch_id"] == b_id
+    assert cluster_res["duplicate_clusters_count"] == 1
+    assert cluster_res["total_duplicate_questions"] == 1
+    assert cluster_res["unique_questions_count"] == 2
+
+    # 2. Resolve duplicates
+    resolve_res = await resolve_batch_duplicates(b_id, ResolveDuplicatesRequest(action="archive"))
+    assert resolve_res["success"] is True
+    assert resolve_res["archived_count"] == 1
+    assert resolve_res["remaining_active_questions"] == 2
+
+    # Cleanup
+    await delete_batch(b_id)

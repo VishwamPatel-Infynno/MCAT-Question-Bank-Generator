@@ -41,6 +41,7 @@ from app.workflow.engine_helpers import (
     _prepare_shared_passage_and_visual,
     _run_deduplication_anti_collision_loop,
     _run_question_review_loop,
+    remove_in_flight_draft,
 )
 from app.workflow.nodes import (
     finalize_node,
@@ -504,8 +505,10 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         outcomes_completion_tokens[idx] = state.get("total_completion_tokens", 0)
                         outcomes_costs[idx] = state.get("total_cost_usd", 0.0)
                         outcomes_usage[idx] = state.get("agent_usage_breakdown", [])
+                        await remove_in_flight_draft(batch_id, idx)
                         return  # Successfully finished this worker
                 except asyncio.CancelledError:
+                    await remove_in_flight_draft(batch_id, idx)
                     raise
                 except Exception as worker_err:
                     if attempt < max_worker_retries:
@@ -515,6 +518,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         await asyncio.sleep(1.5)
                         continue
 
+                    await remove_in_flight_draft(batch_id, idx)
                     logger.error(
                         f"Worker {idx + 1} failed after {max_worker_retries + 1} attempts: {worker_err}",
                         exc_info=worker_err,
@@ -540,7 +544,12 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         await event_queue.put(err_evt)
                     return
 
-        tasks.extend([asyncio.create_task(_worker(i)) for i in range(total_qty)])
+        async def _staggered_worker(w_idx: int) -> None:
+            if w_idx > 0:
+                await asyncio.sleep(0.35 * w_idx)
+            await _worker(w_idx)
+
+        tasks.extend([asyncio.create_task(_staggered_worker(i)) for i in range(total_qty)])
 
         async def _monitor_tasks():
             try:

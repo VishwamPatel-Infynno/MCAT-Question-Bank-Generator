@@ -84,6 +84,20 @@ async def _persist_job_question(
         return (None, False)
 
 
+BATCH_THEMATIC_ANGLES = [
+    "Experimental & Analytical Instrumentation (e.g. Mass Spectrometry, deflection in electric/magnetic fields, detectors)",
+    "Biomedical, Clinical & Pharmacological Diagnostics (e.g. PET radiotracers, radioactive decay therapy, cellular imaging)",
+    "Nuclear Forces, Binding Energy & Stability (e.g. Strong nuclear force vs Coulomb repulsion, N/Z stability valley, decay modes)",
+    "Chemical Reactivity, Bonding & Kinetic Isotope Effects (e.g. Rate-limiting transitions, zero-point energy, deuterated substrates)",
+    "Historical Experiments & Foundational Atomic Models (e.g. Rutherford alpha-scattering, Thomson cathode rays, Chadwick neutrons)",
+    "Metabolic Pathways & Enzyme Catalysis Mechanisms (e.g. Substrate binding, transition-state theory, cofactor kinetics)",
+    "Spectroscopic Analysis & Quantum Transitions (e.g. Atomic emission/absorption, orbital transitions, selection rules)",
+    "Cellular & Membrane Transport Dynamics (e.g. Ion channels, electrochemical gradients, isotopic flux)",
+    "Thermodynamics, Phase Equilibria & Collisional Dynamics (e.g. Kinetic theory, vapor pressure isotope effects)",
+    "Radiation Biophysics & Molecular Damage (e.g. Ionizing radiation, reactive oxygen species, DNA repair mechanisms)",
+]
+
+
 async def _run_single_job(
     batch_id: str,
     job: GenerationJob,
@@ -110,6 +124,7 @@ async def _run_single_job(
         )
 
         passage_id_for_job = str(uuid.uuid4()) if is_passage_mode else None
+        thematic_angle = BATCH_THEMATIC_ANGLES[(job.job_number - 1) % len(BATCH_THEMATIC_ANGLES)]
 
         job_req = base_req.model_copy(
             update={
@@ -121,6 +136,7 @@ async def _run_single_job(
                 "passage_mode": "single_passage" if is_passage_mode else "independent",
                 "passage_required": "Yes" if is_passage_mode else "No",
                 "passage_id": passage_id_for_job,
+                "thematic_angle": thematic_angle,
                 "shared_stimulus": None,  # Each job gets a dedicated fresh passage
             }
         )
@@ -364,6 +380,68 @@ async def retry_incomplete_jobs_for_batch(
     refreshed_batch = await get_batch_by_id(batch_id)
     all_jobs = await get_jobs_by_batch_id(batch_id)
     return refreshed_batch, all_jobs
+
+
+async def refill_batch_deficit(
+    batch_id: str,
+    deficit: int,
+) -> tuple[GenerationBatch | None, list[GenerationJob]]:
+    """
+    Creates and launches targeted background jobs to generate replacement questions
+    for archived duplicates, replenishing the batch to its target capacity.
+    """
+    b = await get_batch_by_id(batch_id)
+    if not b or deficit <= 0:
+        return b, []
+
+    existing_jobs = await get_jobs_by_batch_id(batch_id)
+    start_job_num = len(existing_jobs) + 1
+
+    # Chunk deficit into jobs of up to 5 questions
+    job_chunks: list[int] = []
+    remaining = deficit
+    while remaining > 0:
+        take = min(5, remaining)
+        job_chunks.append(take)
+        remaining -= take
+
+    now_iso = datetime.now(UTC).isoformat()
+    new_jobs: list[GenerationJob] = []
+    for idx, count in enumerate(job_chunks):
+        j_id = str(uuid.uuid4())
+        job = GenerationJob(
+            id=j_id,
+            batch_id=batch_id,
+            job_number=start_job_num + idx,
+            target_count=count,
+            actual_count=0,
+            status="pending",
+            created_at=now_iso,
+        )
+        new_jobs.append(job)
+
+    await save_jobs_bulk(new_jobs)
+
+    b.total_jobs = len(existing_jobs) + len(new_jobs)
+    b.status = "in_progress"
+    b.error_message = None
+    await save_batch(b)
+
+    effective_req = _batch_requests.get(batch_id)
+    if not effective_req:
+        effective_req = GenerationRequest(
+            section=b.section,
+            difficulty=b.difficulty,
+            subtopic=b.subtopic,
+            passage_mode=b.passage_mode,
+            questions_to_generate=5,
+        )
+
+    task = asyncio.create_task(_execute_batch_workflow(batch_id, effective_req, new_jobs))
+    _active_batch_tasks[batch_id] = task
+
+    refreshed_batch = await get_batch_by_id(batch_id)
+    return refreshed_batch, new_jobs
 
 
 def get_active_batch_metrics() -> dict[str, Any]:
