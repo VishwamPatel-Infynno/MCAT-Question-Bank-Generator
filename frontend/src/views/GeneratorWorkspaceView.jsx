@@ -55,7 +55,7 @@ export default function GeneratorWorkspaceView({
 
   return (
     <div style={{ maxWidth: '1040px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Multi-Agent Command Rail — only rendered when generating, staged questions exist, or events occurred */}
+      {/* Multi-Agent Command Rail - only rendered when generating, staged questions exist, or events occurred */}
       {showVisualizer && (
         <AgentVisualizer
           activeAgent={activeAgent}

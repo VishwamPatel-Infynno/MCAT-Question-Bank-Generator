@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Database, Sparkles, Eye, X } from 'lucide-react';
 import { batchDeleteQuestions, approveQuestion } from '../services/api';
-import { useQuestionBank } from '../hooks/useQuestionBank';
+import { useQuestionBank, usePagination } from '../hooks';
 import { PaginationBar } from '../components/common';
 import { QuestionCard } from '../components/question';
 import ExportPrintModal from '../components/modals/ExportPrintModal';
@@ -73,45 +73,30 @@ export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
 
   const hasActiveFilters = Boolean(searchQuery.trim() || sectionFilter || diffFilter);
 
+  // ─── Pagination ────────────────────────────────────────────────────────────
+  const {
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    paginatedItems: paginatedQuestions
+  } = usePagination({
+    items: questions,
+    initialPageSize: 15,
+    resetDeps: [searchQuery, sectionFilter, diffFilter, sortBy]
+  });
+
   const handleClearAllFilters = () => {
     setSearchQuery('');
     setSectionFilter('');
     setDiffFilter('');
-    setCurrentPage(1);
   };
 
-  const handleSearchChange = (val) => {
-    setSearchQuery(val);
-    setCurrentPage(1);
-  };
-
-  const handleSectionChange = (val) => {
-    setSectionFilter(val);
-    setCurrentPage(1);
-  };
-
-  const handleDiffChange = (val) => {
-    setDiffFilter(val);
-    setCurrentPage(1);
-  };
-
-  const handleSortChange = (val) => {
-    setSortBy(val);
-    setCurrentPage(1);
-  };
-
-  // ─── Pagination ────────────────────────────────────────────────────────────
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(15);
-
-  const totalPages = pageSize === -1 ? 1 : Math.max(1, Math.ceil(questions.length / pageSize));
-  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
-
-  const paginatedQuestions = useMemo(() => {
-    if (pageSize === -1) return questions;
-    const start = (safeCurrentPage - 1) * pageSize;
-    return questions.slice(start, start + pageSize);
-  }, [questions, safeCurrentPage, pageSize]);
+  const handleSearchChange = (val) => setSearchQuery(val);
+  const handleSectionChange = (val) => setSectionFilter(val);
+  const handleDiffChange = (val) => setDiffFilter(val);
+  const handleSortChange = (val) => setSortBy(val);
 
   // Focus search on '/'
   useEffect(() => {

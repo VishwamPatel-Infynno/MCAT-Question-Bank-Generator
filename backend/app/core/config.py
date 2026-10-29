@@ -52,7 +52,7 @@ class Settings(BaseSettings):
         rate = self.IMAGE_COST_PER_BASE_UNIT
         return round(rate * (w / 1024.0) * (h / 1024.0), 6)
 
-    # API Keys — loaded automatically from .env by pydantic-settings
+    # API Keys - loaded automatically from .env by pydantic-settings
     DEEPINFRA_API_KEY: str = ""
 
     # CORS Trusted Origins (extra origins beyond localhost defaults, comma-separated or JSON list in .env)
@@ -84,7 +84,8 @@ class Settings(BaseSettings):
             "http://localhost:3000",
             "http://127.0.0.1:3000",
         ]
-        return list(set(defaults + self.ALLOWED_ORIGINS))
+        origins = self.ALLOWED_ORIGINS if isinstance(self.ALLOWED_ORIGINS, list) else [self.ALLOWED_ORIGINS]
+        return list(set(defaults + [o for o in origins if o]))
 
     # Multi-Agent Workflow Parameters
     MAX_REGENERATION_ATTEMPTS: int = 3

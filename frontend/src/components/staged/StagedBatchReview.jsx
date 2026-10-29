@@ -36,6 +36,15 @@ export default function StagedBatchReview({
   const [expandedExplanationIds, setExpandedExplanationIds] = useState(() => new Set());
   const [duplicateModalQuestion, setDuplicateModalQuestion] = useState(null);
 
+  // ─── Derived State ─────────────────────────────────────────────────────────
+  const savedIds = useMemo(() => {
+    const combined = new Set(localSavedIds);
+    if (savedQuestionIds) savedQuestionIds.forEach((id) => combined.add(id));
+    return combined;
+  }, [localSavedIds, savedQuestionIds]);
+
+  const effectiveTotal = Math.max(stagedQuestions.length, targetTotal || 1, batchProgress?.total || 1);
+
   // ─── Batch Question Keyboard Hotkeys (J/K & Left/Right) ─────────────────
   useKeyboardShortcuts({
     onNextQuestion: () => {
@@ -49,15 +58,6 @@ export default function StagedBatchReview({
       }
     }
   });
-
-  // ─── Derived State ─────────────────────────────────────────────────────────
-  const savedIds = useMemo(() => {
-    const combined = new Set(localSavedIds);
-    if (savedQuestionIds) savedQuestionIds.forEach((id) => combined.add(id));
-    return combined;
-  }, [localSavedIds, savedQuestionIds]);
-
-  const effectiveTotal = Math.max(stagedQuestions.length, targetTotal || 1, batchProgress?.total || 1);
 
   const isPassageSet = useMemo(() => {
     if (batchProgress?.passage_mode === 'single_passage') return true;

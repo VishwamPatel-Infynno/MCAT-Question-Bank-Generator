@@ -48,7 +48,7 @@ async def add_security_headers(request, call_next):
     return response
 
 
-# Enable hardened CORS — origins sourced from Settings (localhost defaults + env overrides)
+# Enable hardened CORS - origins sourced from Settings (localhost defaults + env overrides)
 core_app.add_middleware(
     CORSMiddleware,
     allow_origins=config.effective_allowed_origins,

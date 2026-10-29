@@ -765,7 +765,8 @@ input:focus, select:focus, textarea:focus {
   filter: grayscale(0.6);
 }
 
-/* Editorial Reading Vignette (High Psychometric Distinction) */
+/* Editorial Reading Passage / Vignette (High Psychometric Distinction) */
+.passage-editorial,
 .vignette-editorial {
   font-family: var(--font-serif);
   font-size: 0.95rem;
@@ -1418,7 +1419,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* ==========================================================================
-   Generator Workspace — Empty State
+   Generator Workspace - Empty State
    Shown in GeneratorWorkspaceView when no question is active and generation is idle.
    ========================================================================== */
 .workspace-empty-state {

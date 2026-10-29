@@ -1,5 +1,5 @@
 """
-deduplication.py — Multi-metric question similarity and collision detection engine.
+deduplication.py - Multi-metric question similarity and collision detection engine.
 
 Evaluates lexical token overlap (Jaccard, n-grams, character edit distance) and
 concept overlap between candidate MCAT questions and existing items in the Question Bank

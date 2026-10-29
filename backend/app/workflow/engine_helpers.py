@@ -1,5 +1,5 @@
 """
-engine_helpers.py — Helper functions for the workflow engine.
+engine_helpers.py - Helper functions for the workflow engine.
 
 Extracted from engine.py to keep the main streaming generator focused
 on orchestration. Contains request building, visual requirements determination,

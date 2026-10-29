@@ -4,6 +4,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { PaginationBar } from '../components/common';
+import { usePagination } from '../hooks';
 import {
   fetchQuestions,
   fetchQuestionCounts,
@@ -29,10 +30,6 @@ export default function AiValidatedQuestionsView({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionInProgress, setActionInProgress] = useState(false);
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(15);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -113,22 +110,20 @@ export default function AiValidatedQuestionsView({
     );
   }, [questions, searchQuery]);
 
-  // Pagination calculation
-  const filterKey = `${searchQuery}|${sectionFilter}`;
-  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
-  if (prevFilterKey !== filterKey) {
-    setPrevFilterKey(filterKey);
-    setCurrentPage(1);
-  }
-
-  const totalPages = pageSize === -1 ? 1 : Math.max(1, Math.ceil(filteredQuestions.length / pageSize));
-  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
-
-  const paginatedQuestions = useMemo(() => {
-    if (pageSize === -1) return filteredQuestions;
-    const start = (safeCurrentPage - 1) * pageSize;
-    return filteredQuestions.slice(start, start + pageSize);
-  }, [filteredQuestions, safeCurrentPage, pageSize]);
+  // ─── Pagination ────────────────────────────────────────────────────────────
+  const {
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    safeCurrentPage,
+    paginatedItems: paginatedQuestions
+  } = usePagination({
+    items: filteredQuestions,
+    initialPageSize: 15,
+    resetDeps: [searchQuery, sectionFilter]
+  });
 
   // Toggle single selection
   const handleToggleSelect = (id) => {

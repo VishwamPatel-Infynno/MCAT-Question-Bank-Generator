@@ -324,10 +324,10 @@ function QuestionCard({
             />
           )}
 
-          {/* Clinical Vignette (Stimulus) */}
+          {/* Reading Passage (Stimulus) */}
           {((question.stimulus_text && question.stimulus_text.trim()) || (isEditing && (showStimulusField || (editedStimulus && editedStimulus.trim())))) ? (
             <div
-              className="vignette-editorial"
+              className="passage-editorial vignette-editorial"
               style={{
                 display: 'flex',
                 flexDirection: 'column',

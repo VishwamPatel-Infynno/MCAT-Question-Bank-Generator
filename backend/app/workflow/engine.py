@@ -1,5 +1,5 @@
 """
-engine.py — Core streaming workflow engine for MCAT Question Generation.
+engine.py - Core streaming workflow engine for MCAT Question Generation.
 
 Orchestrates multi-agent pipelines for generating single or multiple questions
 (passage sets or independent discretes). Streams real-time Server-Sent Events (SSE)

@@ -8,6 +8,7 @@ import {
   approveQuestion
 } from '../services/api';
 import { PaginationBar } from '../components/common';
+import { usePagination } from '../hooks';
 import PassageBankFilters from '../components/passage/PassageBankFilters';
 import PassageBankTable from '../components/passage/PassageBankTable';
 import PassageEditorialDesk from '../components/passage/PassageEditorialDesk';
@@ -50,18 +51,6 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard, reset
     setPrevResetSignal(resetSignal);
     setSelectedPassage(null);
     setSelectedPassageQuestions([]);
-  }
-
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(15);
-
-  // Store previous filter criteria to reset page to 1 during render without cascading effect lag
-  const filterKey = `${debouncedSearch}|${sectionFilter}|${sortBy}`;
-  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
-  if (filterKey !== prevFilterKey) {
-    setPrevFilterKey(filterKey);
-    setCurrentPage(1);
   }
 
   // Focus search on '/'
@@ -156,15 +145,19 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard, reset
     return list;
   }, [passages, sortBy]);
 
-  // Pagination calculation
-  const totalPages = pageSize === -1 ? 1 : Math.max(1, Math.ceil(sortedPassages.length / pageSize));
-  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
-
-  const paginatedPassages = useMemo(() => {
-    if (pageSize === -1) return sortedPassages;
-    const start = (safeCurrentPage - 1) * pageSize;
-    return sortedPassages.slice(start, start + pageSize);
-  }, [sortedPassages, safeCurrentPage, pageSize]);
+  // ─── Pagination ────────────────────────────────────────────────────────────
+  const {
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    paginatedItems: paginatedPassages
+  } = usePagination({
+    items: sortedPassages,
+    initialPageSize: 15,
+    resetDeps: [debouncedSearch, sectionFilter, sortBy]
+  });
 
   // Total word count & metrics
   const totalWordCount = useMemo(() => {

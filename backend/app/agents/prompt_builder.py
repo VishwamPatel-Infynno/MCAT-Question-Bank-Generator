@@ -1,5 +1,5 @@
 """
-prompt_builder.py — User-prompt construction for the MCAT question generator agent.
+prompt_builder.py - User-prompt construction for the MCAT question generator agent.
 
 Extracted from generator.py to separate pure string-building logic from LLM call
 and response-parsing logic. This module has no side-effects and does not call any
@@ -21,9 +21,9 @@ def _build_generator_user_prompt(
     """
     Constructs the user-turn prompt sent to the MCAT question generator LLM.
 
-    Assembles all relevant request parameters — section, difficulty, passage mode,
+    Assembles all relevant request parameters - section, difficulty, passage mode,
     distractor traps, mistake patterns, visual stimulus flags, and cross-item diversity
-    calibration — into a single structured prompt string.
+    calibration - into a single structured prompt string.
 
     Args:
         req: The GenerationRequest containing all question generation parameters.
@@ -162,9 +162,9 @@ Do NOT write a new passage. Formulate your question stem, options, correct key, 
         else:
             user_prompt += (
                 "\nVISUAL STIMULUS DISCRETION:\n"
-                "- Visual stimuli are ENABLED. If this question benefits from any accompanying visual stimulus—such as an experimental apparatus, "
+                "- Visual stimuli are ENABLED. If this question benefits from any accompanying visual stimulus (such as an experimental apparatus, "
                 "biological or anatomical diagram, physiological process, optical ray diagram, electrical circuit, metabolic pathway, Lineweaver-Burk or kinetic plot, "
-                "gel electrophoresis blot, molecular structure, reaction mechanism, or psychological test stimulus to solve—"
+                "gel electrophoresis blot, molecular structure, reaction mechanism, or psychological test stimulus) to solve, "
                 "set 'image_needed': true and provide a detailed visual description in 'image_prompt_or_type'.\n"
                 "- If the question is purely conceptual, numerical, or fully solvable from text alone, set 'image_needed': false and 'image_prompt_or_type': null."
             )

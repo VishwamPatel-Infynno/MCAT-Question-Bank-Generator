@@ -17,7 +17,7 @@ import { fetchSections, fetchHealth, approveQuestion, batchApproveQuestions, sta
  * Central application state hook.
  *
  * Owns all stateful logic, side-effects, and event handlers for the app.
- * App.jsx uses this as its single source of truth — it purely assembles
+ * App.jsx uses this as its single source of truth - it purely assembles
  * the layout while this hook manages everything stateful.
  *
  * @returns {Object} All app state values and event handler callbacks.

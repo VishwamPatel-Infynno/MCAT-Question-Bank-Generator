@@ -15,6 +15,7 @@ import {
 } from '../services/api';
 import { SECTION_CODE_MAP } from '../constants/mcat';
 import { PaginationBar } from '../components/common';
+import { usePagination } from '../hooks';
 import {
   BatchStatsHeader,
   BatchFiltersBar,
@@ -393,26 +394,19 @@ export default function BatchActivityView({
     });
   }, [batches, scopeFilter, statusFilter, sectionFilter, searchQuery]);
 
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
-  // Auto-reset page on filter change
-  const filterKey = `${scopeFilter}|${statusFilter}|${sectionFilter}|${searchQuery}`;
-  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
-  if (filterKey !== prevFilterKey) {
-    setPrevFilterKey(filterKey);
-    setCurrentPage(1);
-  }
-
-  const totalPages = pageSize === -1 ? 1 : Math.max(1, Math.ceil(filteredBatches.length / pageSize));
-  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
-
-  const paginatedBatches = useMemo(() => {
-    if (pageSize === -1) return filteredBatches;
-    const start = (safeCurrentPage - 1) * pageSize;
-    return filteredBatches.slice(start, start + pageSize);
-  }, [filteredBatches, safeCurrentPage, pageSize]);
+  // ─── Pagination ────────────────────────────────────────────────────────────
+  const {
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    paginatedItems: paginatedBatches
+  } = usePagination({
+    items: filteredBatches,
+    initialPageSize: 10,
+    resetDeps: [scopeFilter, statusFilter, sectionFilter, searchQuery]
+  });
 
   return (
     <div className="batch-activity-container">
@@ -561,9 +555,11 @@ export default function BatchActivityView({
 
           {filteredBatches.length > 0 && (
             <PaginationBar
-              currentPage={safeCurrentPage}
+              currentPage={currentPage}
+              totalPages={totalPages}
               totalItems={filteredBatches.length}
               pageSize={pageSize}
+              itemLabel="batches"
               onPageChange={setCurrentPage}
               onPageSizeChange={(newSize) => {
                 setPageSize(newSize);
