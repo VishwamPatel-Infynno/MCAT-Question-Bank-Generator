@@ -289,3 +289,26 @@ async def test_centralized_repository_package_exports():
         assert callable(getattr(repos, fn_name)), (
             f"'{fn_name}' in app.repositories must be callable"
         )
+
+
+@pytest.mark.asyncio
+async def test_model_to_schema_none_options_safety():
+    """Verify that _model_to_schema gracefully handles None or empty options without exception."""
+    from app.models.question import QuestionModel
+    from app.repositories.question_repository import _model_to_schema
+
+    dummy_model = QuestionModel(
+        id=f"test-null-opts-{uuid.uuid4()}",
+        section="bb",
+        section_label="Biological & Biochemical Foundations",
+        subtopic="Metabolic Pathways",
+        difficulty="medium",
+        question_stem="What is the primary role of phosphofructokinase-1?",
+        options=None,
+        correct_answer_id="A",
+        explanation="PFK-1 catalyzes the rate-limiting step of glycolysis.",
+        final_score=92,
+    )
+    schema_item = _model_to_schema(dummy_model)
+    assert schema_item.id == dummy_model.id
+    assert schema_item.options == []

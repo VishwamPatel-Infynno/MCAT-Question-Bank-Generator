@@ -53,7 +53,7 @@ core_app.add_middleware(
     CORSMiddleware,
     allow_origins=config.effective_allowed_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
     allow_headers=["*"],
 )
 

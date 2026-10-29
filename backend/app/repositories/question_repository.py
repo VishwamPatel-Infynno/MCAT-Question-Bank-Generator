@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def _model_to_schema(m: QuestionModel) -> Question:
     """Converts a SQLAlchemy QuestionModel to a Pydantic Question schema."""
-    options = [OptionChoice(**o) for o in m.options]
+    options = [OptionChoice(**o) for o in (m.options or [])]
     rubric = ReviewScore(**m.review_rubric) if m.review_rubric else None
     dup_info = (
         DuplicateInfo(**m.duplicate_info)
@@ -50,7 +50,7 @@ def _model_to_schema(m: QuestionModel) -> Question:
         image_description=m.image_description,
         final_score=m.final_score,
         review_rubric=rubric,
-        iteration_count=m.iteration_count,
+        iteration_count=m.iteration_count or 1,
         iterations_history=m.iterations_history or [],
         created_at=to_iso_str(m.created_at),
         updated_at=to_iso_str(m.updated_at) if m.updated_at else None,

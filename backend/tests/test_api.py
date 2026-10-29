@@ -943,3 +943,17 @@ async def test_batch_duplicate_clusters_and_resolve_endpoints():
 
     # Cleanup
     await delete_batch(b_id)
+
+
+@pytest.mark.asyncio
+async def test_cors_patch_allowed(client):
+    """Verify that CORS preflight permits PATCH requests in Access-Control-Allow-Methods."""
+    headers = {
+        "Origin": "http://localhost:5173",
+        "Access-Control-Request-Method": "PATCH",
+        "Access-Control-Request-Headers": "content-type",
+    }
+    response = await client.options("/api/health", headers=headers)
+    assert response.status_code == 200
+    allow_methods = response.headers.get("access-control-allow-methods", "")
+    assert "PATCH" in allow_methods

@@ -83,7 +83,7 @@ export function useQuestionBank() {
       `[AAMC MCAT - ${q.section_label || q.section}] (${q.difficulty})\n` +
       `${q.stimulus_text ? q.stimulus_text + '\n\n' : ''}` +
       `Question: ${q.question_stem}\n\n` +
-      q.options.map((o) => `${o.id}: ${o.text}`).join('\n') +
+      (q.options || []).map((o) => `${o.id}: ${o.text}`).join('\n') +
       `\n\nCorrect Answer: ${q.correct_answer_id}\n\nExplanation: ${q.explanation}`;
     navigator.clipboard.writeText(formatted);
     setCopiedId(q.id);

@@ -46,12 +46,15 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard, reset
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
 
   // Return to master catalog whenever resetSignal changes (e.g. clicking Passages tab in Navbar)
-  const [prevResetSignal, setPrevResetSignal] = useState(resetSignal);
-  if (resetSignal !== prevResetSignal) {
-    setPrevResetSignal(resetSignal);
+  const isResetInitialMount = useRef(true);
+  useEffect(() => {
+    if (isResetInitialMount.current) {
+      isResetInitialMount.current = false;
+      return;
+    }
     setSelectedPassage(null);
     setSelectedPassageQuestions([]);
-  }
+  }, [resetSignal]);
 
   // Focus search on '/'
   useEffect(() => {

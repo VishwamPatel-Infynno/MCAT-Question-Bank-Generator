@@ -13,7 +13,8 @@ import {
   Code2,
   ShieldCheck,
   Scale,
-  Image as ImageIcon
+  Image as ImageIcon,
+  AlertTriangle
 } from 'lucide-react';
 import StageJsonInspector from '../staged/StageJsonInspector';
 import VisualStimulusViewer from './VisualStimulusViewer';
@@ -21,7 +22,6 @@ import MentorExplanationView from './MentorExplanationView';
 import QuestionScorecardTab from './QuestionScorecardTab';
 import QuestionInlineEditor from './QuestionInlineEditor';
 import DuplicateComparisonModal from '../modals/DuplicateComparisonModal';
-import { AlertTriangle } from 'lucide-react';
 import { getEffectiveTrapInfo, calculateOptionSymmetry } from '../../utils';
 import { formatDifficulty, getDifficultyBadgeClass, getSectionBadgeClass } from '../../constants/mcat';
 
