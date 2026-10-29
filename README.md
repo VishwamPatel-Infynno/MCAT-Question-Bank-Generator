@@ -140,7 +140,8 @@ pnpm dev
 Run the full backend test suite covering schemas, routing logic, strict quality gates, SVG & FLUX synthesis, database operations, and token calculations:
 
 ```bash
-# Run backend deterministic test suite (54 passed)
+# Run backend deterministic test suite (54 deterministic tests across 12 modules)
+# Smart auto-skip: If PostgreSQL is offline, 32 pure unit tests pass and 22 DB tests skip cleanly
 source .venv/bin/activate
 pytest backend/tests -v -k "not live_e2e"
 
@@ -197,14 +198,13 @@ Question Bank Generator/
 │   ├── scripts/
 │   │   └── seed_questions.py    # CLI database seeding script with authentic AAMC rubrics
 │   ├── tests/
-│   │   ├── conftest.py          # Async fixtures & in-memory test database engine
+│   │   ├── conftest.py          # Async fixtures, offline DB socket probe & test DB engine
 │   │   ├── test_agents.py       # Heuristics, agent mocking, blind solver & quality gates
-│   │   ├── test_api.py          # CRUD endpoints, batch staging & lifecycle
+│   │   ├── test_api.py          # CRUD endpoints, batch staging, lifecycle & duplicate override tests
 │   │   ├── test_batch_jobs_flow.py # Background jobs & batch execution flow
 │   │   ├── test_database_structure.py # Relational schema, passage & batch sync tests
 │   │   ├── test_deduplication.py# Multi-metric similarity, token containment & options overlap
-│   │   ├── test_deduplication_and_override_api.py # Duplicate check & override REST endpoints
-│   │   ├── test_e2e_live.py     # Live end-to-end integration test suite
+│   │   ├── test_e2e_live.py     # Live end-to-end integration test suite (10 tests marked live_e2e)
 │   │   ├── test_multi_batch_concurrency.py # Global semaphores, rate limiting & metrics
 │   │   ├── test_pedagogy.py     # Option symmetry, AAMC traps & taxonomy parity
 │   │   ├── test_schemas.py      # Pydantic V2 schema validation & constraints
@@ -339,6 +339,7 @@ Question Bank Generator/
         │   │   ├── Navbar.jsx           # Header with branding, navigation tabs, and theme toggle
         │   │   └── index.js
         │   ├── modals/          # Dialog modals
+        │   │   ├── DuplicateComparisonModal.jsx # Side-by-side duplicate candidate vs bank comparison & override modal
         │   │   ├── ExportPaperPreview.jsx # Live print layout previewer
         │   │   ├── ExportPrintModal.jsx   # Exam Paper (PDF), Study Pack, CSV/JSON export modal
         │   │   └── index.js

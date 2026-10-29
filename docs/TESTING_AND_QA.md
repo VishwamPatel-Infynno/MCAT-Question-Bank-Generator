@@ -56,13 +56,12 @@ The deterministic test suite verifies all backend logic without making live exte
 
 ```
 backend/tests/
-├── conftest.py                       # Async event loops, mock client fixtures & DB overrides
+├── conftest.py                       # Socket probe for offline DB auto-skipping, async client fixtures & DB overrides
 ├── test_agents.py                    # Multi-agent worker nodes, heuristics, and blind solver
-├── test_api.py                       # REST endpoints, CRUD, batch staging, and approval
+├── test_api.py                       # REST endpoints, CRUD, batch staging, approval, and duplicate override flow
 ├── test_batch_jobs_flow.py           # Background batch execution lifecycle (10 jobs x 5 questions)
 ├── test_database_structure.py        # SQLAlchemy schema, hybrid FTS, and atomic aggregations
 ├── test_deduplication.py             # Multi-metric similarity scoring, token containment, and distractor overlap
-├── test_deduplication_and_override_api.py # On-demand duplicate check and manual override REST endpoints
 ├── test_multi_batch_concurrency.py   # Global semaphores, rate limiting backoff, and metrics
 ├── test_pedagogy.py                  # Option symmetry (±15%), distractor traps, and taxonomy parity
 ├── test_schemas.py                   # Pydantic V2 model validation and serialization
@@ -79,10 +78,12 @@ backend/tests/
 source .venv/bin/activate
 
 # 2. Run all 54 deterministic unit and integration tests
+# Smart auto-skip: If PostgreSQL is offline on localhost:5432, 32 pure unit tests pass and 22 DB tests cleanly skip
 pytest backend/tests -v -k "not live_e2e"
 
 # 3. Run specific test modules
-pytest backend/tests/test_deduplication.py backend/tests/test_deduplication_and_override_api.py -v
+pytest backend/tests/test_deduplication.py -v
+pytest backend/tests/test_api.py -v
 pytest backend/tests/test_multi_batch_concurrency.py -v
 pytest backend/tests/test_agents.py -v
 pytest backend/tests/test_pedagogy.py -v
@@ -91,7 +92,7 @@ pytest backend/tests/test_pedagogy.py -v
 pytest backend/tests/test_e2e_live.py -v -m live_e2e
 ```
 
-### 2.3 Detailed Test Module Coverage (48 Tests)
+### 2.3 Detailed Test Module Coverage (54 Deterministic Tests across 12 Modules / 64 Total Backend Tests)
 
 1. **`test_agents.py` (7 tests)**:
    - `test_all_mcat_sections_mock`: Verifies authentic section-specific mock fixtures for Chem/Phys, CARS, Bio/Biochem, and Psych/Soc.
@@ -101,7 +102,7 @@ pytest backend/tests/test_e2e_live.py -v -m live_e2e
    - `test_generate_question_with_self_critique_structure`: Validates fused single-pass drafting and 100-pt self-critique.
    - `test_blind_solver_node_agreement`: Verifies agreement between blind solver and generator draft.
    - `test_blind_solver_node_discrepancy_triggers_critique`: Verifies that key discrepancies immediately route candidate to reviewer critique.
-2. **`test_api.py` (9 tests)**:
+2. **`test_api.py` (10 tests)**:
    - `test_database_crud`: Full CRUD lifecycle verification against question repository.
    - `test_admin_approval_and_persistence_endpoints`: Verifies admin approval workflow and PostgreSQL persistence.
    - `test_multichoice_and_passage_support`: Validates 4-choice purity and shared stimulus passage handling.
@@ -111,6 +112,7 @@ pytest backend/tests/test_e2e_live.py -v -m live_e2e
    - `test_independent_question_direct_no_stimulus`: Ensures independent questions omit stimulus without errors.
    - `test_passage_set_with_passage_level_visual_stimulus`: Validates shared reading passage diagrams.
    - `test_question_status_lifecycle_and_counts`: Verifies question lifecycle counts and transitions.
+   - `test_deduplication_and_override_api`: Full API workflow verification: creates reference question in bank, checks candidate collision via `POST /api/questions/check-duplicate` ($\ge 0.80$), triggers `POST /api/questions/{id}/override-duplicate`, verifies `is_duplicate_override=True`, `status='in_bank'`, and verifies DB persistence.
 3. **`test_batch_jobs_flow.py` (2 tests)**:
    - `test_batch_and_jobs_lifecycle`: End-to-end multi-job batch lifecycle (10 jobs x 5 questions = 50 total).
    - `test_mini_batch_lifecycle`: Validates single-job Practice Set lifecycle (1 job x 5 questions).
@@ -152,13 +154,39 @@ pytest backend/tests/test_e2e_live.py -v -m live_e2e
     - `test_fused_workflow_bypasses_reviewer_when_self_critique_passed`: Confirms reviewer bypass when score > 90.
     - `test_safe_json_loads_and_resilient_parsing`: Ensures resilient JSON parsing of LLM outputs.
 11. **`test_deduplication.py` (5 tests)**:
-    - `test_exact_duplicate_detection`: Validates 1.0 similarity for verbatim question stems and options.
+    - `test_normalize_text`: Verifies text normalization, case folding, punctuation removal, and whitespace trimming.
+    - `test_extract_content_tokens`: Confirms extraction of domain-specific content tokens while filtering stop words.
+    - `test_identical_questions_duplicate_detection`: Validates 1.0 similarity for verbatim question stems and options.
     - `test_paraphrased_high_similarity`: Evaluates token containment and hybrid similarity for paraphrased scientific stems sharing key terms ($> 0.80$).
-    - `test_different_subtopics_no_conflict`: Confirms scoping isolation; distinct scientific concepts evaluate below the collision threshold ($< 0.35$).
-    - `test_options_overlap_boost`: Tests distractor overlap penalty when $\ge 75\%$ of options are identical.
-    - `test_evaluate_duplicate_empty_and_normal_cases`: Verifies resilience with empty reference pools and boundary conditions.
-12. **`test_deduplication_and_override_api.py` (1 test)**:
-    - `test_deduplication_and_override_api_flow`: Full API workflow verification: creates reference question in bank, checks candidate collision via `POST /api/questions/check-duplicate` ($\ge 0.80$), triggers `POST /api/questions/{id}/override-duplicate`, verifies `is_duplicate_override=True`, `status='in_bank'`, and verifies DB persistence.
+    - `test_distinct_questions_in_same_subtopic_no_duplicate`: Confirms scoping isolation; distinct scientific concepts evaluate below the collision threshold ($< 0.35$).
+12. **`test_e2e_live.py` (10 live tests - marked as `live_e2e`)**:
+    - `test_e2e_health_and_db_connectivity`: Confirms health endpoint connectivity to live PostgreSQL and LiteLLM models.
+    - `test_e2e_all_four_sections_metadata`: Verifies live metadata and taxonomy tree across all 4 AAMC sections.
+    - `test_e2e_config_endpoint`: Validates live runtime model configuration and token rate parameters.
+    - `test_e2e_live_generation_sse_stream`: Full live end-to-end question generation with SSE streaming and stage events.
+    - `test_e2e_question_bank_crud_and_filtering`: Validates live database CRUD and multi-criteria filtering against PostgreSQL.
+    - `test_e2e_export_json_and_csv`: Tests export endpoint across CSV and JSON formats.
+    - `test_e2e_strict_threshold_rejection_boundary`: Verifies strict quality gate rejection boundary when score fails rubric.
+    - `test_e2e_manager_combination_matrix_and_stage_outcomes`: Tests cross-section combination matrix and stage metadata.
+    - `test_e2e_uuid_architecture`: Ensures all persisted entities adhere strictly to UUID4 primary key contracts.
+    - `test_e2e_question_image_endpoint`: Validates visual stimulus retrieval and content negotiation.
+
+### 2.4 Smart Offline Database Detection (`conftest.py`)
+
+To maximize local developer velocity and ensure seamless CI execution even before database provisioning, `backend/tests/conftest.py` implements an active TCP socket probe:
+
+```python
+def is_postgres_available(host: str = "localhost", port: int = 5432, timeout: float = 0.5) -> bool:
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+```
+
+- When PostgreSQL is offline, `auto_skip_db_tests` dynamically detects tests decorated with `@pytest.mark.requires_db` and cleanly skips them with `PostgreSQL on localhost:5432 is offline. Skipping database-dependent test.`
+- All **32 pure unit and algorithmic tests** execute and pass with 100% velocity without requiring Docker or PostgreSQL.
+- Once PostgreSQL is started (`docker compose up -d`), all **54 deterministic tests** execute and pass automatically.
 
 ---
 
@@ -182,7 +210,7 @@ The application includes an automated End-to-End browser test suite executed wit
 | **TC010** | Edit staged question & save revision | Inline editor | Edits stem text and options in-place, saves revision, and verifies updated content persists. | ✅ Passed |
 | **TC011** | Approve all staged questions at once | Bulk approval | Atomically approves all candidate slots in a batch into the Question Bank in one operation. | ✅ Passed |
 | **TC012** | Inspect staged question audit trail | Psychometric audit modal | Opens audit modal, inspects 4-pillar breakdown (25 pts each), per-agent token table, and micro-costs. | ✅ Passed |
-| **TC013** | Switch between main workspace views | Tab bar navigation | Seamlessly transitions across Generator Workspace, AI Validated Bank, Question Bank, and Batch Activity. | ✅ Passed |
+| **TC013** | Switch between main workspace views | Tab bar navigation | Seamlessly transitions across Create Questions, Batch Progress, Review Queue, Question Bank, and Passage Bank. | ✅ Passed |
 | **TC014** | Filter question bank | Repository search & filters | Filters repository by section, difficulty, and keyword search with debounced queries. | ✅ Passed |
 | **TC015** | Delete question from the bank | Question deletion | Deletes item from bank, confirms modal prompt, and verifies row is purged from repository. | ✅ Passed |
 

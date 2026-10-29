@@ -127,7 +127,7 @@ frontend/src/
 │   └── useTheme.js               # Dark/light mode persistence
 ├── services/
 │   ├── index.js                  # Services barrel export
-│   └── api.js                    # FastAPI client & SSE stream reader (24 methods)
+│   └── api.js                    # FastAPI client & SSE stream reader (26 methods including duplicate check & override)
 ├── utils/
 │   ├── index.js                  # Utilities barrel export
 │   ├── explanationHelpers.js     # Pure JS distractor line & trap parser

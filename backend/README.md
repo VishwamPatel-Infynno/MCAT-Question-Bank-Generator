@@ -71,15 +71,14 @@ backend/
 │       └── mcat_dependent_taxonomy.json # AAMC official syllabus foundational concepts & skills
 ├── scripts/                 # Maintenance & Seeding Utilities
 │   └── seed_questions.py    # Sample question bank seeder
-└── tests/                   # Deterministic Automated Test Suite (13 test modules)
-    ├── conftest.py          # Pytest fixtures, mock LLM setups & test DB engine
+└── tests/                   # Deterministic Automated Test Suite (12 test modules / 64 total tests)
+    ├── conftest.py          # Pytest fixtures, offline DB socket probe & async test client
     ├── test_agents.py       # Cognitive agent unit tests
-    ├── test_api.py          # REST & SSE endpoint integration tests
+    ├── test_api.py          # REST & SSE endpoint integration tests, CRUD, batch staging & duplicate overrides
     ├── test_batch_jobs_flow.py # Background batch runner & job concurrency tests
     ├── test_database_structure.py # SQLAlchemy models & constraint tests
     ├── test_deduplication.py# Multi-metric similarity, token containment & options overlap tests
-    ├── test_deduplication_and_override_api.py # Duplicate check & override REST integration tests
-    ├── test_e2e_live.py     # Live end-to-end integration tests
+    ├── test_e2e_live.py     # Live end-to-end integration tests (10 tests marked live_e2e)
     ├── test_multi_batch_concurrency.py # Multi-batch semaphore stress tests
     ├── test_pedagogy.py     # Pedagogical format & 3-card explanation tests
     ├── test_schemas.py      # Pydantic schema validation tests
@@ -180,7 +179,8 @@ PYTHONPATH=backend uvicorn app.main:app --port 8000 --reload
 Run the deterministic backend test suite covering endpoints, schemas, database operations, workflow routing, and token cost formulas (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full specs):
 
 ```bash
-# Run all unit and integration tests (54 passed)
+# Run all unit and integration tests (54 deterministic tests across 12 modules)
+# Smart auto-skip: 32 pure unit tests pass offline, 22 DB-dependent tests skip cleanly if PostgreSQL is offline
 source .venv/bin/activate
 pytest backend/tests -v -k "not live_e2e"
 

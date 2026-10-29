@@ -45,7 +45,7 @@ pnpm dev
 Before submitting any code changes, ensure all verification suites pass with zero defects (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full test specifications):
 
 ```bash
-# 1. Backend pytest suite (48 unit & integration tests)
+# 1. Backend pytest suite (54 deterministic unit & integration tests; 32 pass offline, 22 DB tests skip cleanly)
 PYTHONPATH=backend pytest backend/tests -v -k "not live_e2e"
 
 # 2. Backend Python linter

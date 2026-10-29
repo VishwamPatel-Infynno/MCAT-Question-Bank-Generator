@@ -235,6 +235,31 @@ Renders pedagogical rationales across three distinct, beautifully styled visual 
   - `⚠️ Duplicate Risk (XX%)`: Amber pill (`rgba(245, 158, 11, 0.12)`, text `#f59e0b`, border `rgba(245, 158, 11, 0.25)`).
   - `🛡️ Overridden`: Royal blue shield pill (`rgba(51, 90, 207, 0.12)`, text `#60a5fa`, border `rgba(51, 90, 207, 0.25)`), rendered in both staging cards and verified bank cards to signify audited editorial exemptions.
 
+### 4.12 Polymorphic Figure & Diagram Viewer (`VisualStimulusViewer.jsx`)
+- **Component**: [`frontend/src/components/question/VisualStimulusViewer.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/question/VisualStimulusViewer.jsx) provides a publication-grade viewer for AAMC scientific figures, reaction pathways, and experimental charts.
+- **Polymorphic Dual-Engine Rendering**:
+  - **Programmatic Vector SVG**: Inlines sanitized scalable vector graphics directly into the DOM with crisp, high-DPI rendering, zero blur, and transparent background support.
+  - **Neural Visual Illustrations**: Renders FLUX-2-klein-4b neural image outputs with lazy loading and error fallback.
+  - **Passage & Item Polymorphism**: Dynamically extracts stimulus from either standalone question fields or passage-level attributes (`passage_visual_stimulus`).
+- **Interactive Action Toolbar**:
+  - **Click-to-Zoom Lightbox**: Fullscreen inspection canvas triggered by clicking the figure or the `Maximize2` button.
+  - **Pan & Zoom Controls**: Dynamic zoom level scaling from 0.5x to 3.0x with reset control (`RotateCcw`).
+  - **Copy SVG Source**: 1-click clipboard button with checkmark feedback to export raw SVG XML for external documentation or publication.
+  - **Inline Description Editing**: In editorial mode, renders an editable textarea allowing educators to refine the figure's alt-text and clinical description in real time.
+
+### 4.13 Interactive Practice & Editorial Question Card (`QuestionCard.jsx`)
+- **Component**: [`frontend/src/components/question/QuestionCard.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/question/QuestionCard.jsx) serves as the primary presentation surface for reviewing, practicing, and editing candidate items.
+- **Multi-Tab Workspace Architecture**:
+  - **Preview Tab (`preview`)**: Standard student practice canvas with 4-choice interactive selection, immediate feedback, and collapsible mentor explanation cards.
+  - **Scorecard Tab (`scorecard`)**: 100-point rubric accordion breaking down the 4 pillars with itemized reviewer feedback.
+  - **Telemetry Tab (`telemetry`)**: Deep stage JSON inspector displaying raw inference payloads, timing metrics, and token costs.
+- **Editorial Quick-Edit Mode**:
+  - Toggles in-place inputs for the question stem, optional passage/scenario, 4 options, and explanation without navigating away.
+  - Integrates the **Option Length Symmetry Engine** (`calculateOptionSymmetry`), showing live percentage word-count deviations to guarantee options stay within the AAMC $\pm 15\%$ anti-guessability standard.
+- **Collision & Override Integration**:
+  - Evaluates `duplicate_info`: displays amber collision warning banner when similarity $\ge 80\%$, and opens `DuplicateComparisonModal` upon clicking "Compare with Existing Question".
+  - Displays persistent `🛡️ Overridden` badge when an educator has verified and cleared the candidate for bank storage.
+
 ---
 
 ## 5. Micro-Animations & Dynamic Feedback

@@ -97,7 +97,7 @@ Accept: text/event-stream
 | `allow_ai_images` | `boolean` | No | `false` | Whether AI is permitted to generate visual stimuli when deemed necessary |
 | `require_image` | `boolean` | No | `false` | Force visual stimulus generation for the question stem |
 | `require_passage_image`| `boolean` | No | `false` | Force visual diagram generation for the shared passage stimulus |
-| `custom_prompt` | `string` | No | `null` | Contextual steer or clinical vignette guidance |
+| `custom_prompt` | `string` | No | `null` | Contextual steer or clinical scenario / reading passage guidance |
 | `questions_to_generate` | `integer` | No | `5` | Quantity to generate (Wizard UI provides `5` [Practice Set] and `50` [Full Exam]; backend permits 1 to 50) |
 | `passage_mode` | `string` | No | `"single_passage"` | `"single_passage"` (all Qs linked to 1 passage) or `"independent"` (standalone discretes) |
 | `interaction_type` | `string` | No | `"single_choice"` | Standard 4-choice single choice item |
@@ -699,6 +699,26 @@ Admin endpoint to create or update a generation batch entity directly in Postgre
 | `subtopic` | `string` | No | Filter by specific subtopic / foundational concept |
 | `search` | `string` | No | Search query matching passage text or subtopic |
 
+#### List Passages Response (`GET /api/passages`)
+```json
+{
+  "passages": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "section": "cars",
+      "subtopic": "Philosophy & Epistemology",
+      "passage_text": "In evaluating the nature of scientific inquiry...",
+      "image_url": null,
+      "image_svg": null,
+      "image_description": null,
+      "question_count": 5,
+      "created_at": "2026-10-26T12:00:00Z",
+      "updated_at": null
+    }
+  ]
+}
+```
+
 #### Single Passage Response (`GET /api/passages/{passage_id}`)
 ```json
 {
@@ -707,14 +727,62 @@ Admin endpoint to create or update a generation batch entity directly in Postgre
     "section": "cars",
     "subtopic": "Philosophy & Epistemology",
     "passage_text": "In evaluating the nature of scientific inquiry...",
+    "image_url": null,
+    "image_svg": null,
+    "image_description": null,
     "question_count": 5,
-    "created_at": "2026-10-26T12:00:00Z"
+    "created_at": "2026-10-26T12:00:00Z",
+    "updated_at": null
   },
   "questions": [
     { "id": "q-1", "question_stem": "The author's central thesis...", "status": "in_bank" },
     { "id": "q-2", "question_stem": "Based on paragraph 3...", "status": "in_bank" }
   ]
 }
+```
+
+#### Create or Update Passage Request (`POST /api/passages`)
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "section": "cars",
+  "subtopic": "Philosophy & Epistemology",
+  "passage_text": "In evaluating the nature of scientific inquiry...",
+  "image_url": null,
+  "image_svg": null,
+  "image_description": null
+}
+```
+
+#### Create or Update Passage Response (`200 OK`)
+```json
+{
+  "success": true,
+  "passage": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "section": "cars",
+    "subtopic": "Philosophy & Epistemology",
+    "passage_text": "In evaluating the nature of scientific inquiry...",
+    "image_url": null,
+    "image_svg": null,
+    "image_description": null,
+    "question_count": 5,
+    "created_at": "2026-10-26T12:00:00Z",
+    "updated_at": null
+  }
+}
+```
+
+#### cURL Example for Creating or Updating a Passage
+```bash
+curl -X POST "http://localhost:8000/api/passages" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "section": "cars",
+    "subtopic": "Philosophy & Epistemology",
+    "passage_text": "In evaluating the nature of scientific inquiry..."
+  }'
 ```
 
 #### Delete Passage Response (`DELETE /api/passages/{passage_id}`)
