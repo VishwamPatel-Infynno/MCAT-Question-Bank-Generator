@@ -14,6 +14,7 @@ import {
   updateQuestionStatus
 } from '../services/api';
 import { SECTION_CODE_MAP } from '../constants/mcat';
+import { PaginationBar } from '../components/common';
 import {
   BatchStatsHeader,
   BatchFiltersBar,
@@ -392,6 +393,27 @@ export default function BatchActivityView({
     });
   }, [batches, scopeFilter, statusFilter, sectionFilter, searchQuery]);
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Auto-reset page on filter change
+  const filterKey = `${scopeFilter}|${statusFilter}|${sectionFilter}|${searchQuery}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setCurrentPage(1);
+  }
+
+  const totalPages = pageSize === -1 ? 1 : Math.max(1, Math.ceil(filteredBatches.length / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedBatches = useMemo(() => {
+    if (pageSize === -1) return filteredBatches;
+    const start = (safeCurrentPage - 1) * pageSize;
+    return filteredBatches.slice(start, start + pageSize);
+  }, [filteredBatches, safeCurrentPage, pageSize]);
+
   return (
     <div className="batch-activity-container">
       {/* Header Bar */}
@@ -512,29 +534,45 @@ export default function BatchActivityView({
           </div>
         </div>
       ) : (
-        <div className="batch-activity-list">
-          {filteredBatches.map((batch) => (
-            <BatchCard
-              key={batch.id}
-              batch={batch}
-              isExpanded={expandedBatchIds.has(batch.id)}
-              onToggleExpand={handleToggleExpandBatch}
-              onDeleteBatch={handleDeleteBatch}
-              onStopBatch={handleStopBatch}
-              onRetryBatch={handleRetryBatch}
-              isStopping={stoppingBatchIds[batch.id]}
-              isRetrying={retryingBatchIds[batch.id]}
-              detail={batchDetails[batch.id] || null}
-              loadingDetail={loadingDetails[batch.id]}
-              expandedJobIds={expandedJobIds}
-              onToggleJob={handleToggleJob}
-              onNavigateToBank={onNavigateToBank}
-              onNavigateToValidated={onNavigateToValidated}
-              onOpenAudit={onOpenAudit}
-              onSaveToBank={handleSaveQuestionToBank}
+        <>
+          <div className="batch-activity-list">
+            {paginatedBatches.map((batch) => (
+              <BatchCard
+                key={batch.id}
+                batch={batch}
+                isExpanded={expandedBatchIds.has(batch.id)}
+                onToggleExpand={handleToggleExpandBatch}
+                onDeleteBatch={handleDeleteBatch}
+                onStopBatch={handleStopBatch}
+                onRetryBatch={handleRetryBatch}
+                isStopping={stoppingBatchIds[batch.id]}
+                isRetrying={retryingBatchIds[batch.id]}
+                detail={batchDetails[batch.id] || null}
+                loadingDetail={loadingDetails[batch.id]}
+                expandedJobIds={expandedJobIds}
+                onToggleJob={handleToggleJob}
+                onNavigateToBank={onNavigateToBank}
+                onNavigateToValidated={onNavigateToValidated}
+                onOpenAudit={onOpenAudit}
+                onSaveToBank={handleSaveQuestionToBank}
+              />
+            ))}
+          </div>
+
+          {filteredBatches.length > 0 && (
+            <PaginationBar
+              currentPage={safeCurrentPage}
+              totalItems={filteredBatches.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(newSize) => {
+                setPageSize(newSize);
+                setCurrentPage(1);
+              }}
+              pageSizeOptions={[10, 25, 50]}
             />
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );

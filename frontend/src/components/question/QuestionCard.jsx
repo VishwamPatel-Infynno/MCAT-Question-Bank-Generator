@@ -25,7 +25,7 @@ import { AlertTriangle } from 'lucide-react';
 import { getEffectiveTrapInfo, calculateOptionSymmetry } from '../../utils';
 import { formatDifficulty, getDifficultyBadgeClass, getSectionBadgeClass } from '../../constants/mcat';
 
-export default function QuestionCard({ 
+function QuestionCard({ 
   question, 
   isSaved = false, 
   onApprove, 
@@ -660,3 +660,5 @@ export default function QuestionCard({
     </div>
   );
 }
+
+export default React.memo(QuestionCard);

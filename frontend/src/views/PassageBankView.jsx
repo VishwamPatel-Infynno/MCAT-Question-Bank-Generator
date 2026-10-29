@@ -26,9 +26,18 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard, reset
 
   // Filter & Search State
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sectionFilter, setSectionFilter] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const searchInputRef = useRef(null);
+
+  // Debounce search query by 250ms to prevent rapid API polling
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 250);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   // Master-Detail Selected State
   const [selectedPassage, setSelectedPassage] = useState(null);
@@ -48,7 +57,7 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard, reset
   const [pageSize, setPageSize] = useState(15);
 
   // Store previous filter criteria to reset page to 1 during render without cascading effect lag
-  const filterKey = `${searchQuery}|${sectionFilter}|${sortBy}`;
+  const filterKey = `${debouncedSearch}|${sectionFilter}|${sortBy}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (filterKey !== prevFilterKey) {
     setPrevFilterKey(filterKey);
@@ -68,13 +77,16 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard, reset
   }, []);
 
   // Fetch all passages and build question counts directly from server aggregation
-  const loadPassages = useCallback(async () => {
-    setLoading(true);
+  const performFetchPassages = useCallback(async (isSilent = false, signal = null) => {
+    if (!isSilent) setLoading(true);
     try {
-      const passageRes = await fetchPassages({
-        section: sectionFilter || undefined,
-        search: searchQuery || undefined
-      });
+      const passageRes = await fetchPassages(
+        {
+          section: sectionFilter || undefined,
+          search: debouncedSearch || undefined
+        },
+        signal
+      );
 
       const fetchedPassages = passageRes?.passages || [];
 
@@ -86,6 +98,7 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard, reset
       setQuestionCounts(counts);
       setPassages(fetchedPassages);
     } catch (err) {
+      if (err.name === 'AbortError') return;
       console.error('Failed to load passages:', err);
       if (onShowToast) {
         onShowToast({
@@ -97,20 +110,34 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard, reset
     } finally {
       setLoading(false);
     }
-  }, [sectionFilter, searchQuery, onShowToast]);
+  }, [sectionFilter, debouncedSearch, onShowToast]);
+
+  const loadPassages = useCallback(async (isSilent = false, signal = null) => {
+    return performFetchPassages(isSilent, signal);
+  }, [performFetchPassages]);
 
   useEffect(() => {
     let ignore = false;
+    const controller = new AbortController();
+
     async function init() {
       if (!ignore) {
-        await loadPassages();
+        try {
+          await performFetchPassages(true, controller.signal);
+        } catch (err) {
+          if (err.name !== 'AbortError' && !ignore) {
+            console.error('Failed to initialize passages:', err);
+          }
+        }
       }
     }
     init();
+
     return () => {
       ignore = true;
+      controller.abort();
     };
-  }, [loadPassages]);
+  }, [performFetchPassages]);
 
   // Sort passages locally
   const sortedPassages = useMemo(() => {

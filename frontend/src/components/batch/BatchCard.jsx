@@ -92,7 +92,7 @@ function getStatusBadge(status) {
 
 const EMPTY_JOB_IDS = {};
 
-export default function BatchCard({
+function BatchCard({
   batch,
   isExpanded,
   onToggleExpand,
@@ -468,3 +468,5 @@ export default function BatchCard({
     </div>
   );
 }
+
+export default React.memo(BatchCard);

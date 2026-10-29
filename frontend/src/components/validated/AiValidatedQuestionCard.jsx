@@ -15,7 +15,7 @@ import { MCAT_SECTION_LABELS, formatDifficulty, getSectionBadgeClass } from '../
 import { getEffectiveTrapInfo } from '../../utils';
 import VisualStimulusViewer from '../question/VisualStimulusViewer';
 
-export default function AiValidatedQuestionCard({
+function AiValidatedQuestionCard({
   question: q,
   index = 0,
   isSelected = false,
@@ -374,3 +374,5 @@ export default function AiValidatedQuestionCard({
     </div>
   );
 }
+
+export default React.memo(AiValidatedQuestionCard);
