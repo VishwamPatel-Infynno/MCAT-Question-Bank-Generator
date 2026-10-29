@@ -126,3 +126,36 @@ export function findDuplicateClusters(questions, threshold = 0.75) {
   return clusters.sort((a, b) => b.size - a.size);
 }
 
+/**
+ * Maps clusters into fast lookup dictionaries for auto-resolution:
+ * - duplicateMap: Map<dupQuestionId, { clusterId, leaderQuestion, similarityScore, reason }>
+ * - leaderIds: Set<leaderQuestionId>
+ * - autoDiscardedIds: Set<dupQuestionId>
+ */
+export function getAutoResolvedClusterMap(clusters = []) {
+  const duplicateMap = new Map();
+  const leaderIds = new Set();
+  const autoDiscardedIds = new Set();
+
+  for (const cluster of clusters) {
+    const leader = cluster.leader_question;
+    if (leader?.id) {
+      leaderIds.add(leader.id);
+    }
+    const dups = cluster.duplicates || [];
+    for (const d of dups) {
+      if (d.question?.id) {
+        duplicateMap.set(d.question.id, {
+          clusterId: cluster.cluster_id,
+          leaderQuestion: leader,
+          similarityScore: d.similarity_score || 0,
+          reason: d.reason || 'High semantic and lexical overlap with leader question'
+        });
+        autoDiscardedIds.add(d.question.id);
+      }
+    }
+  }
+
+  return { duplicateMap, leaderIds, autoDiscardedIds };
+}
+

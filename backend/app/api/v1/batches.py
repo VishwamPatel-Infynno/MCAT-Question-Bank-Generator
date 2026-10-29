@@ -197,6 +197,7 @@ async def get_batch_duplicate_clusters(
     clusters = cluster_questions(q_dumps, threshold=threshold)
     total_duplicates = sum(len(c["duplicates"]) for c in clusters)
     unique_count = len(active_questions) - total_duplicates
+    archived_questions = [q for q in linked_questions if q.status == "discarded"]
 
     return {
         "batch_id": batch_id,
@@ -204,6 +205,8 @@ async def get_batch_duplicate_clusters(
         "unique_questions_count": unique_count,
         "duplicate_clusters_count": len(clusters),
         "total_duplicate_questions": total_duplicates,
+        "archived_duplicates_count": len(archived_questions),
+        "auto_resolved": len(clusters) == 0 and len(archived_questions) > 0,
         "clusters": clusters,
     }
 

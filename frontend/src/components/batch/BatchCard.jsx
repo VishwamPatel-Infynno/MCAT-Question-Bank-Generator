@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { MCAT_SECTION_LABELS, formatDifficulty, getSectionColor } from '../../constants/mcat';
 import BatchJobCard from './BatchJobCard';
-import BatchDuplicateAuditSection from './BatchDuplicateAuditSection';
 
 function getStatusBadge(status) {
   switch (status) {
@@ -400,16 +399,6 @@ function BatchCard({
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Batch Similarity & Duplicate Audit Panel */}
-              <BatchDuplicateAuditSection
-                batchId={batch.id}
-                batchTargetCount={totalTarget}
-                onBatchUpdated={() => {
-                  if (onRefreshBatch) onRefreshBatch(true);
-                }}
-                onShowToast={onShowToast}
-              />
-
               <div
                 style={{
                   display: 'flex',

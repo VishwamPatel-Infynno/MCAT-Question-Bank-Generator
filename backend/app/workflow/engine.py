@@ -60,7 +60,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
     Emits batch_progress and question_generated as each question finishes,
     culminating in workflow_complete with all staged questions for user confirmation.
     """
-    total_qty = 5 if req.questions_to_generate != 1 else 1
+    total_qty = max(1, req.questions_to_generate) if req.questions_to_generate is not None else 5
     batch_id = req.batch_id or str(uuid.uuid4())
     job_id = req.job_id or str(uuid.uuid4())
     is_standalone_live_run = req.job_id is None
@@ -251,7 +251,8 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
         async def _worker(idx: int) -> None:
             max_worker_retries = config.WORKFLOW_MAX_WORKER_RETRIES
-            for attempt in range(max_worker_retries + 1):
+            max_slot_attempts = max_worker_retries + 3  # Up to 5 attempts to guarantee slot completion
+            for attempt in range(max_slot_attempts):
                 try:
                     async with semaphore:
                         item_req, item_run_id, is_passage_item, item_interaction = (
@@ -265,11 +266,29 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                                 shared_passage_text=shared_passage_text,
                             )
                         )
+                        if attempt > 0:
+                            item_req.thematic_angle = f"Question Item {idx + 1} Attempt {attempt + 1}"
 
+                        alt_traps = [
+                            "CONCEPT_CONFUSION",
+                            "FORMULA_MISAPPLICATION",
+                            "SIGN_CONVENTION",
+                            "PROPORTIONALITY_ERROR",
+                            "VARIABLE_CONFUSION",
+                            "CAUSE_EFFECT_CONFUSION",
+                            "TREND_EXTRAPOLATION",
+                            "ASSUMPTION_MISSED",
+                        ]
                         diversity_context = None
-                        if total_qty > 1:
+                        if total_qty > 1 or attempt > 0:
                             parts = [f"Item {idx + 1} of {total_qty} in this question set."]
-                            if shared_used_traps:
+                            if attempt > 0:
+                                alt_trap = alt_traps[(idx + attempt) % len(alt_traps)]
+                                parts.append(
+                                    f"REPLENISHMENT ATTEMPT {attempt + 1}: The previous attempt did not satisfy quality or uniqueness standards. "
+                                    f"You MUST formulate a fresh scenario testing cognitive trap '{alt_trap}' for variety."
+                                )
+                            elif shared_used_traps:
                                 parts.append(
                                     f"Previously calibrated traps: {', '.join(shared_used_traps[-4:])}. Please select a complementary AAMC trap for variety."
                                 )
@@ -280,11 +299,13 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             diversity_context = " ".join(parts)
 
                         if total_qty > 1:
-                            worker_msg = (
-                                f"[{idx + 1}/{total_qty}] Writing linked {item_interaction.replace('_', ' ').title()} question from shared passage..."
-                                if is_passage_item
-                                else f"[{idx + 1}/{total_qty}] Writing independent {item_interaction.replace('_', ' ').title()} question (direct question)..."
-                            )
+                            if attempt > 0:
+                                worker_msg = f"[{idx + 1}/{total_qty}] Calibrating alternative scientific angle for Question {idx + 1}..."
+                            elif is_passage_item:
+                                worker_msg = f"[{idx + 1}/{total_qty}] Writing linked {item_interaction.replace('_', ' ').title()} question from shared passage..."
+                            else:
+                                worker_msg = f"[{idx + 1}/{total_qty}] Writing independent {item_interaction.replace('_', ' ').title()} question (direct question)..."
+
                             batch_prog_evt = make_event(
                                 event_type="batch_progress",
                                 agent_name="System",
@@ -298,6 +319,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                                     "passage_id": item_req.passage_id,
                                     "is_passage_item": is_passage_item,
                                     "batch_id": batch_id,
+                                    "stage": "drafting",
                                 },
                                 run_id=item_run_id,
                             )
@@ -394,7 +416,14 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             make_event=make_event,
                         )
 
-                        if question_passed:
+                        dup_info = state.get("duplicate_info") or {}
+                        is_hard_dup = bool(dup_info.get("is_duplicate", False))
+                        matched_id = str(dup_info.get("matched_question_id") or "")
+                        sibling_ids = {str(q.get("id")) for q in outcomes_questions if q is not None and "id" in q}
+                        is_sibling_collision = is_hard_dup and (matched_id in sibling_ids or matched_id.startswith("in_flight_"))
+
+                        # Accept if question passed quality audit and does not collide with a sibling in this batch
+                        if question_passed and (not is_sibling_collision or attempt == max_slot_attempts - 1):
                             is_passage_item_check = (
                                 is_single_passage_set and idx < effective_passage_count
                             )
@@ -493,37 +522,54 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                                 run_id=item_run_id,
                             )
                             await event_queue.put(q_gen_evt)
+
+                            outcomes_tokens[idx] += state.get("total_tokens", 0)
+                            outcomes_prompt_tokens[idx] += state.get("total_prompt_tokens", 0)
+                            outcomes_completion_tokens[idx] += state.get("total_completion_tokens", 0)
+                            outcomes_costs[idx] += state.get("total_cost_usd", 0.0)
+                            outcomes_usage[idx].extend(state.get("agent_usage_breakdown", []))
+                            await remove_in_flight_draft(batch_id, idx)
+                            return  # Successfully completed this slot!
                         else:
+                            # Rejection or collision - auto-replenish slot
                             rej_data = state.get("rejection_data") or {
                                 "index": idx + 1,
                                 "stage": "rejected",
+                                "reason": "Duplicate collision" if is_hard_dup else "Quality score below threshold",
                             }
                             outcomes_rejections.append(rej_data)
+                            logger.warning(
+                                f"Question {idx + 1} attempt {attempt + 1}/{max_slot_attempts} not satisfied "
+                                f"(passed={question_passed}, is_dup={is_hard_dup}). Auto-replenishing slot..."
+                            )
+                            outcomes_tokens[idx] += state.get("total_tokens", 0)
+                            outcomes_prompt_tokens[idx] += state.get("total_prompt_tokens", 0)
+                            outcomes_completion_tokens[idx] += state.get("total_completion_tokens", 0)
+                            outcomes_costs[idx] += state.get("total_cost_usd", 0.0)
+                            outcomes_usage[idx].extend(state.get("agent_usage_breakdown", []))
+                            await remove_in_flight_draft(batch_id, idx)
+                            await asyncio.sleep(0.5)
+                            continue
 
-                        outcomes_tokens[idx] = state.get("total_tokens", 0)
-                        outcomes_prompt_tokens[idx] = state.get("total_prompt_tokens", 0)
-                        outcomes_completion_tokens[idx] = state.get("total_completion_tokens", 0)
-                        outcomes_costs[idx] = state.get("total_cost_usd", 0.0)
-                        outcomes_usage[idx] = state.get("agent_usage_breakdown", [])
-                        await remove_in_flight_draft(batch_id, idx)
-                        return  # Successfully finished this worker
                 except asyncio.CancelledError:
                     await remove_in_flight_draft(batch_id, idx)
                     raise
                 except Exception as worker_err:
-                    if attempt < max_worker_retries:
+                    if "state" in locals():
+                        outcomes_tokens[idx] += state.get("total_tokens", 0)
+                        outcomes_costs[idx] += state.get("total_cost_usd", 0.0)
+                    await remove_in_flight_draft(batch_id, idx)
+                    if attempt < max_slot_attempts - 1:
                         logger.warning(
-                            f"Worker {idx + 1} encountered error (attempt {attempt + 1}/{max_worker_retries + 1}): {worker_err}. Retrying in 1.5s..."
+                            f"Worker {idx + 1} encountered error (attempt {attempt + 1}/{max_slot_attempts}): {worker_err}. Auto-replenishing slot in 1.0s..."
                         )
-                        await asyncio.sleep(1.5)
+                        await asyncio.sleep(1.0)
                         continue
 
-                    await remove_in_flight_draft(batch_id, idx)
                     logger.error(
-                        f"Worker {idx + 1} failed after {max_worker_retries + 1} attempts: {worker_err}",
+                        f"Worker {idx + 1} exhausted all {max_slot_attempts} replenishment attempts: {worker_err}",
                         exc_info=worker_err,
                     )
-                    # For multi-question runs (batches/sets), isolate failure to preserve sibling questions
                     if total_qty > 1:
                         err_evt = make_event(
                             event_type="question_failed",

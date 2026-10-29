@@ -128,6 +128,7 @@ def _build_batch_worker_request(
             "passage_id": item_passage_id,
             "shared_stimulus": item_stimulus,
             "require_image": should_require_item_image or req.require_image,
+            "thematic_angle": req.thematic_angle or f"Question Item {idx + 1}",
             "visual_type": "AI_FLUX_Image"
             if (should_require_item_image or req.require_image)
             else req.visual_type,
@@ -780,6 +781,9 @@ async def _run_deduplication_anti_collision_loop(
         state["diversity_context"] = (
             f"{state.get('diversity_context') or ''} {collision_hint}".strip()
         )
+        if "request" in state and isinstance(state["request"], dict):
+            state["request"]["thematic_angle"] = f"Question Item {idx + 1} Retry {dedup_retry} Trap {alt_trap}"
+            state["request"]["primary_trap"] = alt_trap
 
         regen_res = await fused_generator_node(state)
         state.update(regen_res)

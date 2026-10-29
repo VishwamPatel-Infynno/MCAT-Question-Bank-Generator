@@ -1,3 +1,5 @@
+import pytest
+
 from app.services.deduplication import (
     DuplicateCheckResult,
     cluster_questions,
@@ -149,3 +151,95 @@ def test_cluster_questions_groups_duplicates_correctly():
     c2 = next(c for c in clusters if c["leader_question"]["id"] == "q3")
     assert len(c2["duplicates"]) == 1
     assert c2["duplicates"][0]["question"]["id"] == "q4"
+
+
+@pytest.mark.asyncio
+async def test_auto_resolve_batch_and_refill(monkeypatch):
+    from unittest.mock import AsyncMock
+    from app.schemas import GenerationBatch, Question
+    from app.services.batch_runner import auto_resolve_batch_and_refill
+
+    batch_id = "test-batch-autoresolve"
+    fake_batch = GenerationBatch(
+        id=batch_id,
+        section="CPBS",
+        target_count=5,
+        actual_count=4,
+    )
+
+    common_kwargs = {
+        "section": "CPBS",
+        "section_label": "Chemical and Physical Foundations of Biological Systems",
+        "subtopic": "Atomic Structure and Nuclear Chemistry",
+        "difficulty": "medium",
+        "correct_answer_id": "A",
+        "explanation": "Standard radioactive decay rationale.",
+        "status": "ai_validated",
+    }
+
+    q1 = Question(
+        id="q1",
+        batch_id=batch_id,
+        question_stem="When X-210 undergoes electron capture, which describes the change in protons and neutrons?",
+        options=[{"id": "A", "text": "Protons -1, neutrons +1"}],
+        final_score=96,
+        **common_kwargs,
+    )
+    q2 = Question(
+        id="q2",
+        batch_id=batch_id,
+        question_stem="When X-210 undergoes electron capture, what happens to the number of protons and neutrons?",
+        options=[{"id": "A", "text": "Protons -1, neutrons +1"}],
+        final_score=92,
+        **common_kwargs,
+    )
+    q3 = Question(
+        id="q3",
+        batch_id=batch_id,
+        question_stem="Calculate the standard free energy change under physiological conditions.",
+        options=[{"id": "A", "text": "-14.2 kJ/mol"}],
+        final_score=95,
+        **common_kwargs,
+    )
+
+    current_questions = [q1, q2, q3]
+    archived_ids = []
+
+    async def mock_get_batch(b_id):
+        return fake_batch
+
+    async def mock_get_questions(batch_id=None):
+        return [
+            q.model_copy(update={"status": "discarded"}) if q.id in archived_ids else q
+            for q in current_questions
+        ]
+
+    async def mock_batch_update_status(q_ids, status):
+        archived_ids.extend(q_ids)
+        return len(q_ids)
+
+    async def mock_refresh_aggregates(b_id):
+        fake_batch.actual_count = sum(1 for q in current_questions if q.id not in archived_ids)
+        return fake_batch
+
+    mock_refill = AsyncMock(return_value=(fake_batch, []))
+
+    monkeypatch.setattr("app.services.batch_runner.get_batch_by_id", mock_get_batch)
+    monkeypatch.setattr("app.services.batch_runner.get_questions", mock_get_questions)
+    monkeypatch.setattr("app.services.batch_runner.batch_update_question_status", mock_batch_update_status)
+    monkeypatch.setattr("app.services.batch_runner.refresh_batch_aggregates", mock_refresh_aggregates)
+    monkeypatch.setattr("app.services.batch_runner.refill_batch_deficit", mock_refill)
+
+    # Cycle 1: auto_resolve should archive q2 (score 92, duplicate of q1 with 96) and trigger refill
+    res = await auto_resolve_batch_and_refill(batch_id, current_cycle=1, max_cycles=2)
+
+    assert res["resolved"] is True
+    assert res["clusters_count"] == 1
+    assert res["archived_duplicates_count"] == 1
+    assert "q2" in archived_ids
+    assert "q1" not in archived_ids
+    # Deficit should be target_count (5) - remaining (2) = 3; refill launched with buffer = 4
+    assert res["deficit"] == 3
+    assert res["refill_launched"] is True
+    mock_refill.assert_awaited_once_with(batch_id, 4, cycle=2, max_cycles=2)
+

@@ -21,7 +21,6 @@ import VisualStimulusViewer from './VisualStimulusViewer';
 import MentorExplanationView from './MentorExplanationView';
 import QuestionScorecardTab from './QuestionScorecardTab';
 import QuestionInlineEditor from './QuestionInlineEditor';
-import DuplicateComparisonModal from '../modals/DuplicateComparisonModal';
 import { getEffectiveTrapInfo, calculateOptionSymmetry } from '../../utils';
 import { formatDifficulty, getDifficultyBadgeClass, getSectionBadgeClass } from '../../constants/mcat';
 
@@ -37,12 +36,6 @@ function QuestionCard({
   const [activeTab, setActiveTab] = useState('preview'); // 'preview' | 'scorecard' | 'telemetry'
   const [showExplanation, setShowExplanation] = useState(true);
   const [isApproving, setIsApproving] = useState(false);
-  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
-
-  const dupInfo = question?.duplicate_info || {};
-  const isDuplicate = Boolean(dupInfo.is_duplicate && !question?.is_duplicate_override);
-  const isOverridden = Boolean(question?.is_duplicate_override || dupInfo.is_overridden);
-  const simPercent = Math.round((dupInfo.similarity_score || 0) * 100);
 
   // Quick Inline Edit Mode State
   const [isEditing, setIsEditing] = useState(false);
@@ -142,64 +135,6 @@ function QuestionCard({
         position: 'relative'
       }}
     >
-      {/* Duplicate Warning Banner */}
-      {isDuplicate && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-            padding: '10px 14px',
-            background: 'rgba(245, 158, 11, 0.08)',
-            border: '1px solid rgba(245, 158, 11, 0.3)',
-            borderRadius: 'var(--radius-sm)',
-            flexWrap: 'wrap'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <AlertTriangle size={16} color="#d97706" />
-            <span style={{ fontSize: '0.8rem', color: '#b45309', fontWeight: 600 }}>
-              Potential Duplicate Collision ({simPercent}% match with existing Question Bank entry)
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowDuplicateModal(true)}
-            className="btn-secondary"
-            style={{
-              padding: '4px 10px',
-              fontSize: '0.75rem',
-              gap: '4px',
-              borderColor: '#d97706',
-              color: '#b45309'
-            }}
-          >
-            <ShieldCheck size={13} />
-            <span>Inspect Match & Override</span>
-          </button>
-        </div>
-      )}
-      {isOverridden && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 12px',
-            background: 'rgba(16, 185, 129, 0.08)',
-            border: '1px solid rgba(16, 185, 129, 0.25)',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '0.775rem',
-            color: 'var(--status-success)',
-            fontWeight: 600
-          }}
-        >
-          <ShieldCheck size={14} />
-          <span>Duplicate Collision Manually Overridden & Approved for Question Bank</span>
-        </div>
-      )}
-
       {/* Top Header Metadata Strip */}
       <div
         style={{
@@ -652,29 +587,6 @@ function QuestionCard({
           </button>
         )}
       </div>
-
-      {showDuplicateModal && (
-        <DuplicateComparisonModal
-          isOpen={showDuplicateModal}
-          onClose={() => setShowDuplicateModal(false)}
-          candidateQuestion={question}
-          onOverrideApprove={async (q) => {
-            const updated = {
-              ...q,
-              is_duplicate_override: true,
-              duplicate_info: {
-                ...(q.duplicate_info || {}),
-                is_overridden: true,
-                overridden_at: new Date().toISOString()
-              }
-            };
-            if (onUpdateQuestion) onUpdateQuestion(updated);
-            if (onApprove) await onApprove(updated);
-            setShowDuplicateModal(false);
-          }}
-          onDiscard={onDiscard ? () => onDiscard(question.id) : undefined}
-        />
-      )}
     </div>
   );
 }

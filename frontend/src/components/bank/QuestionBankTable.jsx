@@ -11,8 +11,7 @@ import {
   Trash2,
   Image as ImageIcon,
   AlertTriangle,
-  Target,
-  ShieldCheck
+  Target
 } from 'lucide-react';
 import VisualStimulusViewer from '../question/VisualStimulusViewer';
 import SharedPassageCard from '../question/SharedPassageCard';
@@ -128,22 +127,6 @@ const QuestionBankCardRow = React.memo(function QuestionBankCardRow({
               {(q.image_svg || q.image_url || q.stage_outcomes?.visual_stimulus?.image_svg || q.stage_outcomes?.visual_stimulus?.image_url || q.stage_outcomes?.passage_visual_stimulus?.image_svg) && (
                 <span className="badge badge-purple" style={{ fontSize: '0.65rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                   <ImageIcon size={10} /> Diagram
-                </span>
-              )}
-
-              {(q.is_duplicate_override || q.duplicate_info?.is_overridden) && (
-                <span
-                  className="badge badge-amber"
-                  style={{
-                    fontSize: '0.65rem',
-                    fontWeight: 700,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '3px'
-                  }}
-                  title="Duplicate collision was manually reviewed and overridden by author/manager."
-                >
-                  <ShieldCheck size={10} /> Overridden
                 </span>
               )}
 

@@ -4,8 +4,6 @@ import StagedQuestionSlotCard from './StagedQuestionSlotCard';
 import BatchProgressHeader from './BatchProgressHeader';
 import StagedBatchGrid from './StagedBatchGrid';
 import StagedDetailedView from './StagedDetailedView';
-import StagedDuplicateClustersView from './StagedDuplicateClustersView';
-import DuplicateComparisonModal from '../modals/DuplicateComparisonModal';
 import { useKeyboardShortcuts } from '../../hooks';
 import { findDuplicateClusters } from '../../utils';
 
@@ -36,11 +34,22 @@ export default function StagedBatchReview({
   const [passageLayoutMode, setPassageLayoutMode] = useState('split');
   const [isSaving, setIsSaving] = useState(false);
   const [expandedExplanationIds, setExpandedExplanationIds] = useState(() => new Set());
-  const [duplicateModalQuestion, setDuplicateModalQuestion] = useState(null);
 
-  // ─── Duplicate Clusters Detection ──────────────────────────────────────────
-  const duplicateClusters = useMemo(() => {
-    return findDuplicateClusters(stagedQuestions, 0.75);
+  // ─── Silent Background Deduplication ───────────────────────────────────────
+  const uniqueStagedQuestions = useMemo(() => {
+    if (!stagedQuestions || stagedQuestions.length < 2) return stagedQuestions || EMPTY_ARRAY;
+    const clusters = findDuplicateClusters(stagedQuestions, 0.75);
+    if (!clusters || clusters.length === 0) return stagedQuestions;
+    const duplicateIds = new Set();
+    for (const c of clusters) {
+      const leaderId = c.leader_question?.id;
+      for (const d of c.duplicates || []) {
+        if (d.question?.id && d.question.id !== leaderId) {
+          duplicateIds.add(d.question.id);
+        }
+      }
+    }
+    return stagedQuestions.filter((q) => !duplicateIds.has(q.id));
   }, [stagedQuestions]);
 
   // ─── Derived State ─────────────────────────────────────────────────────────
@@ -50,17 +59,17 @@ export default function StagedBatchReview({
     return combined;
   }, [localSavedIds, savedQuestionIds]);
 
-  const effectiveTotal = Math.max(stagedQuestions.length, targetTotal || 1, batchProgress?.total || 1);
+  const effectiveTotal = Math.max(uniqueStagedQuestions.length, targetTotal || 1, batchProgress?.total || 1);
 
   // ─── Batch Question Keyboard Hotkeys (J/K & Left/Right) ─────────────────
   useKeyboardShortcuts({
     onNextQuestion: () => {
-      if (stagedQuestions.length > 1 || effectiveTotal > 1) {
+      if (uniqueStagedQuestions.length > 1 || effectiveTotal > 1) {
         setActiveIdx((prev) => (prev + 1) % effectiveTotal);
       }
     },
     onPrevQuestion: () => {
-      if (stagedQuestions.length > 1 || effectiveTotal > 1) {
+      if (uniqueStagedQuestions.length > 1 || effectiveTotal > 1) {
         setActiveIdx((prev) => (prev - 1 + effectiveTotal) % effectiveTotal);
       }
     }
@@ -68,30 +77,30 @@ export default function StagedBatchReview({
 
   const isPassageSet = useMemo(() => {
     if (batchProgress?.passage_mode === 'single_passage') return true;
-    if (stagedQuestions.some((q) => q.passage_id || q.passage_mode === 'single_passage')) return true;
+    if (uniqueStagedQuestions.some((q) => q.passage_id || q.passage_mode === 'single_passage')) return true;
     if (
-      stagedQuestions.length > 1 &&
-      stagedQuestions.every(
-        (q) => q.passage_required === 'Yes' && q.stimulus_text && q.stimulus_text === stagedQuestions[0]?.stimulus_text
+      uniqueStagedQuestions.length > 1 &&
+      uniqueStagedQuestions.every(
+        (q) => q.passage_required === 'Yes' && q.stimulus_text && q.stimulus_text === uniqueStagedQuestions[0]?.stimulus_text
       )
     )
       return true;
     return false;
-  }, [stagedQuestions, batchProgress]);
+  }, [uniqueStagedQuestions, batchProgress]);
 
   const effectivePassageCount = useMemo(() => {
     if (batchProgress?.passage_question_count) return batchProgress.passage_question_count;
-    const passageLinkedQs = stagedQuestions.filter((q) => q.passage_id || q.passage_mode === 'single_passage');
-    if (passageLinkedQs.length > 0 && passageLinkedQs.length < stagedQuestions.length) return passageLinkedQs.length;
+    const passageLinkedQs = uniqueStagedQuestions.filter((q) => q.passage_id || q.passage_mode === 'single_passage');
+    if (passageLinkedQs.length > 0 && passageLinkedQs.length < uniqueStagedQuestions.length) return passageLinkedQs.length;
     if (
       isPassageSet &&
       !batchProgress?.is_mixed_set &&
-      stagedQuestions.length > 0 &&
-      stagedQuestions.every((q) => !q.passage_id || q.passage_mode === 'single_passage')
+      uniqueStagedQuestions.length > 0 &&
+      uniqueStagedQuestions.every((q) => !q.passage_id || q.passage_mode === 'single_passage')
     )
       return effectiveTotal;
     return passageLinkedQs.length || (isPassageSet ? effectiveTotal : 0);
-  }, [batchProgress, stagedQuestions, isPassageSet, effectiveTotal]);
+  }, [batchProgress, uniqueStagedQuestions, isPassageSet, effectiveTotal]);
 
   const isMixedBatch = useMemo(() => {
     if (batchProgress?.is_mixed_set !== undefined) return Boolean(batchProgress.is_mixed_set);
@@ -101,9 +110,9 @@ export default function StagedBatchReview({
   const sharedStimulusText = useMemo(() => {
     if (!isPassageSet) return null;
     if (batchProgress?.shared_passage) return batchProgress.shared_passage;
-    const linkedQ = stagedQuestions.find((q) => q.passage_id || q.passage_mode === 'single_passage');
-    return linkedQ?.stimulus_text || stagedQuestions[0]?.stimulus_text || null;
-  }, [isPassageSet, batchProgress, stagedQuestions]);
+    const linkedQ = uniqueStagedQuestions.find((q) => q.passage_id || q.passage_mode === 'single_passage');
+    return linkedQ?.stimulus_text || uniqueStagedQuestions[0]?.stimulus_text || null;
+  }, [isPassageSet, batchProgress, uniqueStagedQuestions]);
 
   const sharedPassageImage = useMemo(() => {
     if (!isPassageSet) return null;
@@ -114,7 +123,7 @@ export default function StagedBatchReview({
         image_description: batchProgress.shared_passage_image_description
       };
     }
-    const linkedQ = stagedQuestions.find(
+    const linkedQ = uniqueStagedQuestions.find(
       (q) =>
         (q.passage_id || q.passage_mode === 'single_passage') &&
         (q.image_svg ||
@@ -139,7 +148,7 @@ export default function StagedBatchReview({
       };
     }
     return null;
-  }, [isPassageSet, batchProgress, stagedQuestions]);
+  }, [isPassageSet, batchProgress, uniqueStagedQuestions]);
 
   const isQuestionPassageLinked = (q, slotNumber) => {
     if (q) {
@@ -152,29 +161,29 @@ export default function StagedBatchReview({
   };
 
   const selectedIds = useMemo(() => {
-    return new Set(stagedQuestions.filter((q) => !deselectedIds.has(q.id)).map((q) => q.id));
-  }, [stagedQuestions, deselectedIds]);
+    return new Set(uniqueStagedQuestions.filter((q) => !deselectedIds.has(q.id)).map((q) => q.id));
+  }, [uniqueStagedQuestions, deselectedIds]);
 
-  const totalCompleted = stagedQuestions.length;
+  const totalCompleted = uniqueStagedQuestions.length;
   const selectedCount = selectedIds.size;
   const savedCount = savedIds.size;
   const unsavedQuestions = useMemo(
-    () => stagedQuestions.filter((q) => !savedIds.has(q.id)),
-    [stagedQuestions, savedIds]
+    () => uniqueStagedQuestions.filter((q) => !savedIds.has(q.id)),
+    [uniqueStagedQuestions, savedIds]
   );
   const unsavedCount = unsavedQuestions.length;
   const allAccepted = totalCompleted > 0 && savedCount === totalCompleted;
   const anyAccepted = savedCount > 0;
 
   const unsavedSelectedCount = useMemo(() => {
-    return stagedQuestions.filter((q) => selectedIds.has(q.id) && !savedIds.has(q.id)).length;
-  }, [stagedQuestions, selectedIds, savedIds]);
+    return uniqueStagedQuestions.filter((q) => selectedIds.has(q.id) && !savedIds.has(q.id)).length;
+  }, [uniqueStagedQuestions, selectedIds, savedIds]);
 
   const { singleCount, passageCount, avgScore } = useMemo(() => {
     let single = 0,
       passage = 0,
       scoreSum = 0;
-    stagedQuestions.forEach((q) => {
+    uniqueStagedQuestions.forEach((q) => {
       single++;
       const wordCount = q.stimulus_text ? q.stimulus_text.trim().split(/\s+/).length : 0;
       if (q.passage_required === 'Yes' || wordCount >= 180) passage++;
@@ -185,12 +194,12 @@ export default function StagedBatchReview({
       passageCount: passage,
       avgScore: totalCompleted > 0 ? (scoreSum / totalCompleted).toFixed(1) : '95.0'
     };
-  }, [stagedQuestions, totalCompleted]);
+  }, [uniqueStagedQuestions, totalCompleted]);
 
-  const validIdx = Math.max(0, Math.min(activeIdx, Math.max(0, stagedQuestions.length - 1)));
-  const activeQuestion = stagedQuestions[validIdx] || null;
+  const validIdx = Math.max(0, Math.min(activeIdx, Math.max(0, uniqueStagedQuestions.length - 1)));
+  const activeQuestion = uniqueStagedQuestions[validIdx] || null;
 
-  if (stagedQuestions.length === 0 && !isGenerating && effectiveTotal <= 1) return null;
+  if (uniqueStagedQuestions.length === 0 && !isGenerating && effectiveTotal <= 1) return null;
 
   // ─── Handlers ──────────────────────────────────────────────────────────────
   const handleToggleSelect = (id) => {
@@ -231,7 +240,7 @@ export default function StagedBatchReview({
 
   const handleApproveSelectedClick = async () => {
     if (unsavedSelectedCount === 0 || isSaving) return;
-    const questionsToApprove = stagedQuestions.filter((q) => selectedIds.has(q.id) && !savedIds.has(q.id));
+    const questionsToApprove = uniqueStagedQuestions.filter((q) => selectedIds.has(q.id) && !savedIds.has(q.id));
     if (questionsToApprove.length === 0) return;
     setIsSaving(true);
     try {
@@ -248,7 +257,7 @@ export default function StagedBatchReview({
 
   const handleApproveAllClick = async () => {
     if (isSaving || totalCompleted === 0 || allAccepted) return;
-    const unsaved = stagedQuestions.filter((q) => !savedIds.has(q.id));
+    const unsaved = uniqueStagedQuestions.filter((q) => !savedIds.has(q.id));
     if (unsaved.length === 0) return;
     setIsSaving(true);
     try {
@@ -290,33 +299,14 @@ export default function StagedBatchReview({
     }
   };
 
-  const handleOverrideDuplicate = async (questionToOverride) => {
-    try {
-      const updated = {
-        ...questionToOverride,
-        is_duplicate_override: true,
-        duplicate_info: {
-          ...(questionToOverride.duplicate_info || {}),
-          is_overridden: true,
-          overridden_at: new Date().toISOString()
-        }
-      };
-      if (onUpdateQuestion) onUpdateQuestion(updated);
-      await handleApproveSingle(updated);
-      setDuplicateModalQuestion(null);
-    } catch (err) {
-      console.error('Failed to override duplicate:', err);
-    }
-  };
-
   // ─── Slot Card Factory ─────────────────────────────────────────────────────
   const renderSlotCard = (idx) => {
     const slotNumber = idx + 1;
     const qState = perQuestionState[slotNumber];
     const q =
-      stagedQuestions.find((item) => item.index === slotNumber || item.batch_index === slotNumber) ||
+      uniqueStagedQuestions.find((item) => item.index === slotNumber || item.batch_index === slotNumber) ||
       qState?.question ||
-      (stagedQuestions.length === effectiveTotal ? stagedQuestions[idx] : null);
+      (uniqueStagedQuestions.length === effectiveTotal ? uniqueStagedQuestions[idx] : null);
     const isLinked = isQuestionPassageLinked(q, slotNumber);
 
     return (
@@ -338,7 +328,6 @@ export default function StagedBatchReview({
         onToggleExplanation={toggleExplanation}
         onApproveSingle={handleApproveSingle}
         onOpenAudit={onOpenAudit}
-        onOpenDuplicateModal={setDuplicateModalQuestion}
         onSelectDetailedView={(selectedIdx) => {
           setActiveIdx(selectedIdx);
           setViewMode('tabs');
@@ -355,7 +344,6 @@ export default function StagedBatchReview({
         totalCompleted={totalCompleted}
         effectiveTotal={effectiveTotal}
         isSaving={isSaving}
-        clusterCount={duplicateClusters.length}
         singleCount={singleCount}
         passageCount={passageCount}
         isPassageSet={isPassageSet}
@@ -430,7 +418,7 @@ export default function StagedBatchReview({
                 <StagedDetailedView
                   effectiveTotal={effectiveTotal}
                   perQuestionState={perQuestionState}
-                  stagedQuestions={stagedQuestions}
+                  stagedQuestions={uniqueStagedQuestions}
                   validIdx={validIdx}
                   activeQuestion={activeQuestion}
                   totalCompleted={totalCompleted}
@@ -466,7 +454,7 @@ export default function StagedBatchReview({
               <StagedDetailedView
                 effectiveTotal={effectiveTotal}
                 perQuestionState={perQuestionState}
-                stagedQuestions={stagedQuestions}
+                stagedQuestions={uniqueStagedQuestions}
                 validIdx={validIdx}
                 activeQuestion={activeQuestion}
                 totalCompleted={totalCompleted}
@@ -485,29 +473,6 @@ export default function StagedBatchReview({
             </>
           )}
         </>
-      )}
-
-      {/* ── VIEW MODE 3: DUPLICATE CLUSTERS VIEW ───────────────────────── */}
-      {viewMode === 'clusters' && (
-        <StagedDuplicateClustersView
-          clusters={duplicateClusters}
-          stagedQuestions={stagedQuestions}
-          savedIds={savedIds}
-          onDiscardQuestion={onDiscardQuestion}
-          onApproveSingle={handleApproveSingle}
-          onOpenAudit={onOpenAudit}
-          onSwitchToGrid={() => setViewMode('grid')}
-        />
-      )}
-
-      {duplicateModalQuestion && (
-        <DuplicateComparisonModal
-          isOpen={Boolean(duplicateModalQuestion)}
-          onClose={() => setDuplicateModalQuestion(null)}
-          candidateQuestion={duplicateModalQuestion}
-          onOverrideApprove={handleOverrideDuplicate}
-          onDiscard={onDiscardQuestion}
-        />
       )}
     </div>
   );

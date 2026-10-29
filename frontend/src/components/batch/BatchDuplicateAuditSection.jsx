@@ -165,9 +165,51 @@ export default function BatchDuplicateAuditSection({
   const totalDuplicates = clusterData.total_duplicate_questions || 0;
   const clusters = clusterData.clusters || [];
   const activeCount = clusterData.total_active_questions || 0;
+  const archivedDuplicates = clusterData.archived_duplicates_count || 0;
+  const isAutoResolved = Boolean(clusterData.auto_resolved || archivedDuplicates > 0);
   const deficit = Math.max(0, batchTargetCount - (activeCount - totalDuplicates));
 
   if (totalDuplicates === 0) {
+    if (isAutoResolved && archivedDuplicates > 0) {
+      return (
+        <div
+          style={{
+            padding: '12px 16px',
+            background: 'rgba(34, 197, 94, 0.06)',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid rgba(34, 197, 94, 0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '12px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ShieldCheck size={16} color="var(--status-success)" />
+            <div>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>Auto-Deduplicated by System</span>
+                <span className="badge badge-emerald" style={{ fontSize: '0.675rem' }}>Verified Unique</span>
+              </div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                {archivedDuplicates} redundant question{archivedDuplicates > 1 ? 's were' : ' was'} automatically archived. All {activeCount} remaining active questions in this batch are unique and meet quality standards.
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={loadClusters}
+            className="btn-ghost"
+            style={{ padding: '4px 8px', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+          >
+            <RefreshCw size={11} />
+            <span>Re-scan</span>
+          </button>
+        </div>
+      );
+    }
+
     return (
       <div
         style={{

@@ -7,6 +7,7 @@ from app.db.base import to_datetime, to_iso_str
 from app.db.session import async_session_factory
 from app.models.batch import GenerationBatchModel
 from app.models.job import GenerationJobModel
+from app.models.question import QuestionModel
 from app.schemas import GenerationBatch
 
 logger = logging.getLogger(__name__)
@@ -128,9 +129,18 @@ async def refresh_batch_aggregates(batch_id: str) -> GenerationBatch | None:
 
         completed_jobs = int(row.completed_jobs or 0)
         failed_jobs = int(row.failed_jobs or 0)
-        actual_count = int(row.actual_count or 0)
+        job_sum_actual = int(row.actual_count or 0)
         total_tokens = int(row.total_tokens or 0)
         cost_usd = round(float(row.cost_usd or 0.0), 6)
+
+        # Count real active questions in the batch (excluding discarded, failed, rejected)
+        q_count_stmt = select(func.count(QuestionModel.id)).where(
+            QuestionModel.batch_id == batch_id,
+            QuestionModel.status.notin_(("discarded", "rejected_below_threshold", "error", "failed")),
+        )
+        q_count_res = await session.execute(q_count_stmt)
+        active_q_count = int(q_count_res.scalar() or 0)
+        actual_count = active_q_count if active_q_count > 0 else job_sum_actual
 
         batch_model.completed_jobs = completed_jobs
         batch_model.failed_jobs = failed_jobs
@@ -144,8 +154,10 @@ async def refresh_batch_aggregates(batch_id: str) -> GenerationBatch | None:
 
         # Preserve terminal or user-stopped status unless transitioning upon completion
         if batch_model.status not in ("cancelled", "stopped"):
-            if completed_jobs >= total_jobs or (actual_count >= target_count and actual_count > 0):
+            if actual_count >= target_count and actual_count > 0:
                 batch_model.status = "completed"
+            elif completed_jobs >= total_jobs:
+                batch_model.status = "completed" if actual_count >= target_count else "in_progress"
             elif completed_jobs + failed_jobs >= total_jobs:
                 batch_model.status = "partially_completed" if completed_jobs > 0 else "failed"
 

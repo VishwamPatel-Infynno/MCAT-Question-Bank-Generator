@@ -17,7 +17,11 @@ from app.repositories.job_repository import (
     save_jobs_bulk,
     update_job_progress,
 )
-from app.repositories.question_repository import save_question
+from app.repositories.question_repository import (
+    batch_update_question_status,
+    get_questions,
+    save_question,
+)
 from app.schemas import (
     GenerationBatch,
     GenerationJob,
@@ -25,6 +29,7 @@ from app.schemas import (
     Question,
     determine_question_status,
 )
+from app.services.deduplication import cluster_questions
 from app.workflow.engine import run_workflow_stream
 
 logger = logging.getLogger(__name__)
@@ -132,7 +137,7 @@ async def _run_single_job(
                 "batch_id": batch_id,
                 "job_id": job.id,
                 "passing_threshold": config.BATCH_PASSING_SCORE_THRESHOLD,
-                "questions_to_generate": 5,
+                "questions_to_generate": job.target_count or 5,
                 "passage_mode": "single_passage" if is_passage_mode else "independent",
                 "passage_required": "Yes" if is_passage_mode else "No",
                 "passage_id": passage_id_for_job,
@@ -239,6 +244,8 @@ async def _execute_batch_workflow(
     batch_id: str,
     req: GenerationRequest,
     target_jobs: list[GenerationJob] | None = None,
+    current_cycle: int = 1,
+    max_cycles: int = 5,
 ) -> None:
     """Coordinates the execution of jobs within a batch using the global worker semaphore."""
     tasks: list[asyncio.Task[Any]] = []
@@ -274,6 +281,11 @@ async def _execute_batch_workflow(
                 f"{updated_batch.actual_count}/{updated_batch.target_count} questions)."
             )
 
+        # Autonomous duplicate resolution and refill
+        await auto_resolve_batch_and_refill(
+            batch_id, current_cycle=current_cycle, max_cycles=max_cycles
+        )
+
     except asyncio.CancelledError:
         logger.info(f"Batch {batch_id} execution was cancelled; terminating all sub-tasks...")
         for t in tasks:
@@ -290,7 +302,101 @@ async def _execute_batch_workflow(
             b.error_message = str(e)
             await save_batch(b)
     finally:
-        _active_batch_tasks.pop(batch_id, None)
+        if _active_batch_tasks.get(batch_id) is asyncio.current_task():
+            _active_batch_tasks.pop(batch_id, None)
+
+
+async def auto_resolve_batch_and_refill(
+    batch_id: str,
+    current_cycle: int = 1,
+    max_cycles: int = 5,
+    threshold: float = 0.75,
+) -> dict[str, Any]:
+    """
+    Evaluates active questions in a batch for duplicate clusters, automatically archives
+    redundant duplicates in favor of the highest-scoring question in each cluster,
+    and automatically triggers a resilient refill generation with buffer if a deficit exists,
+    capped at max_cycles (up to 5 cycles). Also trims excess buffer questions to exact target.
+    """
+    b = await get_batch_by_id(batch_id)
+    if not b:
+        return {"resolved": False, "reason": "Batch not found"}
+
+    linked_questions = await get_questions(batch_id=batch_id)
+    active_questions = [
+        q
+        for q in linked_questions
+        if q.status not in ("discarded", "rejected_below_threshold", "error", "failed")
+    ]
+    q_dumps = [q.model_dump() for q in active_questions]
+
+    clusters = cluster_questions(q_dumps, threshold=threshold)
+    duplicate_ids_to_purge: list[str] = []
+
+    if clusters:
+        for c in clusters:
+            leader_id = c["leader_question"]["id"]
+            for d in c["duplicates"]:
+                dup_id = d["question"]["id"]
+                if dup_id != leader_id:
+                    duplicate_ids_to_purge.append(dup_id)
+
+        if duplicate_ids_to_purge:
+            await batch_update_question_status(duplicate_ids_to_purge, status="discarded")
+            logger.info(
+                f"Auto-resolved {len(clusters)} duplicate cluster(s) in batch {batch_id}; "
+                f"archived {len(duplicate_ids_to_purge)} duplicate question(s)."
+            )
+
+    await refresh_batch_aggregates(batch_id)
+    refreshed_b = await get_batch_by_id(batch_id)
+    refreshed_questions = await get_questions(batch_id=batch_id)
+    valid_active = [
+        q
+        for q in refreshed_questions
+        if q.status not in ("discarded", "rejected_below_threshold", "error", "failed")
+    ]
+    remaining_active = len(valid_active)
+    target = refreshed_b.target_count if refreshed_b else 50
+    deficit = max(0, target - remaining_active)
+
+    refill_launched = False
+    if deficit > 0 and current_cycle < max_cycles:
+        # Generate with safety buffer to ensure deficit is reliably closed
+        buffer = 1 if deficit < 5 else 2
+        refill_target = min(target, deficit + buffer)
+        logger.info(
+            f"Auto-refill triggered for batch {batch_id}: deficit={deficit}, "
+            f"refill_target={refill_target} (buffer={buffer}), "
+            f"cycle={current_cycle + 1}/{max_cycles}"
+        )
+        await refill_batch_deficit(
+            batch_id, refill_target, cycle=current_cycle + 1, max_cycles=max_cycles
+        )
+        refill_launched = True
+    elif remaining_active > target:
+        # Cap to exact target count: retain the top highest-scoring questions, archive excess
+        valid_active.sort(key=lambda q: (q.final_score or 0), reverse=True)
+        excess_questions = valid_active[target:]
+        excess_ids = [q.id for q in excess_questions]
+        if excess_ids:
+            await batch_update_question_status(excess_ids, status="discarded")
+            logger.info(
+                f"Capped batch {batch_id} to exact target {target}: archived {len(excess_ids)} excess buffer question(s)."
+            )
+            await refresh_batch_aggregates(batch_id)
+            remaining_active = target
+            deficit = 0
+
+    return {
+        "resolved": True,
+        "clusters_count": len(clusters),
+        "archived_duplicates_count": len(duplicate_ids_to_purge),
+        "remaining_active": remaining_active,
+        "deficit": deficit,
+        "refill_launched": refill_launched,
+        "current_cycle": current_cycle,
+    }
 
 
 async def stop_background_batch(batch_id: str) -> bool:
@@ -385,6 +491,8 @@ async def retry_incomplete_jobs_for_batch(
 async def refill_batch_deficit(
     batch_id: str,
     deficit: int,
+    cycle: int = 2,
+    max_cycles: int = 5,
 ) -> tuple[GenerationBatch | None, list[GenerationJob]]:
     """
     Creates and launches targeted background jobs to generate replacement questions
@@ -437,7 +545,15 @@ async def refill_batch_deficit(
             questions_to_generate=5,
         )
 
-    task = asyncio.create_task(_execute_batch_workflow(batch_id, effective_req, new_jobs))
+    task = asyncio.create_task(
+        _execute_batch_workflow(
+            batch_id,
+            effective_req,
+            new_jobs,
+            current_cycle=cycle,
+            max_cycles=max_cycles,
+        )
+    )
     _active_batch_tasks[batch_id] = task
 
     refreshed_batch = await get_batch_by_id(batch_id)
@@ -469,9 +585,8 @@ async def launch_background_batch(
     sec_val = req.section.value if hasattr(req.section, "value") else str(req.section)
     diff_val = req.difficulty.value if hasattr(req.difficulty, "value") else str(req.difficulty)
 
-    target_q = req.questions_to_generate or 50
-    total_jobs = 1 if target_q == 5 else 10
-    target_count = 5 if target_q == 5 else 50
+    target_count = req.questions_to_generate or 50
+    total_jobs = max(1, (target_count + 4) // 5)
 
     # Cache request for potential 1-click retries
     _batch_requests[b_id] = req
@@ -496,12 +611,13 @@ async def launch_background_batch(
     # 2. Create GenerationJob stubs
     jobs: list[GenerationJob] = []
     for num in range(1, total_jobs + 1):
+        job_target = min(5, target_count - (num - 1) * 5)
         j = GenerationJob(
             id=str(uuid.uuid4()),
             batch_id=b_id,
             job_number=num,
             status="pending",
-            target_count=5,
+            target_count=job_target,
             actual_count=0,
             created_at=now_iso,
         )

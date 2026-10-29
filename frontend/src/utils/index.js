@@ -32,7 +32,8 @@ export {
   normalizeStem,
   extractTokens,
   computeStemSimilarity,
-  findDuplicateClusters
+  findDuplicateClusters,
+  getAutoResolvedClusterMap
 } from './deduplication';
 
 
