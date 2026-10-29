@@ -1,14 +1,21 @@
-import pytest
 import uuid
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
-from app.schemas import GenerationBatch, GenerationJob, GenerationRequest, Question, MCATSection, Difficulty
-from app.repositories.batch_repository import save_batch, get_batch_by_id, refresh_batch_aggregates
-from app.repositories.job_repository import save_job, save_jobs_bulk, get_jobs_by_batch_id
-from app.repositories.question_repository import save_question, get_questions
+import pytest
+from app.repositories.batch_repository import refresh_batch_aggregates, save_batch
+from app.repositories.job_repository import save_job
+from app.repositories.question_repository import get_questions, save_question
+from app.schemas import (
+    Difficulty,
+    GenerationBatch,
+    GenerationJob,
+    GenerationRequest,
+    MCATSection,
+    Question,
+)
 from app.services.batch_runner import (
-    launch_background_batch,
     auto_resolve_batch_and_refill,
+    launch_background_batch,
 )
 
 
@@ -123,7 +130,8 @@ async def test_auto_resolve_caps_excess_to_exact_target():
 
     # Verify questions in database
     active_qs = [
-        q for q in (await get_questions(batch_id=batch_id))
+        q
+        for q in (await get_questions(batch_id=batch_id))
         if q.status not in ("discarded", "rejected_below_threshold", "error", "failed")
     ]
     assert len(active_qs) == 5
@@ -133,10 +141,7 @@ async def test_auto_resolve_caps_excess_to_exact_target():
     assert active_scores == {96, 92, 89, 87, 85}
 
     # Check that lowest 2 (82, 78) are discarded
-    discarded_qs = [
-        q for q in (await get_questions(batch_id=batch_id))
-        if q.status == "discarded"
-    ]
+    discarded_qs = [q for q in (await get_questions(batch_id=batch_id)) if q.status == "discarded"]
     assert len(discarded_qs) == 2
     discarded_scores = {q.final_score for q in discarded_qs}
     assert discarded_scores == {82, 78}
@@ -223,9 +228,10 @@ async def test_interactive_slot_replenishment_recovers_from_quality_rejection(mo
     and completes with exactly the requested 5 questions.
     """
     import json
+
+    import app.workflow.engine as engine_mod
     from app.core.config import config
     from app.workflow.engine import run_workflow_stream
-    import app.workflow.engine as engine_mod
 
     monkeypatch.setattr(config, "DEEPINFRA_API_KEY", "")
     monkeypatch.delenv("DEEPINFRA_API_KEY", raising=False)
@@ -239,7 +245,9 @@ async def test_interactive_slot_replenishment_recovers_from_quality_rejection(mo
             if attempt_tracker["slot_0_calls"] == 1:
                 # First attempt fails review
                 return False
-        return await original_review_loop(state, idx, total_qty, item_run_id, event_queue, make_event)
+        return await original_review_loop(
+            state, idx, total_qty, item_run_id, event_queue, make_event
+        )
 
     monkeypatch.setattr(engine_mod, "_run_question_review_loop", flaky_review_loop)
 
@@ -264,4 +272,3 @@ async def test_interactive_slot_replenishment_recovers_from_quality_rejection(mo
     assert len(complete_evts) == 1
     staged_qs = complete_evts[0]["data"]["questions"]
     assert len(staged_qs) == 5
-

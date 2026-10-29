@@ -251,7 +251,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
         async def _worker(idx: int) -> None:
             max_worker_retries = config.WORKFLOW_MAX_WORKER_RETRIES
-            max_slot_attempts = max_worker_retries + 3  # Up to 5 attempts to guarantee slot completion
+            max_slot_attempts = (
+                max_worker_retries + 3
+            )  # Up to 5 attempts to guarantee slot completion
             for attempt in range(max_slot_attempts):
                 try:
                     async with semaphore:
@@ -267,7 +269,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             )
                         )
                         if attempt > 0:
-                            item_req.thematic_angle = f"Question Item {idx + 1} Attempt {attempt + 1}"
+                            item_req.thematic_angle = (
+                                f"Question Item {idx + 1} Attempt {attempt + 1}"
+                            )
 
                         alt_traps = [
                             "CONCEPT_CONFUSION",
@@ -419,11 +423,19 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         dup_info = state.get("duplicate_info") or {}
                         is_hard_dup = bool(dup_info.get("is_duplicate", False))
                         matched_id = str(dup_info.get("matched_question_id") or "")
-                        sibling_ids = {str(q.get("id")) for q in outcomes_questions if q is not None and "id" in q}
-                        is_sibling_collision = is_hard_dup and (matched_id in sibling_ids or matched_id.startswith("in_flight_"))
+                        sibling_ids = {
+                            str(q.get("id"))
+                            for q in outcomes_questions
+                            if q is not None and "id" in q
+                        }
+                        is_sibling_collision = is_hard_dup and (
+                            matched_id in sibling_ids or matched_id.startswith("in_flight_")
+                        )
 
                         # Accept if question passed quality audit and does not collide with a sibling in this batch
-                        if question_passed and (not is_sibling_collision or attempt == max_slot_attempts - 1):
+                        if question_passed and (
+                            not is_sibling_collision or attempt == max_slot_attempts - 1
+                        ):
                             is_passage_item_check = (
                                 is_single_passage_set and idx < effective_passage_count
                             )
@@ -525,7 +537,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
                             outcomes_tokens[idx] += state.get("total_tokens", 0)
                             outcomes_prompt_tokens[idx] += state.get("total_prompt_tokens", 0)
-                            outcomes_completion_tokens[idx] += state.get("total_completion_tokens", 0)
+                            outcomes_completion_tokens[idx] += state.get(
+                                "total_completion_tokens", 0
+                            )
                             outcomes_costs[idx] += state.get("total_cost_usd", 0.0)
                             outcomes_usage[idx].extend(state.get("agent_usage_breakdown", []))
                             await remove_in_flight_draft(batch_id, idx)
@@ -535,7 +549,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             rej_data = state.get("rejection_data") or {
                                 "index": idx + 1,
                                 "stage": "rejected",
-                                "reason": "Duplicate collision" if is_hard_dup else "Quality score below threshold",
+                                "reason": "Duplicate collision"
+                                if is_hard_dup
+                                else "Quality score below threshold",
                             }
                             outcomes_rejections.append(rej_data)
                             logger.warning(
@@ -544,7 +560,9 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             )
                             outcomes_tokens[idx] += state.get("total_tokens", 0)
                             outcomes_prompt_tokens[idx] += state.get("total_prompt_tokens", 0)
-                            outcomes_completion_tokens[idx] += state.get("total_completion_tokens", 0)
+                            outcomes_completion_tokens[idx] += state.get(
+                                "total_completion_tokens", 0
+                            )
                             outcomes_costs[idx] += state.get("total_cost_usd", 0.0)
                             outcomes_usage[idx].extend(state.get("agent_usage_breakdown", []))
                             await remove_in_flight_draft(batch_id, idx)

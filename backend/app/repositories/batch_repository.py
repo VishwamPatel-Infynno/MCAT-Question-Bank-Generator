@@ -136,7 +136,9 @@ async def refresh_batch_aggregates(batch_id: str) -> GenerationBatch | None:
         # Count real active questions in the batch (excluding discarded, failed, rejected)
         q_count_stmt = select(func.count(QuestionModel.id)).where(
             QuestionModel.batch_id == batch_id,
-            QuestionModel.status.notin_(("discarded", "rejected_below_threshold", "error", "failed")),
+            QuestionModel.status.notin_(
+                ("discarded", "rejected_below_threshold", "error", "failed")
+            ),
         )
         q_count_res = await session.execute(q_count_stmt)
         active_q_count = int(q_count_res.scalar() or 0)

@@ -782,7 +782,9 @@ async def _run_deduplication_anti_collision_loop(
             f"{state.get('diversity_context') or ''} {collision_hint}".strip()
         )
         if "request" in state and isinstance(state["request"], dict):
-            state["request"]["thematic_angle"] = f"Question Item {idx + 1} Retry {dedup_retry} Trap {alt_trap}"
+            state["request"]["thematic_angle"] = (
+                f"Question Item {idx + 1} Retry {dedup_retry} Trap {alt_trap}"
+            )
             state["request"]["primary_trap"] = alt_trap
 
         regen_res = await fused_generator_node(state)

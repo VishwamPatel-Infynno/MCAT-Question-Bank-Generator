@@ -31,6 +31,18 @@ def auto_skip_db_tests(request):
         pytest.skip("PostgreSQL on localhost:5432 is offline. Skipping database-dependent test.")
 
 
+@pytest.fixture(autouse=True, scope="session")
+async def ensure_db_initialized():
+    """Automatically initializes the database schema if PostgreSQL is reachable."""
+    if POSTGRES_AVAILABLE:
+        try:
+            from app.db.session import init_db
+
+            await init_db()
+        except Exception:
+            pass
+
+
 @pytest.fixture(scope="session")
 async def client():
     """

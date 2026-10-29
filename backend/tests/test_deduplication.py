@@ -1,5 +1,4 @@
 import pytest
-
 from app.services.deduplication import (
     DuplicateCheckResult,
     cluster_questions,
@@ -156,6 +155,7 @@ def test_cluster_questions_groups_duplicates_correctly():
 @pytest.mark.asyncio
 async def test_auto_resolve_batch_and_refill(monkeypatch):
     from unittest.mock import AsyncMock
+
     from app.schemas import GenerationBatch, Question
     from app.services.batch_runner import auto_resolve_batch_and_refill
 
@@ -226,8 +226,12 @@ async def test_auto_resolve_batch_and_refill(monkeypatch):
 
     monkeypatch.setattr("app.services.batch_runner.get_batch_by_id", mock_get_batch)
     monkeypatch.setattr("app.services.batch_runner.get_questions", mock_get_questions)
-    monkeypatch.setattr("app.services.batch_runner.batch_update_question_status", mock_batch_update_status)
-    monkeypatch.setattr("app.services.batch_runner.refresh_batch_aggregates", mock_refresh_aggregates)
+    monkeypatch.setattr(
+        "app.services.batch_runner.batch_update_question_status", mock_batch_update_status
+    )
+    monkeypatch.setattr(
+        "app.services.batch_runner.refresh_batch_aggregates", mock_refresh_aggregates
+    )
     monkeypatch.setattr("app.services.batch_runner.refill_batch_deficit", mock_refill)
 
     # Cycle 1: auto_resolve should archive q2 (score 92, duplicate of q1 with 96) and trigger refill
@@ -242,4 +246,3 @@ async def test_auto_resolve_batch_and_refill(monkeypatch):
     assert res["deficit"] == 3
     assert res["refill_launched"] is True
     mock_refill.assert_awaited_once_with(batch_id, 4, cycle=2, max_cycles=2)
-

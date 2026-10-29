@@ -376,7 +376,7 @@ async def auto_resolve_batch_and_refill(
         refill_launched = True
     elif remaining_active > target:
         # Cap to exact target count: retain the top highest-scoring questions, archive excess
-        valid_active.sort(key=lambda q: (q.final_score or 0), reverse=True)
+        valid_active.sort(key=lambda q: q.final_score or 0, reverse=True)
         excess_questions = valid_active[target:]
         excess_ids = [q.id for q in excess_questions]
         if excess_ids:

@@ -108,9 +108,7 @@ function BatchCard({
   onNavigateToBank,
   onNavigateToValidated,
   onOpenAudit,
-  onSaveToBank,
-  onRefreshBatch,
-  onShowToast
+  onSaveToBank
 }) {
   const secColor = getSectionColor(batch.section);
   const totalJobs = batch.total_jobs || 10;

@@ -499,7 +499,10 @@ _MOCK_QUESTION_VARIANTS: dict[str, list[dict]] = {
         {
             "stem": "Based on the mechanism described in paragraph 1, by what primary process does carbon dioxide cross the apical membrane of renal proximal tubule cells?",
             "options": [
-                {"id": "A", "text": "Passive simple diffusion through the hydrophobic lipid bilayer"},
+                {
+                    "id": "A",
+                    "text": "Passive simple diffusion through the hydrophobic lipid bilayer",
+                },
                 {"id": "B", "text": "Secondary active transport via Na+/CO2 symport"},
                 {"id": "C", "text": "Facilitated diffusion through aquaporin channels"},
                 {"id": "D", "text": "Primary active transport driven by ATP hydrolysis"},
@@ -510,8 +513,14 @@ _MOCK_QUESTION_VARIANTS: dict[str, list[dict]] = {
         {
             "stem": "If severe hypoventilation causes systemic arterial blood pH to drop to 7.15, how will the bicarbonate buffer equilibrium respond to counteract the acidosis?",
             "options": [
-                {"id": "A", "text": "Shift left toward CO2 hydration to consume excess bicarbonate"},
-                {"id": "B", "text": "Shift toward CO2 and H2O to buffer excess protons by consuming HCO3-"},
+                {
+                    "id": "A",
+                    "text": "Shift left toward CO2 hydration to consume excess bicarbonate",
+                },
+                {
+                    "id": "B",
+                    "text": "Shift toward CO2 and H2O to buffer excess protons by consuming HCO3-",
+                },
                 {"id": "C", "text": "Inhibit renal tubular carbonic anhydrase activity"},
                 {"id": "D", "text": "Suppress basolateral Na+/HCO3- cotransport"},
             ],
@@ -521,8 +530,14 @@ _MOCK_QUESTION_VARIANTS: dict[str, list[dict]] = {
         {
             "stem": "The passage states that Compound X is a non-competitive inhibitor of CA-II. How is the catalytic efficiency (kcat / Km) of the enzyme affected in the presence of 10 μM Compound X?",
             "options": [
-                {"id": "A", "text": "Catalytic efficiency decreases because kcat decreases while Km is unchanged"},
-                {"id": "B", "text": "Catalytic efficiency remains unchanged because both kcat and Km decrease"},
+                {
+                    "id": "A",
+                    "text": "Catalytic efficiency decreases because kcat decreases while Km is unchanged",
+                },
+                {
+                    "id": "B",
+                    "text": "Catalytic efficiency remains unchanged because both kcat and Km decrease",
+                },
                 {"id": "C", "text": "Catalytic efficiency increases due to allosteric activation"},
                 {"id": "D", "text": "Catalytic efficiency decreases solely because Km increases"},
             ],
@@ -545,10 +560,22 @@ _MOCK_QUESTION_VARIANTS: dict[str, list[dict]] = {
         {
             "stem": "Which of the following best summarizes the author's primary argument regarding the nature of authentic aesthetic judgment?",
             "options": [
-                {"id": "A", "text": "Aesthetic appraisal operates as an open-ended dialogue between individual phenomenology and shared culture."},
-                {"id": "B", "text": "Bourdieu's sociological determinism thoroughly refutes any transcendent aesthetic claims."},
-                {"id": "C", "text": "Kant's concept of the sensus communis correctly explains empirical consensus across all cultures."},
-                {"id": "D", "text": "Cultural capital has become irrelevant due to contemporary artistic democratization."},
+                {
+                    "id": "A",
+                    "text": "Aesthetic appraisal operates as an open-ended dialogue between individual phenomenology and shared culture.",
+                },
+                {
+                    "id": "B",
+                    "text": "Bourdieu's sociological determinism thoroughly refutes any transcendent aesthetic claims.",
+                },
+                {
+                    "id": "C",
+                    "text": "Kant's concept of the sensus communis correctly explains empirical consensus across all cultures.",
+                },
+                {
+                    "id": "D",
+                    "text": "Cultural capital has become irrelevant due to contemporary artistic democratization.",
+                },
             ],
             "correct": "A",
             "explanation": "Paragraph 3 concludes that artistic power lies in staging an open dialogue between subjectivity and collective imagination.",
@@ -556,10 +583,22 @@ _MOCK_QUESTION_VARIANTS: dict[str, list[dict]] = {
         {
             "stem": "In the context of paragraph 2, the author discusses Pierre Bourdieu's concept of 'cultural capital' primarily to:",
             "options": [
-                {"id": "A", "text": "Introduce the sociological critique that taste serves as a socially conditioned marker of elite distinction."},
-                {"id": "B", "text": "Validate Kant's principle of disinterested contemplative pleasure."},
-                {"id": "C", "text": "Argue that working-class individuals lack capacity for aesthetic enjoyment."},
-                {"id": "D", "text": "Prove that avant-garde artistic forms are aesthetically superior to traditional forms."},
+                {
+                    "id": "A",
+                    "text": "Introduce the sociological critique that taste serves as a socially conditioned marker of elite distinction.",
+                },
+                {
+                    "id": "B",
+                    "text": "Validate Kant's principle of disinterested contemplative pleasure.",
+                },
+                {
+                    "id": "C",
+                    "text": "Argue that working-class individuals lack capacity for aesthetic enjoyment.",
+                },
+                {
+                    "id": "D",
+                    "text": "Prove that avant-garde artistic forms are aesthetically superior to traditional forms.",
+                },
             ],
             "correct": "A",
             "explanation": "Bourdieu argues taste is conditioned by education and privilege, functioning to legitimate class distinctions.",
@@ -567,10 +606,22 @@ _MOCK_QUESTION_VARIANTS: dict[str, list[dict]] = {
         {
             "stem": "Based on the passage, the author would most likely consider which of the following an example of 'disinterested' contemplation?",
             "options": [
-                {"id": "A", "text": "Admiring a sculpture's harmonious proportions without regard to its market price or social utility."},
-                {"id": "B", "text": "Purchasing an abstract painting to impress colleagues and signal cultural sophistication."},
-                {"id": "C", "text": "Appraising an architectural design solely based on its energy efficiency and commercial viability."},
-                {"id": "D", "text": "Enjoying a musical composition primarily because it evokes nostalgic personal memories."},
+                {
+                    "id": "A",
+                    "text": "Admiring a sculpture's harmonious proportions without regard to its market price or social utility.",
+                },
+                {
+                    "id": "B",
+                    "text": "Purchasing an abstract painting to impress colleagues and signal cultural sophistication.",
+                },
+                {
+                    "id": "C",
+                    "text": "Appraising an architectural design solely based on its energy efficiency and commercial viability.",
+                },
+                {
+                    "id": "D",
+                    "text": "Enjoying a musical composition primarily because it evokes nostalgic personal memories.",
+                },
             ],
             "correct": "A",
             "explanation": "Kant defines disinterested aesthetic judgment as contemplation free from practical utility or sensory gratification.",
@@ -578,10 +629,22 @@ _MOCK_QUESTION_VARIANTS: dict[str, list[dict]] = {
         {
             "stem": "The author asserts that genuine encounters with art routinely disrupt habitual perception primarily because such encounters:",
             "options": [
-                {"id": "A", "text": "Elicit cognitive disequilibrium and unsettle entrenched perceptual habits across diverse cultures."},
-                {"id": "B", "text": "Conform rigidly to pre-existing Kantian empirical categories."},
-                {"id": "C", "text": "Reinforce established social stratification and elite privileges."},
-                {"id": "D", "text": "Eliminate all subjective emotional resonance in favor of objective critical analysis."},
+                {
+                    "id": "A",
+                    "text": "Elicit cognitive disequilibrium and unsettle entrenched perceptual habits across diverse cultures.",
+                },
+                {
+                    "id": "B",
+                    "text": "Conform rigidly to pre-existing Kantian empirical categories.",
+                },
+                {
+                    "id": "C",
+                    "text": "Reinforce established social stratification and elite privileges.",
+                },
+                {
+                    "id": "D",
+                    "text": "Eliminate all subjective emotional resonance in favor of objective critical analysis.",
+                },
             ],
             "correct": "A",
             "explanation": "The author points to cognitive disequilibrium and unsettled habitual beliefs as proof of art's disruptive power.",
@@ -637,8 +700,14 @@ _MOCK_QUESTION_VARIANTS: dict[str, list[dict]] = {
         {
             "stem": "In intestinal epithelial cells, Vibrio cholerae enterotoxin ADP-ribosylates the Gαs subunit. What enzymatic consequence directly causes massive chloride and fluid hypersecretion?",
             "options": [
-                {"id": "A", "text": "Persistent activation of adenylyl cyclase leading to continuous PKA activation of CFTR channels"},
-                {"id": "B", "text": "Immediate hydrolysis of GTP on Gαs leading to channel closure"},
+                {
+                    "id": "A",
+                    "text": "Persistent activation of adenylyl cyclase leading to continuous PKA activation of CFTR channels",
+                },
+                {
+                    "id": "B",
+                    "text": "Immediate hydrolysis of GTP on Gαs leading to channel closure",
+                },
                 {"id": "C", "text": "Phosphorylation of phospholamban in intestinal smooth muscle"},
                 {"id": "D", "text": "Blockade of apical sodium-glucose cotransporter SGLT1"},
             ],
@@ -648,9 +717,18 @@ _MOCK_QUESTION_VARIANTS: dict[str, list[dict]] = {
         {
             "stem": "The intrinsic GTPase activity of Gα subunits functions physiologically as which of the following regulatory mechanisms?",
             "options": [
-                {"id": "A", "text": "A built-in molecular timer that terminates receptor-initiated signaling"},
-                {"id": "B", "text": "A catalyst that accelerates GDP dissociation from the inactive G-protein"},
-                {"id": "C", "text": "An energy-generating step required for ATP synthesis by adenylyl cyclase"},
+                {
+                    "id": "A",
+                    "text": "A built-in molecular timer that terminates receptor-initiated signaling",
+                },
+                {
+                    "id": "B",
+                    "text": "A catalyst that accelerates GDP dissociation from the inactive G-protein",
+                },
+                {
+                    "id": "C",
+                    "text": "An energy-generating step required for ATP synthesis by adenylyl cyclase",
+                },
                 {"id": "D", "text": "An allosteric inhibitor of β1-adrenergic GPCR ligand binding"},
             ],
             "correct": "A",
@@ -659,10 +737,19 @@ _MOCK_QUESTION_VARIANTS: dict[str, list[dict]] = {
         {
             "stem": "In cardiac myocytes, protein kinase A (PKA) phosphorylates phospholamban (PLN). How does this phosphorylation event affect myocardial calcium handling during diastole?",
             "options": [
-                {"id": "A", "text": "It relieves inhibition of SERCA2a, accelerating cytosolic Ca2+ reuptake into the sarcoplasmic reticulum."},
-                {"id": "B", "text": "It inhibits SERCA2a, prolonging elevated cytosolic Ca2+ and delaying relaxation."},
+                {
+                    "id": "A",
+                    "text": "It relieves inhibition of SERCA2a, accelerating cytosolic Ca2+ reuptake into the sarcoplasmic reticulum.",
+                },
+                {
+                    "id": "B",
+                    "text": "It inhibits SERCA2a, prolonging elevated cytosolic Ca2+ and delaying relaxation.",
+                },
                 {"id": "C", "text": "It directly closes L-type Ca2+ channels on the sarcolemma."},
-                {"id": "D", "text": "It prevents ryanodine receptor (RyR2) opening during systole."},
+                {
+                    "id": "D",
+                    "text": "It prevents ryanodine receptor (RyR2) opening during systole.",
+                },
             ],
             "correct": "A",
             "explanation": "Unphosphorylated PLN inhibits SERCA2a. PKA phosphorylation disinhibits SERCA2a, speeding calcium reuptake and lusitropy.",
@@ -672,7 +759,10 @@ _MOCK_QUESTION_VARIANTS: dict[str, list[dict]] = {
             "options": [
                 {"id": "A", "text": "GDP-bound Gα reassociates with the Gβγ heterodimer."},
                 {"id": "B", "text": "GTP-bound Gα binds directly to β-arrestin for degradation."},
-                {"id": "C", "text": "The Gβγ dimer is ubiquitinated and transported to the lysosome."},
+                {
+                    "id": "C",
+                    "text": "The Gβγ dimer is ubiquitinated and transported to the lysosome.",
+                },
                 {"id": "D", "text": "Adenylyl cyclase hydrolyzes remaining cAMP into 5'-AMP."},
             ],
             "correct": "A",
@@ -729,9 +819,18 @@ _MOCK_QUESTION_VARIANTS: dict[str, list[dict]] = {
         {
             "stem": "In social psychology research utilizing the minimal group paradigm, what behavioral pattern is consistently observed even when group assignments are completely arbitrary?",
             "options": [
-                {"id": "A", "text": "In-group favoritism and preferential resource allocation to in-group members"},
-                {"id": "B", "text": "Immediate out-group assimilation and erasure of group boundaries"},
-                {"id": "C", "text": "Equal distribution of resources across all participants regardless of affiliation"},
+                {
+                    "id": "A",
+                    "text": "In-group favoritism and preferential resource allocation to in-group members",
+                },
+                {
+                    "id": "B",
+                    "text": "Immediate out-group assimilation and erasure of group boundaries",
+                },
+                {
+                    "id": "C",
+                    "text": "Equal distribution of resources across all participants regardless of affiliation",
+                },
                 {"id": "D", "text": "Increased cognitive dissonance and resistance to authority"},
             ],
             "correct": "A",
@@ -801,9 +900,13 @@ def get_mock_draft(req: GenerationRequest) -> QuestionDraft:
             and not (req.shared_stimulus and req.shared_stimulus.strip())
             and sec != MCATSection.CARS
         )
-        sec_key = "chem_phys" if sec == MCATSection.CHEM_PHYS else (
-            "cars" if sec == MCATSection.CARS else (
-                "bio_biochem" if sec == MCATSection.BIO_BIOCHEM else "psych_soc"
+        sec_key = (
+            "chem_phys"
+            if sec == MCATSection.CHEM_PHYS
+            else (
+                "cars"
+                if sec == MCATSection.CARS
+                else ("bio_biochem" if sec == MCATSection.BIO_BIOCHEM else "psych_soc")
             )
         )
         type_key = "independent" if is_direct_independent else "passage"
