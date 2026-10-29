@@ -225,7 +225,7 @@ const StagedQuestionSlotCard = React.memo(function StagedQuestionSlotCard({
               }}
             >
               <strong style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '2px', fontSize: '0.675rem' }}>
-                {isPassage ? `Reading Passage (${wordCount} words):` : 'Scenario / Vignette:'}
+                {isPassage ? `Reading Passage (${wordCount} words):` : 'Context / Scenario:'}
               </strong>
               {q.stimulus_text}
             </div>

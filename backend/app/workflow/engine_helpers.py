@@ -390,18 +390,18 @@ async def _run_question_review_loop(
                     )
                     await event_queue.put(regen_done_evt)
                     continue
-                else:
-                    rej_res = await reject_node(state)
-                    state.update(rej_res)
-                    rej_evt = make_event(
-                        event_type="workflow_rejected",
-                        agent_name="Quality Gate",
-                        message=f"Blind-Solver validation failed after {iteration} attempts for Question {idx + 1}.",
-                        data=state.get("rejection_data") or {},
-                        run_id=item_run_id,
-                    )
-                    await event_queue.put(rej_evt)
-                    return False
+
+                rej_res = await reject_node(state)
+                state.update(rej_res)
+                rej_evt = make_event(
+                    event_type="workflow_rejected",
+                    agent_name="Quality Gate",
+                    message=f"Blind-Solver validation failed after {iteration} attempts for Question {idx + 1}.",
+                    data=state.get("rejection_data") or {},
+                    run_id=item_run_id,
+                )
+                await event_queue.put(rej_evt)
+                return False
         else:
             return True
 
@@ -600,23 +600,26 @@ async def _finalize_live_job_progress(
     cumulative_cost: float,
 ) -> None:
     """Updates job and batch status to completed or partially_completed upon workflow termination."""
-    now_iso = datetime.now(UTC).isoformat()
-    job_status = (
-        "completed"
-        if completed_total >= total_qty
-        else ("partially_completed" if completed_total > 0 else "failed")
-    )
-    await update_job_progress(
-        job_id,
-        status=job_status,
-        actual_count=completed_total,
-        total_tokens=cumulative_tokens,
-        prompt_tokens=cumulative_prompt_tokens,
-        completion_tokens=cumulative_completion_tokens,
-        cost_usd=cumulative_cost,
-        completed_at=now_iso,
-    )
-    await refresh_batch_aggregates(batch_id)
+    try:
+        now_iso = datetime.now(UTC).isoformat()
+        job_status = (
+            "completed"
+            if completed_total >= total_qty
+            else ("partially_completed" if completed_total > 0 else "failed")
+        )
+        await update_job_progress(
+            job_id,
+            status=job_status,
+            actual_count=completed_total,
+            total_tokens=cumulative_tokens,
+            prompt_tokens=cumulative_prompt_tokens,
+            completion_tokens=cumulative_completion_tokens,
+            cost_usd=cumulative_cost,
+            completed_at=now_iso,
+        )
+        await refresh_batch_aggregates(batch_id)
+    except Exception as db_err:
+        logger.warning(f"Could not finalize live job progress (DB offline): {db_err}")
 
 
 async def _handle_live_job_cancellation(

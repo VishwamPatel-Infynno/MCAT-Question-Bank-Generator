@@ -53,6 +53,7 @@ export async function fetchQuestions(params = {}, signal = null) {
   if (params.status) query.append('status', params.status);
   if (params.batch_id) query.append('batch_id', params.batch_id);
   if (params.job_id) query.append('job_id', params.job_id);
+  if (params.passage_id) query.append('passage_id', params.passage_id);
 
   const res = await fetch(`${API_BASE}/questions?${query.toString()}`, { signal });
   await assertOk(res, 'Fetch questions');

@@ -265,18 +265,18 @@ async def call_llm(
                         )
                         await asyncio.sleep(backoff_secs)
                         continue
-                    elif attempt < max_retries and "connection" in err_str:
+                    if attempt < max_retries and "connection" in err_str:
                         backoff_secs = 1.0 + random.uniform(0.1, 0.4)
                         logger.warning(
                             f"Connection error ({err}) on '{candidate}'. Retrying in {backoff_secs:.2f}s..."
                         )
                         await asyncio.sleep(backoff_secs)
                         continue
-                    else:
-                        logger.warning(
-                            f"DeepInfra LLM error on model '{candidate}' attempt {attempt + 1}: {err}"
-                        )
-                        break
+
+                    logger.warning(
+                        f"DeepInfra LLM error on model '{candidate}' attempt {attempt + 1}: {err}"
+                    )
+                    break
 
     logger.error(f"DeepInfra LLM call failed for prompt. Last error: {last_error}")
     if isinstance(last_error, ValueError):

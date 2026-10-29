@@ -44,6 +44,7 @@ pythonpath = ["backend"]
 testpaths = ["backend/tests"]
 markers = [
     "live_e2e: End-to-end integration tests requiring a running backend and live LLM API credentials",
+    "requires_db: Tests requiring a running PostgreSQL database instance",
 ]
 addopts = "-m 'not live_e2e'"
 filterwarnings = [

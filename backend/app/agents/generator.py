@@ -1,5 +1,6 @@
 import logging
 import re
+from typing import Any
 
 from app.agents.base import calculate_token_cost, call_llm, safe_json_loads
 from app.agents.mock_fixtures import evaluate_heuristically, get_mock_draft
@@ -20,9 +21,8 @@ from app.schemas.workflow import GenerationRequest
 logger = logging.getLogger(__name__)
 
 
-def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDraft:
-    # Validate options (4 or 5 allowed)
-    raw_options = data.get("options", [])
+def _parse_option_choices(raw_options: Any) -> list[OptionChoice]:
+    """Parses raw options list or dict into validated OptionChoice instances."""
     if isinstance(raw_options, dict):
         options = [OptionChoice(id=str(k).upper(), text=str(v)) for k, v in raw_options.items()]
     elif isinstance(raw_options, list):
@@ -40,7 +40,11 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
 
     if len(options) not in (4, 5):
         raise ValueError(f"Expected 4 or 5 options, got {len(options)}")
+    return options
 
+
+def _parse_correct_keys(data: dict, options: list[OptionChoice]) -> tuple[str, list[str]]:
+    """Extracts the string key representation and list of correct answer keys."""
     raw_id = data.get("correct_answer_id")
     raw_ids = data.get("correct_answer_ids")
     if isinstance(raw_ids, list) and raw_ids:
@@ -49,95 +53,96 @@ def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDr
         keys_list = [str(k).strip().upper() for k in raw_id.split(",") if str(k).strip()]
     else:
         keys_list = [options[0].id]
+    return ", ".join(keys_list), keys_list
 
-    correct_id_str = ", ".join(keys_list)
 
-    # Determine primary trap: model selection, request override, or auto-detect from explanation
+def _detect_primary_trap(data: dict, req: GenerationRequest) -> str:
+    """Determines the primary cognitive trap from payload, request override, or explanation regex."""
     raw_trap = data.get("primary_trap")
     normalized_trap = normalize_primary_trap(raw_trap)
-    if not normalized_trap or normalized_trap == "Automatic":
-        if req.primary_trap and req.primary_trap != "Automatic":
-            primary_trap = normalize_primary_trap(req.primary_trap) or req.primary_trap
-        else:
-            expl = data.get("explanation", "")
-            detected = None
-            taxonomies = [
-                ("CONCEPT_CONFUSION", r"Concept\s*Confusion"),
-                ("WRONG_BASE", r"Wrong\s*Base|Reference\s*Value"),
-                ("UNIT_CONVERSION", r"Unit\s*Conversion"),
-                ("FORMULA_MISAPPLICATION", r"Formula\s*Misapplication"),
-                ("SIGN_CONVENTION", r"Sign\s*Convention|Direction"),
-                ("PROPORTIONALITY_ERROR", r"Proportionality\s*Error"),
-                ("ASSUMPTION_MISSED", r"Missed\s*Assumption|Assumption\s*Missed"),
-                ("CAUSE_EFFECT_CONFUSION", r"Cause[- ]Effect|Causality"),
-                (
-                    "CORRELATION_CAUSATION",
-                    r"Correlation\s*(?:vs\.?|and|mistaken\s*for)\s*Causation",
-                ),
-                ("CONTROL_GROUP_CONFUSION", r"Control[- ]Group"),
-                ("VARIABLE_CONFUSION", r"Variable\s*Confusion|Independent\s*and\s*Dependent"),
-                ("SAMPLE_SIZE_BIAS", r"Sample\s*Size|Sampling\s*Bias"),
-                ("STATISTICAL_SIGNIFICANCE", r"Statistical\s*Significance|p-value"),
-                ("GRAPH_AXIS_MISREADING", r"Axis\s*Misread|Graph\s*Axis"),
-                ("TABLE_COMPARISON_ERROR", r"Table\s*Comparison"),
-                ("TREND_EXTRAPOLATION", r"Trend\s*Extrapolation"),
-                ("MECHANISM_CONFUSION", r"Mechanism\s*Confusion"),
-                ("EXCEPTION_OVERLOOKED", r"Exception\s*Overlooked|Qualifier"),
-                ("NEGATION_MISREAD", r"Negation|NOT/EXCEPT|LEAST\s*likely"),
-                ("SCOPE_SHIFT", r"Scope\s*Shift"),
-                ("UNSUPPORTED_INFERENCE", r"Unsupported\s*Inference"),
-                ("PASSAGE_CONTRADICTION", r"Passage\s*Contradiction|Directly\s*contradicts"),
-                ("OVERGENERALIZATION", r"Overgeneralization|Extreme\s*(?:Language|Quantifier)"),
-                ("DISTRACTOR_OVERINTERPRETATION", r"Distractor\s*Overinterpretation"),
-                ("ANSWER_CHOICE_CONFLATION", r"Answer\s*Choice\s*Conflation"),
-            ]
+    if normalized_trap and normalized_trap != "Automatic":
+        return normalized_trap
 
-            for trap_key, pattern in taxonomies:
-                if re.search(pattern, expl, re.IGNORECASE):
-                    detected = trap_key
-                    break
-            primary_trap = detected or "SCOPE_SHIFT"
-    else:
-        primary_trap = normalized_trap
+    if req.primary_trap and req.primary_trap != "Automatic":
+        return normalize_primary_trap(req.primary_trap) or req.primary_trap
 
-    # Determine target student misconception / likely mistake pattern
+    expl = data.get("explanation", "")
+    taxonomies = [
+        ("CONCEPT_CONFUSION", r"Concept\s*Confusion"),
+        ("WRONG_BASE", r"Wrong\s*Base|Reference\s*Value"),
+        ("UNIT_CONVERSION", r"Unit\s*Conversion"),
+        ("FORMULA_MISAPPLICATION", r"Formula\s*Misapplication"),
+        ("SIGN_CONVENTION", r"Sign\s*Convention|Direction"),
+        ("PROPORTIONALITY_ERROR", r"Proportionality\s*Error"),
+        ("ASSUMPTION_MISSED", r"Missed\s*Assumption|Assumption\s*Missed"),
+        ("CAUSE_EFFECT_CONFUSION", r"Cause[- ]Effect|Causality"),
+        (
+            "CORRELATION_CAUSATION",
+            r"Correlation\s*(?:vs\.?|and|mistaken\s*for)\s*Causation",
+        ),
+        ("CONTROL_GROUP_CONFUSION", r"Control[- ]Group"),
+        ("VARIABLE_CONFUSION", r"Variable\s*Confusion|Independent\s*and\s*Dependent"),
+        ("SAMPLE_SIZE_BIAS", r"Sample\s*Size|Sampling\s*Bias"),
+        ("STATISTICAL_SIGNIFICANCE", r"Statistical\s*Significance|p-value"),
+        ("GRAPH_AXIS_MISREADING", r"Axis\s*Misread|Graph\s*Axis"),
+        ("TABLE_COMPARISON_ERROR", r"Table\s*Comparison"),
+        ("TREND_EXTRAPOLATION", r"Trend\s*Extrapolation"),
+        ("MECHANISM_CONFUSION", r"Mechanism\s*Confusion"),
+        ("EXCEPTION_OVERLOOKED", r"Exception\s*Overlooked|Qualifier"),
+        ("NEGATION_MISREAD", r"Negation|NOT/EXCEPT|LEAST\s*likely"),
+        ("SCOPE_SHIFT", r"Scope\s*Shift"),
+        ("UNSUPPORTED_INFERENCE", r"Unsupported\s*Inference"),
+        ("PASSAGE_CONTRADICTION", r"Passage\s*Contradiction|Directly\s*contradicts"),
+        ("OVERGENERALIZATION", r"Overgeneralization|Extreme\s*(?:Language|Quantifier)"),
+        ("DISTRACTOR_OVERINTERPRETATION", r"Distractor\s*Overinterpretation"),
+        ("ANSWER_CHOICE_CONFLATION", r"Answer\s*Choice\s*Conflation"),
+    ]
+
+    for trap_key, pattern in taxonomies:
+        if re.search(pattern, expl, re.IGNORECASE):
+            return trap_key
+    return "SCOPE_SHIFT"
+
+
+def _detect_mistake_pattern(data: dict, req: GenerationRequest) -> str | None:
+    """Determines target student misconception / likely mistake pattern."""
     raw_mistake = data.get("likely_mistake_pattern")
     if req.likely_mistake_pattern and req.likely_mistake_pattern not in ("Automatic", ""):
         if req.likely_mistake_pattern == "None":
-            effective_mistake = None
-        else:
-            effective_mistake = (
-                normalize_mistake_pattern(req.likely_mistake_pattern) or req.likely_mistake_pattern
-            )
-    else:
-        # Automatic (Smart AI Choice)
-        normalized_mistake = normalize_mistake_pattern(raw_mistake)
-        effective_mistake = normalized_mistake or (
-            str(raw_mistake).strip() if raw_mistake else None
-        )
-        if not effective_mistake:
-            expl = data.get("explanation", "")
-            m_match = re.search(
-                r"(?:misconception|mistake\s*pattern|common\s*error)[:\s]+([^\n.,;]+)",
-                expl,
-                re.IGNORECASE,
-            )
-            if m_match:
-                effective_mistake = m_match.group(1).strip()
-            else:
-                effective_mistake = (
-                    "Confuses closely related concepts or misreads reference baseline"
-                )
+            return None
+        return normalize_mistake_pattern(req.likely_mistake_pattern) or req.likely_mistake_pattern
 
-    # Enforce reading passage vs direct independent question
+    normalized_mistake = normalize_mistake_pattern(raw_mistake)
+    effective_mistake = normalized_mistake or (str(raw_mistake).strip() if raw_mistake else None)
+    if effective_mistake:
+        return effective_mistake
+
+    expl = data.get("explanation", "")
+    m_match = re.search(
+        r"(?:misconception|mistake\s*pattern|common\s*error)[:\s]+([^\n.,;]+)",
+        expl,
+        re.IGNORECASE,
+    )
+    if m_match:
+        return m_match.group(1).strip()
+    return "Confuses closely related concepts or misreads reference baseline"
+
+
+def _resolve_effective_stimulus(data: dict, req: GenerationRequest) -> str:
+    """Resolves reading passage vs direct independent question stimulus."""
     if not req.is_passage_active:
-        effective_stimulus = ""
-    else:
-        effective_stimulus = (
-            req.shared_stimulus.strip()
-            if req.shared_stimulus
-            else data.get("stimulus_text", "").strip()
-        )
+        return ""
+    if req.shared_stimulus:
+        return req.shared_stimulus.strip()
+    return data.get("stimulus_text", "").strip()
+
+
+def _parse_question_draft_data(data: dict, req: GenerationRequest) -> QuestionDraft:
+    options = _parse_option_choices(data.get("options", []))
+    correct_id_str, keys_list = _parse_correct_keys(data, options)
+    primary_trap = _detect_primary_trap(data, req)
+    effective_mistake = _detect_mistake_pattern(data, req)
+    effective_stimulus = _resolve_effective_stimulus(data, req)
 
     aamc_skill = (
         data.get("aamc_skill")

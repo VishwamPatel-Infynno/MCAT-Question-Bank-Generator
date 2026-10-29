@@ -14,6 +14,8 @@ from app.repositories import (
 )
 from app.schemas import OptionChoice, Question
 
+pytestmark = pytest.mark.requires_db
+
 
 @pytest.mark.asyncio
 async def test_database_schema_initialization():

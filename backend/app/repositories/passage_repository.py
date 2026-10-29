@@ -1,7 +1,7 @@
 import logging
 from datetime import UTC, datetime
 
-from sqlalchemy import delete, or_, select, update
+from sqlalchemy import delete, func, or_, select, update
 
 from app.db.base import to_datetime, to_iso_str
 from app.db.session import async_session_factory
@@ -12,7 +12,7 @@ from app.schemas import Passage
 logger = logging.getLogger(__name__)
 
 
-def _passage_model_to_schema(m: PassageModel) -> Passage:
+def _passage_model_to_schema(m: PassageModel, question_count: int = 0) -> Passage:
     """Converts a SQLAlchemy PassageModel to a Pydantic Passage schema."""
     return Passage(
         id=m.id,
@@ -24,6 +24,7 @@ def _passage_model_to_schema(m: PassageModel) -> Passage:
         image_url=m.image_url,
         image_svg=m.image_svg,
         image_description=m.image_description,
+        question_count=question_count,
         created_at=to_iso_str(m.created_at),
         updated_at=to_iso_str(m.updated_at) if m.updated_at else None,
     )
@@ -52,9 +53,13 @@ async def get_passages(
     subtopic: str | None = None,
     search: str | None = None,
 ) -> list[Passage]:
-    """Retrieves shared reading passages with optional filtering and search."""
+    """Retrieves shared reading passages with optional filtering, search, and aggregated question_count."""
     async with async_session_factory() as session:
-        stmt = select(PassageModel)
+        stmt = (
+            select(PassageModel, func.count(QuestionModel.id).label("q_count"))
+            .outerjoin(QuestionModel, QuestionModel.passage_id == PassageModel.id)
+            .group_by(PassageModel.id)
+        )
         if section:
             stmt = stmt.where(PassageModel.section == section)
         if subtopic:
@@ -72,17 +77,25 @@ async def get_passages(
 
         stmt = stmt.order_by(PassageModel.created_at.desc())
         result = await session.execute(stmt)
-        models = result.scalars().all()
-        return [_passage_model_to_schema(m) for m in models]
+        rows = result.all()
+        return [_passage_model_to_schema(m, int(q_count or 0)) for m, q_count in rows]
 
 
 async def get_passage_by_id(passage_id: str) -> Passage | None:
-    """Retrieves a single passage by primary key ID."""
+    """Retrieves a single passage by primary key ID with aggregated question count."""
     async with async_session_factory() as session:
-        model = await session.get(PassageModel, passage_id)
-        if not model:
+        stmt = (
+            select(PassageModel, func.count(QuestionModel.id).label("q_count"))
+            .outerjoin(QuestionModel, QuestionModel.passage_id == PassageModel.id)
+            .where(PassageModel.id == passage_id)
+            .group_by(PassageModel.id)
+        )
+        result = await session.execute(stmt)
+        row = result.first()
+        if not row:
             return None
-        return _passage_model_to_schema(model)
+        m, q_count = row
+        return _passage_model_to_schema(m, int(q_count or 0))
 
 
 async def save_passage(passage: Passage) -> Passage:

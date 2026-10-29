@@ -252,7 +252,7 @@ const QuestionBankCardRow = React.memo(function QuestionBankCardRow({
         >
           {q.stimulus_text && (
             <SharedPassageCard
-              title={q.passage_id ? 'Shared Reading Passage' : 'Stimulus Vignette'}
+              title={q.passage_id ? 'Shared Reading Passage' : 'Reading Passage'}
               passageText={q.stimulus_text}
               questionCount={1}
               diagramQuestion={q}

@@ -48,6 +48,42 @@ def get_global_job_semaphore() -> asyncio.Semaphore:
     return _GLOBAL_JOB_SEMAPHORE
 
 
+async def _persist_job_question(
+    batch_id: str,
+    job_id: str,
+    passage_id: str | None,
+    raw_q: dict[str, Any],
+    job_questions: list[Question],
+) -> tuple[Question | None, bool]:
+    """
+    Serializes, tags, verifies batch existence, and persists a job question.
+    Returns: (saved_question, batch_aborted_flag)
+    """
+    try:
+        q_obj = Question(**raw_q)
+        q_obj.batch_id = batch_id
+        q_obj.job_id = job_id
+        q_obj.run_id = job_id
+        q_obj.status = determine_question_status(q_obj.final_score)
+
+        curr_b = await get_batch_by_id(batch_id)
+        if not curr_b:
+            logger.info(f"Batch {batch_id} no longer exists; aborting job {job_id}.")
+            return (None, True)
+
+        if passage_id and not q_obj.passage_id:
+            q_obj.passage_id = passage_id
+
+        if not any(existing.id == q_obj.id for existing in job_questions):
+            saved_q = await save_question(q_obj)
+            job_questions.append(saved_q)
+            return (saved_q, False)
+        return (None, False)
+    except Exception as q_err:
+        logger.error(f"Error saving question for job {job_id}: {q_err}")
+        return (None, False)
+
+
 async def _run_single_job(
     batch_id: str,
     job: GenerationJob,
@@ -106,52 +142,22 @@ async def _run_single_job(
                     data = evt_data.get("data") or {}
 
                     if etype == "question_generated" and data.get("question"):
-                        raw_q = data["question"]
-                        try:
-                            q_obj = Question(**raw_q)
-                            q_obj.batch_id = batch_id
-                            q_obj.job_id = job.id
-                            q_obj.run_id = job.id
-                            q_obj.status = determine_question_status(q_obj.final_score)
-                            # Check if batch still exists before saving question
-                            curr_b = await get_batch_by_id(batch_id)
-                            if not curr_b:
-                                logger.info(
-                                    f"Batch {batch_id} no longer exists; aborting job {job.id}."
-                                )
-                                return
-                            if passage_id_for_job and not q_obj.passage_id:
-                                q_obj.passage_id = passage_id_for_job
-                            saved_q = await save_question(q_obj)
-                            if not any(existing.id == saved_q.id for existing in job_questions):
-                                job_questions.append(saved_q)
-                                # Update job progress count
-                                await update_job_progress(job.id, actual_count=len(job_questions))
-                        except Exception as q_err:
-                            logger.error(f"Error saving question for job {job.id}: {q_err}")
+                        saved_q, should_abort = await _persist_job_question(
+                            batch_id, job.id, passage_id_for_job, data["question"], job_questions
+                        )
+                        if should_abort:
+                            return
+                        if saved_q:
+                            await update_job_progress(job.id, actual_count=len(job_questions))
 
                     elif etype == "workflow_complete":
                         completed_qs = data.get("questions") or []
                         for raw_q in completed_qs:
-                            try:
-                                q_obj = Question(**raw_q)
-                                q_obj.batch_id = batch_id
-                                q_obj.job_id = job.id
-                                q_obj.run_id = job.id
-                                q_obj.status = determine_question_status(q_obj.final_score)
-                                curr_b = await get_batch_by_id(batch_id)
-                                if not curr_b:
-                                    logger.info(
-                                        f"Batch {batch_id} no longer exists; aborting job {job.id}."
-                                    )
-                                    return
-                                if passage_id_for_job and not q_obj.passage_id:
-                                    q_obj.passage_id = passage_id_for_job
-                                if not any(existing.id == q_obj.id for existing in job_questions):
-                                    saved_q = await save_question(q_obj)
-                                    job_questions.append(saved_q)
-                            except Exception as q_err:
-                                logger.error(f"Error saving workflow_complete question: {q_err}")
+                            _, should_abort = await _persist_job_question(
+                                batch_id, job.id, passage_id_for_job, raw_q, job_questions
+                            )
+                            if should_abort:
+                                return
 
                         usage = data.get("cumulative_usage") or {}
                         job_tokens = usage.get("total_tokens", 0)

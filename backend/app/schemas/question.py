@@ -229,6 +229,7 @@ class Passage(BaseModel):
     image_url: str | None = None
     image_svg: str | None = None
     image_description: str | None = None
+    question_count: int = 0
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     updated_at: str | None = None
 

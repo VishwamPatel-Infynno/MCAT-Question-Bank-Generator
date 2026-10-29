@@ -5,8 +5,7 @@ import {
   fetchSinglePassage,
   savePassage,
   deletePassage,
-  approveQuestion,
-  fetchQuestions
+  approveQuestion
 } from '../services/api';
 import { PaginationBar } from '../components/common';
 import PassageBankFilters from '../components/passage/PassageBankFilters';
@@ -68,27 +67,21 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard, reset
     return () => window.removeEventListener('keydown', handleSlash);
   }, []);
 
-  // Fetch all passages and build question counts
+  // Fetch all passages and build question counts directly from server aggregation
   const loadPassages = useCallback(async () => {
     setLoading(true);
     try {
-      const [passageRes, questionRes] = await Promise.all([
-        fetchPassages({
-          section: sectionFilter || undefined,
-          search: searchQuery || undefined
-        }),
-        fetchQuestions({ status: 'all' })
-      ]);
+      const passageRes = await fetchPassages({
+        section: sectionFilter || undefined,
+        search: searchQuery || undefined
+      });
 
       const fetchedPassages = passageRes?.passages || [];
-      const allQuestions = questionRes?.questions || [];
 
-      // Map question counts by passage_id
+      // Map question counts by passage_id from server-aggregated count
       const counts = {};
-      allQuestions.forEach((q) => {
-        if (q.passage_id) {
-          counts[q.passage_id] = (counts[q.passage_id] || 0) + 1;
-        }
+      fetchedPassages.forEach((p) => {
+        counts[p.id] = p.question_count || 0;
       });
       setQuestionCounts(counts);
       setPassages(fetchedPassages);

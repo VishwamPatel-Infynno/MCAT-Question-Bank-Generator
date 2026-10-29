@@ -36,6 +36,87 @@ def calculate_flux_image_cost(
     return round(rate * (w / 1024.0) * (h / 1024.0), 6)
 
 
+async def _call_native_flux_endpoint(
+    client: httpx.AsyncClient,
+    model_id: str,
+    prompt: str,
+    width: int,
+    height: int,
+    iters: int,
+    api_key: str,
+) -> tuple[str | None, float | None]:
+    """Tries the native DeepInfra inference endpoint for image generation."""
+    try:
+        native_url = f"https://api.deepinfra.com/v1/inference/{model_id}"
+        payload: dict[str, Any] = {
+            "prompt": prompt,
+            "width": width,
+            "height": height,
+        }
+        if "klein" not in model_id.lower() and iters > 0:
+            payload["num_inference_steps"] = iters
+
+        res = await client.post(
+            native_url, json=payload, headers={"Authorization": f"Bearer {api_key}"}
+        )
+        if res.status_code == 200:
+            data = res.json()
+            cost = None
+            if "inference_status" in data and isinstance(data["inference_status"], dict):
+                cost = data["inference_status"].get("cost")
+            if "images" in data and len(data["images"]) > 0:
+                return (data["images"][0], cost)
+            if "output" in data and len(data["output"]) > 0:
+                return (data["output"][0], cost)
+        else:
+            logger.warning(
+                f"DeepInfra native FLUX inference status {res.status_code}: {res.text[:200]}"
+            )
+    except Exception as e:
+        logger.warning(f"DeepInfra native FLUX inference error: {e}")
+    return (None, None)
+
+
+async def _call_openai_flux_endpoint(
+    client: httpx.AsyncClient,
+    model_id: str,
+    prompt: str,
+    width: int,
+    height: int,
+    api_key: str,
+) -> tuple[str | None, float | None]:
+    """Tries the OpenAI-compatible endpoint on DeepInfra as a fallback."""
+    try:
+        openai_url = "https://api.deepinfra.com/v1/openai/images/generations"
+        payload = {
+            "model": model_id,
+            "prompt": prompt,
+            "size": f"{width}x{height}",
+            "n": 1,
+        }
+        res = await client.post(
+            openai_url, json=payload, headers={"Authorization": f"Bearer {api_key}"}
+        )
+        if res.status_code == 200:
+            data = res.json()
+            if "data" in data and len(data["data"]) > 0:
+                item = data["data"][0]
+                img = item.get("url") or (
+                    f"data:image/jpeg;base64,{item.get('b64_json')}"
+                    if item.get("b64_json")
+                    else None
+                )
+                if img:
+                    return (img, None)
+        else:
+            logger.warning(
+                f"DeepInfra OpenAI-compatible FLUX status {res.status_code}: {res.text[:200]}"
+            )
+    except Exception as e:
+        logger.warning(f"DeepInfra OpenAI-compatible FLUX endpoint error: {e}")
+    return (None, None)
+
+
 async def call_deepinfra_flux(
     prompt: str,
     width: int,
@@ -57,67 +138,17 @@ async def call_deepinfra_flux(
     for attempt in range(max_retries + 1):
         try:
             async with httpx.AsyncClient(timeout=35.0) as client:
-                # 1. Native DeepInfra inference endpoint
-                try:
-                    native_url = f"https://api.deepinfra.com/v1/inference/{model_id}"
-                    payload: dict[str, Any] = {
-                        "prompt": prompt,
-                        "width": width,
-                        "height": height,
-                    }
-                    if "klein" not in model_id.lower() and iters > 0:
-                        payload["num_inference_steps"] = iters
+                img_data, cost = await _call_native_flux_endpoint(
+                    client, model_id, prompt, width, height, iters, api_key
+                )
+                if img_data:
+                    return (img_data, cost)
 
-                    res = await client.post(
-                        native_url, json=payload, headers={"Authorization": f"Bearer {api_key}"}
-                    )
-                    if res.status_code == 200:
-                        data = res.json()
-                        cost = None
-                        if "inference_status" in data and isinstance(
-                            data["inference_status"], dict
-                        ):
-                            cost = data["inference_status"].get("cost")
-                        if "images" in data and len(data["images"]) > 0:
-                            return (data["images"][0], cost)
-                        if "output" in data and len(data["output"]) > 0:
-                            return (data["output"][0], cost)
-                    else:
-                        logger.warning(
-                            f"DeepInfra native FLUX inference status {res.status_code}: {res.text[:200]}"
-                        )
-                except Exception as e:
-                    logger.warning(f"DeepInfra native FLUX inference error: {e}")
-
-                # 2. OpenAI-compatible endpoint on DeepInfra
-                try:
-                    openai_url = "https://api.deepinfra.com/v1/openai/images/generations"
-                    payload = {
-                        "model": model_id,
-                        "prompt": prompt,
-                        "size": f"{width}x{height}",
-                        "n": 1,
-                    }
-                    res = await client.post(
-                        openai_url, json=payload, headers={"Authorization": f"Bearer {api_key}"}
-                    )
-                    if res.status_code == 200:
-                        data = res.json()
-                        if "data" in data and len(data["data"]) > 0:
-                            item = data["data"][0]
-                            img = item.get("url") or (
-                                f"data:image/jpeg;base64,{item.get('b64_json')}"
-                                if item.get("b64_json")
-                                else None
-                            )
-                            if img:
-                                return (img, None)
-                    else:
-                        logger.warning(
-                            f"DeepInfra OpenAI-compatible FLUX status {res.status_code}: {res.text[:200]}"
-                        )
-                except Exception as e:
-                    logger.warning(f"DeepInfra OpenAI-compatible FLUX endpoint error: {e}")
+                img_data, cost = await _call_openai_flux_endpoint(
+                    client, model_id, prompt, width, height, api_key
+                )
+                if img_data:
+                    return (img_data, cost)
 
         except Exception as client_err:
             logger.warning(

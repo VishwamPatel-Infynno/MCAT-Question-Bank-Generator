@@ -86,41 +86,46 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
 
     # Auto-initialize Batch and Job records in PostgreSQL for live interactive runs
     if is_standalone_live_run:
-        now_iso = datetime.now(UTC).isoformat()
-        sec_val = req.section.value if hasattr(req.section, "value") else str(req.section)
-        diff_val = req.difficulty.value if hasattr(req.difficulty, "value") else str(req.difficulty)
+        try:
+            now_iso = datetime.now(UTC).isoformat()
+            sec_val = req.section.value if hasattr(req.section, "value") else str(req.section)
+            diff_val = (
+                req.difficulty.value if hasattr(req.difficulty, "value") else str(req.difficulty)
+            )
 
-        existing_b = await get_batch_by_id(batch_id)
-        if not existing_b:
-            batch_record = GenerationBatch(
-                id=batch_id,
-                section=sec_val,
-                subtopic=req.subtopic or f"{sec_val} Mini-Batch",
-                difficulty=diff_val,
-                passage_mode=req.passage_mode
-                or ("single_passage" if is_single_passage_set else "independent"),
+            existing_b = await get_batch_by_id(batch_id)
+            if not existing_b:
+                batch_record = GenerationBatch(
+                    id=batch_id,
+                    section=sec_val,
+                    subtopic=req.subtopic or f"{sec_val} Mini-Batch",
+                    difficulty=diff_val,
+                    passage_mode=req.passage_mode
+                    or ("single_passage" if is_single_passage_set else "independent"),
+                    target_count=total_qty,
+                    actual_count=0,
+                    total_jobs=1,
+                    completed_jobs=0,
+                    failed_jobs=0,
+                    status="in_progress",
+                    created_at=now_iso,
+                )
+                await save_batch(batch_record)
+
+            job_record = GenerationJob(
+                id=job_id,
+                batch_id=batch_id,
+                job_number=1,
+                status="running",
                 target_count=total_qty,
                 actual_count=0,
-                total_jobs=1,
-                completed_jobs=0,
-                failed_jobs=0,
-                status="in_progress",
+                passage_id=shared_passage_id,
                 created_at=now_iso,
+                started_at=now_iso,
             )
-            await save_batch(batch_record)
-
-        job_record = GenerationJob(
-            id=job_id,
-            batch_id=batch_id,
-            job_number=1,
-            status="running",
-            target_count=total_qty,
-            actual_count=0,
-            passage_id=shared_passage_id,
-            created_at=now_iso,
-            started_at=now_iso,
-        )
-        await save_job(job_record)
+            await save_job(job_record)
+        except Exception as db_err:
+            logger.warning(f"Live batch/job persistence skipped (DB offline): {db_err}")
 
     def make_event(
         event_type: str,

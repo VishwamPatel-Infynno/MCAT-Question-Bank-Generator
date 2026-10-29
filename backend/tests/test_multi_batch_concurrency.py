@@ -17,6 +17,8 @@ from app.services.batch_runner import (
 )
 from httpx import ASGITransport, AsyncClient
 
+pytestmark = pytest.mark.requires_db
+
 
 @pytest.fixture(autouse=True)
 async def setup_test_db():

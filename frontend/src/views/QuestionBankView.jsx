@@ -77,19 +77,32 @@ export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
     setSearchQuery('');
     setSectionFilter('');
     setDiffFilter('');
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (val) => {
+    setSearchQuery(val);
+    setCurrentPage(1);
+  };
+
+  const handleSectionChange = (val) => {
+    setSectionFilter(val);
+    setCurrentPage(1);
+  };
+
+  const handleDiffChange = (val) => {
+    setDiffFilter(val);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (val) => {
+    setSortBy(val);
+    setCurrentPage(1);
   };
 
   // ─── Pagination ────────────────────────────────────────────────────────────
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
-
-  // Store previous filter criteria to reset page to 1 during render without cascading effect lag
-  const filterKey = `${searchQuery}|${sectionFilter}|${diffFilter}|${sortBy}`;
-  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
-  if (prevFilterKey !== filterKey) {
-    setPrevFilterKey(filterKey);
-    setCurrentPage(1);
-  }
 
   const totalPages = pageSize === -1 ? 1 : Math.max(1, Math.ceil(questions.length / pageSize));
   const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
@@ -219,14 +232,14 @@ export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
       {/* ── Filters / Search / Bulk Bar ──────────────────────────────────── */}
       <QuestionBankFilters
         searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
+        setSearchQuery={handleSearchChange}
         searchInputRef={searchInputRef}
         sectionFilter={sectionFilter}
-        setSectionFilter={setSectionFilter}
+        setSectionFilter={handleSectionChange}
         diffFilter={diffFilter}
-        setDiffFilter={setDiffFilter}
+        setDiffFilter={handleDiffChange}
         sortBy={sortBy}
-        setSortBy={setSortBy}
+        setSortBy={handleSortChange}
         questions={questions}
         selectedIds={selectedIds}
         isDeletingBulk={isDeletingBulk}

@@ -5,9 +5,30 @@ Fixtures defined here are automatically discovered and available to all tests
 in this directory without explicit import.
 """
 
+import socket
+
 import pytest
 from app.main import app
 from httpx import ASGITransport, AsyncClient
+
+
+def is_postgres_available(host: str = "localhost", port: int = 5432, timeout: float = 0.5) -> bool:
+    """Probes whether a local PostgreSQL server is actively listening on the target port."""
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
+POSTGRES_AVAILABLE = is_postgres_available()
+
+
+@pytest.fixture(autouse=True)
+def auto_skip_db_tests(request):
+    """Automatically skips tests marked with @pytest.mark.requires_db if PostgreSQL is not reachable."""
+    if request.node.get_closest_marker("requires_db") and not POSTGRES_AVAILABLE:
+        pytest.skip("PostgreSQL on localhost:5432 is offline. Skipping database-dependent test.")
 
 
 @pytest.fixture(scope="session")

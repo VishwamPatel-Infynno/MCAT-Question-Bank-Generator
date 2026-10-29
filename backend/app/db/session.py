@@ -31,10 +31,16 @@ async_session_factory = async_sessionmaker(
 async def init_db():
     """Initializes PostgreSQL database tables, migrations, and indexes."""
     logger.info("Initializing PostgreSQL schema and connections...")
-    async with engine.connect() as conn:
-        await conn.execute(text("SELECT 1;"))
-    await init_db_schema(engine)
-    logger.info("PostgreSQL database schema initialized successfully.")
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1;"))
+        await init_db_schema(engine)
+        logger.info("PostgreSQL database schema initialized successfully.")
+    except Exception as e:
+        logger.warning(
+            f"PostgreSQL initialization deferred or unavailable ({e}). "
+            "Backend operating in offline / disconnected mode."
+        )
 
 
 async def check_db_health() -> dict[str, Any]:

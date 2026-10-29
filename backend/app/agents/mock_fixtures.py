@@ -109,7 +109,7 @@ def _build_raw_mock_draft(req: GenerationRequest) -> QuestionDraft:
             image_needed=False,
         )
 
-    elif sec == MCATSection.CARS:
+    if sec == MCATSection.CARS:
         return QuestionDraft(
             stimulus_text=(
                 "The philosophical justification of aesthetic value has long struggled to reconcile subjective sensory experience "

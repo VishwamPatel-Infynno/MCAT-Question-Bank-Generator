@@ -22,6 +22,8 @@ from app.workflow.graph import (
     run_workflow_stream,
 )
 
+pytestmark = pytest.mark.requires_db
+
 
 @pytest.mark.asyncio
 async def test_database_crud():

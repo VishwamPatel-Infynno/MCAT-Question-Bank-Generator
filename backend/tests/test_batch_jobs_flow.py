@@ -4,6 +4,8 @@ from app.main import app
 from app.services.batch_runner import cancel_all_background_batches
 from httpx import ASGITransport, AsyncClient
 
+pytestmark = pytest.mark.requires_db
+
 
 @pytest.fixture(autouse=True)
 async def ensure_db():
