@@ -329,15 +329,14 @@ export default function BatchActivityView({
             const hasQ = (job.questions || []).some((q) => q.id === question.id);
             if (!hasQ) return job;
             changed = true;
-            return {
-              ...job,
+            return Object.assign({}, job, {
               questions: job.questions.map((q) =>
-                q.id === question.id ? { ...q, status: 'in_bank' } : q
+                q.id === question.id ? Object.assign({}, q, { status: 'in_bank' }) : q
               )
-            };
+            });
           });
           const updatedQs = (detail.questions || []).map((q) =>
-            q.id === question.id ? { ...q, status: 'in_bank' } : q
+            q.id === question.id ? Object.assign({}, q, { status: 'in_bank' }) : q
           );
           if (changed) {
             next[bId] = {

@@ -12,12 +12,15 @@ import {
   getSubjectsForSection
 } from '../../../constants';
 
+const EMPTY_OBJECT = Object.freeze({});
+const EMPTY_ARRAY = Object.freeze([]);
+
 export default function WizardStep1SectionFocus({
   selectedSection = 'chem_phys',
   onSelectSection,
-  SECTION_METADATA = {},
-  sectionMeta: _sectionMeta = {},
-  pacing: _pacing = {},
+  SECTION_METADATA = EMPTY_OBJECT,
+  sectionMeta: _sectionMeta = EMPTY_OBJECT,
+  pacing: _pacing = EMPTY_OBJECT,
   selectedSubject = '',
   onSelectSubject,
   selectedUnit: _selectedUnit = '',
@@ -26,9 +29,9 @@ export default function WizardStep1SectionFocus({
   onSelectTopic,
   selectedSubtopic: _selectedSubtopic = '',
   onSelectSubtopic,
-  selectedSubtopics = [],
+  selectedSubtopics = EMPTY_ARRAY,
   onToggleSubtopic,
-  presets = [],
+  presets = EMPTY_ARRAY,
   onApplyPreset,
   totalQuestions = 50
 }) {

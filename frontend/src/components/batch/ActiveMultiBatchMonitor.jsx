@@ -8,8 +8,10 @@ import {
 } from 'lucide-react';
 import { MCAT_SECTION_LABELS } from '../../constants/mcat';
 
+const EMPTY_ARRAY = Object.freeze([]);
+
 export default function ActiveMultiBatchMonitor({
-  activeBatches = [],
+  activeBatches = EMPTY_ARRAY,
   onCancelAll,
   isCancellingAll = false
 }) {

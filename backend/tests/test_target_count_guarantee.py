@@ -18,6 +18,8 @@ from app.services.batch_runner import (
     launch_background_batch,
 )
 
+pytestmark = pytest.mark.requires_db
+
 
 @pytest.mark.asyncio
 async def test_dynamic_job_allocation_in_batch_runner():

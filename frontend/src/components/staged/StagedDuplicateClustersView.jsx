@@ -8,10 +8,13 @@ import {
   ShieldCheck
 } from 'lucide-react';
 
+const EMPTY_ARRAY = Object.freeze([]);
+const EMPTY_SET = new Set();
+
 export default function StagedDuplicateClustersView({
-  clusters = [],
-  stagedQuestions = [],
-  savedIds = new Set(),
+  clusters = EMPTY_ARRAY,
+  stagedQuestions = EMPTY_ARRAY,
+  savedIds = EMPTY_SET,
   onDiscardQuestion,
   onApproveSingle,
   onOpenAudit,
@@ -99,9 +102,7 @@ export default function StagedDuplicateClustersView({
   };
 
   const handleResolveAll = async () => {
-    for (const cluster of clusters) {
-      await handleResolveCluster(cluster);
-    }
+    await Promise.all(clusters.map((cluster) => handleResolveCluster(cluster)));
   };
 
   return (

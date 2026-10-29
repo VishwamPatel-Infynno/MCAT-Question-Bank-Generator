@@ -1,10 +1,55 @@
 import uuid
 from datetime import UTC, datetime
+from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.schemas.mcat import calculate_mcat_scaled_score
+
+
+class QuestionStatus(str, Enum):
+    """Lifecycle statuses for MCAT questions."""
+
+    IN_BANK = "in_bank"
+    AI_VALIDATED = "ai_validated"
+    BATCH_ONLY = "batch_only"
+    BELOW_THRESHOLD = "below_threshold"
+    DISCARDED = "discarded"
+    APPROVED = "approved"
+    REJECTED_BELOW_THRESHOLD = "rejected_below_threshold"
+    ERROR = "error"
+    FAILED = "failed"
+
+
+ACTIVE_QUESTION_STATUSES: frozenset[str] = frozenset(
+    {
+        QuestionStatus.IN_BANK.value,
+        QuestionStatus.AI_VALIDATED.value,
+        QuestionStatus.BATCH_ONLY.value,
+        QuestionStatus.APPROVED.value,
+    }
+)
+
+INACTIVE_QUESTION_STATUSES: frozenset[str] = frozenset(
+    {
+        QuestionStatus.DISCARDED.value,
+        QuestionStatus.BELOW_THRESHOLD.value,
+        QuestionStatus.REJECTED_BELOW_THRESHOLD.value,
+        QuestionStatus.ERROR.value,
+        QuestionStatus.FAILED.value,
+    }
+)
+
+VALID_QUESTION_STATUSES: frozenset[str] = ACTIVE_QUESTION_STATUSES | INACTIVE_QUESTION_STATUSES
+
+
+def is_question_active(status: str | QuestionStatus | None) -> bool:
+    """Returns True if the question status represents an active, non-discarded question."""
+    if not status:
+        return False
+    val = status.value if hasattr(status, "value") else str(status)
+    return val in ACTIVE_QUESTION_STATUSES
 
 
 class OptionChoice(BaseModel):
@@ -287,13 +332,33 @@ class StatusUpdateRequest(BaseModel):
     """Request body for updating lifecycle status of questions."""
 
     ids: list[str]
-    status: str  # 'in_bank', 'discarded', 'ai_validated', 'below_threshold', 'batch_only'
+    status: QuestionStatus | str
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def validate_status(cls, v: Any) -> str:
+        val = v.value if hasattr(v, "value") else str(v)
+        if val not in VALID_QUESTION_STATUSES:
+            raise ValueError(
+                f"Invalid status '{val}'. Must be one of {sorted(VALID_QUESTION_STATUSES)}"
+            )
+        return val
 
 
 class SingleStatusUpdateRequest(BaseModel):
     """Request body for updating lifecycle status of a single question."""
 
-    status: str  # 'in_bank', 'discarded', 'ai_validated', 'below_threshold', 'batch_only'
+    status: QuestionStatus | str
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def validate_status(cls, v: Any) -> str:
+        val = v.value if hasattr(v, "value") else str(v)
+        if val not in VALID_QUESTION_STATUSES:
+            raise ValueError(
+                f"Invalid status '{val}'. Must be one of {sorted(VALID_QUESTION_STATUSES)}"
+            )
+        return val
 
 
 class DuplicateCheckRequest(BaseModel):

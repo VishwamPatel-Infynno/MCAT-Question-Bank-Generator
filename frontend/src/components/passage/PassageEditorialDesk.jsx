@@ -12,6 +12,8 @@ import { getSectionBadgeClass } from '../../constants/mcat';
 import PassageVisualStimulusEditor from './PassageVisualStimulusEditor';
 import PassageLinkedQuestionCard from './PassageLinkedQuestionCard';
 
+const EMPTY_ARRAY = Object.freeze([]);
+
 /**
  * PassageEditorialDesk
  *
@@ -21,7 +23,7 @@ import PassageLinkedQuestionCard from './PassageLinkedQuestionCard';
  */
 export default function PassageEditorialDesk({
   passage,
-  questions = [],
+  questions = EMPTY_ARRAY,
   onBack,
   onSavePassage,
   onDeletePassage,

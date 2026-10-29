@@ -18,6 +18,9 @@ from app.schemas.mcat import (
     normalize_section,
 )
 from app.schemas.question import (
+    ACTIVE_QUESTION_STATUSES,
+    INACTIVE_QUESTION_STATUSES,
+    VALID_QUESTION_STATUSES,
     BatchDeleteRequest,
     BatchDetailResponse,
     DuplicateCheckRequest,
@@ -28,10 +31,12 @@ from app.schemas.question import (
     Passage,
     Question,
     QuestionDraft,
+    QuestionStatus,
     ReviewScore,
     SingleStatusUpdateRequest,
     StatusUpdateRequest,
     determine_question_status,
+    is_question_active,
 )
 from app.schemas.token import TokenUsage
 from app.schemas.workflow import GenerationRequest, WorkflowEvent
@@ -39,6 +44,7 @@ from app.schemas.workflow import GenerationRequest, WorkflowEvent
 __all__ = [
     "AAMC_REASONING_SKILLS",
     "AAMC_SKILL_LABELS",
+    "ACTIVE_QUESTION_STATUSES",
     "BatchDeleteRequest",
     "BatchDetailResponse",
     "CONTENT_DOMAINS",
@@ -48,6 +54,7 @@ __all__ = [
     "GenerationBatch",
     "GenerationJob",
     "GenerationRequest",
+    "INACTIVE_QUESTION_STATUSES",
     "MCATSection",
     "MCAT_PACING",
     "MCAT_SECTION_CODES",
@@ -59,15 +66,18 @@ __all__ = [
     "PRIMARY_TRAPS",
     "Question",
     "QuestionDraft",
+    "QuestionStatus",
     "QUESTION_TYPES",
     "ReviewScore",
     "SECTION_CODE_MAP",
     "SingleStatusUpdateRequest",
     "StatusUpdateRequest",
     "TokenUsage",
+    "VALID_QUESTION_STATUSES",
     "WorkflowEvent",
     "calculate_mcat_scaled_score",
     "determine_question_status",
+    "is_question_active",
     "normalize_mistake_pattern",
     "normalize_primary_trap",
     "normalize_section",

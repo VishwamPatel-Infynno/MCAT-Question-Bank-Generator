@@ -28,6 +28,7 @@ from app.schemas import (
     GenerationRequest,
     Question,
     determine_question_status,
+    is_question_active,
 )
 from app.services.deduplication import cluster_questions
 from app.workflow.engine import run_workflow_stream
@@ -323,11 +324,7 @@ async def auto_resolve_batch_and_refill(
         return {"resolved": False, "reason": "Batch not found"}
 
     linked_questions = await get_questions(batch_id=batch_id)
-    active_questions = [
-        q
-        for q in linked_questions
-        if q.status not in ("discarded", "rejected_below_threshold", "error", "failed")
-    ]
+    active_questions = [q for q in linked_questions if is_question_active(q.status)]
     q_dumps = [q.model_dump() for q in active_questions]
 
     clusters = cluster_questions(q_dumps, threshold=threshold)
@@ -351,11 +348,7 @@ async def auto_resolve_batch_and_refill(
     await refresh_batch_aggregates(batch_id)
     refreshed_b = await get_batch_by_id(batch_id)
     refreshed_questions = await get_questions(batch_id=batch_id)
-    valid_active = [
-        q
-        for q in refreshed_questions
-        if q.status not in ("discarded", "rejected_below_threshold", "error", "failed")
-    ]
+    valid_active = [q for q in refreshed_questions if is_question_active(q.status)]
     remaining_active = len(valid_active)
     target = refreshed_b.target_count if refreshed_b else 50
     deficit = max(0, target - remaining_active)

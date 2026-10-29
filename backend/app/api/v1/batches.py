@@ -17,7 +17,7 @@ from app.repositories.question_repository import (
     delete_questions_batch,
     get_questions,
 )
-from app.schemas import GenerationBatch, GenerationRequest
+from app.schemas import GenerationBatch, GenerationRequest, is_question_active
 from app.services.batch_runner import (
     cancel_all_background_batches,
     cancel_background_batch,
@@ -187,11 +187,7 @@ async def get_batch_duplicate_clusters(
 
     linked_questions = await get_questions(batch_id=batch_id)
     # Only evaluate active questions (ignore previously discarded questions)
-    active_questions = [
-        q
-        for q in linked_questions
-        if q.status not in ("discarded", "rejected_below_threshold", "error", "failed")
-    ]
+    active_questions = [q for q in linked_questions if is_question_active(q.status)]
     q_dumps = [q.model_dump() for q in active_questions]
 
     clusters = cluster_questions(q_dumps, threshold=threshold)
@@ -226,11 +222,7 @@ async def resolve_batch_duplicates(
         raise HTTPException(status_code=404, detail="Batch not found")
 
     linked_questions = await get_questions(batch_id=batch_id)
-    active_questions = [
-        q
-        for q in linked_questions
-        if q.status not in ("discarded", "rejected_below_threshold", "error", "failed")
-    ]
+    active_questions = [q for q in linked_questions if is_question_active(q.status)]
     q_dumps = [q.model_dump() for q in active_questions]
 
     clusters = cluster_questions(q_dumps, threshold=0.75)
@@ -274,11 +266,7 @@ async def resolve_batch_duplicates(
     await refresh_batch_aggregates(batch_id)
     refreshed_b = await get_batch_by_id(batch_id)
     refreshed_questions = await get_questions(batch_id=batch_id)
-    remaining_active = sum(
-        1
-        for q in refreshed_questions
-        if q.status not in ("discarded", "rejected_below_threshold", "error", "failed")
-    )
+    remaining_active = sum(1 for q in refreshed_questions if is_question_active(q.status))
 
     return {
         "success": True,
@@ -303,7 +291,7 @@ async def refill_batch_questions(batch_id: str):
         raise HTTPException(status_code=404, detail="Batch not found")
 
     linked_questions = await get_questions(batch_id=batch_id)
-    active_count = sum(1 for q in linked_questions if q.status != "rejected")
+    active_count = sum(1 for q in linked_questions if is_question_active(q.status))
     deficit = max(0, b.target_count - active_count)
 
     if deficit <= 0:

@@ -18,6 +18,9 @@ const SECTION_SHORT_LABEL = {
   psych_soc: 'Psych / Soc'
 };
 
+const EMPTY_ARRAY = Object.freeze([]);
+const EMPTY_OBJECT = Object.freeze({});
+
 /**
  * PassageBankTable
  *
@@ -25,8 +28,8 @@ const SECTION_SHORT_LABEL = {
  * highlighting word count, linked questions, stimulus figures, and editorial triggers.
  */
 export default function PassageBankTable({
-  passages = [],
-  questionCounts = {}, // map of passageId -> count of linked questions
+  passages = EMPTY_ARRAY,
+  questionCounts = EMPTY_OBJECT, // map of passageId -> count of linked questions
   onSelectPassage,
   onDeletePassage,
   onCopyPassageId

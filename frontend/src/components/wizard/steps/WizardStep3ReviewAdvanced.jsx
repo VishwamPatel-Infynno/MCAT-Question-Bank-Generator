@@ -12,9 +12,12 @@ import {
   LIKELY_MISTAKE_PATTERNS
 } from '../../../constants';
 
+const EMPTY_OBJECT = Object.freeze({});
+const EMPTY_ARRAY = Object.freeze([]);
+
 export default function WizardStep3ReviewAdvanced({
   selectedSection = 'chem_phys',
-  sectionMeta = {},
+  sectionMeta = EMPTY_OBJECT,
   setStep,
   selectedSubject = '',
   selectedTopic = '',
@@ -24,20 +27,20 @@ export default function WizardStep3ReviewAdvanced({
   questionType = 'PASSAGE_BASED_MCQ',
   allowAiImages = false,
   setAllowAiImages,
-  COGNITIVE_TRAPS = [],
+  COGNITIVE_TRAPS = EMPTY_ARRAY,
   primaryTrap = 'Automatic',
   setPrimaryTrap,
-  primaryTraps = [],
+  primaryTraps = EMPTY_ARRAY,
   onTogglePrimaryTrap,
   selectedSkill = '',
   setSelectedSkill: _setSelectedSkill,
   selectedSubskill = '',
   setSelectedSubskill,
-  selectedSubskills = [],
+  selectedSubskills = EMPTY_ARRAY,
   onToggleSubskill,
   likelyMistakePattern = '',
   setLikelyMistakePattern,
-  likelyMistakePatterns = [],
+  likelyMistakePatterns = EMPTY_ARRAY,
   onToggleMistakePattern,
   customMistakePattern = '',
   setCustomMistakePattern: _setCustomMistakePattern

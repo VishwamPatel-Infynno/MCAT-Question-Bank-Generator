@@ -312,6 +312,8 @@ const QuestionBankCardRow = React.memo(function QuestionBankCardRow({
   );
 });
 
+const EMPTY_ARRAY = Object.freeze([]);
+
 /**
  * QuestionBankTable
  *
@@ -320,8 +322,8 @@ const QuestionBankCardRow = React.memo(function QuestionBankCardRow({
  * options proof breakdowns, and mentor pedagogical explanations.
  */
 export default function QuestionBankTable({
-  paginatedQuestions = [],
-  selectedIds = [],
+  paginatedQuestions = EMPTY_ARRAY,
+  selectedIds = EMPTY_ARRAY,
   expandedId,
   setExpandedId,
   copiedId,
