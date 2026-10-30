@@ -1,9 +1,24 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+const gracefulShutdownPlugin = () => ({
+  name: 'graceful-shutdown',
+  configureServer(server) {
+    const handleExit = () => {
+      server.close().then(() => {
+        process.exit(0);
+      }).catch(() => {
+        process.exit(0);
+      });
+    };
+    process.once('SIGINT', handleExit);
+    process.once('SIGTERM', handleExit);
+  }
+})
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), gracefulShutdownPlugin()],
   server: {
     port: 5173,
     allowedHosts: [
