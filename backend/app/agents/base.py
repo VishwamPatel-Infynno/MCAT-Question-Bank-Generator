@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 # Configure litellm behavior
 litellm.suppress_debug_info = True
+litellm.drop_params = True
 
 _global_llm_semaphore: asyncio.Semaphore | None = None
 
@@ -114,12 +115,77 @@ def safe_json_loads(text: str) -> Any:
         raise e1
 
 
-def calculate_token_cost(prompt_tokens: int, completion_tokens: int) -> float:
+def normalize_model_for_litellm(model: str) -> str:
     """
-    Calculate USD expenditure based on exact DeepInfra rates:
-    - Input: $0.098 / 1M tokens ($0.000000098 per token)
-    - Output: $0.294 / 1M tokens ($0.000000294 per token)
+    Normalizes Anthropic model identifiers so LiteLLM provider detection never fails.
+    e.g. 'claude-3-5-sonnet-20241022' -> 'anthropic/claude-3-5-sonnet-20241022',
+    while preserving bare names that LiteLLM already knows natively (like 'claude-haiku-5-5').
     """
+    m = model.strip()
+    if config.is_anthropic_model(m):
+        if m.startswith("anthropic/") or m.startswith("anthropic."):
+            return m
+        try:
+            litellm.get_llm_provider(m)
+            return m
+        except Exception:
+            return f"anthropic/{m}"
+    return m
+
+
+def calculate_token_cost(
+    prompt_tokens: int,
+    completion_tokens: int,
+    model: str | None = None,
+    cache_read_tokens: int = 0,
+    cache_creation_tokens: int = 0,
+) -> float:
+    """
+    Calculate USD expenditure based on exact provider rates:
+    - Claude Haiku 5.5 Tiered Rates (from official Anthropic pricing):
+        - <= 100K prompt tokens: $0.10 in / $0.50 out / $0.01 cache read / $0.125 cache write
+        - > 100K prompt tokens: $0.50 in / $2.50 out / $0.05 cache read / $0.625 cache write
+    - Other Claude Models (Sonnet, Opus, etc.):
+        - Rates from config.get_default_pricing_rates(target_model)
+        - Universal Anthropic prompt caching:
+            - Cache Read: 10% of base in_rate
+            - Cache Write: 125% of base in_rate
+    - DeepInfra / Custom Rates:
+        - Input: config.COST_PER_MILLION_INPUT_TOKENS ($0.098 / 1M tokens)
+        - Output: config.COST_PER_MILLION_OUTPUT_TOKENS ($0.294 / 1M tokens)
+    """
+    target_model = model or config.DEFAULT_TEXT_MODEL
+    if config.is_anthropic_model(target_model):
+        is_custom_env_rate = (
+            config.COST_PER_MILLION_INPUT_TOKENS != 0.098
+            or config.COST_PER_MILLION_OUTPUT_TOKENS != 0.294
+        )
+
+        if (
+            "haiku-5-5" in target_model.lower() or target_model == "claude-haiku-5-5"
+        ) and not is_custom_env_rate:
+            if prompt_tokens > 100_000:
+                in_rate = 0.50
+                out_rate = 2.50
+                cache_read_rate = 0.05
+                cache_creation_rate = 0.625
+            else:
+                in_rate = 0.10
+                out_rate = 0.50
+                cache_read_rate = 0.01
+                cache_creation_rate = 0.125
+        else:
+            in_rate, out_rate = config.get_default_pricing_rates(target_model)
+            cache_read_rate = in_rate * 0.10
+            cache_creation_rate = in_rate * 1.25
+
+        base_prompt_tokens = max(0, prompt_tokens - cache_read_tokens - cache_creation_tokens)
+        in_cost = (base_prompt_tokens / 1_000_000.0) * in_rate
+        out_cost = (completion_tokens / 1_000_000.0) * out_rate
+        cache_read_cost = (cache_read_tokens / 1_000_000.0) * cache_read_rate
+        cache_creation_cost = (cache_creation_tokens / 1_000_000.0) * cache_creation_rate
+        return round(in_cost + out_cost + cache_read_cost + cache_creation_cost, 7)
+
     in_rate = config.COST_PER_MILLION_INPUT_TOKENS
     out_rate = config.COST_PER_MILLION_OUTPUT_TOKENS
 
@@ -128,25 +194,26 @@ def calculate_token_cost(prompt_tokens: int, completion_tokens: int) -> float:
     return round(in_cost + out_cost, 7)
 
 
-def _resolve_api_key(_model: str, explicit_key: str | None) -> str:
+def _resolve_api_key(model: str, explicit_key: str | None) -> str:
     """
-    Resolves the DeepInfra API key.
+    Resolves the API key for the requested model.
 
     Priority order:
     1. Explicitly passed ``explicit_key`` (caller override)
-    2. DeepInfra key from Settings (loaded from .env)
-    3. Ambient DEEPINFRA_API_KEY environment variable
-    4. Raises ValueError if no DeepInfra key is configured.
-
-    Args:
-        model: The litellm model string, e.g. ``deepinfra/deepseek-ai/…``.
-        explicit_key: Caller-supplied API key override, or ``None``.
-
-    Returns:
-        Resolved DeepInfra API key string.
+    2. Anthropic key from Settings / environment if model is Anthropic
+    3. DeepInfra key from Settings / environment if model is DeepInfra
+    4. Raises ValueError if corresponding key is not configured.
     """
     if explicit_key:
         return explicit_key
+
+    if config.is_anthropic_model(model):
+        key = config.ANTHROPIC_API_KEY or os.getenv("ANTHROPIC_API_KEY")
+        if not key:
+            raise ValueError(
+                "Anthropic API Key is required. Please set ANTHROPIC_API_KEY in your .env file."
+            )
+        return key
 
     key = config.DEEPINFRA_API_KEY or os.getenv("DEEPINFRA_API_KEY")
     if not key:
@@ -159,7 +226,8 @@ def _resolve_api_key(_model: str, explicit_key: str | None) -> str:
 def _get_available_fallback_models(primary_model: str) -> list[str]:
     """Builds an ordered list of candidate models for which valid API credentials exist."""
     candidates = [primary_model]
-    for model_name in config.FAST_MODEL_CASCADE:
+    cascade = config.get_effective_cascade(primary_model)
+    for model_name in cascade:
         if model_name != primary_model and model_name not in candidates:
             try:
                 if _resolve_api_key(model_name, None):
@@ -178,7 +246,7 @@ async def call_llm(
     temperature: float | None = None,
     max_tokens: int | None = None,
 ) -> tuple[str, TokenUsage]:
-    """Universal LLM caller via LiteLLM targeting DeepInfra models with global throttling & backoff."""
+    """Universal LLM caller via LiteLLM targeting DeepInfra or Anthropic models with global throttling & backoff."""
     initial_model = model or config.DEFAULT_TEXT_MODEL
     effective_max_tokens = max_tokens if max_tokens is not None else config.DEFAULT_MAX_TOKENS
     effective_temperature = temperature if temperature is not None else config.DEFAULT_TEMPERATURE
@@ -198,7 +266,7 @@ async def call_llm(
                 continue
 
             kwargs: dict[str, Any] = {
-                "model": candidate,
+                "model": normalize_model_for_litellm(candidate),
                 "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt},
@@ -210,12 +278,19 @@ async def call_llm(
             }
             if resolved_key:
                 kwargs["api_key"] = resolved_key
+            if config.is_anthropic_model(candidate) and "thinking" not in kwargs:
+                kwargs["thinking"] = {"type": "disabled"}
 
             max_retries = config.LLM_MAX_RETRIES
             for attempt in range(max_retries + 1):
                 try:
                     response = await litellm.acompletion(**kwargs)
-                    content = response.choices[0].message.content
+                    content = (response.choices[0].message.content or "").strip()
+                    if not content:
+                        finish_reason = getattr(response.choices[0], "finish_reason", "unknown")
+                        raise ValueError(
+                            f"Model {candidate} returned empty content (finish_reason: {finish_reason})"
+                        )
 
                     usage_obj = getattr(response, "usage", None)
                     prompt_tokens = int(getattr(usage_obj, "prompt_tokens", 0) or 0)
@@ -225,15 +300,50 @@ async def call_llm(
                         or (prompt_tokens + completion_tokens)
                     )
 
-                    cost_usd = calculate_token_cost(prompt_tokens, completion_tokens)
+                    # Extract prompt caching details if provided by model
+                    cache_read_raw = getattr(usage_obj, "cache_read_input_tokens", 0)
+                    cache_read_tokens = (
+                        int(cache_read_raw)
+                        if isinstance(cache_read_raw, (int, float))
+                        and not isinstance(cache_read_raw, bool)
+                        else 0
+                    )
+
+                    details = getattr(usage_obj, "prompt_tokens_details", None)
+                    if details is not None and type(details).__name__ not in ("MagicMock", "Mock"):
+                        if isinstance(details, dict):
+                            cached_val = details.get("cached_tokens", 0)
+                        else:
+                            cached_val = getattr(details, "cached_tokens", 0)
+                        if isinstance(cached_val, (int, float)) and not isinstance(
+                            cached_val, bool
+                        ):
+                            cache_read_tokens = cache_read_tokens or int(cached_val)
+
+                    cache_create_raw = getattr(usage_obj, "cache_creation_input_tokens", 0)
+                    cache_creation_tokens = (
+                        int(cache_create_raw)
+                        if isinstance(cache_create_raw, (int, float))
+                        and not isinstance(cache_create_raw, bool)
+                        else 0
+                    )
+
+                    cost_usd = calculate_token_cost(
+                        prompt_tokens=prompt_tokens,
+                        completion_tokens=completion_tokens,
+                        model=candidate,
+                        cache_read_tokens=cache_read_tokens,
+                        cache_creation_tokens=cache_creation_tokens,
+                    )
                     usage = TokenUsage(
                         prompt_tokens=prompt_tokens,
                         completion_tokens=completion_tokens,
                         total_tokens=total_tokens,
                         cost_usd=cost_usd,
                     )
+                    provider_label = config.get_active_provider(candidate).capitalize()
                     logger.info(
-                        f"LLM Call Succeeded [{candidate}]: {prompt_tokens} in + {completion_tokens} out = {total_tokens} tokens (${cost_usd:.5f})"
+                        f"LLM Call Succeeded [{candidate} via {provider_label}]: {prompt_tokens} in + {completion_tokens} out = {total_tokens} tokens (${cost_usd:.5f})"
                     )
                     return content, usage
                 except Exception as err:
@@ -273,14 +383,12 @@ async def call_llm(
                         await asyncio.sleep(backoff_secs)
                         continue
 
-                    logger.warning(
-                        f"DeepInfra LLM error on model '{candidate}' attempt {attempt + 1}: {err}"
-                    )
+                    logger.warning(f"LLM error on model '{candidate}' attempt {attempt + 1}: {err}")
                     break
 
-    logger.error(f"DeepInfra LLM call failed for prompt. Last error: {last_error}")
+    logger.error(f"LLM call failed for prompt. Last error: {last_error}")
     if isinstance(last_error, ValueError):
         raise last_error
     raise RuntimeError(
-        f"AI Generation Failed: DeepInfra model unreachable or encountered errors. Details: {last_error}"
+        f"AI Generation Failed: Model unreachable or encountered errors. Details: {last_error}"
     )

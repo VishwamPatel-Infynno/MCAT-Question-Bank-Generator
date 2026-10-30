@@ -1,11 +1,10 @@
 import logging
 from datetime import UTC, datetime
 
-from sqlalchemy import and_, delete, func, or_, select, update
+from sqlalchemy import and_, func, or_, select, update
 
 from app.db.base import to_datetime, to_iso_str
 from app.db.session import async_session_factory
-from app.models.job import GenerationJobModel
 from app.models.passage import PassageModel
 from app.models.question import QuestionModel
 from app.schemas import Passage

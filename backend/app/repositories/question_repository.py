@@ -2,7 +2,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import and_, delete, func, or_, select, update
+from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.db.base import to_datetime, to_iso_str
@@ -540,11 +540,7 @@ async def batch_update_question_status(question_ids: list[str], status: str) -> 
             update_vals["is_deleted"] = False
             update_vals["deleted_at"] = None
 
-        stmt = (
-            update(QuestionModel)
-            .where(QuestionModel.id.in_(question_ids))
-            .values(**update_vals)
-        )
+        stmt = update(QuestionModel).where(QuestionModel.id.in_(question_ids)).values(**update_vals)
         result = await session.execute(stmt)
         await session.commit()
         return result.rowcount or 0

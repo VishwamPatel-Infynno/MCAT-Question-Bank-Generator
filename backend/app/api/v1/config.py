@@ -12,13 +12,16 @@ router = APIRouter(tags=["Configuration & Settings"])
 @router.get("/config")
 async def get_settings():
     """Retrieves current runtime configuration and pricing constants."""
+    in_rate, out_rate = config.get_default_pricing_rates()
     return {
         "default_text_model": config.DEFAULT_TEXT_MODEL,
         "default_image_model": config.DEFAULT_IMAGE_MODEL,
+        "active_provider": config.get_active_provider(),
+        "has_anthropic_key": bool(config.ANTHROPIC_API_KEY),
+        "has_deepinfra_key": bool(config.DEEPINFRA_API_KEY),
         "fast_model_cascade": config.FAST_MODEL_CASCADE
         if isinstance(config.FAST_MODEL_CASCADE, list)
         else [config.FAST_MODEL_CASCADE],
-        "has_deepinfra_key": bool(config.DEEPINFRA_API_KEY),
         "max_regenerations": config.MAX_REGENERATION_ATTEMPTS,
         "passing_threshold": config.PASSING_SCORE_THRESHOLD,
         "batch_passing_threshold": config.BATCH_PASSING_SCORE_THRESHOLD,
@@ -34,8 +37,8 @@ async def get_settings():
         "global_max_concurrent_jobs": config.GLOBAL_MAX_CONCURRENT_JOBS,
         "global_max_concurrent_llm_calls": config.GLOBAL_MAX_CONCURRENT_LLM_CALLS,
         "workflow_max_worker_retries": config.WORKFLOW_MAX_WORKER_RETRIES,
-        "cost_per_million_input": config.COST_PER_MILLION_INPUT_TOKENS,
-        "cost_per_million_output": config.COST_PER_MILLION_OUTPUT_TOKENS,
+        "cost_per_million_input": in_rate,
+        "cost_per_million_output": out_rate,
         "image_width": config.IMAGE_WIDTH,
         "image_height": config.IMAGE_HEIGHT,
         "image_iters": config.IMAGE_ITERS,

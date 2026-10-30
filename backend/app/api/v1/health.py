@@ -14,6 +14,7 @@ router = APIRouter(tags=["Health & Diagnostics"])
 async def health_check():
     """Health check reporting database status, exam standard, and active pricing."""
     db_status = await check_db_health()
+    in_rate, out_rate = config.get_default_pricing_rates()
     return {
         "status": "healthy",
         "exam": "AAMC MCAT",
@@ -24,11 +25,13 @@ async def health_check():
         ),
         "default_text_model": config.DEFAULT_TEXT_MODEL,
         "default_image_model": config.DEFAULT_IMAGE_MODEL,
+        "active_provider": config.get_active_provider(),
+        "has_anthropic_key": bool(config.ANTHROPIC_API_KEY),
         "has_deepinfra_key": bool(config.DEEPINFRA_API_KEY),
         "max_regenerations": config.MAX_REGENERATION_ATTEMPTS,
         "passing_threshold": config.PASSING_SCORE_THRESHOLD,
-        "cost_per_million_input": config.COST_PER_MILLION_INPUT_TOKENS,
-        "cost_per_million_output": config.COST_PER_MILLION_OUTPUT_TOKENS,
+        "cost_per_million_input": in_rate,
+        "cost_per_million_output": out_rate,
         "image_width": config.IMAGE_WIDTH,
         "image_height": config.IMAGE_HEIGHT,
         "image_iters": config.IMAGE_ITERS,

@@ -6,30 +6,39 @@ This document details the token accounting engine, high-throughput pricing rate 
 
 ---
 
-## 1. Inference Engine & Pricing Rate Card
+## 1. Inference Engines & Pricing Rate Cards
 
-The primary LLM driving the multi-agent system is **DeepSeek-V4.1-Flash-1017**, hosted on **DeepInfra**:
+The system features multi-provider inference support, seamlessly switchable via `ACTIVE_LLM_PROVIDER=anthropic` or `ACTIVE_LLM_PROVIDER=deepinfra` in `.env`:
 
+### DeepInfra Engine: DeepSeek-V4.1-Flash-1017
 - **Model Identifier**: `deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017`
 - **Context Window**: 1,024,000 tokens (1M)
 - **Inference Speed**: ~110-140 tokens/second
-- **Cascade Fallbacks**: Managed through `FAST_MODEL_CASCADE` in `.env.example` and parsed via `parse_fast_model_cascade` in `Settings`.
-- **Runtime Telemetry Endpoint**: All active pricing and configuration parameters are dynamically queryable at `GET /api/config` (24 fields).
+- **Official Rates**:
+  - Input: $0.098 USD per 1,000,000 tokens
+  - Output: $0.294 USD per 1,000,000 tokens
 
-### Official DeepInfra Rate Card
-
-$$\begin{aligned}
-\text{Input (Prompt) Tokens} &: \text{0.098 USD per 1,000,000 tokens} \\
-\text{Output (Completion) Tokens} &: \text{0.294 USD per 1,000,000 tokens}
-\end{aligned}$$
+### Anthropic Engine: Claude Haiku 5.5
+- **Model Identifier**: `claude-haiku-5-5` (or aliases `anthropic/claude-haiku-5-5`, `claude-3-5-haiku-20241022`, `claude-3-5-sonnet-20241022`)
+- **Context Window**: 200,000 tokens
+- **Inference Speed**: ~100-130 tokens/second
+- **Official Claude Haiku 5.5 Rates**:
+  - Standard Prompt ($\le$ 100K tokens): $0.10 USD / 1M in, $0.50 USD / 1M out
+  - Extended Prompt (> 100K tokens): $0.50 USD / 1M in, $2.50 USD / 1M out
+  - Prompt Cache Read: $0.01 / 1M tokens ($\le$ 100K) or $0.05 / 1M (> 100K)
+  - Prompt Cache Creation: $0.125 / 1M tokens ($\le$ 100K) or $0.625 / 1M (> 100K)
 
 ---
 
 ## 2. Mathematical Cost Computation Engine
 
-The calculation is implemented in [`backend/app/agents/base.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/agents/base.py#L35-L45) via `calculate_token_cost`:
+The calculation is implemented in [`backend/app/agents/base.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/agents/base.py) via `calculate_token_cost`:
 
+For **DeepInfra**:
 $$\text{Cost}_{\text{USD}} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times 0.098\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times 0.294\right)$$
+
+For **Anthropic** (with prompt caching):
+$$\text{Cost}_{\text{USD}} = \left(\frac{\text{Base In}}{1,000,000} \times R_{\text{in}}\right) + \left(\frac{\text{Completion}}{1,000,000} \times R_{\text{out}}\right) + \left(\frac{\text{Cache Read}}{1,000,000} \times R_{\text{read}}\right) + \left(\frac{\text{Cache Create}}{1,000,000} \times R_{\text{write}}\right)$$
 
 To preserve numerical accuracy and avoid IEEE 754 floating-point drift, calculations are rounded to **7 decimal places** (sub-micro-cent precision):
 

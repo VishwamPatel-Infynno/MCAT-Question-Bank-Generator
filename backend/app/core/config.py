@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -9,11 +9,26 @@ class Settings(BaseSettings):
     # Base paths
     BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent
 
+    # Active LLM Provider: 'deepinfra' or 'anthropic'
+    ACTIVE_LLM_PROVIDER: str = "deepinfra"
+
     # PostgreSQL Database URL
     DATABASE_URL: str = "postgresql+asyncpg://mcat_user:mcat_password@localhost:5432/mcat_db"
 
     # Primary LLM for multi-agent reasoning: DeepSeek V4.1 Flash 1017 via DeepInfra
     DEFAULT_TEXT_MODEL: str = "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017"
+
+    # Dedicated Anthropic settings
+    ANTHROPIC_MODEL: str = "claude-haiku-5-5"
+    ANTHROPIC_COST_PER_MILLION_INPUT_TOKENS: float = 0.10
+    ANTHROPIC_COST_PER_MILLION_OUTPUT_TOKENS: float = 0.50
+    ANTHROPIC_API_KEY: str = ""
+
+    # Dedicated DeepInfra settings
+    DEEPINFRA_MODEL: str = "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017"
+    DEEPINFRA_COST_PER_MILLION_INPUT_TOKENS: float = 0.098
+    DEEPINFRA_COST_PER_MILLION_OUTPUT_TOKENS: float = 0.294
+    DEEPINFRA_API_KEY: str = ""
 
     # Official DeepInfra Pricing (USD per 1,000,000 tokens)
     COST_PER_MILLION_INPUT_TOKENS: float = 0.098
@@ -54,6 +69,91 @@ class Settings(BaseSettings):
 
     # API Keys - loaded automatically from .env by pydantic-settings
     DEEPINFRA_API_KEY: str = ""
+
+    @model_validator(mode="after")
+    def sync_active_provider_defaults(self) -> "Settings":
+        provider = (self.ACTIVE_LLM_PROVIDER or "").strip().lower()
+        if provider == "anthropic":
+            if self.DEFAULT_TEXT_MODEL == "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017":
+                self.DEFAULT_TEXT_MODEL = self.ANTHROPIC_MODEL
+            if self.COST_PER_MILLION_INPUT_TOKENS == 0.098:
+                self.COST_PER_MILLION_INPUT_TOKENS = self.ANTHROPIC_COST_PER_MILLION_INPUT_TOKENS
+            if self.COST_PER_MILLION_OUTPUT_TOKENS == 0.294:
+                self.COST_PER_MILLION_OUTPUT_TOKENS = self.ANTHROPIC_COST_PER_MILLION_OUTPUT_TOKENS
+        elif provider == "deepinfra":
+            if self.DEFAULT_TEXT_MODEL == "claude-haiku-5-5":
+                self.DEFAULT_TEXT_MODEL = self.DEEPINFRA_MODEL
+        return self
+
+    def is_anthropic_model(self, model: str | None = None) -> bool:
+        """Determines if the provided or default model is an Anthropic Claude model."""
+        target = (model or self.DEFAULT_TEXT_MODEL).strip().lower()
+        return "claude" in target or target.startswith("anthropic/")
+
+    def get_active_provider(self, model: str | None = None) -> str:
+        """Returns the primary provider ('anthropic' or 'deepinfra') for the active or given model."""
+        if model:
+            return "anthropic" if self.is_anthropic_model(model) else "deepinfra"
+        if self.ACTIVE_LLM_PROVIDER and self.ACTIVE_LLM_PROVIDER.strip().lower() == "anthropic":
+            return "anthropic"
+        return "anthropic" if self.is_anthropic_model() else "deepinfra"
+
+    def get_default_pricing_rates(self, model: str | None = None) -> tuple[float, float]:
+        """
+        Returns default (cost_per_million_input, cost_per_million_output) based on active/given model:
+        1. If COST_PER_MILLION_* have been customized away from default DeepInfra rates (0.098 / 0.294)
+           and model is not DeepInfra, prioritize the user's custom environment rates.
+        2. If model is Claude Haiku 5.5: returns official $0.10 / $0.50 per 1M tokens.
+        3. If model is another Claude model (e.g. Sonnet, Opus): queries LiteLLM model_cost registry.
+        4. Fallbacks: Sonnet ($3.00/$15.00), Opus ($15.00/$75.00), Haiku 3.5 ($0.80/$4.00), DeepInfra ($0.098/$0.294).
+        """
+        target = (model or self.DEFAULT_TEXT_MODEL).strip().lower()
+
+        # If user explicitly overrode rates in .env away from DeepInfra defaults, respect them
+        is_custom_env_rate = (
+            self.COST_PER_MILLION_INPUT_TOKENS != 0.098
+            or self.COST_PER_MILLION_OUTPUT_TOKENS != 0.294
+        )
+        if is_custom_env_rate:
+            return self.COST_PER_MILLION_INPUT_TOKENS, self.COST_PER_MILLION_OUTPUT_TOKENS
+
+        if self.is_anthropic_model(target):
+            # Claude Haiku 5.5
+            if "haiku-5-5" in target or target == "claude-haiku-5-5":
+                return 0.10, 0.50
+
+            # Dynamic LiteLLM model_cost registry lookup
+            try:
+                import litellm
+
+                bare_target = target.replace("anthropic/", "").replace("anthropic.", "")
+                candidates = [
+                    target,
+                    bare_target,
+                    f"anthropic/{bare_target}",
+                    f"anthropic.{bare_target}",
+                ]
+                for cand in candidates:
+                    info = litellm.model_cost.get(cand)
+                    if info and "input_cost_per_token" in info and "output_cost_per_token" in info:
+                        in_rate = round(float(info["input_cost_per_token"]) * 1_000_000.0, 4)
+                        out_rate = round(float(info["output_cost_per_token"]) * 1_000_000.0, 4)
+                        return in_rate, out_rate
+            except Exception:
+                pass
+
+            # Known Anthropic family heuristics
+            if "sonnet" in target:
+                return 3.00, 15.00
+            if "opus" in target:
+                return 15.00, 75.00
+            if "haiku" in target:
+                return 0.80, 4.00
+
+            # Default generic Claude rate
+            return 3.00, 15.00
+
+        return self.COST_PER_MILLION_INPUT_TOKENS, self.COST_PER_MILLION_OUTPUT_TOKENS
 
     # CORS Trusted Origins (extra origins beyond localhost defaults, comma-separated or JSON list in .env)
     ALLOWED_ORIGINS: list[str] | str = []
@@ -126,6 +226,25 @@ class Settings(BaseSettings):
         if isinstance(v, list):
             return [str(x).strip() for x in v if str(x).strip()]
         return ["deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017"]
+
+    def get_effective_cascade(self, primary_model: str | None = None) -> list[str]:
+        """Returns candidate models for fallback, aware of the active provider."""
+        p_model = primary_model or self.DEFAULT_TEXT_MODEL
+        if self.FAST_MODEL_CASCADE and self.FAST_MODEL_CASCADE != [
+            "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017"
+        ]:
+            return (
+                self.FAST_MODEL_CASCADE
+                if isinstance(self.FAST_MODEL_CASCADE, list)
+                else [self.FAST_MODEL_CASCADE]
+            )
+        if self.is_anthropic_model(p_model):
+            return [p_model]
+        return (
+            self.FAST_MODEL_CASCADE
+            if isinstance(self.FAST_MODEL_CASCADE, list)
+            else [self.FAST_MODEL_CASCADE]
+        )
 
     # Blind-Solver Dual Validation Agent
     ENABLE_BLIND_SOLVER: bool = True

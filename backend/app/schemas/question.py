@@ -160,8 +160,12 @@ class Question(BaseModel):
         "in_bank",
         description="Lifecycle status: 'ai_validated', 'in_bank', 'discarded', 'below_threshold', 'batch_only'",
     )
-    is_deleted: bool = Field(False, description="Whether the question is soft-deleted from the bank")
-    deleted_at: str | None = Field(None, description="ISO timestamp when the question was soft-deleted")
+    is_deleted: bool = Field(
+        False, description="Whether the question is soft-deleted from the bank"
+    )
+    deleted_at: str | None = Field(
+        None, description="ISO timestamp when the question was soft-deleted"
+    )
     section: str
     section_label: str
     subtopic: str
@@ -279,7 +283,9 @@ class Passage(BaseModel):
     image_description: str | None = None
     question_count: int = 0
     is_deleted: bool = Field(False, description="Whether the passage is soft-deleted from the bank")
-    deleted_at: str | None = Field(None, description="ISO timestamp when the passage was soft-deleted")
+    deleted_at: str | None = Field(
+        None, description="ISO timestamp when the passage was soft-deleted"
+    )
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     updated_at: str | None = None
 

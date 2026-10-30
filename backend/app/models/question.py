@@ -89,9 +89,7 @@ class QuestionModel(Base):
     is_deleted: Mapped[bool] = mapped_column(
         Boolean, default=False, server_default="false", nullable=False, index=True
     )
-    deleted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Token usage & cost tracking
     total_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True, default=0)

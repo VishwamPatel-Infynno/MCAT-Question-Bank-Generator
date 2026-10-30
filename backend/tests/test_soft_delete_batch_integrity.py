@@ -1,19 +1,13 @@
 import uuid
-import pytest
-from httpx import ASGITransport, AsyncClient
 
+import pytest
 from app.db.session import init_db
 from app.main import app
-from app.models.passage import PassageModel
 from app.repositories import (
     delete_passage,
     delete_question,
-    get_jobs_by_batch_id,
-    get_passage_by_id,
     get_passages,
-    get_question_by_id,
     get_questions,
-    restore_question,
     save_batch,
     save_job,
     save_passage,
@@ -26,6 +20,7 @@ from app.schemas import (
     Passage,
     Question,
 )
+from httpx import ASGITransport, AsyncClient
 
 pytestmark = pytest.mark.requires_db
 
@@ -117,9 +112,7 @@ async def test_soft_delete_passage_and_batch_integrity():
     assert not any(q.id == q_id for q in post_delete_questions)
 
     # CRITICAL TEST: Batch Progress endpoint GET /batches/{batch_id} must have question and stimulus INTACT!
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         res = await ac.get(f"/api/batches/{batch_id}")
         assert res.status_code == 200
         batch_data = res.json()
@@ -127,7 +120,10 @@ async def test_soft_delete_passage_and_batch_integrity():
         q_in_batch = batch_data["questions"][0]
         assert q_in_batch["id"] == q_id
         assert q_in_batch["is_deleted"] is True
-        assert q_in_batch["stimulus_text"] == "This is an experimental passage examining Michaelis-Menten kinetics."
+        assert (
+            q_in_batch["stimulus_text"]
+            == "This is an experimental passage examining Michaelis-Menten kinetics."
+        )
         assert len(batch_data["jobs"]) == 1
         job_questions = batch_data["jobs"][0]["questions"]
         assert len(job_questions) == 1
@@ -193,9 +189,7 @@ async def test_soft_delete_question_and_restore():
     assert not any(q.id == q_id for q in active_qs)
 
     # But Batch Detail MUST retain the question
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         res = await ac.get(f"/api/batches/{batch_id}")
         assert res.status_code == 200
         batch_data = res.json()

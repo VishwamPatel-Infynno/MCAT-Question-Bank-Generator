@@ -260,14 +260,10 @@ async def init_db_schema(engine: AsyncEngine):
 
         # Safe schema update for soft-deletion support
         await conn.execute(
-            text(
-                "ALTER TABLE questions ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;"
-            )
+            text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;")
         )
         await conn.execute(
-            text(
-                "CREATE INDEX IF NOT EXISTS ix_questions_is_deleted ON questions (is_deleted);"
-            )
+            text("CREATE INDEX IF NOT EXISTS ix_questions_is_deleted ON questions (is_deleted);")
         )
         await conn.execute(
             text(
@@ -275,14 +271,10 @@ async def init_db_schema(engine: AsyncEngine):
             )
         )
         await conn.execute(
-            text(
-                "ALTER TABLE passages ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;"
-            )
+            text("ALTER TABLE passages ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;")
         )
         await conn.execute(
-            text(
-                "CREATE INDEX IF NOT EXISTS ix_passages_is_deleted ON passages (is_deleted);"
-            )
+            text("CREATE INDEX IF NOT EXISTS ix_passages_is_deleted ON passages (is_deleted);")
         )
         await conn.execute(
             text(
