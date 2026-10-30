@@ -153,7 +153,7 @@ class GenerationRequest(BaseModel):
             if lower in ["high", "hard", "top percentile", "mastery", "elite"]:
                 return Difficulty.HIGH
             raise ValueError(
-                f"Invalid difficulty '{v}'. Difficulty must strictly be one of: low, medium, high (or legacy: easy, hard)."
+                f"Invalid difficulty '{v}'. Difficulty must strictly be one of: low, medium, high."
             )
         return v
 

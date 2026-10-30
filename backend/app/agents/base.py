@@ -156,14 +156,14 @@ def calculate_token_cost(
     """
     target_model = model or config.DEFAULT_TEXT_MODEL
     if config.is_anthropic_model(target_model):
-        is_custom_env_rate = (
-            config.COST_PER_MILLION_INPUT_TOKENS != 0.098
-            or config.COST_PER_MILLION_OUTPUT_TOKENS != 0.294
+        has_rate_override = (
+            getattr(config, "_override_cost_input", None) is not None
+            or getattr(config, "_override_cost_output", None) is not None
         )
 
         if (
             "haiku-5-5" in target_model.lower() or target_model == "claude-haiku-5-5"
-        ) and not is_custom_env_rate:
+        ) and not has_rate_override:
             if prompt_tokens > 100_000:
                 in_rate = 0.50
                 out_rate = 2.50

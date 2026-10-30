@@ -141,10 +141,10 @@ export default function PassageBankTable({
                         alignItems: 'center',
                         gap: '4px'
                       }}
-                      title="Passage contains visual figure or vector diagram"
+                      title="Passage contains scientific figure or vector diagram"
                     >
                       <ImageIcon size={11} />
-                      <span>Visual Stimulus</span>
+                      <span>Figure / Diagram</span>
                     </span>
                   )}
                 </div>

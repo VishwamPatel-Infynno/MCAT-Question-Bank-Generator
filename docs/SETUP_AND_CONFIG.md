@@ -41,7 +41,6 @@ cp .env.example .env
 | `DEEPINFRA_COST_PER_MILLION_INPUT_TOKENS` | `float` | `0.098` | Input token price for DeepInfra ($0.098 / 1M) |
 | `DEEPINFRA_COST_PER_MILLION_OUTPUT_TOKENS` | `float` | `0.294` | Output token price for DeepInfra ($0.294 / 1M) |
 | `DATABASE_URL` | `string` | `postgresql+asyncpg://mcat_user:mcat_password@localhost:5432/mcat_db` | Async SQLAlchemy PostgreSQL connection string |
-| `DEFAULT_TEXT_MODEL` | `string` | `deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017` | Direct model identifier override (backward compatibility) |
 | `DEFAULT_IMAGE_MODEL` | `string` | `black-forest-labs/FLUX-2-klein-4b` | Image model for visual stimuli |
 | `DEEPINFRA_API_KEY` | `string` | `""` | DeepInfra API authorization key |
 | `MAX_REGENERATION_ATTEMPTS`| `integer`| `3` | Maximum remediation loops before Quality Gate reject |

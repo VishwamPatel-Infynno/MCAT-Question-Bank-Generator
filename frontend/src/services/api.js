@@ -54,6 +54,9 @@ export async function fetchQuestions(params = {}, signal = null) {
   if (params.batch_id) query.append('batch_id', params.batch_id);
   if (params.job_id) query.append('job_id', params.job_id);
   if (params.passage_id) query.append('passage_id', params.passage_id);
+  if (params.limit !== undefined && params.limit !== null) query.append('limit', params.limit);
+  if (params.offset !== undefined && params.offset !== null) query.append('offset', params.offset);
+  if (params.slim !== undefined && params.slim !== null) query.append('slim', params.slim);
 
   const res = await fetch(`${API_BASE}/questions?${query.toString()}`, { signal });
   await assertOk(res, 'Fetch questions');

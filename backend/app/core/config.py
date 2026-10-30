@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from pydantic import field_validator, model_validator
+from pydantic import PrivateAttr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -15,9 +15,6 @@ class Settings(BaseSettings):
     # PostgreSQL Database URL
     DATABASE_URL: str = "postgresql+asyncpg://mcat_user:mcat_password@localhost:5432/mcat_db"
 
-    # Primary LLM for multi-agent reasoning: DeepSeek V4.1 Flash 1017 via DeepInfra
-    DEFAULT_TEXT_MODEL: str = "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017"
-
     # Dedicated Anthropic settings
     ANTHROPIC_MODEL: str = "claude-haiku-5-5"
     ANTHROPIC_COST_PER_MILLION_INPUT_TOKENS: float = 0.10
@@ -30,9 +27,85 @@ class Settings(BaseSettings):
     DEEPINFRA_COST_PER_MILLION_OUTPUT_TOKENS: float = 0.294
     DEEPINFRA_API_KEY: str = ""
 
-    # Official DeepInfra Pricing (USD per 1,000,000 tokens)
-    COST_PER_MILLION_INPUT_TOKENS: float = 0.098
-    COST_PER_MILLION_OUTPUT_TOKENS: float = 0.294
+    # Private runtime override attributes
+    _override_default_text_model: str | None = PrivateAttr(default=None)
+    _override_cost_input: float | None = PrivateAttr(default=None)
+    _override_cost_output: float | None = PrivateAttr(default=None)
+    _override_cascade: list[str] | None = PrivateAttr(default=None)
+
+    @property
+    def DEFAULT_TEXT_MODEL(self) -> str:
+        """Active primary text model identifier, dynamically resolved from ACTIVE_LLM_PROVIDER."""
+        if self._override_default_text_model is not None:
+            return self._override_default_text_model
+        provider = (self.ACTIVE_LLM_PROVIDER or "").strip().lower()
+        if provider == "anthropic":
+            return self.ANTHROPIC_MODEL
+        return self.DEEPINFRA_MODEL
+
+    @DEFAULT_TEXT_MODEL.setter
+    def DEFAULT_TEXT_MODEL(self, value: str | None) -> None:
+        if value is None or value in (self.ANTHROPIC_MODEL, self.DEEPINFRA_MODEL):
+            self._override_default_text_model = None
+        else:
+            self._override_default_text_model = value
+
+    @property
+    def COST_PER_MILLION_INPUT_TOKENS(self) -> float:
+        """Active input token price per million tokens, dynamically resolved from ACTIVE_LLM_PROVIDER."""
+        if self._override_cost_input is not None:
+            return self._override_cost_input
+        provider = (self.ACTIVE_LLM_PROVIDER or "").strip().lower()
+        if provider == "anthropic":
+            return self.ANTHROPIC_COST_PER_MILLION_INPUT_TOKENS
+        return self.DEEPINFRA_COST_PER_MILLION_INPUT_TOKENS
+
+    @COST_PER_MILLION_INPUT_TOKENS.setter
+    def COST_PER_MILLION_INPUT_TOKENS(self, value: float | None) -> None:
+        if value is None or value in (
+            self.ANTHROPIC_COST_PER_MILLION_INPUT_TOKENS,
+            self.DEEPINFRA_COST_PER_MILLION_INPUT_TOKENS,
+        ):
+            self._override_cost_input = None
+        else:
+            self._override_cost_input = value
+
+    @property
+    def COST_PER_MILLION_OUTPUT_TOKENS(self) -> float:
+        """Active output token price per million tokens, dynamically resolved from ACTIVE_LLM_PROVIDER."""
+        if self._override_cost_output is not None:
+            return self._override_cost_output
+        provider = (self.ACTIVE_LLM_PROVIDER or "").strip().lower()
+        if provider == "anthropic":
+            return self.ANTHROPIC_COST_PER_MILLION_OUTPUT_TOKENS
+        return self.DEEPINFRA_COST_PER_MILLION_OUTPUT_TOKENS
+
+    @COST_PER_MILLION_OUTPUT_TOKENS.setter
+    def COST_PER_MILLION_OUTPUT_TOKENS(self, value: float | None) -> None:
+        if value is None or value in (
+            self.ANTHROPIC_COST_PER_MILLION_OUTPUT_TOKENS,
+            self.DEEPINFRA_COST_PER_MILLION_OUTPUT_TOKENS,
+        ):
+            self._override_cost_output = None
+        else:
+            self._override_cost_output = value
+
+    @property
+    def FAST_MODEL_CASCADE(self) -> list[str]:
+        """Candidate models for fallback, aware of the active provider."""
+        if self._override_cascade is not None:
+            return self._override_cascade
+        provider = (self.ACTIVE_LLM_PROVIDER or "").strip().lower()
+        if provider == "anthropic":
+            return [self.ANTHROPIC_MODEL]
+        return [self.DEEPINFRA_MODEL]
+
+    @FAST_MODEL_CASCADE.setter
+    def FAST_MODEL_CASCADE(self, value: list[str] | None) -> None:
+        if value is None or value in ([self.ANTHROPIC_MODEL], [self.DEEPINFRA_MODEL]):
+            self._override_cascade = None
+        else:
+            self._override_cascade = value
 
     # Image generation model: black-forest-labs/FLUX-2-klein-4b via DeepInfra
     DEFAULT_IMAGE_MODEL: str = "black-forest-labs/FLUX-2-klein-4b"
@@ -67,24 +140,6 @@ class Settings(BaseSettings):
         rate = self.IMAGE_COST_PER_BASE_UNIT
         return round(rate * (w / 1024.0) * (h / 1024.0), 6)
 
-    # API Keys - loaded automatically from .env by pydantic-settings
-    DEEPINFRA_API_KEY: str = ""
-
-    @model_validator(mode="after")
-    def sync_active_provider_defaults(self) -> "Settings":
-        provider = (self.ACTIVE_LLM_PROVIDER or "").strip().lower()
-        if provider == "anthropic":
-            if self.DEFAULT_TEXT_MODEL == "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017":
-                self.DEFAULT_TEXT_MODEL = self.ANTHROPIC_MODEL
-            if self.COST_PER_MILLION_INPUT_TOKENS == 0.098:
-                self.COST_PER_MILLION_INPUT_TOKENS = self.ANTHROPIC_COST_PER_MILLION_INPUT_TOKENS
-            if self.COST_PER_MILLION_OUTPUT_TOKENS == 0.294:
-                self.COST_PER_MILLION_OUTPUT_TOKENS = self.ANTHROPIC_COST_PER_MILLION_OUTPUT_TOKENS
-        elif provider == "deepinfra":
-            if self.DEFAULT_TEXT_MODEL == "claude-haiku-5-5":
-                self.DEFAULT_TEXT_MODEL = self.DEEPINFRA_MODEL
-        return self
-
     def is_anthropic_model(self, model: str | None = None) -> bool:
         """Determines if the provided or default model is an Anthropic Claude model."""
         target = (model or self.DEFAULT_TEXT_MODEL).strip().lower()
@@ -101,26 +156,26 @@ class Settings(BaseSettings):
     def get_default_pricing_rates(self, model: str | None = None) -> tuple[float, float]:
         """
         Returns default (cost_per_million_input, cost_per_million_output) based on active/given model:
-        1. If COST_PER_MILLION_* have been customized away from default DeepInfra rates (0.098 / 0.294)
-           and model is not DeepInfra, prioritize the user's custom environment rates.
-        2. If model is Claude Haiku 5.5: returns official $0.10 / $0.50 per 1M tokens.
-        3. If model is another Claude model (e.g. Sonnet, Opus): queries LiteLLM model_cost registry.
-        4. Fallbacks: Sonnet ($3.00/$15.00), Opus ($15.00/$75.00), Haiku 3.5 ($0.80/$4.00), DeepInfra ($0.098/$0.294).
+        1. If model is Claude Haiku 5.5: returns configured Anthropic rates.
+        2. If model is another Claude model (e.g. Sonnet, Opus): queries LiteLLM model_cost registry.
+        3. Fallbacks: Sonnet ($3.00/$15.00), Opus ($15.00/$75.00), Haiku 3.5 ($0.80/$4.00), DeepInfra.
         """
         target = (model or self.DEFAULT_TEXT_MODEL).strip().lower()
 
-        # If user explicitly overrode rates in .env away from DeepInfra defaults, respect them
-        is_custom_env_rate = (
-            self.COST_PER_MILLION_INPUT_TOKENS != 0.098
-            or self.COST_PER_MILLION_OUTPUT_TOKENS != 0.294
-        )
-        if is_custom_env_rate:
+        # If rates are explicitly overridden at runtime, prioritize them
+        if (
+            getattr(self, "_override_cost_input", None) is not None
+            or getattr(self, "_override_cost_output", None) is not None
+        ):
             return self.COST_PER_MILLION_INPUT_TOKENS, self.COST_PER_MILLION_OUTPUT_TOKENS
 
         if self.is_anthropic_model(target):
             # Claude Haiku 5.5
             if "haiku-5-5" in target or target == "claude-haiku-5-5":
-                return 0.10, 0.50
+                return (
+                    self.ANTHROPIC_COST_PER_MILLION_INPUT_TOKENS,
+                    self.ANTHROPIC_COST_PER_MILLION_OUTPUT_TOKENS,
+                )
 
             # Dynamic LiteLLM model_cost registry lookup
             try:
@@ -205,46 +260,12 @@ class Settings(BaseSettings):
     REVIEWER_TEMPERATURE: float = 0.1
     BLIND_SOLVER_TEMPERATURE: float = 0.1
 
-    # Dedicated DeepInfra Model Cascade List
-    FAST_MODEL_CASCADE: list[str] | str = [
-        "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
-    ]
-
-    @field_validator("FAST_MODEL_CASCADE", mode="before")
-    @classmethod
-    def parse_fast_model_cascade(cls, v: object) -> list[str]:
-        if isinstance(v, str):
-            v_str = v.strip()
-            if v_str.startswith("[") and v_str.endswith("]"):
-                try:
-                    parsed = json.loads(v_str)
-                    if isinstance(parsed, list):
-                        return [str(x).strip() for x in parsed if str(x).strip()]
-                except (json.JSONDecodeError, ValueError):
-                    pass
-            return [x.strip() for x in v_str.split(",") if x.strip()]
-        if isinstance(v, list):
-            return [str(x).strip() for x in v if str(x).strip()]
-        return ["deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017"]
-
     def get_effective_cascade(self, primary_model: str | None = None) -> list[str]:
         """Returns candidate models for fallback, aware of the active provider."""
         p_model = primary_model or self.DEFAULT_TEXT_MODEL
-        if self.FAST_MODEL_CASCADE and self.FAST_MODEL_CASCADE != [
-            "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017"
-        ]:
-            return (
-                self.FAST_MODEL_CASCADE
-                if isinstance(self.FAST_MODEL_CASCADE, list)
-                else [self.FAST_MODEL_CASCADE]
-            )
         if self.is_anthropic_model(p_model):
             return [p_model]
-        return (
-            self.FAST_MODEL_CASCADE
-            if isinstance(self.FAST_MODEL_CASCADE, list)
-            else [self.FAST_MODEL_CASCADE]
-        )
+        return self.FAST_MODEL_CASCADE
 
     # Blind-Solver Dual Validation Agent
     ENABLE_BLIND_SOLVER: bool = True
