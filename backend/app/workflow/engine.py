@@ -560,9 +560,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         )
                         outcomes_tokens[idx] += state.get("total_tokens", 0)
                         outcomes_prompt_tokens[idx] += state.get("total_prompt_tokens", 0)
-                        outcomes_completion_tokens[idx] += state.get(
-                            "total_completion_tokens", 0
-                        )
+                        outcomes_completion_tokens[idx] += state.get("total_completion_tokens", 0)
                         outcomes_costs[idx] += state.get("total_cost_usd", 0.0)
                         outcomes_usage[idx].extend(state.get("agent_usage_breakdown", []))
                         await remove_in_flight_draft(batch_id, idx)

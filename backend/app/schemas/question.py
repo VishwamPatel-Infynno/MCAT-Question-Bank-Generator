@@ -5,6 +5,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.core.config import config
 from app.schemas.mcat import calculate_mcat_scaled_score
 
 
@@ -377,8 +378,6 @@ def determine_question_status(score: float | int | None) -> str:
     Scores > BATCH_PASSING_SCORE_THRESHOLD (85) become 'batch_only'.
     Otherwise 'below_threshold'.
     """
-    from app.core.config import config
-
     s = score or 0
     if s > config.PASSING_SCORE_THRESHOLD:
         return "ai_validated"

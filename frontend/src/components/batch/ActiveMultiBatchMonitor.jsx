@@ -136,9 +136,9 @@ export default function ActiveMultiBatchMonitor({
               onClick={() => setShowConfirmCancel(true)}
               disabled={isCancellingAll}
               style={{
-                background: 'rgba(239, 68, 68, 0.08)',
+                background: 'var(--status-danger-bg, rgba(239, 68, 68, 0.08))',
                 color: 'var(--status-danger, #ef4444)',
-                border: '1px solid rgba(239, 68, 68, 0.25)',
+                border: '1px solid var(--status-danger-border, rgba(239, 68, 68, 0.25))',
                 borderRadius: 'var(--radius-sm, 6px)',
                 padding: '6px 12px',
                 fontSize: '0.78rem',
@@ -236,7 +236,7 @@ export default function ActiveMultiBatchMonitor({
             gap: '10px'
           }}
         >
-          <Layers size={16} color="var(--infynno-cyan, #06b6d4)" />
+          <Layers size={16} color="var(--infynno-cyan, #1E7ADF)" />
           <div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Questions Created</div>
             <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-primary)' }}>

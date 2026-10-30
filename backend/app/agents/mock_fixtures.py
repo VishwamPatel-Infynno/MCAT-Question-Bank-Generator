@@ -282,9 +282,7 @@ def _build_raw_mock_draft(req: GenerationRequest) -> QuestionDraft:
                     id="C",
                     text="Self-serving bias (externalizing failure, internalizing success)",
                 ),
-                OptionChoice(
-                    id="D", text="Fundamental attribution error regarding group members"
-                ),
+                OptionChoice(id="D", text="Fundamental attribution error regarding group members"),
             ],
             correct_answer_id="B",
             correct_answer_ids=["B"],

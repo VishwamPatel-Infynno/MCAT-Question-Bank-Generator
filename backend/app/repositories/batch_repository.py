@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import func, select, update
 
+from app.core.config import config
 from app.db.base import to_datetime, to_iso_str
 from app.db.session import async_session_factory
 from app.models.batch import GenerationBatchModel
@@ -165,8 +166,6 @@ async def refresh_batch_aggregates(batch_id: str) -> GenerationBatch | None:
 
         # If batch is completed, promote qualifying active questions (>90 score) to 'ai_validated'
         if batch_model.status == "completed":
-            from app.core.config import config
-
             promote_stmt = (
                 update(QuestionModel)
                 .where(
@@ -188,8 +187,6 @@ async def promote_completed_batch_questions(batch_id: str) -> int:
     Promotes all active questions with final_score > 90 belonging to a completed batch
     from 'batch_only' to 'ai_validated' (Ready for Review).
     """
-    from app.core.config import config
-
     async with async_session_factory() as session:
         stmt = (
             update(QuestionModel)

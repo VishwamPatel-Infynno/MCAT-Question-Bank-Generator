@@ -15,6 +15,9 @@ async def get_settings():
     return {
         "default_text_model": config.DEFAULT_TEXT_MODEL,
         "default_image_model": config.DEFAULT_IMAGE_MODEL,
+        "fast_model_cascade": config.FAST_MODEL_CASCADE
+        if isinstance(config.FAST_MODEL_CASCADE, list)
+        else [config.FAST_MODEL_CASCADE],
         "has_deepinfra_key": bool(config.DEEPINFRA_API_KEY),
         "max_regenerations": config.MAX_REGENERATION_ATTEMPTS,
         "passing_threshold": config.PASSING_SCORE_THRESHOLD,
