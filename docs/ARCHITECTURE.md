@@ -128,8 +128,12 @@ The system coordinates specialized autonomous engines with a deterministic quali
 - **Routing Optimization**:
   - If self-critique score $> 90$, the workflow sets `fused_self_passed=True` and routes directly to the Visual Engine or Finalize Node, cutting latency by $35-45\%$ and saving ~590 tokens.
   - If self-critique score $\le 90$, the candidate draft is routed to the Remediation Engine and Independent Auditor loop.
+- **Custom Authoring Instructions Priority**:
+  - Accepts educator-specified pedagogical directives (`additional_instructions`) from `GenerationRequest` via Guided Wizard Step 3.
+  - Bound directly to the LangGraph `WorkflowState` and injected with high-priority mandate into prompt builders (`app/agents/prompt_builder.py`, `app/agents/generator.py`, and `app/agents/regenerator.py`).
+  - Governs scientific constraints, clinical scenarios, calculation traps, and reasoning boundaries across passage generation, question generation, and all remediation critique cycles.
 - **Modular Prompt Construction (`prompt_builder.py`)**: User-turn prompt assembly, section instructions, cognitive trap specifications, and cross-item diversity calibration strings are decoupled into [`backend/app/agents/prompt_builder.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/agents/prompt_builder.py) (`_build_generator_user_prompt`), ensuring pure deterministic string assembly without external LLM side effects.
-- **Inference Gateway**: High-throughput enterprise reasoning model (~110-140 tok/s, Temperature: `0.2` for strict instruction adherence).
+- **Inference Gateway & Fast Model Cascade**: High-throughput enterprise reasoning model (~110-140 tok/s, Temperature: `0.2` for strict instruction adherence). Powered by `DEFAULT_TEXT_MODEL` with fallback to `FAST_MODEL_CASCADE` identifiers parsed via `parse_fast_model_cascade`.
 
 ### 3.2 Blind-Solver Dual-Validation Agent (`blind_solver.py` / `blind_solver_node`)
 - **Mission**: Acts as an algorithmic test candidate, solving the drafted question completely blind without access to the author's answer key, explanation, or self-critique rubric.
@@ -337,40 +341,72 @@ To support heavy concurrent workloads and prevent thread starvation or provider 
    - **Resilient Batch Retry (`POST /api/batches/{id}/retry`)**: Re-queues incomplete (failed or cancelled) jobs into the global worker pool, automatically picking up from where execution stopped without generating duplicate questions.
    - **Global Halt (`POST /api/batches/cancel-all`)**: System-wide fail-safe terminating all active runner tasks cleanly.
 ### 5.2 Question Lifecycle State Machine
-Every question in the system progresses through an explicit lifecycle state:
+Every question in the system progresses through an explicit, strictly guarded lifecycle state:
 
 ```mermaid
 stateDiagram-v2
-    [*] --> ai_validated: Background Batch Generation (Score > 90)
-    [*] --> staged: Real-Time SSE Single / Practice Set Generation
+    [*] --> InProgressBatch: Batch Initiated (/api/batches/start)
+    InProgressBatch --> QuestionGenerating: Job Workers Dispatched
+    QuestionGenerating --> WithheldStatus: Question Evaluated
+    state WithheldStatus {
+        direction LR
+        ScoreOver85: score > 85 (batch_only)
+        ScoreUnder85: score <= 85 (below_threshold)
+    }
+    WithheldStatus --> WithheldStatus: Withheld from Review Queue (exclude_in_progress_batch=True)
+    WithheldStatus --> BatchCompleted: All Jobs Finish Successfully
+    BatchCompleted --> AtomicPromotion: promote_completed_batch_questions()
+    state AtomicPromotion {
+        direction LR
+        PromotedToReview: score > 90 -> ai_validated
+        RetainedBatchOnly: 85 < score <= 90 -> batch_only
+    }
+    WithheldStatus --> BatchFailedOrCancelled: Batch Stopped / Cancelled
+    BatchFailedOrCancelled --> RetainedWithheld: Questions stay in batch_only (No Promotion)
     
-    staged --> in_bank: Admin Approves Candidate
-    staged --> discarded: Admin Discards Candidate
-    
-    ai_validated --> in_bank: Educator Approves Validated Question
-    ai_validated --> discarded: Educator Discards Validated Question
-    
-    in_bank --> discarded: Bulk / Single Delete or Archive
-    discarded --> in_bank: Restore Question
-    
-    below_threshold --> discarded: Automatic Rejection Gate Halt
+    PromotedToReview --> InBank: Educator Approves into Bank
+    PromotedToReview --> Discarded: Educator Rejects or Duplicate Archived
+    InBank --> Discarded: Archive / Delete
+    Discarded --> InBank: Restore Question
 ```
 
-- **`ai_validated`**: Background batch questions that cleared the 90+ quality gate (`score > 90`) and await educator review in the AI Validated bank.
-- **`batch_only`**: Questions scoring between 86 and 90 (`85 < score <= 90`) retained in batch history for educational review.
+- **`batch_only`**: Active withholding status. Questions generated during live sessions or background batches are saved in `batch_only` (if score $> 85$) while the parent batch is running. This strictly prevents incomplete batches or intermediate drafts from leaking into the educator's "Ready for Review" queue.
+- **`ai_validated`**: Background batch questions that cleared the 90+ quality gate (`score > 90`) whose parent batch has successfully completed (`status == 'completed'`). Atomically promoted by `promote_completed_batch_questions` and visible in the educator's review queue.
 - **`in_bank`**: Formally approved questions published in the primary searchable Question Bank repository.
 - **`below_threshold`**: Drafts that failed to achieve >85 points after remediation cycles (flagged or discarded).
-- **`discarded`**: Archived or rejected items removed from active question banks.
+- **`discarded`**: Archived or rejected items removed from active question banks or resolved during duplicate clustering.
 
-### 5.3 Canonical Status Determination & Batch Idempotency
+### 5.3 Canonical Status Determination, Withholding Guards & Batch Idempotency
 
-1. **Centralized Status Determination (`determine_question_status`)**:
-   Implemented in [`backend/app/schemas/question.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/schemas/question.py), this helper function serves as the single source of truth for assigning initial persistence status based on psychometric scores:
-   - `score > PASSING_SCORE_THRESHOLD (90)` $\to$ `'ai_validated'`
-   - `score > BATCH_PASSING_SCORE_THRESHOLD (85)` $\to$ `'batch_only'`
-   - `score <= 85` $\to$ `'below_threshold'`
+1. **Review Queue Withholding Safeguard**:
+   During active batch execution, candidate questions scoring $> 85$ are saved with `status = 'batch_only'`. All repository search and count queries ([`backend/app/repositories/question_repository.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/repositories/question_repository.py)) enforce an active subquery guard:
+   ```python
+   in_progress_batches = select(GenerationBatchModel.id).where(
+       GenerationBatchModel.status == "in_progress"
+   )
+   stmt = stmt.where(
+       or_(
+           QuestionModel.batch_id.is_(None),
+           QuestionModel.batch_id.notin_(in_progress_batches),
+       )
+   )
+   ```
+   This prevents questions from running batches from appearing in the "Ready for Review" tab or inflating repository status counts until the entire batch has cleanly completed.
 
-2. **Idempotent Batch Counter Synchronization**:
+2. **Atomic Batch Promotion (`promote_completed_batch_questions`)**:
+   Implemented in [`backend/app/repositories/batch_repository.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/repositories/batch_repository.py), this function runs atomically when a batch transitions to `"completed"`:
+   - High-scoring questions (`final_score > 90`) in `batch_only` are promoted to `ai_validated`.
+   - Questions scoring between 86 and 90 (`85 < final_score <= 90`) remain in `batch_only` for historical inspection.
+   - If a batch is stopped, cancelled, or fails, `promote_completed_batch_questions` is bypassed entirely, safely retaining questions in `batch_only` without polluting review queues.
+
+3. **Dynamic Job Allocation & Exact Target Count Guarantees**:
+   In [`backend/app/services/batch_runner.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/services/batch_runner.py), `launch_background_batch` dynamically partitions target quotas into parallel jobs capped at 5 questions per job:
+   - 5 questions $\to$ 1 job of 5 items.
+   - 50 questions $\to$ 10 jobs of 5 items.
+   - 12 questions $\to$ 3 jobs of 5, 5, and 2 items.
+   When duplicate resolution or quality gate dropouts create a deficit, `auto_resolve_batch_and_refill` and `refill_batch_deficit` launch targeted replacement jobs with diverse thematic angles, ensuring exact target count delivery.
+
+4. **Idempotent Batch Counter Synchronization**:
    [`backend/app/repositories/question_repository.py`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/backend/app/repositories/question_repository.py) enforces idempotent batch counter updates in `save_question`. When editing an existing question or re-saving an approved item, the repository detects the existing record and skips counter increments, preventing counter inflation across re-edits or stage-to-bank transitions.
 
 ---

@@ -10,10 +10,11 @@ Built with **React 19**, **Vite 8**, **Oxlint**, and a custom dark-glass precisi
 
 The frontend provides an intuitive, real-time command canvas for AAMC MCAT question generation, AI team tracking, and question bank management:
 
-- **Streamlined 3-Step Guided Wizard**: High-velocity authoring workflow consolidating section selection, syllabus disciplines, major units, multi-select subtopic concepts, difficulty calibration (**Low**, **Medium**, **High**), format (Passage-Based vs Independent Single-Choice), generation scope (**Practice Set [5 Qs]** vs **Full Exam [50 Qs]**), visual stimuli, and advanced cognitive traps into three focused decision stages (Section & Focus, Level & Format, Review & Launch with expandable advanced accordion).
+- **Streamlined 3-Step Guided Wizard**: High-velocity authoring workflow consolidating section selection, syllabus disciplines, major units, multi-select subtopic concepts, difficulty calibration (**Low**, **Medium**, **High**), format (Passage-Based vs Independent Single-Choice), streamlined generation scope (**Practice Set [5 Qs]** vs **Full Exam [50 Qs]**), visual stimuli, and the new **Additional Authoring Instructions** input textarea (with visible `Custom Instructions Active` badge pill) into three focused decision stages (Section & Focus, Level & Format, Review & Launch).
 - **2 Calibrated Generation Scopes**:
   - **Practice Set (5 Qs)**: 1 Single Job background worker drafting on a shared passage or discrete set (~35-50s) streamed into the AI Validated Bank and Batch Activity Desk with live telemetry.
-  - **Full Exam (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation.
+  - **Full Exam (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation and in-place slot replenishment.
+- **Review Queue Withholding Guarantee**: Questions generated during background batches are held in `batch_only` status while the batch is running to keep the "Ready for Review" queue clean of incomplete drafts. Upon clean batch completion, high-scoring questions (>90) are atomically promoted to `ai_validated`.
 - **Live Pipeline with 4 Editorial Milestones**: Animated live tracker displaying the review milestones (**Drafting & Review**, **Answer Check**, **Question Polish**, and **Figures & Diagrams**) with electric conduit telemetry.
 - **Staged Batch Review & Approval**: Interactive batch staging deck allowing educators to inspect, edit, discard, or approve multiple generated items before saving to the database.
 - **Question Quality & Cost Breakdown**: Comprehensive 100-point 4-pillar quality check with itemized token tracking and micro-dollar cost calculations.
@@ -149,10 +150,10 @@ In the repository root or `frontend` directory, you can run:
 # Start local development server with Hot Module Replacement (HMR)
 pnpm dev
 
-# Run Oxlint high-speed linter (0 errors, 0 warnings policy)
+# Run Oxlint high-speed linter across 97 frontend files (0 errors, 0 warnings policy)
 pnpm lint
 
-# Build production bundle with Vite
+# Build production bundle with Vite (compiles in ~218ms)
 pnpm build
 
 # Preview the production build locally

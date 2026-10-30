@@ -16,7 +16,7 @@ This document provides a comprehensive technical reference for all REST endpoint
 
 ---
 
-## 2. API Endpoints Summary (30 Operations / 24 Endpoint Paths)
+## 2. API Endpoints Summary (33 Operations / 26 Endpoint Paths)
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -38,16 +38,19 @@ This document provides a comprehensive technical reference for all REST endpoint
 | `POST` | `/api/passages` | Admin endpoint to create or update a shared reading passage record |
 | `DELETE` | `/api/passages/{passage_id}` | Admin endpoint to delete a reading passage record and unlink associated questions |
 | `GET` | `/api/batches` | Lists generation batches with active running counts and global concurrency metrics |
-| `GET` | `/api/batches/{batch_id}` | Retrieves a generation batch with all 10 jobs and grouped questions |
-| `POST` | `/api/batches/start` | Launches an asynchronous background batch generation (10 jobs x 5 questions = 50 total) |
+| `GET` | `/api/batches/{batch_id}` | Retrieves a generation batch with all jobs and grouped questions |
+| `POST` | `/api/batches/start` | Launches an asynchronous background batch generation (dynamically allocated, e.g., 50 Qs = 10 jobs) |
 | `POST` | `/api/batches/{batch_id}/stop` | **Batch Control**: Gracefully halts active background jobs for a batch without deleting questions |
 | `POST` | `/api/batches/{batch_id}/retry` | **Batch Control**: Re-launches failed or cancelled jobs for a batch into the global worker pool |
 | `POST` | `/api/batches/cancel-all` | **Batch Control**: Gracefully halts all active background batches across the system |
 | `DELETE` | `/api/batches/{batch_id}` | Deletes a generation batch and cascades delete to jobs and questions |
 | `POST` | `/api/batches` | Admin endpoint to create or update a generation batch record |
+| `GET` | `/api/batches/{batch_id}/duplicate-clusters` | Clusters batch questions by similarity to identify leader items and redundant duplicates |
+| `POST` | `/api/batches/{batch_id}/resolve-duplicates` | Resolves duplicate clusters by keeping designated leaders and archiving/deleting duplicates |
+| `POST` | `/api/batches/{batch_id}/refill` | Replenishes batch question deficit up to target count using pedagogical thematic variations |
 | `GET` | `/api/export` | Exports repository in standardized JSON or CSV format |
 | `GET` | `/api/health` | Service health, database connectivity, active models, and pricing |
-| `GET` | `/api/config` | Retrieves active model configuration and runtime status |
+| `GET` | `/api/config` | Retrieves active model configuration, runtime parameters (24 fields), and pricing constants |
 | `GET` | `/api/sections` | Returns official AAMC MCAT sections, syllabus hierarchy, skills, and pacing |
 | `GET` | `/api/taxonomy` | Returns the complete official AAMC Dependent Taxonomy JSON tree |
 
@@ -77,6 +80,7 @@ Accept: text/event-stream
   "require_image": false,
   "require_passage_image": false,
   "custom_prompt": "Focus on Michaelis-Menten kinetics and competitive enzyme inhibition.",
+  "additional_instructions": "Include experimental Lineweaver-Burk data interpretation with explicit Km and Vmax calculation distractor traps.",
   "questions_to_generate": 1,
   "passage_mode": "single_passage",
   "interaction_type": "single_choice",
@@ -84,7 +88,8 @@ Accept: text/event-stream
   "combination_id": "CMB00001",
   "run_id": "d81f668e-c768-45b7-9fb6-ba1ee2bdbba3",
   "batch_id": null,
-  "auto_save": false
+  "auto_save": false,
+  "passing_threshold": 90
 }
 ```
 
@@ -98,6 +103,7 @@ Accept: text/event-stream
 | `require_image` | `boolean` | No | `false` | Force visual stimulus generation for the question stem |
 | `require_passage_image`| `boolean` | No | `false` | Force visual diagram generation for the shared passage stimulus |
 | `custom_prompt` | `string` | No | `null` | Contextual steer or clinical scenario / reading passage guidance |
+| `additional_instructions` | `string` | No | `null` | Educator instructions specifying constraints, clinical scenarios, or pedagogical rules strictly enforced across passage generation, question generation, and remediation critique cycles |
 | `questions_to_generate` | `integer` | No | `5` | Quantity to generate (Wizard UI provides `5` [Practice Set] and `50` [Full Exam]; backend permits 1 to 50) |
 | `passage_mode` | `string` | No | `"single_passage"` | `"single_passage"` (all Qs linked to 1 passage) or `"independent"` (standalone discretes) |
 | `interaction_type` | `string` | No | `"single_choice"` | Standard 4-choice single choice item |
@@ -111,6 +117,7 @@ Accept: text/event-stream
 | `run_id` | `string` | No | Auto UUID4 | Execution run UUID4 |
 | `batch_id` | `string` | No | `null` | Optional batch identifier grouping questions |
 | `auto_save` | `boolean` | No | `false` | Auto-persist to DB (`false` retains Admin Review Gate) |
+| `passing_threshold` | `integer` | No | `90` | Quality benchmark passing threshold score (defaults to 90; 85 for batch jobs) |
 | `model_name` | `string` | No | Gateway Default | Model identifier override |
 | `api_key` | `string` | No | `null` | Ephemeral API key override |
 
@@ -684,7 +691,119 @@ Admin endpoint to create or update a generation batch entity directly in Postgre
 
 ---
 
-### 3.22 Passages Management Endpoints
+### 3.22 Get Batch Duplicate Clusters
+`GET /api/batches/{batch_id}/duplicate-clusters`
+
+Performs pairwise similarity clustering on questions within a batch to identify redundant items and designate primary leader questions. Automatically excludes previously discarded questions.
+
+#### Query Parameters
+| Parameter | Type | Required | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `threshold` | `float` | No | `0.75` | Minimum cosine/Jaccard similarity threshold for clustering (range: `0.5` to `1.0`) |
+
+#### Response (`200 OK`)
+```json
+{
+  "batch_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+  "total_active_questions": 50,
+  "unique_questions_count": 48,
+  "duplicate_clusters_count": 1,
+  "total_duplicate_questions": 2,
+  "archived_duplicates_count": 0,
+  "auto_resolved": false,
+  "clusters": [
+    {
+      "cluster_id": "cluster-1",
+      "leader_question": {
+        "id": "q-lead-uuid",
+        "question_stem": "Which thermodynamic parameter governs protein folding...",
+        "final_score": 94
+      },
+      "duplicates": [
+        {
+          "question": {
+            "id": "q-dup-uuid",
+            "question_stem": "What thermodynamic force drives spontaneous globular protein folding...",
+            "final_score": 91
+          },
+          "similarity_score": 0.88,
+          "similarity_reason": "High semantic overlap in thermodynamic parameters"
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### 3.23 Resolve Batch Duplicates
+`POST /api/batches/{batch_id}/resolve-duplicates`
+
+Resolves duplicate clusters in a batch by preserving the designated leader question and archiving (`status='discarded'`) or deleting redundant duplicate questions. Refreshes batch aggregates and computes any remaining question deficit.
+
+#### Request Body
+```json
+{
+  "action": "archive",
+  "cluster_ids": ["cluster-1"],
+  "custom_leader_ids": ["q-lead-uuid"]
+}
+```
+
+| Field | Type | Required | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `action` | `string` | No | `"archive"` | Resolution action: `"archive"` (marks `discarded`) or `"delete"` (hard delete) |
+| `cluster_ids` | `list[str]`| No | `null` | Specific cluster IDs to resolve (null resolves all clusters in batch) |
+| `custom_leader_ids` | `list[str]`| No | `null` | Optional list of question IDs to designate as leaders over default score leaders |
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "message": "Successfully resolved 1 cluster(s). 1 duplicate question(s) archived.",
+  "action": "archive",
+  "resolved_clusters_count": 1,
+  "archived_count": 1,
+  "remaining_active_questions": 49,
+  "target_count": 50,
+  "deficit": 1
+}
+```
+
+---
+
+### 3.24 Refill Batch Question Deficit
+`POST /api/batches/{batch_id}/refill`
+
+Replenishes a batch up to its target question count by launching targeted background jobs for archived or missing questions with diverse pedagogical thematic angles to avoid re-generating similar concepts.
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "message": "Launched refill generation for 1 replacement questions across 1 job(s).",
+  "deficit": 1,
+  "jobs_launched": 1,
+  "jobs": [
+    {
+      "id": "refill-job-uuid",
+      "batch_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+      "status": "pending",
+      "questions_target": 1
+    }
+  ],
+  "batch": {
+    "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "target_count": 50,
+    "status": "in_progress"
+  }
+}
+```
+
+---
+
+### 3.25 Passages Management Endpoints
 `GET /api/passages` | `GET /api/passages/{passage_id}` | `POST /api/passages` | `DELETE /api/passages/{passage_id}`
 
 - **List Passages (`GET /api/passages`)**: Lists reading passages with optional `section`, `subtopic`, and `search` query parameters.
@@ -807,7 +926,7 @@ curl -X DELETE "http://localhost:8000/api/passages/550e8400-e29b-41d4-a716-44665
 
 ---
 
-### 3.23 Export Repository
+### 3.26 Export Repository
 `GET /api/export`
 
 Exports the entire Question Bank (or filtered subsets) in standardized JSON or CSV format.
@@ -825,7 +944,7 @@ curl -X GET "http://localhost:8000/api/export?format=csv" -o mcat_question_bank.
 
 ---
 
-### 3.24 Service Health Check
+### 3.27 Service Health Check
 `GET /api/health`
 
 Evaluates system status, database connectivity, active text reasoning model, neural image model, and official token pricing.
@@ -847,30 +966,48 @@ Evaluates system status, database connectivity, active text reasoning model, neu
 
 ---
 
-### 3.25 Runtime Configuration & Settings
+### 3.28 Runtime Configuration & Settings
 `GET /api/config`
 
-Retrieves active runtime engine configuration, gateway secrets status (masked booleans), and pricing parameters.
+Retrieves active runtime engine configuration, cascade fallbacks, worker concurrency limits, gateway secrets status (masked booleans), and pricing parameters across all 24 runtime fields.
 
 #### Response (`200 OK`)
 ```json
 {
   "default_text_model": "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
   "default_image_model": "deepinfra/black-forest-labs/FLUX-2-klein-4b",
+  "fast_model_cascade": [
+    "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017"
+  ],
   "has_deepinfra_key": true,
   "max_regenerations": 3,
   "passing_threshold": 90,
+  "batch_passing_threshold": 85,
+  "default_max_tokens": 3000,
+  "reviewer_max_tokens": 1800,
+  "default_temperature": 0.2,
+  "generator_temperature": 0.2,
+  "regenerator_temperature": 0.2,
+  "reviewer_temperature": 0.1,
+  "blind_solver_temperature": 0.1,
+  "enable_blind_solver": true,
+  "blind_solver_confidence_threshold": 88,
+  "global_max_concurrent_jobs": 4,
+  "global_max_concurrent_llm_calls": 10,
+  "workflow_max_worker_retries": 2,
   "cost_per_million_input": 0.098,
   "cost_per_million_output": 0.294,
   "image_width": 1024,
   "image_height": 1024,
+  "image_iters": 0,
+  "image_cost_base_rate": 0.014,
   "current_image_cost_usd": 0.014
 }
 ```
 
 ---
 
-### 3.26 Official AAMC Sections & Syllabus Hierarchy
+### 3.29 Official AAMC Sections & Syllabus Hierarchy
 `GET /api/sections`
 
 Returns the complete cached syllabus hierarchy across all 4 official AAMC MCAT sections, including subjects, units, topics, subtopics, reasoning skills, and target pacing.
@@ -887,7 +1024,7 @@ Returns the complete cached syllabus hierarchy across all 4 official AAMC MCAT s
       "code": "CP",
       "label": "Chemical and Physical Foundations of Biological Systems",
       "pacing": {"time_limit_mins": 95, "total_questions": 59, "seconds_per_question": 96},
-      "subtopics": ["Thermodynamics & Kinetics", "Fluids & Optics", ...],
+      "subtopics": ["Thermodynamics & Kinetics", "Fluids & Optics"],
       "subjects": [
         {
           "name": "General Chemistry",
@@ -901,26 +1038,76 @@ Returns the complete cached syllabus hierarchy across all 4 official AAMC MCAT s
           ]
         }
       ],
-      "skills": [...]
+      "skills": []
     }
   ],
-  "skills": [...],
-  "aamc_skills": [...],
+  "skills": [],
+  "aamc_skills": [],
   "generation_options": {
     "difficulty": ["Low", "Medium", "High"],
-    "question_type": [...],
-    "content_domain": [...],
-    "primary_trap": [...]
+    "question_type": ["single_choice", "multi_choice"],
+    "content_domain": ["Foundational Concept", "Scientific Inquiry"],
+    "primary_trap": ["Calculation_Formula_Trap", "Extreme_Language", "Scope_Shift"]
   }
 }
 ```
 
 ---
 
-### 3.27 Official AAMC Dependent Taxonomy Tree
+### 3.30 Official AAMC Dependent Taxonomy Tree
 `GET /api/taxonomy`
 
 Returns the comprehensive hierarchical AAMC Dependent Taxonomy tree powering the multi-level Guided Wizard selection flow.
 
 #### Response (`200 OK`)
 Returns the complete raw taxonomy dictionary containing `taxonomy_tree`, `subjects`, `reasoning_skills`, and `generation_options`.
+
+---
+
+## 4. Question Lifecycle Statuses & Review Queue Withholding
+
+Every generated question item transitions through explicit, strictly guarded states defined in `QuestionStatus`:
+
+```mermaid
+stateDiagram-v2
+    [*] --> InProgressLiveOrBatch: Question Generating
+    InProgressLiveOrBatch --> WithheldDraft: Score > 85 (Stored as batch_only)
+    InProgressLiveOrBatch --> BelowThreshold: Score <= 85 (stored as below_threshold)
+    
+    state WithheldDraft {
+        [*] --> WithholdingGuard: exclude_in_progress_batch=True
+        WithholdingGuard --> HiddenFromReview: Not visible in Ready for Review queue
+    }
+    
+    WithheldDraft --> CompletedBatch: Batch/Job Successfully Finishes
+    CompletedBatch --> PromotedReview: promote_completed_batch_questions()
+    
+    state PromotedReview {
+        ScoreGt90: score > 90 -> ai_validated (Ready for Review)
+        Score86to90: 85 < score <= 90 -> remains batch_only
+    }
+    
+    PromotedReview --> InBank: Educator Approves (POST /api/questions)
+    PromotedReview --> Discarded: Educator Rejects or Duplicate Archived
+    
+    WithheldDraft --> StoppedBatch: Batch Cancelled / Failed
+    StoppedBatch --> RetainedWithheld: Retained as batch_only (No Promotion to ai_validated)
+```
+
+### Lifecycle Status Definitions
+
+| Status | Persistence Level | Description |
+| :--- | :--- | :--- |
+| **`batch_only`** | Batch Storage | Active generation withholding status. Staged questions with score $> 85$ stay in `batch_only` while a batch is in progress to prevent partial/draft questions from leaking into the reviewer queue. Promoted to `ai_validated` only upon clean batch completion. |
+| **`ai_validated`** | Review Queue | Questions that achieved a score $> 90$ through autonomous generation and blind-solver dual validation, whose parent batch has completed. Visible in the "Ready for Review" workspace tab. |
+| **`in_bank`** | Published Bank | Authoritative, published questions approved by an educator or admin. Included in all production exports, test assemblies, and study packs. |
+| **`below_threshold`** | Rejected Audit | Questions scoring $\le 85$ that failed remediation after 3 regeneration cycles. Preserved in audit telemetry but excluded from review queues. |
+| **`discarded`** | Archive | Questions archived or deleted during duplicate cluster resolution or dismissed by educators. Excluded from active count aggregations. |
+| **`approved`** | Published Bank | Alias/variant of approved questions persisted directly into bank storage. |
+| **`rejected_below_threshold`** | Audit History | Legacy audit status for items rejected at the psychometric quality gate. |
+| **`error` / `failed`** | Execution Log | Unrecoverable model syntax error or network exception during generation. |
+
+### Withholding & Promotion Safeguards
+- **In-Progress Guard**: `GET /api/questions` and `GET /api/questions/counts` strictly filter out questions belonging to batches where `status == 'in_progress'`.
+- **Atomic Promotion**: When a batch completes, `promote_completed_batch_questions(batch_id)` executes an atomic SQL update promoting questions with `final_score > 90` to `ai_validated`.
+- **Failure Safety**: If a batch is stopped or cancelled, questions remain in `batch_only` status and never transition to `ai_validated`, ensuring educators only review batches that finished completely.

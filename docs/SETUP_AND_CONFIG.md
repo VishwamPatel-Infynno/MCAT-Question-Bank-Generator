@@ -144,28 +144,30 @@ The repository maintains an uncompromising **Zero-Defect Quality Policy** enforc
 
 ### 5.1 Backend Verification Suite
 
-Run the complete 54-test deterministic unit & integration suite using `pytest` (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full test specifications):
+Run the complete 73-test deterministic unit & integration suite across 15 modules using `pytest` (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full test specifications):
 
 ```bash
 source .venv/bin/activate
 
-# 1. Run all 54 deterministic unit and integration tests
-# Smart auto-skip: If PostgreSQL is offline on localhost:5432, 32 pure unit tests pass and 22 DB tests skip cleanly
-PYTHONPATH=backend pytest backend/tests -v -k "not live_e2e"
+# 1. Run all 73 deterministic unit and integration tests across 15 modules
+# Smart auto-skip: If PostgreSQL is offline on localhost:5432, 42 pure unit tests pass and 31 DB tests skip cleanly
+PYTHONPATH=backend pytest backend/tests -v -m "not live_e2e"
 
-# 2. Run Python linting and code quality checks
-ruff check backend
+# 2. Run Python linting and code quality checks (enforces SIM, RET, B, C4, E, W, F, I, UP)
+ruff check backend/
+ruff format --check backend/
 ```
 
 This verifies:
-- Pydantic schema validation across all 4 official AAMC MCAT sections.
+- Pydantic schema validation across all 4 official AAMC MCAT sections and custom authoring instructions.
 - Reviewer 100-point rubric evaluation and remediation routing logic.
 - Blind-Solver dual-validation agent agreement and discrepancy re-routing.
 - Strict Quality Gate halt and rejection payload generation when score $\le 90$.
+- Batch question withholding (`batch_only` during execution) and atomic promotion (`promote_completed_batch_questions`).
 - Global worker pool semaphores, LLM rate-limiting backoff, and multi-batch concurrency.
 - Programmatic SVG vector diagram rendering and XML validation.
 - PostgreSQL 16 CRUD persistence, native JSONB columns, and B-Tree indexes.
-- Batch generation schema parsing and background runner job tracking.
+- Dynamic job allocation in background batches and exact target count replenishment.
 - Deterministic token cost calculation and multi-agent state accumulation.
 
 #### Live Multi-Agent E2E Verification
@@ -180,11 +182,11 @@ The application includes 15 automated Playwright E2E browser tests covering guid
 ### 5.3 Frontend Quality & Production Verification
 
 ```bash
-# 1. High-speed Oxlint check (Zero warnings, zero errors required)
-pnpm lint
+# 1. High-speed Oxlint check across 97 frontend files (Zero warnings, zero errors required)
+pnpm --dir frontend lint
 
-# 2. Compile optimized production bundle with Vite
-pnpm build
+# 2. Compile optimized production bundle with Vite (builds in ~218ms)
+pnpm --dir frontend build
 ```
 
 ---

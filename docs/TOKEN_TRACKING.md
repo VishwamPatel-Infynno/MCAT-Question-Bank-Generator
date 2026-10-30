@@ -13,6 +13,8 @@ The primary LLM driving the multi-agent system is **DeepSeek-V4.1-Flash-1017**, 
 - **Model Identifier**: `deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017`
 - **Context Window**: 1,024,000 tokens (1M)
 - **Inference Speed**: ~110-140 tokens/second
+- **Cascade Fallbacks**: Managed through `FAST_MODEL_CASCADE` in `.env.example` and parsed via `parse_fast_model_cascade` in `Settings`.
+- **Runtime Telemetry Endpoint**: All active pricing and configuration parameters are dynamically queryable at `GET /api/config` (24 fields).
 
 ### Official DeepInfra Rate Card
 

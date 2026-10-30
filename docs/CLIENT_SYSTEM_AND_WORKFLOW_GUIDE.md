@@ -61,13 +61,14 @@ The workstation provides an interactive **Streamlined 3-Step Guided Wizard** doc
    - **Discipline & Major Unit**: Select syllabus discipline and unit taxonomy.
    - **High-Yield Concept Subtopics**: Multi-select granular subtopics or select all concepts for a balanced mix.
 2. **Step 2: Level, Format & Scope**:
-   - **Generation Scope**: Select **Practice Set (5 Qs, 1 Job)** for fast iterative authoring (~35-50s) or **Full Exam (50 Qs, 10 Jobs)** for comprehensive background mock section generation.
+   - **Generation Scope**: Select **Practice Set (5 Qs, 1 Job)** for fast iterative authoring (~35-50s) or **Full Exam (50 Qs, 10 Jobs)** for comprehensive background mock section generation. Cards feature clean, streamlined selection buttons without distracting redundant badge pills.
    - **Challenge Level**: Calibrate between **Low**, **Medium**, and **High** difficulty tiers with color-coded badges and plain-English descriptors.
    - **Binary Passage Mode**: Passage-Based Set vs Independent Discretes.
    - **Question Breakdown**: Calibrate single-choice and multi-choice proportions.
 3. **Step 3: Review & Launch (with Advanced Calibration)**:
    - **Compact Parameter Summary Table**: Review selected section, topics, difficulty, and question count at a glance in a high-density tabular summary card.
    - **Dedicated Scientific Diagrams & Reaction Schemes Toggle Card**: Prominently positioned for all natural science sections with full-card clickability and animated pill switch, allowing educators to immediately enable or disable programmatic SVG diagrams and reaction schemes without opening advanced menus.
+   - **Additional Authoring Instructions Textarea**: High-priority guidance field allowing educators to supply custom pedagogical constraints, clinical scenarios, or negative rules (e.g. *"Focus on Lineweaver-Burk plots with competitive inhibition calculation traps"*). When populated, the Step 3 card header displays a visible, animated indicator badge: **`+ Custom Prompt Active`**.
    - **Expandable Advanced Accordion**: Collapsible drawer giving fine-grained control over:
      - *Cognitive Distractor Traps*: Multi-select official AAMC cognitive traps (Formula Trap, Extreme Quantifiers, False Causation, etc.).
      - *AAMC Reasoning Skills*: Target specific SIRS reasoning skills (Skill 1–4) and likely student mistake patterns.
@@ -148,8 +149,10 @@ $$\text{Total Cost} = \left(\frac{\text{Input Tokens}}{1{,}000{,}000} \times \$0
 - **Repository Observability**: The Question Bank header displays accumulated input tokens, output tokens, total execution time, and cumulative investment across the entire repository.
 - **Enterprise Multi-Batch Concurrency & Resiliency**:
   - The background batch runner operates under global worker semaphores (`4 concurrent jobs`, `10 concurrent LLM calls`) ensuring safe execution without API rate limit bottlenecks.
+  - **Review Queue Withholding Guarantee**: Questions produced during background batches are held safely in `batch_only` status while the batch is in progress. The "Ready for Review" queue remains clean of incomplete or draft items until the batch cleanly completes, at which point questions with `final_score > 90` are atomically promoted to `ai_validated`. Cancelled or stopped batches retain questions in `batch_only` so educators never review partial runs.
   - **1-Click Batch Stop**: Educators can pause a 50-question mock run at any time without losing items already generated and validated.
   - **1-Click Batch Retry**: If a job encounters temporary network latency, educators can re-launch incomplete jobs with a single click, picking up immediately from the exact point of interruption.
+  - **Batch Duplicate Clustering & Auto-Refill**: Educators can inspect intra-batch similarity clusters, designate custom leaders, archive duplicates, and automatically launch replacement jobs to deliver exact target quotas.
 - **Dedicated Application Views**: Seamlessly navigate between:
   1. **Create Questions (`GeneratorWorkspaceView.jsx`)**: Interactive exam generation & pipeline workspace with AAMC Split-Pane reading mode.
   2. **Batch Progress (`BatchActivityView.jsx`)**: Real-time monitor tracking running batch jobs, per-job question counts, status indicators, and background worker progress.

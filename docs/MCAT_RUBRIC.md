@@ -156,13 +156,13 @@ Internal 100-point psychometric audit scores are mathematically calibrated to th
 
 The system enforces a calibrated two-tier quality evaluation framework that balances uncompromising question-bank admission with high-throughput batch evaluation:
 
-### 6.1 Tier 1: Question Bank & AI Validated Admission Gate (`PASSING_SCORE_THRESHOLD = 90`)
+### 7.1 Tier 1: Question Bank & AI Validated Admission Gate (`PASSING_SCORE_THRESHOLD = 90`)
 - **Benchmark**: Score **$> 90$ Points** on the 100-point rubric.
 - **Rule**: Individual question candidates must achieve $> 90$ to qualify for admission into the permanent **Question Bank** or promotion to the **AI Validated Questions** workspace (`status = 'ai_validated'`).
 - **Remediation**: Any question scoring $\le 90$ points is automatically rejected by the gate and routed through autonomous remediation (`regenerator.py`).
 - **Circuit Breaker**: Items failing to achieve $> 90$ after the maximum allowed cycles (`MAX_REGENERATION_ATTEMPTS = 3`) are discarded permanently and never admitted into the database repository.
 
-### 6.2 Tier 2: Batch Activity Run Evaluation Gate (`BATCH_PASSING_SCORE_THRESHOLD = 85`)
+### 7.2 Tier 2: Batch Activity Run Evaluation Gate (`BATCH_PASSING_SCORE_THRESHOLD = 85`)
 - **Benchmark**: Score **$> 85$ Points** across aggregate batch jobs.
 - **Rule**: High-throughput multi-job batches (e.g. 50-question mock sections across 10 parallel jobs) evaluate overall job health using the 85-point benchmark.
 - **Batch Acceptance**: Jobs whose questions achieve an average quality score $\ge 85$ are marked as passing batch jobs (`status = 'completed'`), while sub-85 drafts are flagged for targeted review or remediation (`status = 'below_threshold'`).

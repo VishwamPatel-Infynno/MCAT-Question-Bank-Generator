@@ -18,7 +18,7 @@ graph TD
     end
 
     subgraph "Tier 2: Backend Pytest Engine"
-        UnitTests[54 Deterministic Unit & Integration Tests]
+        UnitTests[73 Deterministic Unit & Integration Tests across 15 Modules]
         LiveE2E[10 Live LLM API E2E Integration Tests]
     end
 
@@ -40,9 +40,9 @@ graph TD
 
 | Testing Layer | Scope | Tooling | Coverage / Status |
 | :--- | :--- | :--- | :--- |
-| **Static Code Hygiene** | PEP 8, syntax correctness, modern JS/JSX idioms | **Ruff** (Python 3.11), **Oxlint** (React 19) | 0 errors, 0 warnings policy (88 frontend files, 68 backend files) |
-| **Deterministic Unit & Integration** | Schemas, agents, DAL, API endpoints, tokens, batch runner, deduplication | **Pytest**, **pytest-asyncio**, SQLite / PG Mock | **54 passing tests** (~16.0s) |
-| **Live Multi-Agent Integration** | End-to-end LLM inference, DeepInfra gateways | **Pytest** (`-m live_e2e`) | 10 dedicated live tests |
+| **Static Code Hygiene** | PEP 8, syntax correctness, modern JS/JSX idioms | **Ruff** (Python 3.11 with SIM & RET), **Oxlint** (React 19) | 0 errors, 0 warnings policy (97 frontend files, 100% ruff compliance across backend) |
+| **Deterministic Unit & Integration** | Schemas, agents, DAL, API endpoints, tokens, batch runner, deduplication, withholding guards | **Pytest**, **pytest-asyncio**, SQLite / PG Mock | **73 passing tests across 15 modules** (~28.0s) |
+| **Live Multi-Agent Integration** | End-to-end LLM inference, DeepInfra gateways | **Pytest** (`-m live_e2e`) | 10 dedicated live tests (83 total backend tests) |
 | **Automated Browser E2E** | Guided wizard, SSE streaming, UI modals, bank CRUD | **Playwright**, **TestSprite AI** | **15/15 passed (100.0%)** |
 | **Runtime Psychometric Gate** | 100-point 4-pillar rubric, AAMC distractor traps | **LangGraph StateGraph** | Threshold $> 90$ points |
 
@@ -57,15 +57,19 @@ The deterministic test suite verifies all backend logic without making live exte
 ```
 backend/tests/
 ├── conftest.py                       # Socket probe for offline DB auto-skipping, async client fixtures & DB overrides
+├── test_additional_instructions.py   # Educator custom authoring instructions and prompt builder integration
 ├── test_agents.py                    # Multi-agent worker nodes, heuristics, and blind solver
 ├── test_api.py                       # REST endpoints, CRUD, batch staging, approval, and duplicate override flow
 ├── test_batch_jobs_flow.py           # Background batch execution lifecycle (10 jobs x 5 questions)
+├── test_batch_review_withholding.py  # Review queue withholding during batch execution and atomic promotion
 ├── test_database_structure.py        # SQLAlchemy schema, hybrid FTS, and atomic aggregations
-├── test_deduplication.py             # Multi-metric similarity scoring, token containment, and distractor overlap
+├── test_deduplication.py             # Multi-metric similarity scoring, clustering, and auto-refill
 ├── test_multi_batch_concurrency.py   # Global semaphores, rate limiting backoff, and metrics
 ├── test_pedagogy.py                  # Option symmetry (±15%), distractor traps, and taxonomy parity
+├── test_question_status_refill.py    # QuestionStatus enum, active question helpers, and refill deficit calculations
 ├── test_schemas.py                   # Pydantic V2 model validation and serialization
-├── test_tokens.py                    # Sub-micro-cent token cost math ($0.098 in / $0.294 out)
+├── test_target_count_guarantee.py    # Dynamic job allocation, slot replenishment, and target count guarantees
+├── test_tokens.py                    # Sub-micro-cent token cost math ($0.098 in / $0.294 out) and config cascade
 ├── test_visuals.py                   # SVG vector generation and FLUX image cost formulas
 ├── test_workflow.py                  # LangGraph streaming, event serialization, and routing
 └── test_e2e_live.py                  # Live LLM inference suite (marked as live_e2e)
@@ -77,24 +81,29 @@ backend/tests/
 # 1. Activate backend virtual environment
 source .venv/bin/activate
 
-# 2. Run all 54 deterministic unit and integration tests
-# Smart auto-skip: If PostgreSQL is offline on localhost:5432, 32 pure unit tests pass and 22 DB tests cleanly skip
-pytest backend/tests -v -k "not live_e2e"
+# 2. Run all 73 deterministic unit and integration tests across 15 modules
+# Smart auto-skip: If PostgreSQL is offline on localhost:5432, 42 pure unit tests pass and 31 DB tests cleanly skip
+pytest backend/tests -v -m "not live_e2e"
 
 # 3. Run specific test modules
+pytest backend/tests/test_additional_instructions.py -v
+pytest backend/tests/test_batch_review_withholding.py -v
+pytest backend/tests/test_target_count_guarantee.py -v
+pytest backend/tests/test_question_status_refill.py -v
 pytest backend/tests/test_deduplication.py -v
 pytest backend/tests/test_api.py -v
-pytest backend/tests/test_multi_batch_concurrency.py -v
-pytest backend/tests/test_agents.py -v
-pytest backend/tests/test_pedagogy.py -v
 
 # 4. Run live LLM tests (requires DEEPINFRA_API_KEY in .env)
 pytest backend/tests/test_e2e_live.py -v -m live_e2e
 ```
 
-### 2.3 Detailed Test Module Coverage (54 Deterministic Tests across 12 Modules / 64 Total Backend Tests)
+### 2.3 Detailed Test Module Coverage (73 Deterministic Tests across 15 Modules / 83 Total Backend Tests)
 
-1. **`test_agents.py` (7 tests)**:
+1. **`test_additional_instructions.py` (3 tests)**:
+   - `test_generation_request_additional_instructions`: Validates Pydantic serialization and round-trip payload persistence of educator instructions.
+   - `test_prompt_builder_includes_additional_instructions`: Verifies that custom authoring instructions are injected into the generator user prompt with high-priority pedagogical mandate.
+   - `test_prompt_builder_falls_back_to_custom_prompt`: Validates graceful backward-compatibility fallback when `custom_prompt` is provided without `additional_instructions`.
+2. **`test_agents.py` (7 tests)**:
    - `test_all_mcat_sections_mock`: Verifies authentic section-specific mock fixtures for Chem/Phys, CARS, Bio/Biochem, and Psych/Soc.
    - `test_reviewer_heuristic_and_loop_routing`: Tests autonomous remediation loop triggers when score $\le 90$.
    - `test_strict_rejection_routing_when_score_le_90`: Verifies circuit-breaker termination when candidate fails after 3 cycles.
@@ -102,7 +111,7 @@ pytest backend/tests/test_e2e_live.py -v -m live_e2e
    - `test_generate_question_with_self_critique_structure`: Validates fused single-pass drafting and 100-pt self-critique.
    - `test_blind_solver_node_agreement`: Verifies agreement between blind solver and generator draft.
    - `test_blind_solver_node_discrepancy_triggers_critique`: Verifies that key discrepancies immediately route candidate to reviewer critique.
-2. **`test_api.py` (10 tests)**:
+3. **`test_api.py` (12 tests)**:
    - `test_database_crud`: Full CRUD lifecycle verification against question repository.
    - `test_admin_approval_and_persistence_endpoints`: Verifies admin approval workflow and PostgreSQL persistence.
    - `test_multichoice_and_passage_support`: Validates 4-choice purity and shared stimulus passage handling.
@@ -113,53 +122,71 @@ pytest backend/tests/test_e2e_live.py -v -m live_e2e
    - `test_passage_set_with_passage_level_visual_stimulus`: Validates shared reading passage diagrams.
    - `test_question_status_lifecycle_and_counts`: Verifies question lifecycle counts and transitions.
    - `test_deduplication_and_override_api`: Full API workflow verification: creates reference question in bank, checks candidate collision via `POST /api/questions/check-duplicate` ($\ge 0.80$), triggers `POST /api/questions/{id}/override-duplicate`, verifies `is_duplicate_override=True`, `status='in_bank'`, and verifies DB persistence.
-3. **`test_batch_jobs_flow.py` (2 tests)**:
+   - `test_batch_duplicate_clusters_and_resolve_endpoints`: Validates cluster inspection and duplicate archive/deletion resolution via REST API.
+   - `test_cors_patch_allowed`: Confirms that HTTP PATCH methods are fully permitted under CORS policy.
+4. **`test_batch_jobs_flow.py` (2 tests)**:
    - `test_batch_and_jobs_lifecycle`: End-to-end multi-job batch lifecycle (10 jobs x 5 questions = 50 total).
    - `test_mini_batch_lifecycle`: Validates single-job Practice Set lifecycle (1 job x 5 questions).
-4. **`test_database_structure.py` (6 tests)**:
+5. **`test_batch_review_withholding.py` (2 tests)**:
+   - `test_withhold_questions_until_batch_completed`: Confirms that questions from running batches stay in `batch_only` status, are excluded from the `GET /api/questions?status=ai_validated` review queue during generation, and are atomically promoted to `ai_validated` upon batch completion.
+   - `test_cancelled_batch_does_not_promote_questions`: Verifies that questions from stopped or cancelled batches remain in `batch_only` and are never promoted to `ai_validated`.
+6. **`test_database_structure.py` (7 tests)**:
    - `test_database_schema_initialization`: Verifies PostgreSQL tables, columns, and foreign key relations.
    - `test_passage_auto_sync_and_retrieval`: Validates passage synchronization and caching.
    - `test_batch_auto_sync_and_atomic_aggregation`: Ensures atomic calculation of batch metrics.
    - `test_hybrid_full_text_search`: Validates PostgreSQL tsvector hybrid FTS queries.
    - `test_api_passages_and_batches`: Confirms passage and batch REST endpoint contracts.
    - `test_centralized_repository_package_exports`: Ensures clean package exports across DAL layers.
-5. **`test_multi_batch_concurrency.py` (4 tests)**:
+   - `test_model_to_schema_none_options_safety`: Verifies null-safe deserialization when question options are null or empty.
+7. **`test_deduplication.py` (7 tests)**:
+   - `test_normalize_text`: Verifies text normalization, case folding, punctuation removal, and whitespace trimming.
+   - `test_extract_content_tokens`: Confirms extraction of domain-specific content tokens while filtering stop words.
+   - `test_identical_questions_duplicate_detection`: Validates 1.0 similarity for verbatim question stems and options.
+   - `test_paraphrased_high_similarity`: Evaluates token containment and hybrid similarity for paraphrased scientific stems sharing key terms ($> 0.80$).
+   - `test_distinct_questions_in_same_subtopic_no_duplicate`: Confirms scoping isolation; distinct scientific concepts evaluate below the collision threshold ($< 0.35$).
+   - `test_two_tier_threshold_and_soft_warning`: Verifies hard duplicate threshold ($\ge 0.80$) and soft warning threshold ($0.65 - 0.79$).
+   - `test_cluster_questions_groups_duplicates_correctly`: Verifies pairwise similarity clustering of question batches into leader and duplicate items.
+8. **`test_multi_batch_concurrency.py` (4 tests)**:
    - `test_global_concurrency_semaphores`: Confirms `GLOBAL_MAX_CONCURRENT_JOBS = 4` prevents thread saturation.
    - `test_call_llm_rate_limit_backoff`: Validates exponential backoff and jitter under HTTP 429 rate limit responses.
    - `test_refresh_batch_aggregates_atomic`: Ensures atomic SQL aggregation eliminates race conditions between parallel jobs.
    - `test_simultaneous_multi_batch_launch_and_metrics`: Tests simultaneous execution of multiple 50-question batches.
-6. **`test_pedagogy.py` (4 tests)**:
+9. **`test_pedagogy.py` (4 tests)**:
    - `test_option_symmetry_and_anti_guessability_engine`: Mathematical validation that options stay within $\pm 15\%$ word count.
    - `test_smart_ai_trap_and_explanation_breakdown`: Tests automatic cognitive trap assignment and 3-card mentor breakdown.
    - `test_manager_dependent_taxonomy_integration`: Verifies official AAMC syllabus tree mapping.
    - `test_taxonomy_json_parity_between_backend_and_frontend`: Enforces identical taxonomy trees across client and server.
-7. **`test_schemas.py` (1 test)**:
-   - `test_schemas_validation`: Comprehensive Pydantic V2 schema boundary and validation tests.
-8. **`test_tokens.py` (6 tests)**:
-   - `test_deepinfra_model_configuration`: Verifies model identifier and endpoint settings.
-   - `test_token_and_cost_calculation`: Sub-micro-cent mathematical calculation verification ($0.098/$0.294 per 1M).
-   - `test_workflow_token_accumulation`: Verifies cumulative token tracking across multi-agent cycles.
-   - `test_deepinfra_strict_api_key_enforcement`: Ensures missing API keys fail fast with actionable guidance.
-   - `test_max_tokens_settings_and_config_endpoint`: Validates token limit configuration contracts.
-   - `test_call_llm_effective_max_tokens_and_temperature`: Confirms temperature and token constraints per agent.
-9. **`test_visuals.py` (5 tests)**:
-   - `test_strict_ai_image_generator`: Validates SVG vector generator and AI visual filters.
-   - `test_flux_image_cost_formula`: Verifies FLUX unit cost scaling ($0.014 normalized baseline).
-   - `test_image_node_workflow_accumulation`: Ensures visual synthesis costs accumulate into total run cost.
-   - `test_visual_stimulus_persistence_in_finalize_node`: Confirms diagram SVG/URL persistence to PostgreSQL.
-   - `test_autonomous_ai_determined_image_workflow`: Validates AI-determined visual stimulus routing.
-10. **`test_workflow.py` (4 tests)**:
+10. **`test_question_status_refill.py` (4 tests)**:
+    - `test_question_status_enum_values`: Validates all explicit enum values in `QuestionStatus`.
+    - `test_is_question_active_helper`: Confirms active status recognition (`in_bank`, `ai_validated`, `batch_only`, `approved`).
+    - `test_status_update_requests_validation`: Validates Pydantic payloads for single and bulk status updates.
+    - `test_batch_refill_deficit_calculation_with_discarded_questions`: Validates exact deficit computation when duplicate items are archived.
+11. **`test_schemas.py` (1 test)**:
+    - `test_schemas_validation`: Comprehensive Pydantic V2 schema boundary and validation tests.
+12. **`test_target_count_guarantee.py` (4 tests)**:
+    - `test_dynamic_job_allocation_in_batch_runner`: Verifies dynamic job partitioning for 5, 50, and arbitrary question counts (e.g., 12 Qs $\to$ 5, 5, 2).
+    - `test_auto_resolve_caps_excess_to_exact_target`: Verifies that auto-resolve preserves exact target count without excess items.
+    - `test_refresh_batch_aggregates_reflects_active_questions`: Confirms that batch counters accurately aggregate active questions only.
+    - `test_interactive_slot_replenishment_recovers_from_quality_rejection`: Tests automated in-place slot replenishment when quality gate drops a candidate.
+13. **`test_tokens.py` (6 tests)**:
+    - `test_deepinfra_model_configuration`: Verifies model identifier, cascade settings, and endpoint parameters.
+    - `test_token_and_cost_calculation`: Sub-micro-cent mathematical calculation verification ($0.098/$0.294 per 1M).
+    - `test_workflow_token_accumulation`: Verifies cumulative token tracking across multi-agent cycles.
+    - `test_deepinfra_strict_api_key_enforcement`: Ensures missing API keys fail fast with actionable guidance.
+    - `test_max_tokens_settings_and_config_endpoint`: Validates token limit configuration contracts on `/api/config`.
+    - `test_call_llm_effective_max_tokens_and_temperature`: Confirms temperature, fast model cascade, and token constraints per agent.
+14. **`test_visuals.py` (5 tests)**:
+    - `test_strict_ai_image_generator`: Validates SVG vector generator and AI visual filters.
+    - `test_flux_image_cost_formula`: Verifies FLUX unit cost scaling ($0.014 normalized baseline).
+    - `test_image_node_workflow_accumulation`: Ensures visual synthesis costs accumulate into total run cost.
+    - `test_visual_stimulus_persistence_in_finalize_node`: Confirms diagram SVG/URL persistence to PostgreSQL.
+    - `test_autonomous_ai_determined_image_workflow`: Validates AI-determined visual stimulus routing.
+15. **`test_workflow.py` (4 tests)**:
     - `test_per_question_stage_metadata_in_events`: Verifies SSE event payload metadata and stage tracking.
     - `test_fused_generator_node_passing_and_routing`: Validates fused single-pass drafting and fast-path routing.
     - `test_fused_workflow_bypasses_reviewer_when_self_critique_passed`: Confirms reviewer bypass when score > 90.
     - `test_safe_json_loads_and_resilient_parsing`: Ensures resilient JSON parsing of LLM outputs.
-11. **`test_deduplication.py` (5 tests)**:
-    - `test_normalize_text`: Verifies text normalization, case folding, punctuation removal, and whitespace trimming.
-    - `test_extract_content_tokens`: Confirms extraction of domain-specific content tokens while filtering stop words.
-    - `test_identical_questions_duplicate_detection`: Validates 1.0 similarity for verbatim question stems and options.
-    - `test_paraphrased_high_similarity`: Evaluates token containment and hybrid similarity for paraphrased scientific stems sharing key terms ($> 0.80$).
-    - `test_distinct_questions_in_same_subtopic_no_duplicate`: Confirms scoping isolation; distinct scientific concepts evaluate below the collision threshold ($< 0.35$).
-12. **`test_e2e_live.py` (10 live tests - marked as `live_e2e`)**:
+16. **`test_e2e_live.py` (10 live tests - marked as `live_e2e`)**:
     - `test_e2e_health_and_db_connectivity`: Confirms health endpoint connectivity to live PostgreSQL and LiteLLM models.
     - `test_e2e_all_four_sections_metadata`: Verifies live metadata and taxonomy tree across all 4 AAMC sections.
     - `test_e2e_config_endpoint`: Validates live runtime model configuration and token rate parameters.
@@ -185,8 +212,8 @@ def is_postgres_available(host: str = "localhost", port: int = 5432, timeout: fl
 ```
 
 - When PostgreSQL is offline, `auto_skip_db_tests` dynamically detects tests decorated with `@pytest.mark.requires_db` and cleanly skips them with `PostgreSQL on localhost:5432 is offline. Skipping database-dependent test.`
-- All **32 pure unit and algorithmic tests** execute and pass with 100% velocity without requiring Docker or PostgreSQL.
-- Once PostgreSQL is started (`docker compose up -d`), all **54 deterministic tests** execute and pass automatically.
+- All **42 pure unit and algorithmic tests** execute and pass with 100% velocity without requiring Docker or PostgreSQL.
+- Once PostgreSQL is started (`docker compose up -d`), all **73 deterministic tests across 15 modules** execute and pass automatically.
 
 ---
 
@@ -270,6 +297,6 @@ The repository integrates a GitHub Actions workflow (`.github/workflows/ci.yml`)
 3. Cache & install backend dependencies (pip) & frontend dependencies (pnpm)
 4. Execute Ruff linter and formatting checks
 5. Execute Oxlint frontend linter
-6. Run full Pytest deterministic test suite (54 tests)
+6. Run full Pytest deterministic test suite (73 tests across 15 modules)
 7. Execute frontend production build (Vite 8)
 ```

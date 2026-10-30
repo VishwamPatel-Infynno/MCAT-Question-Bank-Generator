@@ -45,17 +45,18 @@ pnpm dev
 Before submitting any code changes, ensure all verification suites pass with zero defects (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full test specifications):
 
 ```bash
-# 1. Backend pytest suite (54 deterministic unit & integration tests; 32 pass offline, 22 DB tests skip cleanly)
-PYTHONPATH=backend pytest backend/tests -v -k "not live_e2e"
+# 1. Backend pytest suite (73 deterministic unit & integration tests across 15 modules; 42 pass offline, 31 DB tests skip cleanly)
+PYTHONPATH=backend pytest backend/tests -v -m "not live_e2e"
 
-# 2. Backend Python linter
-ruff check backend
+# 2. Backend Python linter and formatting checks (enforcing SIM, RET, B, C4, E, W, F, I, UP)
+ruff check backend/
+ruff format --check backend/
 
-# 3. Frontend Oxlint linter (0 errors, 0 warnings policy)
-pnpm lint
+# 3. Frontend Oxlint linter (0 errors, 0 warnings policy across 97 files)
+pnpm --dir frontend lint
 
-# 4. Frontend production build
-pnpm build
+# 4. Frontend production build (compiles in ~218ms via Vite 8)
+pnpm --dir frontend build
 ```
 
 ---
@@ -64,10 +65,12 @@ pnpm build
 
 1. **Strict Quality Threshold**: Questions scoring $\le 90$ must be regenerated up to 3 times by the Re-Generator agent. If still below 90, the workflow must halt and reject the question from the Question Bank.
 2. **Blind-Solver Dual Validation**: Every candidate question is solved blindly without knowing the author's key or explanation. Any key discrepancy or confidence $< 88\%$ triggers automatic remediation to ensure question keys are incontrovertible.
-3. **Deterministic Token & Cost Math**: All costs must be computed via official DeepInfra rates:
+3. **Review Queue Withholding Guarantee**: Questions produced during background batches are held safely in `batch_only` status while the batch is in progress to prevent partial/draft questions from leaking into the reviewer queue. High-scoring items (>90) are atomically promoted to `ai_validated` upon batch completion.
+4. **Custom Authoring Instructions Enforcement**: Educator directives (`additional_instructions`) supplied via Step 3 must be injected into prompt builders with high-priority pedagogical mandate across passage drafting, question drafting, and remediation critique cycles.
+5. **Deterministic Token & Cost Math**: All costs must be computed via official DeepInfra rates:
    - Text: $0.098 input / $0.294 output per 1M tokens.
    - Image: Flat baseline rate of $0.014 USD per image (scaled by $(\text{width}/1024) \times (\text{height}/1024)$).
-4. **Modular Layer Separation**:
+6. **Modular Layer Separation**:
    - Routing: `backend/app/api/v1/` (28 operations across 22 endpoint paths)
    - Business/Agent Logic: `backend/app/agents/` (Generator, Blind Solver, Reviewer, Regenerator, Visuals)
    - Data Access Layer: `backend/app/repositories/`

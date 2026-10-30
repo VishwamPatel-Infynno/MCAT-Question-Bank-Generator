@@ -121,10 +121,15 @@ Psychological, Social & Biological (PS)  -> Royal Violet  (#a855f7 / #7c3aed)
 ### 4.1 Guided Question Wizard (`GuidedWizard.jsx`)
 Streamlined 3-step authoring workflow:
 - **Step 1: Section & Focus (`WizardStep1SectionFocus.jsx`)**: Official AAMC exam section selection (CP, CARS, BB, PS) with authentic pacing guides (~96s to ~101s per question), quick-start presets, and granular topic/subtopic syllabus focus. Streamlined to clean interactive cards without marketing slogans or explanatory noise.
-- **Step 2: Level & Format (`WizardStep2LevelFormat.jsx`)**: Calibrated challenge level (**Low**, **Medium**, **High**), question format (Passage-Based vs Independent Single-Choice), and 2 calibrated Generation Scopes governed by the unified 5-question Job architecture:
+- **Step 2: Level & Format (`WizardStep2LevelFormat.jsx`)**: Calibrated challenge level (**Low**, **Medium**, **High**), question format (Passage-Based vs Independent Single-Choice), and 2 calibrated Generation Scopes governed by the unified 5-question Job architecture, presented as streamlined cards without redundant badge pills:
   1. **Practice Set (5 Qs)**: 1 Single Job consisting of 5 questions linked to a shared reading passage (or 5 discretes), dispatched to the background worker pool (~35-50s) with automated AI validation and real-time telemetry streaming into Validated Bank and Batch Activity.
   2. **Full Exam (50 Qs)**: Enterprise background multi-job batch across 10 concurrent worker jobs (5 questions each) governed by the Global Worker Pool with automatic AI validation.
-- **Step 3: Review & Advanced Calibration (`WizardStep3ReviewAdvanced.jsx`)**: Clean high-density review interface featuring a compact summary table of selected parameters, a dedicated prominent **Scientific Diagrams & Reaction Schemes** toggle card (visible for all science sections with full-card interactivity and pill switch), an expandable **Advanced Configuration** accordion (controlling cognitive distractor traps, reasoning skills, and student misconception targets), and a prominent launch action.
+- **Step 3: Review & Advanced Calibration (`WizardStep3ReviewAdvanced.jsx`)**: Clean high-density review interface featuring:
+  - **Compact Parameter Summary Table**: Instant tabular overview of selected section, topic, difficulty, and question count.
+  - **Scientific Diagrams & Reaction Schemes Card**: Dedicated toggle card for natural science sections with full-card clickability and animated pill switch.
+  - **Additional Authoring Instructions Textarea**: Dedicated textarea (`border: 1px solid var(--border-light)`, `background: var(--bg-surface-subtle)`) allowing educators to supply explicit clinical scenarios, Lineweaver-Burk derivation mandates, or custom distractor traps.
+  - **Custom Instructions Active Badge**: An animated indicator pill badge (`border: 1px solid var(--border-brand)`, `background: var(--brand-light)`, `color: var(--brand-primary)`) rendered dynamically in the Advanced Settings drawer header when custom instructions are present.
+  - **Expandable Advanced Configuration Accordion**: Collapsible drawer controlling cognitive distractor traps, reasoning skills, and targeted student misconception patterns.
 
 ### 4.2 Multi-Agent Conduit Telemetry (`MultiAgentPipelineVisualizer.jsx`)
 - Four connected functional milestones presented in natural editorial language:

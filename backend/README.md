@@ -14,15 +14,15 @@ The backend is engineered with clear separation of concerns across presentation,
 ```
 backend/
 ├── app/
-│   ├── api/                 # Presentation Layer (HTTP & SSE Routers - 30 operations across 24 paths)
+│   ├── api/                 # Presentation Layer (HTTP & SSE Routers - 33 operations across 26 paths)
 │   │   ├── router.py        # Central API v1 router aggregator
 │   │   └── v1/
 │   │       ├── generation.py # SSE streaming multi-agent orchestrator endpoint
 │   │       ├── questions.py  # Question Bank CRUD, review approval, duplicate check & override, CSV/JSON exports
 │   │       ├── passages.py   # Shared clinical stimulus passages endpoints (list, retrieve, save, delete)
-│   │       ├── batches.py    # Multi-question batch execution run endpoints & background launcher
+│   │       ├── batches.py    # Multi-question batch execution run endpoints, clustering & refill
 │   │       ├── taxonomy.py   # AAMC syllabus hierarchy & dependent taxonomy tree endpoints
-│   │       ├── config.py     # Read-only runtime engine configuration & pricing
+│   │       ├── config.py     # Runtime engine configuration, cascade settings & pricing (24 fields)
 │   │       └── health.py     # Database connectivity & system health checks
 │   ├── workflow/            # Orchestration Layer (LangGraph Engine)
 │   │   ├── engine.py        # Core streaming execution engine & event emitters
@@ -179,24 +179,27 @@ PYTHONPATH=backend uvicorn app.main:app --port 8000 --reload
 Run the deterministic backend test suite covering endpoints, schemas, database operations, workflow routing, and token cost formulas (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full specs):
 
 ```bash
-# Run all unit and integration tests (54 deterministic tests across 12 modules)
-# Smart auto-skip: 32 pure unit tests pass offline, 22 DB-dependent tests skip cleanly if PostgreSQL is offline
+# Run all unit and integration tests (73 deterministic tests across 15 modules)
+# Smart auto-skip: 42 pure unit tests pass offline, 31 DB-dependent tests skip cleanly if PostgreSQL is offline
 source .venv/bin/activate
-pytest backend/tests -v -k "not live_e2e"
+pytest backend/tests -v -m "not live_e2e"
 
 # Run database relational structure tests
 pytest backend/tests/test_database_structure.py -v
 ```
 
 ### Code Formatting & Linting
-Enforce Python code hygiene using **Ruff**:
+Enforce Python code hygiene using **Ruff** (enforces SIM, RET, B, C4, E, W, F, I, UP):
 
 ```bash
 # Check code style and rules (0 errors policy)
-ruff check backend
+ruff check backend/
+
+# Verify formatting without modification
+ruff format --check backend/
 
 # Automatically fix linting issues
-ruff check --fix backend
+ruff check --fix backend/
 ```
 
 ---
