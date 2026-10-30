@@ -176,7 +176,7 @@ Question Bank Generator/
 ├── package.json                 # Monorepo pnpm orchestration scripts
 ├── pnpm-workspace.yaml          # Pnpm workspace definition
 ├── pnpm-lock.yaml               # Deterministic package lockfile
-├── .env.example                 # Environment variables template (29 parameters)
+├── .env.example                 # Environment variables template (active configuration template)
 ├── docs/                        # Comprehensive Documentation Suite
 │   ├── README.md                # Master Documentation Index & role-based sitemap
 │   ├── ARCHITECTURE.md          # Multi-agent architecture, Blind-Solver & LangGraph StateGraph
