@@ -253,6 +253,15 @@ Renders pedagogical rationales across three distinct, beautifully styled visual 
   - Evaluates `duplicate_info`: displays amber collision warning banner when similarity $\ge 80\%$, and opens `DuplicateComparisonModal` upon clicking "Compare with Existing Question".
   - Displays persistent `🛡️ Overridden` badge when an educator has verified and cleared the candidate for bank storage.
 
+### 4.14 Reusable Accessible Confirmation Dialog (`ConfirmationModal.jsx`)
+- **Component**: [`frontend/src/components/modals/ConfirmationModal.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/modals/ConfirmationModal.jsx) replaces native browser `window.confirm` popups across all application views with an accessible, WCAG AA compliant confirmation dialog.
+- **Features & Architecture**:
+  - **Focus Trapping**: Integrated with `useFocusTrap` to prevent background tabbing and restore focus upon dismissal.
+  - **Keyboard Accelerators**: Full keyboard dismissal on `Escape` key and confirm action triggers.
+  - **Theme-Aware Backdrops**: Utilizes `.modal-backdrop-theme` and `.modal-card-theme` respecting both Dark Obsidian and Light Alabaster color palettes.
+  - **Semantic Action Variants**: Supports `danger` (`--status-danger`), `warning` (`--status-warning`), and `info` (`--brand-primary`) accents with contextual warning banners.
+  - **Contextual Telemetry**: Renders live target count badges and button loading spinners during async mutations.
+
 ---
 
 ## 5. Micro-Animations & Dynamic Feedback

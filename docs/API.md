@@ -146,12 +146,15 @@ Lists saved questions from the Question Bank repository with optional filtering,
 | :--- | :--- | :--- | :--- |
 | `section` | `string` | No | Filter by section (`chem_phys`, `cars`, `bio_biochem`, `psych_soc`) |
 | `difficulty` | `string` | No | Filter by difficulty (`low`, `medium`, `high`) |
-| `search` | `string` | No | Hybrid full-text lexical search query on stem, passage, and subtopic |
+| `search` | `string` | No | Hybrid full-text lexical search query on stem, passage, subtopic, and ID |
 | `combination_id`| `string` | No | Filter by matrix combination code |
 | `run_id` | `string` | No | Filter by execution run UUID4 |
 | `batch_id` | `string` | No | Filter by batch run UUID4 |
 | `passage_id` | `string` | No | Filter by shared stimulus passage UUID4 |
 | `status` | `string` | No | Filter by lifecycle status: `in_bank`, `ai_validated`, `batch_only`, `below_threshold`, `discarded` |
+| `limit` | `integer` | No | Optional maximum number of questions to return (`1` to `500`) |
+| `offset` | `integer` | No | Optional number of questions to skip for server-side pagination |
+| `slim` | `boolean` | No | When `true`, omits heavy diagnostic fields (`stage_outcomes`, `iterations_history`, `token_usage_details`) to reduce network payload by 70%+ |
 
 #### Response (`200 OK`)
 ```json

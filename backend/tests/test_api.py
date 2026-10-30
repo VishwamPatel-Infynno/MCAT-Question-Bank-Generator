@@ -959,3 +959,45 @@ async def test_cors_patch_allowed(client):
     assert response.status_code == 200
     allow_methods = response.headers.get("access-control-allow-methods", "")
     assert "PATCH" in allow_methods
+
+
+@pytest.mark.asyncio
+async def test_questions_pagination_and_slim_projection(client):
+    """Verify that GET /questions supports limit, offset, and slim projection flags with total_count."""
+    opts = [OptionChoice(id="A", text="Opt A"), OptionChoice(id="B", text="Opt B")]
+    prefix = f"pag-{uuid.uuid4().hex[:6]}"
+    for i in range(3):
+        q = Question(
+            id=f"{prefix}-{i}",
+            section="chem_phys",
+            section_label="Chemical and Physical Foundations",
+            difficulty="medium",
+            subtopic="Stoichiometry",
+            stimulus_text="",
+            explanation="Explanation",
+            question_stem=f"Pagination {prefix} test question stem #{i}",
+            options=opts,
+            correct_answer_id="A",
+            final_score=92,
+            status="in_bank",
+            stage_outcomes={"draft": {"stem": "draft stem"}},
+            iterations_history=[{"cycle": 1, "score": 92}],
+        )
+        await save_question(q)
+
+    # 1. Test limit=2
+    res_limit = await client.get(f"/api/questions?search={prefix}&limit=2")
+    assert res_limit.status_code == 200
+    data_limit = res_limit.json()
+    assert len(data_limit["questions"]) == 2
+    assert "total_count" in data_limit
+    assert data_limit["total_count"] >= 3
+
+    # 2. Test slim=true
+    res_slim = await client.get(f"/api/questions?search={prefix}&limit=1&slim=true")
+    assert res_slim.status_code == 200
+    data_slim = res_slim.json()
+    assert len(data_slim["questions"]) == 1
+    first_q = data_slim["questions"][0]
+    assert first_q["stage_outcomes"] == {}
+    assert first_q["iterations_history"] == []

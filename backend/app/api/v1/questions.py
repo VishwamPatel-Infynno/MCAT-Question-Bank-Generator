@@ -46,6 +46,9 @@ async def list_questions(
     batch_id: Annotated[str | None, Query()] = None,
     passage_id: Annotated[str | None, Query()] = None,
     status: Annotated[str | None, Query()] = "in_bank",
+    limit: Annotated[int | None, Query(ge=1, le=500)] = None,
+    offset: Annotated[int | None, Query(ge=0)] = 0,
+    slim: Annotated[bool, Query()] = False,
 ):
     """Lists saved questions from the Question Bank repository along with aggregated metrics."""
     effective_status = None if status == "all" else (status or "in_bank")
@@ -58,6 +61,9 @@ async def list_questions(
         batch_id=batch_id,
         passage_id=passage_id,
         status=effective_status,
+        limit=limit,
+        offset=offset,
+        slim=slim,
     )
     dumped = [q.model_dump() for q in questions]
 
@@ -65,6 +71,7 @@ async def list_questions(
 
     return {
         "questions": dumped,
+        "total_count": metrics["total_count"],
         "total_tokens": metrics["total_tokens"],
         "total_cost_usd": metrics["total_cost_usd"],
     }

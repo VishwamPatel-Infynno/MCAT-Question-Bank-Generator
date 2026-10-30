@@ -15,8 +15,13 @@ from app.schemas import DuplicateInfo, OptionChoice, Question, ReviewScore
 logger = logging.getLogger(__name__)
 
 
-def _model_to_schema(m: QuestionModel) -> Question:
-    """Converts a SQLAlchemy QuestionModel to a Pydantic Question schema."""
+def _model_to_schema(m: QuestionModel, slim: bool = False) -> Question:
+    """Converts a SQLAlchemy QuestionModel to a Pydantic Question schema.
+
+    When slim=True, heavy nested arrays and diagnostic JSON blobs
+    (stage_outcomes, iterations_history, token_usage_details) are omitted
+    to minimize serialization overhead and memory footprint in list queries.
+    """
     options = [OptionChoice(**o) for o in (m.options or [])]
     rubric = ReviewScore(**m.review_rubric) if m.review_rubric else None
     dup_info = (
@@ -51,14 +56,14 @@ def _model_to_schema(m: QuestionModel) -> Question:
         final_score=m.final_score,
         review_rubric=rubric,
         iteration_count=m.iteration_count or 1,
-        iterations_history=m.iterations_history or [],
+        iterations_history=[] if slim else (m.iterations_history or []),
         created_at=to_iso_str(m.created_at),
         updated_at=to_iso_str(m.updated_at) if m.updated_at else None,
         total_tokens=m.total_tokens or 0,
         prompt_tokens=m.prompt_tokens or 0,
         completion_tokens=m.completion_tokens or 0,
         cost_usd=float(m.cost_usd) if m.cost_usd is not None else 0.0,
-        token_usage_details=m.token_usage_details or [],
+        token_usage_details=[] if slim else (m.token_usage_details or []),
         combination_id=m.combination_id,
         content_domain=m.content_domain,
         question_type=m.question_type,
@@ -78,7 +83,7 @@ def _model_to_schema(m: QuestionModel) -> Question:
         likely_mistake_pattern=getattr(m, "likely_mistake_pattern", None),
         duplicate_info=dup_info,
         is_duplicate_override=bool(getattr(m, "is_duplicate_override", False)),
-        stage_outcomes=m.stage_outcomes or {},
+        stage_outcomes={} if slim else (m.stage_outcomes or {}),
     )
 
 
@@ -339,8 +344,11 @@ async def get_questions(
     job_id: str | None = None,
     passage_id: str | None = None,
     status: str | None = None,
+    limit: int | None = None,
+    offset: int | None = 0,
+    slim: bool = False,
 ) -> list[Question]:
-    """Retrieves questions from PostgreSQL with optional filtering and hybrid full-text search."""
+    """Retrieves questions from PostgreSQL with optional filtering, hybrid full-text search, pagination, and slim payload projection."""
     async with async_session_factory() as session:
         stmt = select(QuestionModel)
 
@@ -403,6 +411,7 @@ async def get_questions(
             stmt = stmt.where(
                 or_(
                     fts_condition,
+                    QuestionModel.id.ilike(wildcard),
                     QuestionModel.question_stem.ilike(wildcard),
                     QuestionModel.stimulus_text.ilike(wildcard),
                     QuestionModel.subtopic.ilike(wildcard),
@@ -416,9 +425,13 @@ async def get_questions(
             )
 
         stmt = stmt.order_by(QuestionModel.created_at.desc())
+        if offset and offset > 0:
+            stmt = stmt.offset(offset)
+        if limit and limit > 0:
+            stmt = stmt.limit(limit)
         result = await session.execute(stmt)
         models = result.scalars().all()
-        return [_model_to_schema(m) for m in models]
+        return [_model_to_schema(m, slim=slim) for m in models]
 
 
 async def get_question_by_id(question_id: str) -> Question | None:

@@ -4,6 +4,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { PaginationBar } from '../components/common';
+import { ConfirmationModal } from '../components/modals';
 import { usePagination } from '../hooks';
 import {
   fetchQuestions,
@@ -30,6 +31,18 @@ export default function AiValidatedQuestionsView({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionInProgress, setActionInProgress] = useState(false);
+
+  // Standardized confirmation modal state
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    description: '',
+    confirmLabel: 'Confirm',
+    variant: 'danger',
+    itemCount: null,
+    itemLabel: 'question',
+    onConfirm: null
+  });
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -224,32 +237,43 @@ export default function AiValidatedQuestionsView({
     }
   };
 
-  const handleBulkDiscard = async () => {
+  const handleBulkDiscard = () => {
     if (selectedIds.length === 0) return;
     const count = selectedIds.length;
-    if (!window.confirm(`Are you sure you want to discard ${count} selected question(s)?`)) return;
-    setActionInProgress(true);
-    try {
-      await batchUpdateQuestionStatus(selectedIds, 'discarded');
-      setQuestions(prev => prev.filter(item => !selectedIds.includes(item.id)));
-      if (onShowToast) {
-        onShowToast({
-          type: 'info',
-          title: 'Questions Discarded',
-          message: `${count} question(s) marked as discarded.`
-        });
+    setConfirmModal({
+      isOpen: true,
+      title: 'Discard Selected Questions',
+      description: `Are you sure you want to discard ${count} selected question${count !== 1 ? 's' : ''}? They will be removed from the Review Queue and marked as discarded.`,
+      confirmLabel: `Discard ${count} Question${count !== 1 ? 's' : ''}`,
+      variant: 'danger',
+      itemCount: count,
+      itemLabel: 'question',
+      onConfirm: async () => {
+        setActionInProgress(true);
+        try {
+          await batchUpdateQuestionStatus(selectedIds, 'discarded');
+          setQuestions(prev => prev.filter(item => !selectedIds.includes(item.id)));
+          if (onShowToast) {
+            onShowToast({
+              type: 'info',
+              title: 'Questions Discarded',
+              message: `${count} question(s) marked as discarded.`
+            });
+          }
+          setSelectedIds([]);
+          if (onRefreshCounts) onRefreshCounts();
+          loadData(true);
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        } catch (err) {
+          console.error('Bulk discard failed:', err);
+          if (onShowToast) {
+            onShowToast({ type: 'error', title: 'Bulk Discard Failed', message: err.message || 'Error updating questions.' });
+          }
+        } finally {
+          setActionInProgress(false);
+        }
       }
-      setSelectedIds([]);
-      if (onRefreshCounts) onRefreshCounts();
-      loadData(true);
-    } catch (err) {
-      console.error('Bulk discard failed:', err);
-      if (onShowToast) {
-        onShowToast({ type: 'error', title: 'Bulk Discard Failed', message: err.message || 'Error updating questions.' });
-      }
-    } finally {
-      setActionInProgress(false);
-    }
+    });
   };
 
   const handleApproveAllValidated = async () => {
@@ -404,6 +428,20 @@ export default function AiValidatedQuestionsView({
           )}
         </>
       )}
+
+      {/* ── Standardized Accessible Confirmation Modal ───────────────────── */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        description={confirmModal.description}
+        confirmLabel={confirmModal.confirmLabel}
+        variant={confirmModal.variant}
+        itemCount={confirmModal.itemCount}
+        itemLabel={confirmModal.itemLabel}
+        isProcessing={actionInProgress}
+      />
     </div>
   );
 }

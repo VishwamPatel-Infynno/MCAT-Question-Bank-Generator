@@ -69,10 +69,8 @@ export function useQuestionBank() {
   const handleDelete = useCallback(
     async (id, e) => {
       if (e) e.stopPropagation();
-      if (window.confirm('Delete this question from your Question Bank?')) {
-        await deleteQuestion(id);
-        await loadQuestions();
-      }
+      await deleteQuestion(id);
+      await loadQuestions();
     },
     [loadQuestions]
   );

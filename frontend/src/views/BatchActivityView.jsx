@@ -15,6 +15,7 @@ import {
 } from '../services/api';
 import { SECTION_CODE_MAP } from '../constants/mcat';
 import { PaginationBar } from '../components/common';
+import { ConfirmationModal } from '../components/modals';
 import { usePagination } from '../hooks';
 import {
   BatchStatsHeader,
@@ -62,6 +63,19 @@ export default function BatchActivityView({
   // Individual action loading states
   const [stoppingBatchIds, setStoppingBatchIds] = useState({});
   const [retryingBatchIds, setRetryingBatchIds] = useState({});
+  const [isDeletingBatch, setIsDeletingBatch] = useState(false);
+
+  // Accessible confirmation modal state
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    description: '',
+    confirmLabel: 'Confirm',
+    variant: 'danger',
+    itemCount: null,
+    itemLabel: 'batch',
+    onConfirm: null
+  });
   const [isCancellingAll, setIsCancellingAll] = useState(false);
 
   // Expanded job within the expanded batches: { [jobId]: boolean }
@@ -279,41 +293,49 @@ export default function BatchActivityView({
     }
   };
 
-  // Delete a batch
-  const handleDeleteBatch = async (e, batchId) => {
+  // Delete a batch via Confirmation Modal
+  const handleDeleteBatch = (e, batchId) => {
     e.stopPropagation();
-    if (
-      !window.confirm(
-        'Are you sure you want to delete this batch and its logged jobs? Questions already saved will remain in your Question Bank.'
-      )
-    ) {
-      return;
-    }
-    try {
-      await deleteBatch(batchId);
-      setBatches((prev) => prev.filter((b) => b.id !== batchId));
-      setExpandedBatchIds((prev) => {
-        const next = new Set(prev);
-        next.delete(batchId);
-        return next;
-      });
-      if (onShowToast) {
-        onShowToast({
-          type: 'info',
-          title: 'Batch Deleted',
-          message: 'The batch log has been deleted.'
-        });
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Batch Record',
+      description: 'Are you sure you want to delete this batch and its logged jobs? Questions already saved will remain in your Question Bank.',
+      confirmLabel: 'Delete Batch',
+      variant: 'danger',
+      itemCount: 1,
+      itemLabel: 'batch',
+      onConfirm: async () => {
+        setIsDeletingBatch(true);
+        try {
+          await deleteBatch(batchId);
+          setBatches((prev) => prev.filter((b) => b.id !== batchId));
+          setExpandedBatchIds((prev) => {
+            const next = new Set(prev);
+            next.delete(batchId);
+            return next;
+          });
+          if (onShowToast) {
+            onShowToast({
+              type: 'info',
+              title: 'Batch Deleted',
+              message: 'The batch log has been deleted.'
+            });
+          }
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        } catch (err) {
+          console.error('Failed to delete batch:', err);
+          if (onShowToast) {
+            onShowToast({
+              type: 'error',
+              title: 'Delete Failed',
+              message: err.message
+            });
+          }
+        } finally {
+          setIsDeletingBatch(false);
+        }
       }
-    } catch (err) {
-      console.error('Failed to delete batch:', err);
-      if (onShowToast) {
-        onShowToast({
-          type: 'error',
-          title: 'Delete Failed',
-          message: err.message
-        });
-      }
-    }
+    });
   };
 
   // Handle saving a question directly to Question Bank
@@ -569,6 +591,20 @@ export default function BatchActivityView({
           )}
         </>
       )}
+
+      {/* ── Standardized Accessible Confirmation Modal ───────────────────── */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        description={confirmModal.description}
+        confirmLabel={confirmModal.confirmLabel}
+        variant={confirmModal.variant}
+        itemCount={confirmModal.itemCount}
+        itemLabel={confirmModal.itemLabel}
+        isProcessing={isDeletingBatch}
+      />
     </div>
   );
 }

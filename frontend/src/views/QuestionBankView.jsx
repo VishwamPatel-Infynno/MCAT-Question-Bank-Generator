@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Database, Sparkles, Eye, X } from 'lucide-react';
 import { batchDeleteQuestions, approveQuestion } from '../services/api';
-import { useQuestionBank, usePagination } from '../hooks';
+import { useQuestionBank, usePagination, useFocusTrap } from '../hooks';
 import { PaginationBar } from '../components/common';
 import { QuestionCard } from '../components/question';
-import ExportPrintModal from '../components/modals/ExportPrintModal';
+import { ExportPrintModal, ConfirmationModal } from '../components/modals';
 import QuestionBankFilters from '../components/bank/QuestionBankFilters';
 import QuestionBankTable from '../components/bank/QuestionBankTable';
 
@@ -35,6 +35,23 @@ export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [inspectingQuestion, setInspectingQuestion] = useState(null);
+
+  // Standardized accessible confirmation modal state
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    description: '',
+    confirmLabel: 'Confirm',
+    variant: 'danger',
+    itemCount: null,
+    itemLabel: 'question',
+    onConfirm: null
+  });
+
+  const inspectorModalRef = useFocusTrap({
+    isActive: Boolean(inspectingQuestion),
+    onClose: () => setInspectingQuestion(null)
+  });
 
   const handleUpdateInspectedQuestion = async (updated) => {
     try {
@@ -126,31 +143,77 @@ export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
     }
   };
 
-  // ─── Bulk Delete ───────────────────────────────────────────────────────────
-  const handleBulkDelete = async () => {
+  // ─── Single Item Delete via Confirmation Modal ────────────────────────────
+  const handleConfirmSingleDelete = (id, e) => {
+    if (e) e.stopPropagation();
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Question',
+      description: 'Are you sure you want to permanently delete this question from your Question Bank? This operation cannot be undone.',
+      confirmLabel: 'Delete Question',
+      variant: 'danger',
+      itemCount: 1,
+      itemLabel: 'question',
+      onConfirm: async () => {
+        setIsDeletingBulk(true);
+        try {
+          await handleDelete(id);
+          if (onShowToast) {
+            onShowToast({
+              type: 'success',
+              title: 'Question Deleted',
+              message: 'Successfully removed question from the Question Bank.'
+            });
+          }
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        } catch (err) {
+          console.error('Failed to delete question:', err);
+          if (onShowToast) {
+            onShowToast({ type: 'error', title: 'Deletion Failed', message: err.message || 'Could not delete question.' });
+          }
+        } finally {
+          setIsDeletingBulk(false);
+        }
+      }
+    });
+  };
+
+  // ─── Bulk Delete via Confirmation Modal ───────────────────────────────────
+  const handleBulkDelete = () => {
     if (selectedIds.length === 0) return;
     const countToDelete = selectedIds.length;
-    if (!window.confirm(`Delete ${countToDelete} selected question(s) from the Question Bank?`)) return;
-    setIsDeletingBulk(true);
-    try {
-      await batchDeleteQuestions(selectedIds);
-      setSelectedIds([]);
-      await loadQuestions();
-      if (onShowToast) {
-        onShowToast({
-          type: 'success',
-          title: 'Questions Deleted',
-          message: `Successfully removed ${countToDelete} question(s) from the Question Bank.`
-        });
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Selected Questions',
+      description: `Are you sure you want to delete ${countToDelete} selected question${countToDelete !== 1 ? 's' : ''} from the Question Bank? This operation cannot be undone.`,
+      confirmLabel: `Delete ${countToDelete} Question${countToDelete !== 1 ? 's' : ''}`,
+      variant: 'danger',
+      itemCount: countToDelete,
+      itemLabel: 'question',
+      onConfirm: async () => {
+        setIsDeletingBulk(true);
+        try {
+          await batchDeleteQuestions(selectedIds);
+          setSelectedIds([]);
+          await loadQuestions();
+          if (onShowToast) {
+            onShowToast({
+              type: 'success',
+              title: 'Questions Deleted',
+              message: `Successfully removed ${countToDelete} question(s) from the Question Bank.`
+            });
+          }
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        } catch (err) {
+          console.error('Failed to bulk delete questions:', err);
+          if (onShowToast) {
+            onShowToast({ type: 'error', title: 'Deletion Failed', message: err.message || 'Could not delete selected questions.' });
+          }
+        } finally {
+          setIsDeletingBulk(false);
+        }
       }
-    } catch (err) {
-      console.error('Failed to bulk delete questions:', err);
-      if (onShowToast) {
-        onShowToast({ type: 'error', title: 'Deletion Failed', message: err.message || 'Could not delete selected questions.' });
-      }
-    } finally {
-      setIsDeletingBulk(false);
-    }
+    });
   };
 
   return (
@@ -279,7 +342,7 @@ export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
           copiedId={copiedId}
           onToggleSelect={handleToggleSelect}
           onCopy={handleCopy}
-          onDelete={handleDelete}
+          onDelete={handleConfirmSingleDelete}
           onSelectQuestion={setInspectingQuestion}
         />
       )}
@@ -317,28 +380,21 @@ export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
         />
       )}
 
-      {/* ── In-Place Question Inspection & Edit Dialog ────────────────────── */}
+      {/* ── In-Place Question Inspection & Edit Dialog (WCAG AA Focus Trapped) ── */}
       {inspectingQuestion && (
         <div
-          className="modal-backdrop"
+          className="modal-backdrop-theme"
           onClick={() => setInspectingQuestion(null)}
           role="dialog"
           aria-modal="true"
           aria-labelledby="bank-inspect-modal-title"
           style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(8, 12, 20, 0.75)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px'
+            zIndex: 1000
           }}
         >
           <div
-            className="modal-card"
+            ref={inspectorModalRef}
+            className="modal-card-theme"
             onClick={(e) => e.stopPropagation()}
             style={{
               width: '100%',
@@ -346,9 +402,6 @@ export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
               maxHeight: '90vh',
               overflowY: 'auto',
               background: 'var(--bg-canvas)',
-              border: '1px solid var(--border-light)',
-              borderRadius: 'var(--radius-lg)',
-              boxShadow: 'var(--shadow-lg)',
               padding: '24px',
               position: 'relative'
             }}
@@ -393,6 +446,20 @@ export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
           </div>
         </div>
       )}
+
+      {/* ── Reusable Accessible Confirmation Modal ──────────────────────── */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        description={confirmModal.description}
+        confirmLabel={confirmModal.confirmLabel}
+        variant={confirmModal.variant}
+        itemCount={confirmModal.itemCount}
+        itemLabel={confirmModal.itemLabel}
+        isProcessing={isDeletingBulk}
+      />
     </div>
   );
 }

@@ -44,6 +44,8 @@ class QuestionModel(Base):
         Index("ix_questions_batch_job", "batch_id", "job_id"),
         Index("ix_questions_section_subtopic", "section", "subtopic"),
         Index("ix_questions_is_duplicate_override", "is_duplicate_override"),
+        Index("ix_questions_section_difficulty", "section", "difficulty"),
+        Index("ix_questions_status_final_score", "status", "final_score"),
     )
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
