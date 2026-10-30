@@ -297,13 +297,13 @@ export default function BatchProgressHeader({
               padding: '7px 16px', fontSize: '0.75rem', fontWeight: 700,
               background: allAccepted ? 'var(--bg-surface-subtle)' : 'var(--status-success)',
               borderColor: allAccepted ? 'var(--border-medium)' : 'var(--status-success)',
-              color: allAccepted ? 'var(--status-success)' : '#ffffff',
+              color: allAccepted ? 'var(--status-success)' : 'var(--text-on-brand, #ffffff)',
               gap: '6px',
               boxShadow: allAccepted ? 'none' : 'var(--shadow-sm)',
               cursor: allAccepted ? 'default' : 'pointer'
             }}
           >
-            <CheckCircle2 size={15} color={allAccepted ? 'var(--status-success)' : '#ffffff'} />
+            <CheckCircle2 size={15} color={allAccepted ? 'var(--status-success)' : 'var(--text-on-brand, #ffffff)'} />
             <span>
               {allAccepted
                 ? 'All Saved in Question Bank'

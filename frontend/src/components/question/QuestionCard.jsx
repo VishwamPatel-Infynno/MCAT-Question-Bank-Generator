@@ -548,7 +548,7 @@ function QuestionCard({
               >
                 <CheckCircle size={15} />
                 <span>{isApproving ? 'Saving...' : 'Save to Question Bank'}</span>
-                <span className="kbd-hint" style={{ fontSize: '0.6rem', color: '#ffffff', borderColor: 'rgba(255,255,255,0.3)' }}>A</span>
+                <span className="kbd-hint" style={{ fontSize: '0.6rem', color: 'var(--text-on-brand, #ffffff)', borderColor: 'rgba(255,255,255,0.3)' }}>A</span>
               </button>
 
               {onDiscard && (
@@ -583,7 +583,7 @@ function QuestionCard({
           >
             <Sparkles size={14} />
             <span>Create Next Question</span>
-            <span className="kbd-hint" style={{ fontSize: '0.6rem', color: '#ffffff', border: 'none', background: 'rgba(255,255,255,0.2)' }}>⌘↵</span>
+            <span className="kbd-hint" style={{ fontSize: '0.6rem', color: 'var(--text-on-brand, #ffffff)', border: 'none', background: 'rgba(255,255,255,0.2)' }}>⌘↵</span>
           </button>
         )}
       </div>

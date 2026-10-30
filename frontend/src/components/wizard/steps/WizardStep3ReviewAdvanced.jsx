@@ -371,7 +371,7 @@ export default function WizardStep3ReviewAdvanced({
                     borderRadius: 'var(--radius-full)',
                     background: effectiveTraps.length === 0 ? 'var(--status-purple)' : 'var(--bg-surface-subtle)',
                     border: effectiveTraps.length === 0 ? '1px solid var(--status-purple)' : '1px solid var(--border-light)',
-                    color: effectiveTraps.length === 0 ? '#ffffff' : 'var(--text-secondary)',
+                    color: effectiveTraps.length === 0 ? 'var(--text-on-brand, #ffffff)' : 'var(--text-secondary)',
                     fontSize: '0.72rem',
                     fontWeight: effectiveTraps.length === 0 ? 600 : 500,
                     cursor: 'pointer'
@@ -399,7 +399,7 @@ export default function WizardStep3ReviewAdvanced({
                         borderRadius: 'var(--radius-full)',
                         background: isSelected ? 'var(--status-purple)' : 'var(--bg-surface-subtle)',
                         border: isSelected ? '1px solid var(--status-purple)' : '1px solid var(--border-light)',
-                        color: isSelected ? '#ffffff' : 'var(--text-secondary)',
+                        color: isSelected ? 'var(--text-on-brand, #ffffff)' : 'var(--text-secondary)',
                         fontSize: '0.72rem',
                         fontWeight: isSelected ? 600 : 500,
                         cursor: 'pointer'

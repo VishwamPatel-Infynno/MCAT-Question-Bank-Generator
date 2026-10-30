@@ -14,7 +14,6 @@ export {
 } from './trapHelpers';
 
 export {
-  escapeCsv,
   generateExamCsv,
   generateExamJson,
   generateExamHtmlDoc

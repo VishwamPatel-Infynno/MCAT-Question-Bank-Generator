@@ -422,7 +422,7 @@ export default function DuplicateComparisonModal({
                 fontSize: '0.8rem',
                 background: 'var(--status-warning, #f59e0b)',
                 borderColor: 'var(--status-warning, #f59e0b)',
-                color: '#ffffff'
+                color: 'var(--text-on-brand, #ffffff)'
               }}
               title="Accept question despite similarity, logging an override audit record in Question Bank"
             >

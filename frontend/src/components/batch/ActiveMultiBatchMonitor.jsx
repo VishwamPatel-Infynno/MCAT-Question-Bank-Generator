@@ -164,7 +164,7 @@ export default function ActiveMultiBatchMonitor({
                 onClick={handleConfirmCancel}
                 style={{
                   background: 'var(--status-danger, #ef4444)',
-                  color: '#ffffff',
+                  color: 'var(--text-on-brand, #ffffff)',
                   border: 'none',
                   borderRadius: 'var(--radius-sm, 6px)',
                   padding: '5px 10px',

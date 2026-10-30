@@ -218,7 +218,7 @@ const StagedQuestionSlotCard = React.memo(function StagedQuestionSlotCard({
                     borderRadius: '50%',
                     background: isCorrect ? 'var(--status-success)' : 'transparent',
                     border: isCorrect ? '1px solid var(--status-success)' : '1px solid var(--border-medium)',
-                    color: isCorrect ? '#ffffff' : 'var(--text-muted)',
+                    color: isCorrect ? 'var(--text-on-brand, #ffffff)' : 'var(--text-muted)',
                     fontSize: '0.65rem',
                     fontWeight: 700,
                     flexShrink: 0

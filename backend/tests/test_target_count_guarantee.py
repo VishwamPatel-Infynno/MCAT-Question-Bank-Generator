@@ -107,7 +107,7 @@ async def test_auto_resolve_caps_excess_to_exact_target():
         "Compare the collision frequency factor between bimolecular elementary gas-phase reactions and unimolecular decays.",
     ]
 
-    for idx, (stem, score) in enumerate(zip(distinct_stems, scores)):
+    for idx, (stem, score) in enumerate(zip(distinct_stems, scores, strict=False)):
         q = Question(
             id=f"cap-q-{idx}-{batch_id[:6]}",
             batch_id=batch_id,

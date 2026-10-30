@@ -183,7 +183,7 @@ export default function StageJsonInspector({ question }) {
                       fontWeight: 600,
                       cursor: 'pointer',
                       background: isSelected ? 'var(--brand-primary)' : 'var(--bg-surface-elevated)',
-                      color: isSelected ? '#ffffff' : 'var(--text-secondary)',
+                      color: isSelected ? 'var(--text-on-brand, #ffffff)' : 'var(--text-secondary)',
                       border: isSelected ? '1px solid var(--border-brand)' : '1px solid var(--border-light)',
                       transition: 'all var(--transition-fast)'
                     }}

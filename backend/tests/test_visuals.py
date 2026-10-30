@@ -48,7 +48,7 @@ async def test_strict_ai_image_generator(monkeypatch):
 
     monkeypatch.setattr(image_generator, "call_deepinfra_flux", mock_call_flux)
 
-    img_url, img_svg, img_desc, usage_success = await generate_image_stimulus(draft_ar, req_ar)
+    img_url, img_svg, _img_desc, usage_success = await generate_image_stimulus(draft_ar, req_ar)
     assert img_url == "data:image/jpeg;base64,mock_flux_binary"
     assert img_svg is None
     assert usage_success["cost_usd"] > 0.0

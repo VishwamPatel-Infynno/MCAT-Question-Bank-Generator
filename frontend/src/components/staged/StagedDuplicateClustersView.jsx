@@ -156,9 +156,9 @@ export default function StagedDuplicateClustersView({
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
-            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-            borderColor: '#d97706',
-            color: '#ffffff'
+            background: 'var(--status-warning)',
+            borderColor: 'var(--status-warning-border)',
+            color: 'var(--text-on-brand, #ffffff)'
           }}
         >
           <Check size={14} />

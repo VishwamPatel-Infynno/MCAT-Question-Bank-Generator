@@ -592,7 +592,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         err_evt = make_event(
                             event_type="question_failed",
                             agent_name="System",
-                            message=f"Generation failed for Question {idx + 1} after retries: {str(worker_err)}",
+                            message=f"Generation failed for Question {idx + 1} after retries: {worker_err!s}",
                             data={"index": idx + 1, "error": str(worker_err)},
                             run_id=req.run_id,
                         )
@@ -601,7 +601,7 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                         err_evt = make_event(
                             event_type="workflow_error",
                             agent_name="System",
-                            message=f"Generation failed for Question {idx + 1}: {str(worker_err)}",
+                            message=f"Generation failed for Question {idx + 1}: {worker_err!s}",
                             data={"index": idx + 1, "error": str(worker_err)},
                             run_id=req.run_id,
                         )

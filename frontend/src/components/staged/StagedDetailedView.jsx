@@ -145,7 +145,7 @@ export default function StagedDetailedView({
                     height: '16px',
                     borderRadius: '50%',
                     background: 'var(--status-success)',
-                    color: '#ffffff'
+                    color: 'var(--text-on-brand, #ffffff)'
                   }}
                   title="Saved in Question Bank"
                 >

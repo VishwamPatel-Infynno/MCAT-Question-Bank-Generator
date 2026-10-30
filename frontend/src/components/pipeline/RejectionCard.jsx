@@ -60,7 +60,7 @@ export default function RejectionCard({ rejectionData, onRetry }) {
         <button
           onClick={onRetry}
           className="btn-primary"
-          style={{ background: 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)', boxShadow: '0 4px 14px rgba(225, 29, 72, 0.25)' }}
+          style={{ background: 'var(--status-danger)', color: 'var(--text-on-brand)', boxShadow: '0 4px 14px var(--status-danger-border)' }}
         >
           <RotateCcw size={16} />
           Retry Generation

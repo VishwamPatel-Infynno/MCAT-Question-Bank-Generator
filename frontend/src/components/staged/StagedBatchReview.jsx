@@ -397,60 +397,23 @@ export default function StagedBatchReview({
 
       {/* ── VIEW MODE 2: DETAILED SINGLE VIEW (AAMC Split vs Stacked) ──── */}
       {viewMode === 'tabs' && (
-        <>
-          {isPassageSet && sharedStimulusText && effectivePassageCount > 0 && passageLayoutMode === 'split' ? (
-            /* AAMC Split-Pane Dual Layout */
-            <div className="aamc-split-layout-grid">
-              <div>
-                <SharedPassageCard
-                  passageText={sharedStimulusText}
-                  questionCount={effectivePassageCount}
-                  totalCount={effectiveTotal}
-                  isMixedBatch={isMixedBatch}
-                  diagramQuestion={sharedPassageImage}
-                  collapsible={false}
-                  defaultCollapsed={false}
-                  isSplitPane={true}
-                />
-              </div>
-
-              <div style={{ minWidth: 0 }}>
-                <StagedDetailedView
-                  effectiveTotal={effectiveTotal}
-                  perQuestionState={perQuestionState}
-                  stagedQuestions={uniqueStagedQuestions}
-                  validIdx={validIdx}
-                  activeQuestion={activeQuestion}
-                  totalCompleted={totalCompleted}
-                  isGenerating={isGenerating}
-                  isMixedBatch={isMixedBatch}
-                  selectedIds={selectedIds}
-                  savedIds={savedIds}
-                  setActiveIdx={setActiveIdx}
-                  handleToggleSelect={handleToggleSelect}
-                  isQuestionPassageLinked={isQuestionPassageLinked}
-                  handleApproveSingle={handleApproveSingle}
-                  onDiscardQuestion={onDiscardQuestion}
-                  onOpenAudit={onOpenAudit}
-                  onUpdateQuestion={onUpdateQuestion}
-                />
-              </div>
+        isPassageSet && sharedStimulusText && effectivePassageCount > 0 && passageLayoutMode === 'split' ? (
+          /* AAMC Split-Pane Dual Layout */
+          <div className="aamc-split-layout-grid">
+            <div>
+              <SharedPassageCard
+                passageText={sharedStimulusText}
+                questionCount={effectivePassageCount}
+                totalCount={effectiveTotal}
+                isMixedBatch={isMixedBatch}
+                diagramQuestion={sharedPassageImage}
+                collapsible={false}
+                defaultCollapsed={false}
+                isSplitPane={true}
+              />
             </div>
-          ) : (
-            /* Stacked Layout */
-            <>
-              {isPassageSet && sharedStimulusText && effectivePassageCount > 0 && (
-                <SharedPassageCard
-                  passageText={sharedStimulusText}
-                  questionCount={effectivePassageCount}
-                  totalCount={effectiveTotal}
-                  isMixedBatch={isMixedBatch}
-                  diagramQuestion={sharedPassageImage}
-                  collapsible={true}
-                  defaultCollapsed={false}
-                />
-              )}
 
+            <div style={{ minWidth: 0 }}>
               <StagedDetailedView
                 effectiveTotal={effectiveTotal}
                 perQuestionState={perQuestionState}
@@ -470,9 +433,44 @@ export default function StagedBatchReview({
                 onOpenAudit={onOpenAudit}
                 onUpdateQuestion={onUpdateQuestion}
               />
-            </>
-          )}
-        </>
+            </div>
+          </div>
+        ) : (
+          /* Stacked Layout */
+          <>
+            {isPassageSet && sharedStimulusText && effectivePassageCount > 0 && (
+              <SharedPassageCard
+                passageText={sharedStimulusText}
+                questionCount={effectivePassageCount}
+                totalCount={effectiveTotal}
+                isMixedBatch={isMixedBatch}
+                diagramQuestion={sharedPassageImage}
+                collapsible={true}
+                defaultCollapsed={false}
+              />
+            )}
+
+            <StagedDetailedView
+              effectiveTotal={effectiveTotal}
+              perQuestionState={perQuestionState}
+              stagedQuestions={uniqueStagedQuestions}
+              validIdx={validIdx}
+              activeQuestion={activeQuestion}
+              totalCompleted={totalCompleted}
+              isGenerating={isGenerating}
+              isMixedBatch={isMixedBatch}
+              selectedIds={selectedIds}
+              savedIds={savedIds}
+              setActiveIdx={setActiveIdx}
+              handleToggleSelect={handleToggleSelect}
+              isQuestionPassageLinked={isQuestionPassageLinked}
+              handleApproveSingle={handleApproveSingle}
+              onDiscardQuestion={onDiscardQuestion}
+              onOpenAudit={onOpenAudit}
+              onUpdateQuestion={onUpdateQuestion}
+            />
+          </>
+        )
       )}
     </div>
   );

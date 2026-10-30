@@ -134,8 +134,8 @@ def compute_token_jaccard(tokens1: list[str], tokens2: list[str], n_gram: int = 
     if n_gram <= 1:
         s1, s2 = set(tokens1), set(tokens2)
     else:
-        s1 = set(tuple(tokens1[i : i + n_gram]) for i in range(len(tokens1) - n_gram + 1))
-        s2 = set(tuple(tokens2[i : i + n_gram]) for i in range(len(tokens2) - n_gram + 1))
+        s1 = {tuple(tokens1[i : i + n_gram]) for i in range(len(tokens1) - n_gram + 1)}
+        s2 = {tuple(tokens2[i : i + n_gram]) for i in range(len(tokens2) - n_gram + 1)}
 
     if not s1 or not s2:
         return 0.0
@@ -164,7 +164,7 @@ def get_or_create_stem_tokens(
     tokens = [t for t in norm.split() if t not in STOP_WORDS and len(t) > 1] if norm else []
     token_set = set(tokens)
     bigrams = (
-        set(tuple(tokens[i : i + 2]) for i in range(len(tokens) - 1)) if len(tokens) >= 2 else set()
+        {tuple(tokens[i : i + 2]) for i in range(len(tokens) - 1)} if len(tokens) >= 2 else set()
     )
     item = (norm, tokens, token_set, bigrams)
 
@@ -462,7 +462,7 @@ def cluster_questions(
     clusters: list[dict[str, Any]] = []
     cluster_num = 1
 
-    for root, members in groups.items():
+    for _root, members in groups.items():
         if len(members) < 2:
             continue
 
