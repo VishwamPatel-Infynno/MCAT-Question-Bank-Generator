@@ -224,7 +224,8 @@ export function useAppState() {
       selectedSubskills,
       selectedSubtopics,
       allowAiImages,
-      requireImage
+      requireImage,
+      additionalInstructions
     } = generatorForm.formData;
 
     const isVisualsPermitted = Boolean(allowAiImages || requireImage);
@@ -249,6 +250,8 @@ export function useAppState() {
       likely_mistake_pattern: customMistakePattern || ((likelyMistakePatterns && likelyMistakePatterns.length > 0) ? likelyMistakePatterns.join(', ') : (likelyMistakePattern || 'Automatic')),
       content_domains: contentDomains && contentDomains.length > 0 ? contentDomains : undefined,
       content_domain: contentDomain || (contentDomains && contentDomains.length > 0 ? contentDomains.join(', ') : undefined),
+      additional_instructions: additionalInstructions?.trim() || undefined,
+      custom_prompt: additionalInstructions?.trim() || undefined,
       allow_ai_images: isVisualsPermitted,
       require_image: isVisualsPermitted && passageMode !== 'single_passage' && totalQuestions === 1,
       visual_type: isVisualsPermitted ? 'AI_FLUX_Image' : 'None',

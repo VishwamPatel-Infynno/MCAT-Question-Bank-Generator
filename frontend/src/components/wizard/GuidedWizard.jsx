@@ -416,6 +416,8 @@ export default function GuidedWizard({
             onToggleMistakePattern={toggleMistakePattern}
             customMistakePattern={customMistakePattern}
             setCustomMistakePattern={(v) => update('customMistakePattern', v)}
+            additionalInstructions={form.additionalInstructions || ''}
+            setAdditionalInstructions={(v) => update('additionalInstructions', v)}
           />
         )}
       </div>

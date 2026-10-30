@@ -27,7 +27,6 @@ from app.schemas import (
     GenerationJob,
     GenerationRequest,
     Question,
-    determine_question_status,
     is_question_active,
 )
 from app.services.deduplication import cluster_questions
@@ -70,7 +69,13 @@ async def _persist_job_question(
         q_obj.batch_id = batch_id
         q_obj.job_id = job_id
         q_obj.run_id = job_id
-        q_obj.status = determine_question_status(q_obj.final_score)
+        # While a batch is actively generating, keep active questions in 'batch_only'
+        # so they do NOT leak into Ready for Review until the batch successfully finishes.
+        score = q_obj.final_score or 0
+        if score > config.BATCH_PASSING_SCORE_THRESHOLD:
+            q_obj.status = "batch_only"
+        else:
+            q_obj.status = "below_threshold"
 
         curr_b = await get_batch_by_id(batch_id)
         if not curr_b:
@@ -283,9 +288,16 @@ async def _execute_batch_workflow(
             )
 
         # Autonomous duplicate resolution and refill
-        await auto_resolve_batch_and_refill(
+        refill_result = await auto_resolve_batch_and_refill(
             batch_id, current_cycle=current_cycle, max_cycles=max_cycles
         )
+        if not refill_result.get("refill_launched"):
+            # Batch has fully concluded all processing, deduplication, and refilling
+            final_b = await refresh_batch_aggregates(batch_id)
+            if final_b and final_b.status == "completed":
+                from app.repositories.batch_repository import promote_completed_batch_questions
+
+                await promote_completed_batch_questions(batch_id)
 
     except asyncio.CancelledError:
         logger.info(f"Batch {batch_id} execution was cancelled; terminating all sub-tasks...")

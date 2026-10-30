@@ -140,8 +140,14 @@ Do NOT write a new passage. Formulate your question stem, options, correct key, 
 
     if req.visual_type and req.visual_type != "None":
         user_prompt += f"\nVisual Stimulus Type: {req.visual_type}"
-    if req.custom_prompt:
-        user_prompt += f"\nCustom Focus Context: {req.custom_prompt}"
+    instructions = req.additional_instructions or req.custom_prompt
+    if instructions and instructions.strip():
+        user_prompt += (
+            "\nCRITICAL EDUCATOR INSTRUCTION (HIGH FIDELITY MANDATE):\n"
+            "The author has specified the following mandatory custom instructions for this question. "
+            "You MUST strictly adhere to and incorporate these requirements into the question stem, answer choices, and rationale:\n"
+            f'"""\n{instructions.strip()}\n"""'
+        )
 
     # Visual stimulus discretion instruction
     allow_visuals = (req.allow_ai_images or req.require_image) and req.section not in (

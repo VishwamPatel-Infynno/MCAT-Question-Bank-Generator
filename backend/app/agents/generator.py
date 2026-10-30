@@ -206,10 +206,19 @@ async def generate_passage_stimulus(
         else ""
     )
 
+    author_instructions = req.additional_instructions or req.custom_prompt
+    author_instruction_block = (
+        f"\nCRITICAL EDUCATOR INSTRUCTION (PASSAGE MANDATE):\n"
+        f"You MUST strictly adhere to and incorporate these author instructions into the passage study, experimental methodology, or analytical focus:\n"
+        f'"""\n{author_instructions.strip()}\n"""'
+        if author_instructions and author_instructions.strip()
+        else ""
+    )
+
     if allow_visuals:
         prompt = f"""Generate a high-yield, authentic AAMC MCAT Reading Passage for {section_name}.
 Content Domain: {domain}
-Topic Focus: {topic}{angle_instruction}
+Topic Focus: {topic}{angle_instruction}{author_instruction_block}
 Difficulty Calibration: {req.difficulty.value}
 Target Length: {target_length}.
 
@@ -233,7 +242,7 @@ Respond ONLY with a valid JSON object matching this exact structure:
     else:
         prompt = f"""Generate a high-yield, authentic AAMC MCAT Reading Passage for {section_name}.
 Content Domain: {domain}
-Topic Focus: {topic}{angle_instruction}
+Topic Focus: {topic}{angle_instruction}{author_instruction_block}
 Difficulty Calibration: {req.difficulty.value}
 Target Length: {target_length}.
 

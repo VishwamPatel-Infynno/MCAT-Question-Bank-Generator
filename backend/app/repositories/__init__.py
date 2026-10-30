@@ -2,6 +2,8 @@ from app.repositories.batch_repository import (
     delete_batch,
     get_batch_by_id,
     get_batches,
+    promote_completed_batch_questions,
+    refresh_batch_aggregates,
     save_batch,
 )
 from app.repositories.job_repository import (
@@ -46,6 +48,8 @@ __all__ = [
     "get_question_status_counts",
     "get_questions",
     "get_repository_metrics",
+    "promote_completed_batch_questions",
+    "refresh_batch_aggregates",
     "save_batch",
     "save_job",
     "save_jobs_bulk",

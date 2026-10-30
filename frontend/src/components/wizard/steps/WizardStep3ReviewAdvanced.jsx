@@ -43,10 +43,13 @@ export default function WizardStep3ReviewAdvanced({
   likelyMistakePatterns = EMPTY_ARRAY,
   onToggleMistakePattern,
   customMistakePattern = '',
-  setCustomMistakePattern: _setCustomMistakePattern
+  setCustomMistakePattern: _setCustomMistakePattern,
+  additionalInstructions = '',
+  setAdditionalInstructions
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const isCars = selectedSection === 'cars';
+  const hasInstructions = Boolean(additionalInstructions && additionalInstructions.trim().length > 0);
 
   const effectiveTraps = useMemo(() => {
     if (primaryTraps && primaryTraps.length > 0) return primaryTraps;
@@ -321,12 +324,27 @@ export default function WizardStep3ReviewAdvanced({
             color: 'var(--text-primary)'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <Sliders size={14} style={{ color: 'var(--brand-primary)' }} />
             <span>Advanced Settings</span>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 400 }}>
               (Common Traps, Reasoning Skills, Student Mistakes)
             </span>
+            {hasInstructions && (
+              <span
+                className="badge-minimal"
+                style={{
+                  fontSize: '0.68rem',
+                  color: 'var(--brand-primary)',
+                  border: '1px solid var(--border-brand)',
+                  background: 'var(--brand-light)',
+                  padding: '1px 7px',
+                  fontWeight: 600
+                }}
+              >
+                Custom Instructions Active
+              </span>
+            )}
           </div>
           {showAdvanced ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
         </button>
@@ -519,6 +537,44 @@ export default function WizardStep3ReviewAdvanced({
                   );
                 })}
               </div>
+            </div>
+
+            {/* Additional Authoring Instructions */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <label
+                  htmlFor="wizard-additional-instructions"
+                  style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)' }}
+                >
+                  Additional Authoring Instructions
+                </label>
+                {hasInstructions && (
+                  <span className="badge-minimal" style={{ fontSize: '0.68rem', color: 'var(--brand-primary)' }}>
+                    Active
+                  </span>
+                )}
+              </div>
+              <textarea
+                id="wizard-additional-instructions"
+                rows={3}
+                value={additionalInstructions}
+                onChange={(e) => setAdditionalInstructions?.(e.target.value)}
+                placeholder="e.g. Emphasize Lineweaver-Burk kinetic derivations; incorporate a competitive inhibitor with Ki = 2.5 uM; avoid complex trigonometric arithmetic..."
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  fontSize: '0.82rem',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--border-light)',
+                  background: 'var(--bg-surface-subtle)',
+                  color: 'var(--text-primary)',
+                  resize: 'vertical',
+                  fontFamily: 'inherit',
+                  lineHeight: 1.5,
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
             </div>
           </div>
         )}

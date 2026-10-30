@@ -6,6 +6,10 @@ import {
 } from 'lucide-react';
 
 const DEFAULT_DIFFICULTY_TIERS = [];
+const COUNT_OPTIONS = Object.freeze([
+  { count: 5, label: '5 Questions' },
+  { count: 50, label: '50 Questions' }
+]);
 
 export default function WizardStep2LevelFormat({
   selectedSection = 'chem_phys',
@@ -27,11 +31,6 @@ export default function WizardStep2LevelFormat({
   };
 
   const isPassage = isCars || passageMode === 'single_passage' || questionType === 'PASSAGE_BASED_MCQ';
-
-  const COUNT_OPTIONS = [
-    { count: 5, label: '5 Questions', tag: 'Practice Set' },
-    { count: 50, label: '50 Questions', tag: 'Full Exam' }
-  ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -213,14 +212,9 @@ export default function WizardStep2LevelFormat({
                   cursor: 'pointer'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '0.96rem', fontWeight: 700, color: isSelected ? 'var(--brand-primary)' : 'var(--text-primary)' }}>
-                    {opt.label}
-                  </span>
-                  <span className="badge-minimal" style={{ fontSize: '0.72rem' }}>
-                    {opt.tag}
-                  </span>
-                </div>
+                <span style={{ fontSize: '0.96rem', fontWeight: 700, color: isSelected ? 'var(--brand-primary)' : 'var(--text-primary)' }}>
+                  {opt.label}
+                </span>
                 {isSelected && (
                   <CheckCircle2 size={16} style={{ color: 'var(--brand-primary)', flexShrink: 0 }} />
                 )}

@@ -25,6 +25,10 @@ class GenerationRequest(BaseModel):
         description="Whether the shared reading passage stimulus requires an image diagram",
     )
     custom_prompt: str | None = None
+    additional_instructions: str | None = Field(
+        default=None,
+        description="Educator instructions specifying constraints, scenarios, or pedagogical rules to strictly enforce",
+    )
     model_name: str | None = None
     api_key: str | None = None
 

@@ -1,7 +1,7 @@
 import logging
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 
 from app.db.base import to_datetime, to_iso_str
 from app.db.session import async_session_factory
@@ -163,6 +163,48 @@ async def refresh_batch_aggregates(batch_id: str) -> GenerationBatch | None:
             elif completed_jobs + failed_jobs >= total_jobs:
                 batch_model.status = "partially_completed" if completed_jobs > 0 else "failed"
 
+        # If batch is completed, promote qualifying active questions (>90 score) to 'ai_validated'
+        if batch_model.status == "completed":
+            from app.core.config import config
+
+            promote_stmt = (
+                update(QuestionModel)
+                .where(
+                    QuestionModel.batch_id == batch_id,
+                    QuestionModel.status == "batch_only",
+                    QuestionModel.final_score > config.PASSING_SCORE_THRESHOLD,
+                )
+                .values(status="ai_validated", updated_at=datetime.now(UTC))
+            )
+            await session.execute(promote_stmt)
+
         await session.commit()
         await session.refresh(batch_model)
         return _batch_model_to_schema(batch_model)
+
+
+async def promote_completed_batch_questions(batch_id: str) -> int:
+    """
+    Promotes all active questions with final_score > 90 belonging to a completed batch
+    from 'batch_only' to 'ai_validated' (Ready for Review).
+    """
+    from app.core.config import config
+
+    async with async_session_factory() as session:
+        stmt = (
+            update(QuestionModel)
+            .where(
+                QuestionModel.batch_id == batch_id,
+                QuestionModel.status == "batch_only",
+                QuestionModel.final_score > config.PASSING_SCORE_THRESHOLD,
+            )
+            .values(status="ai_validated", updated_at=datetime.now(UTC))
+        )
+        res = await session.execute(stmt)
+        await session.commit()
+        promoted = res.rowcount or 0
+        if promoted > 0:
+            logger.info(
+                f"Promoted {promoted} questions in completed batch {batch_id} to 'ai_validated'."
+            )
+        return promoted

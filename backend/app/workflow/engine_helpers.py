@@ -27,7 +27,6 @@ from app.schemas import (
     Question,
     QuestionDraft,
     WorkflowEvent,
-    determine_question_status,
 )
 from app.services.deduplication import evaluate_duplicate
 from app.workflow.nodes import (
@@ -581,7 +580,13 @@ async def _persist_live_question(
         q_obj.run_id = item_run_id
         if shared_passage_id and not q_obj.passage_id:
             q_obj.passage_id = shared_passage_id
-        q_obj.status = determine_question_status(q_obj.final_score)
+        # While live generation is streaming, keep active questions in 'batch_only'
+        # until the workflow successfully completes all questions.
+        score = q_obj.final_score or 0
+        if score > config.BATCH_PASSING_SCORE_THRESHOLD:
+            q_obj.status = "batch_only"
+        else:
+            q_obj.status = "below_threshold"
         await save_question(q_obj)
         await update_job_progress(job_id, actual_count=completed_so_far)
     except Exception as q_save_err:
@@ -619,6 +624,10 @@ async def _finalize_live_job_progress(
             completed_at=now_iso,
         )
         await refresh_batch_aggregates(batch_id)
+        if job_status == "completed":
+            from app.repositories.batch_repository import promote_completed_batch_questions
+
+            await promote_completed_batch_questions(batch_id)
     except Exception as db_err:
         logger.warning(f"Could not finalize live job progress (DB offline): {db_err}")
 

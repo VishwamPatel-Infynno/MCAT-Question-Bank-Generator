@@ -36,12 +36,21 @@ async def regenerate_question(
         else 'Passage Required: No - Direct question ONLY. Do NOT generate any reading passage, vignette, or scenario. Leave stimulus_text strictly as an empty string (""). Pose the question directly in question_stem.'
     )
 
+    instructions = req.additional_instructions or req.custom_prompt
+    instruction_block = (
+        f"\nCRITICAL EDUCATOR INSTRUCTION (HIGH FIDELITY MANDATE):\n"
+        f"You MUST continue to strictly adhere to and incorporate these author instructions in the regenerated question:\n"
+        f'"""\n{instructions.strip()}\n"""\n'
+        if instructions and instructions.strip()
+        else ""
+    )
+
     user_prompt = f"""The following candidate MCAT question received a score of {review.total_score}/100 and needs to be re-generated to score > 90.
 
 Section: {section_name}
 Subtopic: {req.subtopic or "General"}
 Target Difficulty: {req.difficulty.value}
-{passage_instruction}
+{passage_instruction}{instruction_block}
 Iteration: {iteration}
 
 --- ORIGINAL CANDIDATE DRAFT ---

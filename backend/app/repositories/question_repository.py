@@ -2,7 +2,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import delete, func, or_, select, update
+from sqlalchemy import and_, delete, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.db.base import to_datetime, to_iso_str
@@ -372,6 +372,16 @@ async def get_questions(
             stmt = stmt.where(QuestionModel.status == status)
             if status == "ai_validated":
                 stmt = stmt.where(QuestionModel.final_score > 90)
+                # Strictly withhold questions whose parent batch is actively in progress
+                in_progress_batches = select(GenerationBatchModel.id).where(
+                    GenerationBatchModel.status == "in_progress"
+                )
+                stmt = stmt.where(
+                    or_(
+                        QuestionModel.batch_id.is_(None),
+                        QuestionModel.batch_id.notin_(in_progress_batches),
+                    )
+                )
 
         if search:
             search_clean = search.strip()
@@ -474,8 +484,25 @@ async def batch_update_question_status(question_ids: list[str], status: str) -> 
 async def get_question_status_counts() -> dict[str, int]:
     """Returns counts of questions grouped by lifecycle status."""
     async with async_session_factory() as session:
-        stmt = select(QuestionModel.status, func.count(QuestionModel.id)).group_by(
-            QuestionModel.status
+        in_progress_batches = select(GenerationBatchModel.id).where(
+            GenerationBatchModel.status == "in_progress"
+        )
+        stmt = (
+            select(QuestionModel.status, func.count(QuestionModel.id))
+            .where(
+                or_(
+                    QuestionModel.status != "ai_validated",
+                    and_(
+                        QuestionModel.status == "ai_validated",
+                        QuestionModel.final_score > 90,
+                        or_(
+                            QuestionModel.batch_id.is_(None),
+                            QuestionModel.batch_id.notin_(in_progress_batches),
+                        ),
+                    ),
+                )
+            )
+            .group_by(QuestionModel.status)
         )
         res = await session.execute(stmt)
         counts = {row[0] or "in_bank": row[1] for row in res.all()}

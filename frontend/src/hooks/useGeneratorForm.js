@@ -31,6 +31,7 @@ export const DEFAULT_GENERATOR_FORM = {
   selectedSubskills: [],
   selectedSubtopics: [],
   customMistakePattern: '',
+  additionalInstructions: '',
   requireImage: true,
   allowAiImages: true,
   imageMode: 'all', // 'none' | 'all' | 'specific'
