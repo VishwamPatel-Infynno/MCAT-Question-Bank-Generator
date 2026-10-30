@@ -336,74 +336,74 @@ async def _run_question_review_loop(
                 )
                 await event_queue.put(bs_done_evt)
                 return True
-            else:
-                bs_fail_evt = make_event(
-                    event_type="agent_complete",
-                    agent_name="Blind-Solver Dual Validation",
-                    message=f"Blind-Solver flagged discrepancy for Question {idx + 1}: Selected Option {bs_data.get('selected_key')} (Confidence: {bs_data.get('confidence')}%). Remediation required.",
+
+            bs_fail_evt = make_event(
+                event_type="agent_complete",
+                agent_name="Blind-Solver Dual Validation",
+                message=f"Blind-Solver flagged discrepancy for Question {idx + 1}: Selected Option {bs_data.get('selected_key')} (Confidence: {bs_data.get('confidence')}%). Remediation required.",
+                data={
+                    "blind_solver": bs_data,
+                    "latest_usage": bs_usage,
+                    "index": idx + 1,
+                    "total": total_qty,
+                    "stage": "blind_solving",
+                    "passed": False,
+                },
+                run_id=item_run_id,
+            )
+            await event_queue.put(bs_fail_evt)
+
+            # Route to Question Improver for remediation if within attempt limits
+            max_attempts = config.MAX_REGENERATION_ATTEMPTS
+            if iteration < max_attempts:
+                state["fused_self_passed"] = False
+                regen_start_evt = make_event(
+                    event_type="agent_start",
+                    agent_name="Question Improver",
+                    message=f"Question Improver is remediating question {idx + 1} based on blind-solver critique...",
                     data={
-                        "blind_solver": bs_data,
-                        "latest_usage": bs_usage,
                         "index": idx + 1,
                         "total": total_qty,
-                        "stage": "blind_solving",
-                        "passed": False,
+                        "stage": "remediating",
+                        "iteration": iteration,
                     },
                     run_id=item_run_id,
                 )
-                await event_queue.put(bs_fail_evt)
+                await event_queue.put(regen_start_evt)
 
-                # Route to Question Improver for remediation if within attempt limits
-                max_attempts = config.MAX_REGENERATION_ATTEMPTS
-                if iteration < max_attempts:
-                    state["fused_self_passed"] = False
-                    regen_start_evt = make_event(
-                        event_type="agent_start",
-                        agent_name="Question Improver",
-                        message=f"Question Improver is remediating question {idx + 1} based on blind-solver critique...",
-                        data={
-                            "index": idx + 1,
-                            "total": total_qty,
-                            "stage": "remediating",
-                            "iteration": iteration,
-                        },
-                        run_id=item_run_id,
-                    )
-                    await event_queue.put(regen_start_evt)
+                regen_res = await regenerator_node(state)
+                state.update(regen_res)
 
-                    regen_res = await regenerator_node(state)
-                    state.update(regen_res)
-
-                    regen_usage = state.get("latest_usage", {})
-                    regen_done_evt = make_event(
-                        event_type="agent_complete",
-                        agent_name="Question Improver",
-                        message=f"Question {idx + 1} remediated (Draft v{state['iteration_count']}). Re-running validation...",
-                        data={
-                            "draft": state["current_draft"],
-                            "latest_usage": regen_usage,
-                            "index": idx + 1,
-                            "total": total_qty,
-                            "stage": "remediating",
-                        },
-                        run_id=item_run_id,
-                    )
-                    await event_queue.put(regen_done_evt)
-                    continue
-
-                rej_res = await reject_node(state)
-                state.update(rej_res)
-                rej_evt = make_event(
-                    event_type="workflow_rejected",
-                    agent_name="Quality Gate",
-                    message=f"Blind-Solver validation failed after {iteration} attempts for Question {idx + 1}.",
-                    data=state.get("rejection_data") or {},
+                regen_usage = state.get("latest_usage", {})
+                regen_done_evt = make_event(
+                    event_type="agent_complete",
+                    agent_name="Question Improver",
+                    message=f"Question {idx + 1} remediated (Draft v{state['iteration_count']}). Re-running validation...",
+                    data={
+                        "draft": state["current_draft"],
+                        "latest_usage": regen_usage,
+                        "index": idx + 1,
+                        "total": total_qty,
+                        "stage": "remediating",
+                    },
                     run_id=item_run_id,
                 )
-                await event_queue.put(rej_evt)
-                return False
-        else:
-            return True
+                await event_queue.put(regen_done_evt)
+                continue
+
+            rej_res = await reject_node(state)
+            state.update(rej_res)
+            rej_evt = make_event(
+                event_type="workflow_rejected",
+                agent_name="Quality Gate",
+                message=f"Blind-Solver validation failed after {iteration} attempts for Question {idx + 1}.",
+                data=state.get("rejection_data") or {},
+                run_id=item_run_id,
+            )
+            await event_queue.put(rej_evt)
+            return False
+
+        return True
 
 
 async def _prepare_shared_passage_and_visual(

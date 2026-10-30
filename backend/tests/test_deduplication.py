@@ -11,7 +11,7 @@ from app.services.deduplication import (
 def test_normalize_text():
     raw = "<p>What is the net charge of <b>aspartic acid</b> at pH = $7.4$?</p>"
     norm = normalize_text(raw)
-    assert "what is the net charge of aspartic acid at ph 7 4" == norm
+    assert norm == "what is the net charge of aspartic acid at ph 7 4"
     assert "<p>" not in norm
     assert "$" not in norm
 
@@ -206,19 +206,23 @@ async def test_auto_resolve_batch_and_refill(monkeypatch):
     archived_ids = []
 
     async def mock_get_batch(b_id):
+        assert b_id == batch_id
         return fake_batch
 
-    async def mock_get_questions(batch_id=None):
+    async def mock_get_questions(batch_id=None, **_kwargs):
+        assert batch_id is not None
         return [
             q.model_copy(update={"status": "discarded"}) if q.id in archived_ids else q
             for q in current_questions
         ]
 
-    async def mock_batch_update_status(q_ids, status):
+    async def mock_batch_update_status(q_ids, status="discarded", **_kwargs):
+        assert status == "discarded"
         archived_ids.extend(q_ids)
         return len(q_ids)
 
     async def mock_refresh_aggregates(b_id):
+        assert b_id == batch_id
         fake_batch.actual_count = sum(1 for q in current_questions if q.id not in archived_ids)
         return fake_batch
 

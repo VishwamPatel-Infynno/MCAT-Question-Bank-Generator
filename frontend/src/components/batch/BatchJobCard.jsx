@@ -220,9 +220,9 @@ export default function BatchJobCard({
           {belowCount > 0 && (
             <span
               style={{
-                background: 'rgba(245, 158, 11, 0.1)',
-                color: '#d97706',
-                border: '1px solid rgba(245, 158, 11, 0.25)',
+                background: 'var(--status-warning-bg, rgba(245, 158, 11, 0.1))',
+                color: 'var(--status-warning, #d97706)',
+                border: '1px solid var(--status-warning-border, rgba(245, 158, 11, 0.25))',
                 padding: '2px 7px',
                 borderRadius: '4px',
                 fontWeight: 700

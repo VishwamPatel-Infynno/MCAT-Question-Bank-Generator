@@ -86,13 +86,12 @@ async def test_deepinfra_strict_api_key_enforcement():
         if "DEEPINFRA_API_KEY" in os.environ:
             del os.environ["DEEPINFRA_API_KEY"]
 
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match="AI Gateway API Key is required"):
             await call_llm(
                 prompt="test prompt",
                 system_prompt="test system",
                 model="deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
             )
-        assert "AI Gateway API Key is required" in str(excinfo.value)
     finally:
         config.DEEPINFRA_API_KEY = original_key
         if original_env:

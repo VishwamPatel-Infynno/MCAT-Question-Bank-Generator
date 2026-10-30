@@ -158,9 +158,9 @@ export default function BatchQuestionItem({
                 fontSize: '0.675rem',
                 padding: '2px 8px',
                 borderRadius: '10px',
-                background: 'rgba(245, 158, 11, 0.12)',
-                color: '#d97706',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
+                background: 'var(--status-warning-bg, rgba(245, 158, 11, 0.12))',
+                color: 'var(--status-warning, #d97706)',
+                border: '1px solid var(--status-warning-border, rgba(245, 158, 11, 0.3))',
                 fontWeight: 700,
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -183,19 +183,19 @@ export default function BatchQuestionItem({
                   ? 'rgba(16, 185, 129, 0.12)'
                   : finalScore > 85
                     ? 'rgba(51, 90, 207, 0.12)'
-                    : 'rgba(245, 158, 11, 0.12)',
+                    : 'var(--status-warning-bg, rgba(245, 158, 11, 0.12))',
               color:
                 finalScore > 90
                   ? 'var(--status-success)'
                   : finalScore > 85
                     ? 'var(--brand-primary)'
-                    : '#d97706',
+                    : 'var(--status-warning, #d97706)',
               border:
                 finalScore > 90
                   ? '1px solid rgba(16, 185, 129, 0.25)'
                   : finalScore > 85
                     ? '1px solid rgba(51, 90, 207, 0.25)'
-                    : '1px solid rgba(245, 158, 11, 0.25)',
+                    : '1px solid var(--status-warning-border, rgba(245, 158, 11, 0.25))',
               fontWeight: 700
             }}
           >

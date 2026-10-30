@@ -544,30 +544,30 @@ async def run_workflow_stream(req: GenerationRequest) -> AsyncGenerator[str, Non
                             outcomes_usage[idx].extend(state.get("agent_usage_breakdown", []))
                             await remove_in_flight_draft(batch_id, idx)
                             return  # Successfully completed this slot!
-                        else:
-                            # Rejection or collision - auto-replenish slot
-                            rej_data = state.get("rejection_data") or {
-                                "index": idx + 1,
-                                "stage": "rejected",
-                                "reason": "Duplicate collision"
-                                if is_hard_dup
-                                else "Quality score below threshold",
-                            }
-                            outcomes_rejections.append(rej_data)
-                            logger.warning(
-                                f"Question {idx + 1} attempt {attempt + 1}/{max_slot_attempts} not satisfied "
-                                f"(passed={question_passed}, is_dup={is_hard_dup}). Auto-replenishing slot..."
-                            )
-                            outcomes_tokens[idx] += state.get("total_tokens", 0)
-                            outcomes_prompt_tokens[idx] += state.get("total_prompt_tokens", 0)
-                            outcomes_completion_tokens[idx] += state.get(
-                                "total_completion_tokens", 0
-                            )
-                            outcomes_costs[idx] += state.get("total_cost_usd", 0.0)
-                            outcomes_usage[idx].extend(state.get("agent_usage_breakdown", []))
-                            await remove_in_flight_draft(batch_id, idx)
-                            await asyncio.sleep(0.5)
-                            continue
+
+                        # Rejection or collision - auto-replenish slot
+                        rej_data = state.get("rejection_data") or {
+                            "index": idx + 1,
+                            "stage": "rejected",
+                            "reason": "Duplicate collision"
+                            if is_hard_dup
+                            else "Quality score below threshold",
+                        }
+                        outcomes_rejections.append(rej_data)
+                        logger.warning(
+                            f"Question {idx + 1} attempt {attempt + 1}/{max_slot_attempts} not satisfied "
+                            f"(passed={question_passed}, is_dup={is_hard_dup}). Auto-replenishing slot..."
+                        )
+                        outcomes_tokens[idx] += state.get("total_tokens", 0)
+                        outcomes_prompt_tokens[idx] += state.get("total_prompt_tokens", 0)
+                        outcomes_completion_tokens[idx] += state.get(
+                            "total_completion_tokens", 0
+                        )
+                        outcomes_costs[idx] += state.get("total_cost_usd", 0.0)
+                        outcomes_usage[idx].extend(state.get("agent_usage_breakdown", []))
+                        await remove_in_flight_draft(batch_id, idx)
+                        await asyncio.sleep(0.5)
+                        continue
 
                 except asyncio.CancelledError:
                     await remove_in_flight_draft(batch_id, idx)

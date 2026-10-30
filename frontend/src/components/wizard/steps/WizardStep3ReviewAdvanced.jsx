@@ -286,7 +286,7 @@ export default function WizardStep3ReviewAdvanced({
                 width: '16px',
                 height: '16px',
                 borderRadius: '50%',
-                background: '#ffffff',
+                background: 'var(--text-on-brand, #ffffff)',
                 position: 'absolute',
                 top: '2px',
                 left: allowAiImages ? '18px' : '2px',

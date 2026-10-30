@@ -180,7 +180,7 @@ export default function BatchProgressHeader({
               style={{
                 width: '15px', height: '15px', borderRadius: '3px',
                 background: 'var(--status-success)', display: 'flex',
-                alignItems: 'center', justifyContent: 'center', color: '#ffffff', flexShrink: 0
+                alignItems: 'center', justifyContent: 'center', color: 'var(--text-on-brand, #ffffff)', flexShrink: 0
               }}
               title="All questions saved in Question Bank"
             >

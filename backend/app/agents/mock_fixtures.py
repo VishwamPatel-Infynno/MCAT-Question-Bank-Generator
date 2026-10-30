@@ -174,7 +174,7 @@ def _build_raw_mock_draft(req: GenerationRequest) -> QuestionDraft:
             image_needed=False,
         )
 
-    elif sec == MCATSection.BIO_BIOCHEM:
+    if sec == MCATSection.BIO_BIOCHEM:
         if is_direct_independent:
             return QuestionDraft(
                 stimulus_text="",
@@ -263,103 +263,103 @@ def _build_raw_mock_draft(req: GenerationRequest) -> QuestionDraft:
             image_needed=False,
         )
 
-    else:  # MCATSection.PSYCH_SOC
-        if is_direct_independent:
-            return QuestionDraft(
-                stimulus_text="",
-                question_stem=(
-                    "A patient diagnosed with major depressive disorder reports that although they successfully secured a prestigious clinical promotion, "
-                    "they attribute the success entirely to 'sheer luck and an easy interview panel.' However, when their manuscript was recently rejected, "
-                    "they concluded that they are 'fundamentally incompetent and doomed to fail.' Which cognitive attributional pattern does this patient demonstrate?"
-                ),
-                options=[
-                    OptionChoice(id="A", text="Actor-observer asymmetry"),
-                    OptionChoice(
-                        id="B",
-                        text="Depressive attributional style (internalizing failure, externalizing success)",
-                    ),
-                    OptionChoice(
-                        id="C",
-                        text="Self-serving bias (externalizing failure, internalizing success)",
-                    ),
-                    OptionChoice(
-                        id="D", text="Fundamental attribution error regarding group members"
-                    ),
-                ],
-                correct_answer_id="B",
-                correct_answer_ids=["B"],
-                aamc_skill="Skill_1",
-                primary_trap="Distortion_Opposite",
-                explanation=(
-                    "Core Intuition:\n"
-                    "Attribution theory categorizes causes of behavior as internal (dispositional) or external (situational). In healthy individuals, "
-                    "the self-serving bias protects self-esteem by attributing successes to internal factors and failures to external factors. In depression, "
-                    "this pattern is characteristically inverted.\n\n"
-                    "Why Option B is Correct:\n"
-                    "A depressive attributional style involves attributing negative outcomes to internal, global, and stable factors ('I am incompetent'), "
-                    "while attributing positive outcomes to external, unstable factors ('sheer luck'). This matches the patient's behavior precisely.\n\n"
-                    "Why Other Options are Incorrect (Distractor & Trap Breakdown):\n"
-                    "- Option C is INCORRECT (Exact Opposite): Self-serving bias is the reverse pattern (crediting oneself for success and blaming external circumstances for failure).\n"
-                    "- Option A is INCORRECT (Misapplied Concept): Actor-observer bias refers to attributing one's own actions to situational causes while attributing others' actions to dispositional traits.\n"
-                    "- Option D is INCORRECT (Misapplied Concept): The fundamental attribution error is the tendency to overestimate dispositional influences when evaluating another individual's behavior."
-                ),
-                image_needed=False,
-            )
-
+    # MCATSection.PSYCH_SOC
+    if is_direct_independent:
         return QuestionDraft(
-            stimulus_text=(
-                "Cognitive dissonance theory posits that individuals experience uncomfortable psychological tension when their beliefs, attitudes, "
-                "or actions are mutually contradictory, motivating them to alter their cognitions or behaviors to restore equilibrium. "
-                "In a randomized controlled trial investigating medical trainee burnout and institutional adherence, 120 first-year residents were asked "
-                "to draft an essay advocating for an 80-hour work week policy that they privately opposed. Participants were assigned to either a "
-                "Low-Incentive Condition ($5 honorarium) or a High-Incentive Condition ($50 honorarium).\n\n"
-                "Post-experiment psychological evaluations revealed that residents in the Low-Incentive Condition experienced significant dissonance, "
-                "exhibiting a substantial positive shift in their actual personal attitudes toward the policy compared to baseline (p < 0.01). "
-                "In contrast, residents in the High-Incentive Condition demonstrated negligible attitude change toward the policy, maintaining their "
-                "pre-experimental opposition. Researchers concluded that external financial justification attenuated perceived dissonance in the high-incentive cohort."
-            ),
+            stimulus_text="",
             question_stem=(
-                "According to cognitive dissonance theory, why did residents in the Low-Incentive Condition exhibit a greater attitude change "
-                "than residents in the High-Incentive Condition?"
+                "A patient diagnosed with major depressive disorder reports that although they successfully secured a prestigious clinical promotion, "
+                "they attribute the success entirely to 'sheer luck and an easy interview panel.' However, when their manuscript was recently rejected, "
+                "they concluded that they are 'fundamentally incompetent and doomed to fail.' Which cognitive attributional pattern does this patient demonstrate?"
             ),
             options=[
-                OptionChoice(
-                    id="A",
-                    text="Lacking sufficient external justification, low-incentive residents resolved internal tension by aligning their personal attitudes with their counter-attitudinal behavior.",
-                ),
+                OptionChoice(id="A", text="Actor-observer asymmetry"),
                 OptionChoice(
                     id="B",
-                    text="The $5 incentive was perceived as insulting, causing residents to develop psychological reactance and reject the experimental premise.",
+                    text="Depressive attributional style (internalizing failure, externalizing success)",
                 ),
                 OptionChoice(
                     id="C",
-                    text="High-incentive residents experienced cognitive overload due to monetary distraction, preventing cognitive dissonance resolution.",
+                    text="Self-serving bias (externalizing failure, internalizing success)",
                 ),
                 OptionChoice(
-                    id="D",
-                    text="Residents in the low-incentive condition experienced greater intrinsic social desirability bias when interacting with senior evaluators.",
+                    id="D", text="Fundamental attribution error regarding group members"
                 ),
             ],
-            correct_answer_id="A",
-            correct_answer_ids=["A"],
-            aamc_skill="Skill_2",
-            primary_trap="Scope_Shift",
+            correct_answer_id="B",
+            correct_answer_ids=["B"],
+            aamc_skill="Skill_1",
+            primary_trap="Distortion_Opposite",
             explanation=(
                 "Core Intuition:\n"
-                "When individuals perform counter-attitudinal behavior under minimal external reward (insufficient justification), they cannot rationalize "
-                "their action as having been done 'for the money.' To eliminate the resulting cognitive dissonance, they psychologically reconcile the discrepancy "
-                "by genuinely shifting their internal attitudes toward the behavior.\n\n"
-                "Why Option A is Correct:\n"
-                "Residents in the High-Incentive cohort had strong external justification ($50), allowing them to attribute their essay to the reward without "
-                "experiencing dissonance. The Low-Incentive cohort ($5) lacked sufficient external justification, forcing internal attitude modification "
-                "to alleviate psychological tension.\n\n"
+                "Attribution theory categorizes causes of behavior as internal (dispositional) or external (situational). In healthy individuals, "
+                "the self-serving bias protects self-esteem by attributing successes to internal factors and failures to external factors. In depression, "
+                "this pattern is characteristically inverted.\n\n"
+                "Why Option B is Correct:\n"
+                "A depressive attributional style involves attributing negative outcomes to internal, global, and stable factors ('I am incompetent'), "
+                "while attributing positive outcomes to external, unstable factors ('sheer luck'). This matches the patient's behavior precisely.\n\n"
                 "Why Other Options are Incorrect (Distractor & Trap Breakdown):\n"
-                "- Option B is INCORRECT (Misapplied Concept): Psychological reactance would lead participants to rebel against the advocated position, not adopt it.\n"
-                "- Option C is INCORRECT (Out of Scope Trap): Cognitive overload was neither measured nor supported by the theory of cognitive dissonance.\n"
-                "- Option D is INCORRECT (Distortion Trap): Social desirability bias was controlled by anonymized evaluations and does not account for the incentive discrepancy."
+                "- Option C is INCORRECT (Exact Opposite): Self-serving bias is the reverse pattern (crediting oneself for success and blaming external circumstances for failure).\n"
+                "- Option A is INCORRECT (Misapplied Concept): Actor-observer bias refers to attributing one's own actions to situational causes while attributing others' actions to dispositional traits.\n"
+                "- Option D is INCORRECT (Misapplied Concept): The fundamental attribution error is the tendency to overestimate dispositional influences when evaluating another individual's behavior."
             ),
             image_needed=False,
         )
+
+    return QuestionDraft(
+        stimulus_text=(
+            "Cognitive dissonance theory posits that individuals experience uncomfortable psychological tension when their beliefs, attitudes, "
+            "or actions are mutually contradictory, motivating them to alter their cognitions or behaviors to restore equilibrium. "
+            "In a randomized controlled trial investigating medical trainee burnout and institutional adherence, 120 first-year residents were asked "
+            "to draft an essay advocating for an 80-hour work week policy that they privately opposed. Participants were assigned to either a "
+            "Low-Incentive Condition ($5 honorarium) or a High-Incentive Condition ($50 honorarium).\n\n"
+            "Post-experiment psychological evaluations revealed that residents in the Low-Incentive Condition experienced significant dissonance, "
+            "exhibiting a substantial positive shift in their actual personal attitudes toward the policy compared to baseline (p < 0.01). "
+            "In contrast, residents in the High-Incentive Condition demonstrated negligible attitude change toward the policy, maintaining their "
+            "pre-experimental opposition. Researchers concluded that external financial justification attenuated perceived dissonance in the high-incentive cohort."
+        ),
+        question_stem=(
+            "According to cognitive dissonance theory, why did residents in the Low-Incentive Condition exhibit a greater attitude change "
+            "than residents in the High-Incentive Condition?"
+        ),
+        options=[
+            OptionChoice(
+                id="A",
+                text="Lacking sufficient external justification, low-incentive residents resolved internal tension by aligning their personal attitudes with their counter-attitudinal behavior.",
+            ),
+            OptionChoice(
+                id="B",
+                text="The $5 incentive was perceived as insulting, causing residents to develop psychological reactance and reject the experimental premise.",
+            ),
+            OptionChoice(
+                id="C",
+                text="High-incentive residents experienced cognitive overload due to monetary distraction, preventing cognitive dissonance resolution.",
+            ),
+            OptionChoice(
+                id="D",
+                text="Residents in the low-incentive condition experienced greater intrinsic social desirability bias when interacting with senior evaluators.",
+            ),
+        ],
+        correct_answer_id="A",
+        correct_answer_ids=["A"],
+        aamc_skill="Skill_2",
+        primary_trap="Scope_Shift",
+        explanation=(
+            "Core Intuition:\n"
+            "When individuals perform counter-attitudinal behavior under minimal external reward (insufficient justification), they cannot rationalize "
+            "their action as having been done 'for the money.' To eliminate the resulting cognitive dissonance, they psychologically reconcile the discrepancy "
+            "by genuinely shifting their internal attitudes toward the behavior.\n\n"
+            "Why Option A is Correct:\n"
+            "Residents in the High-Incentive cohort had strong external justification ($50), allowing them to attribute their essay to the reward without "
+            "experiencing dissonance. The Low-Incentive cohort ($5) lacked sufficient external justification, forcing internal attitude modification "
+            "to alleviate psychological tension.\n\n"
+            "Why Other Options are Incorrect (Distractor & Trap Breakdown):\n"
+            "- Option B is INCORRECT (Misapplied Concept): Psychological reactance would lead participants to rebel against the advocated position, not adopt it.\n"
+            "- Option C is INCORRECT (Out of Scope Trap): Cognitive overload was neither measured nor supported by the theory of cognitive dissonance.\n"
+            "- Option D is INCORRECT (Distortion Trap): Social desirability bias was controlled by anonymized evaluations and does not account for the incentive discrepancy."
+        ),
+        image_needed=False,
+    )
 
 
 def evaluate_heuristically(
@@ -392,23 +392,22 @@ def evaluate_heuristically(
             ],
             passed=False,
         )
-    else:
-        # Iteration 2+ scores 95 (> 90) to certify publication quality
-        return ReviewScore(
-            authenticity_score=24,
-            clarity_score=24,
-            distractor_score=23,
-            explanation_score=24,
-            total_score=95,
-            strengths=[
-                "Distractors refined into sophisticated cognitive traps",
-                "Comprehensive step-by-step scientific proof with distractor counter-analysis",
-                "Flawless adherence to AAMC medical admissions conventions",
-            ],
-            weaknesses=[],
-            recommendations=[],
-            passed=True,
-        )
+    # Iteration 2+ scores 95 (> 90) to certify publication quality
+    return ReviewScore(
+        authenticity_score=24,
+        clarity_score=24,
+        distractor_score=23,
+        explanation_score=24,
+        total_score=95,
+        strengths=[
+            "Distractors refined into sophisticated cognitive traps",
+            "Comprehensive step-by-step scientific proof with distractor counter-analysis",
+            "Flawless adherence to AAMC medical admissions conventions",
+        ],
+        weaknesses=[],
+        recommendations=[],
+        passed=True,
+    )
 
 
 def improve_draft_heuristically(

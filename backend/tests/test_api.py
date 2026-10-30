@@ -239,7 +239,8 @@ async def test_multichoice_and_passage_support():
     assert fetched.primary_trap == "Extreme_Language"
     assert fetched.passage_required == "Yes"
     assert fetched.correct_answer_ids == ["A", "B"]
-    assert "A" in fetched.correct_answer_id and "B" in fetched.correct_answer_id
+    assert "A" in fetched.correct_answer_id
+    assert "B" in fetched.correct_answer_id
     assert len(fetched.options) == 5
 
     # Clean up
@@ -345,7 +346,8 @@ async def test_single_passage_multi_question_set(monkeypatch):
 
     shared_passage_text = passage_completes[0]["data"]["passage_text"]
     shared_passage_id = passage_completes[0]["data"]["passage_id"]
-    assert shared_passage_text and len(shared_passage_text.split()) > 100
+    assert shared_passage_text
+    assert len(shared_passage_text.split()) > 100
     assert shared_passage_id
 
     # Check workflow_complete

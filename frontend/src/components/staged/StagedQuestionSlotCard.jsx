@@ -70,7 +70,7 @@ const StagedQuestionSlotCard = React.memo(function StagedQuestionSlotCard({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#ffffff',
+                  color: 'var(--text-on-brand, #ffffff)',
                   flexShrink: 0
                 }}
                 title="Accepted & Saved in Question Bank (Protected from discard)"
