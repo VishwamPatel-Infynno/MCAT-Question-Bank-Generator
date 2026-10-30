@@ -83,6 +83,8 @@ def _model_to_schema(m: QuestionModel, slim: bool = False) -> Question:
         likely_mistake_pattern=getattr(m, "likely_mistake_pattern", None),
         duplicate_info=dup_info,
         is_duplicate_override=bool(getattr(m, "is_duplicate_override", False)),
+        is_deleted=bool(getattr(m, "is_deleted", False)),
+        deleted_at=to_iso_str(m.deleted_at) if getattr(m, "deleted_at", None) else None,
         stage_outcomes={} if slim else (m.stage_outcomes or {}),
     )
 
@@ -142,6 +144,8 @@ def _schema_to_model(q: Question) -> QuestionModel:
         likely_mistake_pattern=q.likely_mistake_pattern,
         duplicate_info=dup_data,
         is_duplicate_override=q.is_duplicate_override,
+        is_deleted=bool(getattr(q, "is_deleted", False)),
+        deleted_at=to_datetime(q.deleted_at) if getattr(q, "deleted_at", None) else None,
         stage_outcomes=q.stage_outcomes,
     )
 
@@ -322,7 +326,7 @@ async def get_repository_metrics(status: str | None = None) -> dict[str, Any]:
             func.count(QuestionModel.id).label("total_count"),
             func.coalesce(func.sum(QuestionModel.total_tokens), 0).label("total_tokens"),
             func.coalesce(func.sum(QuestionModel.cost_usd), 0.0).label("total_cost_usd"),
-        )
+        ).where(QuestionModel.is_deleted.is_(False))
         if status and status != "all":
             stmt = stmt.where(QuestionModel.status == status)
         res = await session.execute(stmt)
@@ -347,10 +351,14 @@ async def get_questions(
     limit: int | None = None,
     offset: int | None = 0,
     slim: bool = False,
+    include_deleted: bool = False,
 ) -> list[Question]:
     """Retrieves questions from PostgreSQL with optional filtering, hybrid full-text search, pagination, and slim payload projection."""
     async with async_session_factory() as session:
         stmt = select(QuestionModel)
+
+        if not include_deleted:
+            stmt = stmt.where(QuestionModel.is_deleted.is_(False))
 
         if section:
             stmt = stmt.where(QuestionModel.section == section)
@@ -434,33 +442,73 @@ async def get_questions(
         return [_model_to_schema(m, slim=slim) for m in models]
 
 
-async def get_question_by_id(question_id: str) -> Question | None:
+async def get_question_by_id(question_id: str, include_deleted: bool = False) -> Question | None:
     """Retrieves a single question by primary key ID."""
     async with async_session_factory() as session:
-        model = await session.get(QuestionModel, question_id)
+        stmt = select(QuestionModel).where(QuestionModel.id == question_id)
+        if not include_deleted:
+            stmt = stmt.where(QuestionModel.is_deleted.is_(False))
+        res = await session.execute(stmt)
+        model = res.scalar_one_or_none()
         if not model:
             return None
         return _model_to_schema(model)
 
 
 async def delete_question(question_id: str) -> bool:
-    """Deletes a question by primary key ID."""
+    """Soft-deletes a question by primary key ID, preserving it for batch progress."""
+    now_dt = datetime.now(UTC)
     async with async_session_factory() as session:
-        stmt = delete(QuestionModel).where(QuestionModel.id == question_id)
-        await session.execute(stmt)
+        stmt = (
+            update(QuestionModel)
+            .where(QuestionModel.id == question_id)
+            .values(is_deleted=True, deleted_at=now_dt)
+        )
+        res = await session.execute(stmt)
         await session.commit()
-        return True
+        return bool(res.rowcount and res.rowcount > 0)
 
 
 async def delete_questions_batch(question_ids: list[str]) -> int:
-    """Deletes multiple questions by primary key IDs in a single atomic SQL transaction."""
+    """Soft-deletes multiple questions by primary key IDs in a single atomic SQL transaction, preserving them for batch progress."""
     if not question_ids:
         return 0
+    now_dt = datetime.now(UTC)
     async with async_session_factory() as session:
-        stmt = delete(QuestionModel).where(QuestionModel.id.in_(question_ids))
+        stmt = (
+            update(QuestionModel)
+            .where(QuestionModel.id.in_(question_ids))
+            .values(is_deleted=True, deleted_at=now_dt)
+        )
         result = await session.execute(stmt)
         await session.commit()
     return result.rowcount or 0
+
+
+async def restore_question(question_id: str) -> Question | None:
+    """Restores a soft-deleted question back to active status, and restores its passage if soft-deleted."""
+    now_dt = datetime.now(UTC)
+    async with async_session_factory() as session:
+        stmt = select(QuestionModel).where(QuestionModel.id == question_id)
+        res = await session.execute(stmt)
+        q = res.scalar_one_or_none()
+        if not q:
+            return None
+        q.is_deleted = False
+        q.deleted_at = None
+        q.updated_at = now_dt
+
+        # If question has a linked passage that was soft-deleted, restore the passage too
+        if q.passage_id:
+            p_stmt = (
+                update(PassageModel)
+                .where(PassageModel.id == q.passage_id)
+                .values(is_deleted=False, deleted_at=None)
+            )
+            await session.execute(p_stmt)
+
+        await session.commit()
+        return _model_to_schema(q)
 
 
 async def update_question_status(question_id: str, status: str) -> bool:
@@ -473,6 +521,9 @@ async def update_question_status(question_id: str, status: str) -> bool:
         if not q:
             return False
         q.status = status
+        if status in ("in_bank", "ai_validated", "batch_only"):
+            q.is_deleted = False
+            q.deleted_at = None
         q.updated_at = now_dt
         await session.commit()
         return True
@@ -484,10 +535,15 @@ async def batch_update_question_status(question_ids: list[str], status: str) -> 
         return 0
     now_dt = datetime.now(UTC)
     async with async_session_factory() as session:
+        update_vals: dict[str, Any] = {"status": status, "updated_at": now_dt}
+        if status in ("in_bank", "ai_validated", "batch_only"):
+            update_vals["is_deleted"] = False
+            update_vals["deleted_at"] = None
+
         stmt = (
             update(QuestionModel)
             .where(QuestionModel.id.in_(question_ids))
-            .values(status=status, updated_at=now_dt)
+            .values(**update_vals)
         )
         result = await session.execute(stmt)
         await session.commit()
@@ -503,6 +559,7 @@ async def get_question_status_counts() -> dict[str, int]:
         stmt = (
             select(QuestionModel.status, func.count(QuestionModel.id))
             .where(
+                QuestionModel.is_deleted.is_(False),
                 or_(
                     QuestionModel.status != "ai_validated",
                     and_(
@@ -513,18 +570,23 @@ async def get_question_status_counts() -> dict[str, int]:
                             QuestionModel.batch_id.notin_(in_progress_batches),
                         ),
                     ),
-                )
+                ),
             )
             .group_by(QuestionModel.status)
         )
         res = await session.execute(stmt)
         counts = {row[0] or "in_bank": row[1] for row in res.all()}
+
+        del_stmt = select(func.count(QuestionModel.id)).where(QuestionModel.is_deleted.is_(True))
+        deleted_count = (await session.execute(del_stmt)).scalar() or 0
+
         return {
             "ai_validated": counts.get("ai_validated", 0),
             "in_bank": counts.get("in_bank", 0),
             "discarded": counts.get("discarded", 0),
             "below_threshold": counts.get("below_threshold", 0),
             "batch_only": counts.get("batch_only", 0),
+            "deleted": deleted_count,
             "total": sum(counts.values()),
         }
 
@@ -540,7 +602,8 @@ async def get_subtopic_reference_questions(
     """
     async with async_session_factory() as session:
         stmt = select(QuestionModel).where(
-            QuestionModel.status.in_(["in_bank", "ai_validated", "approved"])
+            QuestionModel.is_deleted.is_(False),
+            QuestionModel.status.in_(["in_bank", "ai_validated", "approved"]),
         )
         if section:
             sec_val = section.value if hasattr(section, "value") else str(section)
@@ -597,6 +660,7 @@ __all__ = [
     "get_repository_metrics",
     "get_subtopic_reference_questions",
     "override_question_duplicate",
+    "restore_question",
     "save_question",
     "save_questions_batch",
     "update_question_status",

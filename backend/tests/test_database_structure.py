@@ -464,16 +464,19 @@ async def test_cascade_passage_deletion_multi_status_and_metrics():
     # Standalone question must still exist
     assert await get_question_by_id(q_standalone.id) is not None
 
-    # Job metrics must be updated
+    # Batch and job generation history metrics remain 100% intact for batch progress
     j1_after = await get_job_by_id(job1_id)
-    assert j1_after.actual_count == 0
+    assert j1_after.actual_count == 2
 
     j2_after = await get_job_by_id(job2_id)
-    assert j2_after.actual_count == 1
+    assert j2_after.actual_count == 2
 
-    # Batch metrics must reflect remaining active question count
     b_after = await get_batch_by_id(batch_id)
-    assert b_after.actual_count == 1
+    assert b_after.actual_count == 4
+
+    # All questions remain preserved for batch progress
+    batch_qs = await get_questions(batch_id=batch_id, include_deleted=True)
+    assert len(batch_qs) == 4
 
     # Clean up remaining standalone question
     await delete_question(q_standalone.id)

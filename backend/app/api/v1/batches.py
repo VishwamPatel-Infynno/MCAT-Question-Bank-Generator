@@ -84,7 +84,7 @@ async def get_single_batch(batch_id: str):
         raise HTTPException(status_code=404, detail="Batch not found")
 
     jobs = await get_jobs_by_batch_id(batch_id)
-    linked_questions = await get_questions(batch_id=batch_id)
+    linked_questions = await get_questions(batch_id=batch_id, include_deleted=True)
 
     # Group questions by job_id or run_id
     questions_by_job: dict[str, list[dict]] = {}

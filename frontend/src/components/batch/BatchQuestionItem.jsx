@@ -9,7 +9,9 @@ import {
   Layers,
   BookOpen,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Trash2,
+  RotateCcw
 } from 'lucide-react';
 import VisualStimulusViewer from '../question/VisualStimulusViewer';
 
@@ -19,7 +21,8 @@ export default function BatchQuestionItem({
   onNavigateToBank,
   onNavigateToValidated,
   onOpenAudit,
-  onSaveToBank
+  onSaveToBank,
+  onRestoreQuestion
 }) {
   const [isPassageExpanded, setIsPassageExpanded] = useState(false);
 
@@ -76,99 +79,120 @@ export default function BatchQuestionItem({
           </span>
 
           {/* Status Badge */}
-          {status === 'in_bank' && (
+          {question.is_deleted ? (
             <span
               style={{
                 fontSize: '0.675rem',
                 padding: '2px 8px',
                 borderRadius: '10px',
-                background: 'rgba(16, 185, 129, 0.12)',
-                color: 'var(--status-success)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
+                background: 'rgba(239, 68, 68, 0.12)',
+                color: 'var(--status-danger, #ef4444)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
                 fontWeight: 700,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '4px'
               }}
             >
-              <CheckCircle2 size={11} /> In Question Bank
+              <Trash2 size={11} /> Deleted from Bank
             </span>
-          )}
+          ) : (
+            <>
+              {status === 'in_bank' && (
+                <span
+                  style={{
+                    fontSize: '0.675rem',
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    background: 'rgba(16, 185, 129, 0.12)',
+                    color: 'var(--status-success)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <CheckCircle2 size={11} /> In Question Bank
+                </span>
+              )}
 
-          {status === 'ai_validated' && (
-            <span
-              style={{
-                fontSize: '0.675rem',
-                padding: '2px 8px',
-                borderRadius: '10px',
-                background: 'rgba(79, 48, 185, 0.12)',
-                color: 'var(--brand-primary)',
-                border: '1px solid rgba(79, 48, 185, 0.3)',
-                fontWeight: 700,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              <Sparkles size={11} /> Ready for Review (&gt;90)
-            </span>
-          )}
+              {status === 'ai_validated' && (
+                <span
+                  style={{
+                    fontSize: '0.675rem',
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    background: 'rgba(79, 48, 185, 0.12)',
+                    color: 'var(--brand-primary)',
+                    border: '1px solid rgba(79, 48, 185, 0.3)',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <Sparkles size={11} /> Ready for Review (&gt;90)
+                </span>
+              )}
 
-          {status === 'batch_only' && (
-            <span
-              style={{
-                fontSize: '0.675rem',
-                padding: '2px 8px',
-                borderRadius: '10px',
-                background: 'rgba(51, 90, 207, 0.12)',
-                color: 'var(--brand-primary)',
-                border: '1px solid rgba(51, 90, 207, 0.3)',
-                fontWeight: 700,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              <Layers size={11} /> Good Quality (86-90)
-            </span>
-          )}
+              {status === 'batch_only' && (
+                <span
+                  style={{
+                    fontSize: '0.675rem',
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    background: 'rgba(51, 90, 207, 0.12)',
+                    color: 'var(--brand-primary)',
+                    border: '1px solid rgba(51, 90, 207, 0.3)',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <Layers size={11} /> Good Quality (86-90)
+                </span>
+              )}
 
-          {status === 'discarded' && (
-            <span
-              style={{
-                fontSize: '0.675rem',
-                padding: '2px 8px',
-                borderRadius: '10px',
-                background: 'rgba(244, 63, 94, 0.12)',
-                color: 'var(--status-danger)',
-                border: '1px solid rgba(244, 63, 94, 0.3)',
-                fontWeight: 700,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              <XCircle size={11} /> Discarded
-            </span>
-          )}
+              {status === 'discarded' && (
+                <span
+                  style={{
+                    fontSize: '0.675rem',
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    background: 'rgba(244, 63, 94, 0.12)',
+                    color: 'var(--status-danger)',
+                    border: '1px solid rgba(244, 63, 94, 0.3)',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <XCircle size={11} /> Discarded
+                </span>
+              )}
 
-          {status === 'below_threshold' && (
-            <span
-              style={{
-                fontSize: '0.675rem',
-                padding: '2px 8px',
-                borderRadius: '10px',
-                background: 'var(--status-warning-bg, rgba(245, 158, 11, 0.12))',
-                color: 'var(--status-warning, #d97706)',
-                border: '1px solid var(--status-warning-border, rgba(245, 158, 11, 0.3))',
-                fontWeight: 700,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              <AlertCircle size={11} /> Needs Polish (&le;85)
-            </span>
+              {status === 'below_threshold' && (
+                <span
+                  style={{
+                    fontSize: '0.675rem',
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    background: 'var(--status-warning-bg, rgba(245, 158, 11, 0.12))',
+                    color: 'var(--status-warning, #d97706)',
+                    border: '1px solid var(--status-warning-border, rgba(245, 158, 11, 0.3))',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <AlertCircle size={11} /> Needs Polish (&le;85)
+                </span>
+              )}
+            </>
           )}
         </div>
 
@@ -379,7 +403,29 @@ export default function BatchQuestionItem({
           {question.aamc_skill || question.primary_trap || 'MCAT Standard'}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          {status === 'batch_only' && onSaveToBank && (
+          {question.is_deleted && onRestoreQuestion && (
+            <button
+              type="button"
+              onClick={() => onRestoreQuestion(question)}
+              className="btn-primary"
+              style={{
+                padding: '3px 9px',
+                fontSize: '0.7rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: 'rgba(16, 185, 129, 0.15)',
+                color: 'var(--status-success, #10b981)',
+                border: '1px solid rgba(16, 185, 129, 0.3)'
+              }}
+              title="Restore this question back to Question Bank"
+            >
+              <RotateCcw size={10} />
+              <span>Restore to Bank</span>
+            </button>
+          )}
+
+          {!question.is_deleted && status === 'batch_only' && onSaveToBank && (
             <button
               type="button"
               onClick={() => onSaveToBank(question)}
@@ -398,7 +444,7 @@ export default function BatchQuestionItem({
             </button>
           )}
 
-          {status === 'ai_validated' && onNavigateToValidated && (
+          {!question.is_deleted && status === 'ai_validated' && onNavigateToValidated && (
             <button
               type="button"
               onClick={onNavigateToValidated}
@@ -411,7 +457,7 @@ export default function BatchQuestionItem({
             </button>
           )}
 
-          {status === 'in_bank' && onNavigateToBank && (
+          {!question.is_deleted && status === 'in_bank' && onNavigateToBank && (
             <button
               type="button"
               onClick={onNavigateToBank}

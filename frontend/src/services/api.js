@@ -108,6 +108,14 @@ export async function batchDeleteQuestions(ids) {
   return res.json();
 }
 
+export async function restoreQuestion(id) {
+  const res = await fetch(`${API_BASE}/questions/${id}/restore`, {
+    method: 'POST'
+  });
+  await assertOk(res, `Restore question ${id}`);
+  return res.json();
+}
+
 /**
  * Approves and saves a single question to the Question Bank.
  *

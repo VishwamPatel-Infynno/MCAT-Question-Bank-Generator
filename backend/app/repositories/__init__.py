@@ -17,6 +17,7 @@ from app.repositories.passage_repository import (
     delete_passage,
     get_passage_by_id,
     get_passages,
+    restore_passage,
     save_passage,
 )
 from app.repositories.question_repository import (
@@ -27,6 +28,7 @@ from app.repositories.question_repository import (
     get_question_status_counts,
     get_questions,
     get_repository_metrics,
+    restore_question,
     save_question,
     save_questions_batch,
     update_question_status,
@@ -50,6 +52,8 @@ __all__ = [
     "get_repository_metrics",
     "promote_completed_batch_questions",
     "refresh_batch_aggregates",
+    "restore_passage",
+    "restore_question",
     "save_batch",
     "save_job",
     "save_jobs_bulk",

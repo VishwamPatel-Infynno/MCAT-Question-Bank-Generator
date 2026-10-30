@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, ChevronDown, ChevronRight, Layers, BookOpen, Image as ImageIcon } from 'lucide-react';
+import { FileText, ChevronDown, ChevronRight, Layers, BookOpen, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { formatCostUsd, formatTokenCount } from '../../utils';
 import BatchQuestionItem from './BatchQuestionItem';
 
@@ -10,7 +10,8 @@ export default function BatchJobCard({
   onNavigateToBank,
   onNavigateToValidated,
   onOpenAudit,
-  onSaveToBank
+  onSaveToBank,
+  onRestoreQuestion
 }) {
   if (!job) return null;
 
@@ -21,6 +22,7 @@ export default function BatchJobCard({
 
   // Compute status counts for questions in this job
   const resolveStatus = (q) => {
+    if (q.is_deleted) return 'deleted';
     if (q.status) return q.status;
     const score = q.final_score ?? 95;
     if (score > 90) return 'ai_validated';
@@ -28,11 +30,12 @@ export default function BatchJobCard({
     return 'below_threshold';
   };
 
-  const validatedCount = jobQuestions.filter((q) => resolveStatus(q) === 'ai_validated').length;
-  const batchOnlyCount = jobQuestions.filter((q) => resolveStatus(q) === 'batch_only').length;
-  const inBankCount = jobQuestions.filter((q) => resolveStatus(q) === 'in_bank').length;
-  const discardedCount = jobQuestions.filter((q) => resolveStatus(q) === 'discarded').length;
-  const belowCount = jobQuestions.filter((q) => resolveStatus(q) === 'below_threshold').length;
+  const deletedCount = jobQuestions.filter((q) => Boolean(q.is_deleted)).length;
+  const validatedCount = jobQuestions.filter((q) => !q.is_deleted && resolveStatus(q) === 'ai_validated').length;
+  const batchOnlyCount = jobQuestions.filter((q) => !q.is_deleted && resolveStatus(q) === 'batch_only').length;
+  const inBankCount = jobQuestions.filter((q) => !q.is_deleted && resolveStatus(q) === 'in_bank').length;
+  const discardedCount = jobQuestions.filter((q) => !q.is_deleted && resolveStatus(q) === 'discarded').length;
+  const belowCount = jobQuestions.filter((q) => !q.is_deleted && resolveStatus(q) === 'below_threshold').length;
 
   const hasPassageInJob = jobQuestions.some(
     (q) => Boolean(q.stimulus_text && q.stimulus_text.trim().length > 0)
@@ -232,6 +235,23 @@ export default function BatchJobCard({
               {belowCount} Needs Polish (&le;85)
             </span>
           )}
+          {deletedCount > 0 && (
+            <span
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: 'var(--status-danger, #ef4444)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                padding: '2px 7px',
+                borderRadius: '4px',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px'
+              }}
+            >
+              <Trash2 size={10} /> {deletedCount} Deleted from Bank
+            </span>
+          )}
           {hasPassageInJob && (
             <span
               style={{
@@ -319,6 +339,7 @@ export default function BatchJobCard({
               onNavigateToValidated={onNavigateToValidated}
               onOpenAudit={onOpenAudit}
               onSaveToBank={onSaveToBank}
+              onRestoreQuestion={onRestoreQuestion}
             />
           ))}
         </div>

@@ -1,7 +1,7 @@
 import logging
 from datetime import UTC, datetime
 
-from sqlalchemy import delete, func, or_, select, update
+from sqlalchemy import and_, delete, func, or_, select, update
 
 from app.db.base import to_datetime, to_iso_str
 from app.db.session import async_session_factory
@@ -26,6 +26,8 @@ def _passage_model_to_schema(m: PassageModel, question_count: int = 0) -> Passag
         image_svg=m.image_svg,
         image_description=m.image_description,
         question_count=question_count,
+        is_deleted=getattr(m, "is_deleted", False) or False,
+        deleted_at=to_iso_str(m.deleted_at) if getattr(m, "deleted_at", None) else None,
         created_at=to_iso_str(m.created_at),
         updated_at=to_iso_str(m.updated_at) if m.updated_at else None,
     )
@@ -44,6 +46,8 @@ def _passage_schema_to_model(p: Passage) -> PassageModel:
         image_url=p.image_url,
         image_svg=p.image_svg,
         image_description=p.image_description,
+        is_deleted=getattr(p, "is_deleted", False) or False,
+        deleted_at=to_datetime(p.deleted_at) if getattr(p, "deleted_at", None) else None,
         created_at=to_datetime(p.created_at),
         updated_at=to_datetime(p.updated_at) if p.updated_at else datetime.now(UTC),
     )
@@ -53,14 +57,23 @@ async def get_passages(
     section: str | None = None,
     subtopic: str | None = None,
     search: str | None = None,
+    include_deleted: bool = False,
 ) -> list[Passage]:
     """Retrieves shared reading passages with optional filtering, search, and aggregated question_count."""
     async with async_session_factory() as session:
         stmt = (
             select(PassageModel, func.count(QuestionModel.id).label("q_count"))
-            .outerjoin(QuestionModel, QuestionModel.passage_id == PassageModel.id)
+            .outerjoin(
+                QuestionModel,
+                and_(
+                    QuestionModel.passage_id == PassageModel.id,
+                    QuestionModel.is_deleted.is_(False),
+                ),
+            )
             .group_by(PassageModel.id)
         )
+        if not include_deleted:
+            stmt = stmt.where(PassageModel.is_deleted.is_(False))
         if section:
             stmt = stmt.where(PassageModel.section == section)
         if subtopic:
@@ -82,15 +95,23 @@ async def get_passages(
         return [_passage_model_to_schema(m, int(q_count or 0)) for m, q_count in rows]
 
 
-async def get_passage_by_id(passage_id: str) -> Passage | None:
-    """Retrieves a single passage by primary key ID with aggregated question count."""
+async def get_passage_by_id(passage_id: str, include_deleted: bool = False) -> Passage | None:
+    """Retrieves a single passage by primary key ID with aggregated active question count."""
     async with async_session_factory() as session:
         stmt = (
             select(PassageModel, func.count(QuestionModel.id).label("q_count"))
-            .outerjoin(QuestionModel, QuestionModel.passage_id == PassageModel.id)
+            .outerjoin(
+                QuestionModel,
+                and_(
+                    QuestionModel.passage_id == PassageModel.id,
+                    QuestionModel.is_deleted.is_(False),
+                ),
+            )
             .where(PassageModel.id == passage_id)
             .group_by(PassageModel.id)
         )
+        if not include_deleted:
+            stmt = stmt.where(PassageModel.is_deleted.is_(False))
         result = await session.execute(stmt)
         row = result.first()
         if not row:
@@ -131,61 +152,43 @@ async def save_passage(passage: Passage) -> Passage:
 
 
 async def delete_passage(passage_id: str) -> tuple[bool, int]:
-    """Deletes a passage record and permanently removes all associated questions, updating affected job and batch metrics."""
+    """Soft-deletes a passage and its associated questions from active views while preserving all data for batch progress."""
+    now_dt = datetime.now(UTC)
     async with async_session_factory() as session:
         # Check if passage exists
         passage = await session.get(PassageModel, passage_id)
         if not passage:
             return False, 0
 
-        # Find affected batch_ids and job_ids to update their counts
-        q_info_stmt = select(QuestionModel.batch_id, QuestionModel.job_id).where(
-            QuestionModel.passage_id == passage_id
-        )
-        res_info = await session.execute(q_info_stmt)
-        affected_pairs = res_info.all()
-        affected_batch_ids = {b_id for b_id, _ in affected_pairs if b_id}
-        affected_job_ids = {j_id for _, j_id in affected_pairs if j_id}
-
-        # 1. Permanently delete all linked questions
+        # 1. Soft-delete all linked questions
         del_q_res = await session.execute(
-            delete(QuestionModel).where(QuestionModel.passage_id == passage_id)
+            update(QuestionModel)
+            .where(QuestionModel.passage_id == passage_id)
+            .values(is_deleted=True, deleted_at=now_dt)
         )
         deleted_q_count = del_q_res.rowcount or 0
 
-        # 2. Delete the passage row
-        await session.execute(delete(PassageModel).where(PassageModel.id == passage_id))
+        # 2. Soft-delete the passage row
+        passage.is_deleted = True
+        passage.deleted_at = now_dt
 
-        # 3. Recalculate job actual_count for affected jobs and clear dangling passage_id
-        await session.execute(
-            update(GenerationJobModel)
-            .where(GenerationJobModel.passage_id == passage_id)
-            .values(passage_id=None)
-        )
-
-        for job_id in affected_job_ids:
-            j_count_stmt = select(func.count(QuestionModel.id)).where(
-                QuestionModel.job_id == job_id
-            )
-            j_count = (await session.execute(j_count_stmt)).scalar() or 0
-            await session.execute(
-                update(GenerationJobModel)
-                .where(GenerationJobModel.id == job_id)
-                .values(actual_count=j_count)
-            )
-
+        # Note: We do NOT clear job passage_id, and we do NOT decrement job or batch actual_count,
+        # so that Batch Progress history remains 100% intact.
         await session.commit()
 
-    # 4. Recalculate batch metrics for affected batches
-    from app.repositories.batch_repository import refresh_batch_aggregates
-
-    for batch_id in affected_batch_ids:
-        try:
-            await refresh_batch_aggregates(batch_id)
-        except Exception as e:
-            logger.warning(f"Failed to refresh batch aggregates for batch {batch_id}: {e}")
-
     logger.info(
-        f"Permanently deleted passage {passage_id} and {deleted_q_count} associated question(s)."
+        f"Soft-deleted passage {passage_id} and {deleted_q_count} associated question(s) (preserved for batch progress)."
     )
     return True, deleted_q_count
+
+
+async def restore_passage(passage_id: str) -> bool:
+    """Restores a soft-deleted passage."""
+    async with async_session_factory() as session:
+        passage = await session.get(PassageModel, passage_id)
+        if not passage:
+            return False
+        passage.is_deleted = False
+        passage.deleted_at = None
+        await session.commit()
+        return True

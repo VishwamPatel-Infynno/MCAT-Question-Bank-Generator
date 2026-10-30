@@ -253,11 +253,11 @@ export default function DeletePassageModal({
             >
               {questionCount > 0 ? (
                 <>
-                  Deleting this passage will <strong>permanently delete all {questionCount} associated question{questionCount === 1 ? '' : 's'}</strong> across the Question Bank, Ready for Review staging, and batch jobs. These questions require this passage as their reading stimulus and cannot exist without it.
+                  Deleting this passage will <strong>remove it from the Passage Bank and remove all {questionCount} associated question{questionCount === 1 ? '' : 's'}</strong> from your Question Bank and Review queue. All questions, passage stimulus, and generation metrics will <strong>remain safely intact in your Batch Progress</strong> history.
                 </>
               ) : (
                 <>
-                  Deleting this passage will permanently remove it from the database. Any future questions will not be able to reference it.
+                  Deleting this passage will remove it from the Passage Bank. It will remain preserved in your Batch Progress history.
                 </>
               )}
             </p>
@@ -266,11 +266,11 @@ export default function DeletePassageModal({
               style={{
                 fontSize: '0.72rem',
                 fontWeight: 600,
-                color: 'var(--status-danger, #ef4444)',
+                color: 'var(--text-muted, #94a3b8)',
                 marginTop: '2px'
               }}
             >
-              This action cannot be undone.
+              You can view and restore these items anytime from the Batch Progress view.
             </span>
           </div>
 

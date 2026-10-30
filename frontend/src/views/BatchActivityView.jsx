@@ -11,7 +11,8 @@ import {
   stopBatch,
   retryBatchJobs,
   cancelAllBatches,
-  updateQuestionStatus
+  updateQuestionStatus,
+  restoreQuestion
 } from '../services/api';
 import { SECTION_CODE_MAP } from '../constants/mcat';
 import { PaginationBar } from '../components/common';
@@ -391,6 +392,63 @@ export default function BatchActivityView({
     }
   };
 
+  // Handle restoring a soft-deleted question back to Question Bank
+  const handleRestoreQuestion = async (question) => {
+    try {
+      await restoreQuestion(question.id);
+      setBatchDetails((prev) => {
+        const next = { ...prev };
+        for (const [bId, detail] of Object.entries(next)) {
+          if (!detail) continue;
+          let changed = false;
+          const updatedJobs = (detail.jobs || []).map((job) => {
+            const hasQ = (job.questions || []).some((q) => q.id === question.id);
+            if (!hasQ) return job;
+            changed = true;
+            return Object.assign({}, job, {
+              questions: job.questions.map((q) =>
+                q.id === question.id
+                  ? Object.assign({}, q, { is_deleted: false, deleted_at: null, status: 'in_bank' })
+                  : q
+              )
+            });
+          });
+          const updatedQs = (detail.questions || []).map((q) =>
+            q.id === question.id
+              ? Object.assign({}, q, { is_deleted: false, deleted_at: null, status: 'in_bank' })
+              : q
+          );
+          if (changed) {
+            next[bId] = {
+              ...detail,
+              jobs: updatedJobs,
+              questions: updatedQs
+            };
+          }
+        }
+        return next;
+      });
+
+      if (onShowToast) {
+        onShowToast({
+          type: 'success',
+          title: 'Question Restored',
+          message: 'Question and stimulus restored back to your Question Bank.',
+          action: onNavigateToBank ? { label: 'View in Bank', onClick: onNavigateToBank } : undefined
+        });
+      }
+    } catch (err) {
+      console.error('Failed to restore question:', err);
+      if (onShowToast) {
+        onShowToast({
+          type: 'error',
+          title: 'Restore Failed',
+          message: err.message || 'Could not restore question.'
+        });
+      }
+    }
+  };
+
   // Active batches list for multi-batch monitor
   const activeBatchesList = useMemo(() => batches.filter((b) => b.status === 'in_progress'), [batches]);
 
@@ -570,6 +628,7 @@ export default function BatchActivityView({
                 onNavigateToValidated={onNavigateToValidated}
                 onOpenAudit={onOpenAudit}
                 onSaveToBank={handleSaveQuestionToBank}
+                onRestoreQuestion={handleRestoreQuestion}
               />
             ))}
           </div>

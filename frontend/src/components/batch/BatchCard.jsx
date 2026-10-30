@@ -109,7 +109,8 @@ function BatchCard({
   onNavigateToBank,
   onNavigateToValidated,
   onOpenAudit,
-  onSaveToBank
+  onSaveToBank,
+  onRestoreQuestion
 }) {
   const secColor = getSectionColor(batch.section);
   const totalJobs = batch.total_jobs || 10;
@@ -458,6 +459,7 @@ function BatchCard({
                       onNavigateToValidated={onNavigateToValidated}
                       onOpenAudit={onOpenAudit}
                       onSaveToBank={onSaveToBank}
+                      onRestoreQuestion={onRestoreQuestion}
                     />
                   ))}
                 </div>

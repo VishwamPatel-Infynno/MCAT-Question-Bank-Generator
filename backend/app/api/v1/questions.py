@@ -17,6 +17,7 @@ from app.repositories.question_repository import (
     get_repository_metrics,
     get_subtopic_reference_questions,
     override_question_duplicate,
+    restore_question,
     save_question,
     save_questions_batch,
     update_question_status,
@@ -156,6 +157,16 @@ async def remove_questions_batch(payload: BatchDeleteRequest):
     deleted_count = await delete_questions_batch(payload.ids)
     logger.info(f"Bulk deleted {deleted_count} questions from Question Bank.")
     return {"success": True, "deleted_count": deleted_count}
+
+
+@router.post("/questions/{question_id}/restore")
+async def restore_single_question(question_id: str):
+    """Restores a soft-deleted question and its associated passage back to active status."""
+    restored = await restore_question(question_id)
+    if not restored:
+        raise HTTPException(status_code=404, detail="Question not found")
+    logger.info(f"Restored question {question_id} to active status.")
+    return {"success": True, "question": restored.model_dump()}
 
 
 @router.post("/questions/update-status")

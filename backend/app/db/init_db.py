@@ -258,6 +258,38 @@ async def init_db_schema(engine: AsyncEngine):
         )
         await conn.execute(text("UPDATE questions SET status = 'in_bank' WHERE status IS NULL;"))
 
+        # Safe schema update for soft-deletion support
+        await conn.execute(
+            text(
+                "ALTER TABLE questions ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;"
+            )
+        )
+        await conn.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_questions_is_deleted ON questions (is_deleted);"
+            )
+        )
+        await conn.execute(
+            text(
+                "ALTER TABLE questions ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE;"
+            )
+        )
+        await conn.execute(
+            text(
+                "ALTER TABLE passages ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;"
+            )
+        )
+        await conn.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_passages_is_deleted ON passages (is_deleted);"
+            )
+        )
+        await conn.execute(
+            text(
+                "ALTER TABLE passages ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE;"
+            )
+        )
+
         # Safe schema update for batch job tracking columns
         await conn.execute(
             text(

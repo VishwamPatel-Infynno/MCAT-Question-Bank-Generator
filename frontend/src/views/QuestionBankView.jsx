@@ -149,7 +149,7 @@ export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
     setConfirmModal({
       isOpen: true,
       title: 'Delete Question',
-      description: 'Are you sure you want to permanently delete this question from your Question Bank? This operation cannot be undone.',
+      description: 'Are you sure you want to remove this question from your Question Bank? It will remain safely preserved and viewable in Batch Progress history.',
       confirmLabel: 'Delete Question',
       variant: 'danger',
       itemCount: 1,
@@ -185,7 +185,7 @@ export default function QuestionBankView({ onShowToast, onNavigateToWizard }) {
     setConfirmModal({
       isOpen: true,
       title: 'Delete Selected Questions',
-      description: `Are you sure you want to delete ${countToDelete} selected question${countToDelete !== 1 ? 's' : ''} from the Question Bank? This operation cannot be undone.`,
+      description: `Are you sure you want to remove ${countToDelete} selected question${countToDelete !== 1 ? 's' : ''} from the Question Bank? They will remain safely preserved and viewable in Batch Progress history.`,
       confirmLabel: `Delete ${countToDelete} Question${countToDelete !== 1 ? 's' : ''}`,
       variant: 'danger',
       itemCount: countToDelete,
