@@ -14,15 +14,15 @@ The backend is engineered with clear separation of concerns across presentation,
 ```
 backend/
 ├── app/
-│   ├── api/                 # Presentation Layer (HTTP & SSE Routers - 33 operations across 26 paths)
+│   ├── api/                 # Presentation Layer (HTTP & SSE Routers - 34 operations across 28 paths)
 │   │   ├── router.py        # Central API v1 router aggregator
 │   │   └── v1/
 │   │       ├── generation.py # SSE streaming multi-agent orchestrator endpoint
-│   │       ├── questions.py  # Question Bank CRUD, review approval, duplicate check & override, CSV/JSON exports
-│   │       ├── passages.py   # Shared clinical stimulus passages endpoints (list, retrieve, save, delete)
+│   │       ├── questions.py  # Question Bank CRUD, review approval, duplicate check & override, restoration, CSV/JSON exports
+│   │       ├── passages.py   # Shared clinical stimulus passages endpoints (list, retrieve, save, soft-delete)
 │   │       ├── batches.py    # Multi-question batch execution run endpoints, clustering & refill
 │   │       ├── taxonomy.py   # AAMC syllabus hierarchy & dependent taxonomy tree endpoints
-│   │       ├── config.py     # Runtime engine configuration, cascade settings & pricing (24 fields)
+│   │       ├── config.py     # Runtime engine configuration, dual-provider settings & pricing (28 fields)
 │   │       └── health.py     # Database connectivity & system health checks
 │   ├── workflow/            # Orchestration Layer (LangGraph Engine)
 │   │   ├── engine.py        # Core streaming execution engine & event emitters
@@ -41,18 +41,18 @@ backend/
 │   │   ├── prompt_builder.py # User prompt assembly & cross-item diversity calibration
 │   │   ├── prompts.py       # Centralized system prompts, pacing rules & rubrics
 │   │   ├── mock_fixtures.py # Deterministic fallback fixtures for offline resilience
-│   │   └── base.py          # LiteLLM execution wrapper & sub-micro-cent token cost engine
+│   │   └── base.py          # LiteLLM execution wrapper & sub-micro-cent token cost engine (DeepInfra + Anthropic)
 │   ├── services/            # Background Worker & Asynchronous Services
 │   │   ├── batch_runner.py  # Background pool managing Practice Sets (1-job, 5 Qs) and Full Exams (10-job, 50 Qs)
 │   │   └── deduplication.py # Multi-metric similarity scoring & anti-collision service
 │   ├── repositories/        # Data Access Layer (DAL)
-│   │   ├── question_repository.py # Clean CRUD, duplicate overrides, reference queries, hybrid FTS & token analytics
+│   │   ├── question_repository.py # Clean CRUD, soft-deletion, restoration, duplicate overrides, reference queries, hybrid FTS & token analytics
 │   │   ├── batch_repository.py    # Staged batch run queries & persistence
 │   │   ├── job_repository.py      # Background worker job state tracking
-│   │   └── passage_repository.py  # Shared stimulus reading passage queries
+│   │   └── passage_repository.py  # Shared stimulus reading passage queries & soft-deletion
 │   ├── models/              # Persistence Layer (SQLAlchemy 2.0 ORM Entities)
-│   │   ├── question.py      # QuestionModel with JSONB duplicate_info, boolean is_duplicate_override & indexes
-│   │   ├── passage.py       # PassageModel for multi-item shared reading stimuli
+│   │   ├── question.py      # QuestionModel with JSONB duplicate_info, is_deleted, deleted_at & 7 composite indexes
+│   │   ├── passage.py       # PassageModel for multi-item shared reading stimuli with is_deleted & deleted_at
 │   │   ├── batch.py         # BatchModel for multi-question generation runs
 │   │   └── job.py           # JobModel for tracking individual background batch jobs
 │   ├── schemas/             # Domain Transfer Layer (Pydantic V2)
@@ -61,7 +61,7 @@ backend/
 │   │   ├── question.py      # QuestionOption, QuestionDraft, Question, determine_question_status helper
 │   │   └── workflow.py      # GenerationRequest, ReviewScore, WorkflowEvent
 │   ├── core/                # Configuration & Settings
-│   │   ├── config.py        # Pydantic SettingsConfigDict, gateway defaults & pricing
+│   │   ├── config.py        # Pydantic SettingsConfigDict, dual-provider defaults, cache rates & pricing (39 model fields)
 │   │   └── logging.py       # Centralized console logging handler & formatter
 │   ├── db/                  # Database Lifecycle
 │   │   ├── base.py          # Declarative Base
@@ -71,18 +71,24 @@ backend/
 │       └── mcat_dependent_taxonomy.json # AAMC official syllabus foundational concepts & skills
 ├── scripts/                 # Maintenance & Seeding Utilities
 │   └── seed_questions.py    # Sample question bank seeder
-└── tests/                   # Deterministic Automated Test Suite (12 test modules / 64 total tests)
+└── tests/                   # Deterministic Automated Test Suite (17 deterministic modules / 90 tests + 1 live E2E module = 100 total)
     ├── conftest.py          # Pytest fixtures, offline DB socket probe & async test client
+    ├── test_additional_instructions.py # Educator custom instructions and prompt builder integration
     ├── test_agents.py       # Cognitive agent unit tests
-    ├── test_api.py          # REST & SSE endpoint integration tests, CRUD, batch staging & duplicate overrides
-    ├── test_batch_jobs_flow.py # Background batch runner & job concurrency tests
-    ├── test_database_structure.py # SQLAlchemy models & constraint tests
+    ├── test_anthropic.py    # Multi-provider switching, Anthropic models, prompt cache pricing & API keys
+    ├── test_api.py          # REST & SSE endpoint integration tests, CRUD, batch staging, pagination & duplicate overrides
+    ├── test_batch_jobs_flow.py # Background batch runner, job concurrency, and refill preservation
+    ├── test_batch_review_withholding.py # Review queue withholding during batch execution and atomic promotion
+    ├── test_database_structure.py # SQLAlchemy models, cascade deletion, and constraint tests
     ├── test_deduplication.py# Multi-metric similarity, token containment & options overlap tests
     ├── test_e2e_live.py     # Live end-to-end integration tests (10 tests marked live_e2e)
     ├── test_multi_batch_concurrency.py # Multi-batch semaphore stress tests
     ├── test_pedagogy.py     # Pedagogical format & 3-card explanation tests
+    ├── test_question_status_refill.py # Status enums, active question helpers, and deficit calculations
     ├── test_schemas.py      # Pydantic schema validation tests
-    ├── test_tokens.py       # Mathematical token cost accumulation tests
+    ├── test_soft_delete_batch_integrity.py # Soft deletion & restoration preserving batch progress integrity
+    ├── test_target_count_guarantee.py # Dynamic job allocation, slot replenishment, and target count guarantees
+    ├── test_tokens.py       # Mathematical token cost accumulation tests across providers
     ├── test_visuals.py      # SVG & neural image generation tests
     └── test_workflow.py     # LangGraph StateGraph execution tests
 ```
@@ -179,8 +185,8 @@ PYTHONPATH=backend uvicorn app.main:app --port 8000 --reload
 Run the deterministic backend test suite covering endpoints, schemas, database operations, workflow routing, and token cost formulas (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full specs):
 
 ```bash
-# Run all unit and integration tests (73 deterministic tests across 15 modules)
-# Smart auto-skip: 42 pure unit tests pass offline, 31 DB-dependent tests skip cleanly if PostgreSQL is offline
+# Run all unit and integration tests (90 deterministic tests across 17 modules)
+# Smart auto-skip: 54 pure unit tests pass offline, 36 DB-dependent tests skip cleanly if PostgreSQL is offline
 source .venv/bin/activate
 pytest backend/tests -v -m "not live_e2e"
 

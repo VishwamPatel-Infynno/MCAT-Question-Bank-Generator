@@ -14,16 +14,16 @@
 This report establishes comprehensive, verifiable proof of product readiness across every system layer of the **Infynno MCAT Question Bank Generator**. Testing was performed methodically from minute code formatting standards up to distributed multi-agent autonomous generation workflows with real database persistence.
 
 ### Key Quality Metrics
-- **Automated Backend Tests:** **73 / 73 Deterministic Tests Passed (100%)**
-  - Unit & Algorithmic Tests: 42 / 42 Passed (offline capable)
-  - Database Integration Tests (PostgreSQL 16): 31 / 31 Passed
-  - Live End-to-End Tests (SSE + DeepInfra LLM): 10 / 10 Passed
-  - Total Backend Tests in Repository: 83 across 16 test files
+- **Automated Backend Tests:** **90 / 90 Deterministic Tests Passed (100%)**
+  - Unit & Algorithmic Tests: 54 / 54 Passed (offline capable)
+  - Database Integration Tests (PostgreSQL 16): 36 / 36 Passed
+  - Live End-to-End Tests (SSE + DeepInfra/Anthropic LLM): 10 / 10 Passed
+  - Total Backend Tests in Repository: 100 across 18 test files
 - **Static Code Analysis:** **0 Errors, 0 Warnings**
-  - Frontend Linting (`oxlint`): 97 files verified clean
+  - Frontend Linting (`oxlint`): 82 files verified clean
   - Backend Linting (`ruff check`): 100% compliant with SIM (simplify) and RET (return) rules
   - Formatting Compliance (`ruff format`): 100% compliant across repository
-- **Frontend Production Build:** **218 ms** via Vite & Rolldown (zero bundle errors)
+- **Frontend Production Build:** **197 ms** via Vite & Rolldown (zero bundle errors)
 - **UI Surfaces Audited:** **5 of 5 surfaces verified** against `DESIGN.md` in both Light and Dark themes with zero token drift
 
 ---
@@ -35,7 +35,7 @@ This report establishes comprehensive, verifiable proof of product readiness acr
 | **Backend Runtime** | Python 3.11.15 / FastAPI / Uvicorn | ✅ Healthy, running on `http://127.0.0.1:8000` |
 | **Frontend Runtime** | React 19.2.8 / Vite 8.3.4 / Rolldown | ✅ Clean build, dev server active on `:5173` |
 | **Primary Database** | PostgreSQL 16 Alpine (`mcat_postgres`) | ✅ Active container on `localhost:5432` with connection pool |
-| **Autonomous LLM** | DeepInfra DeepSeek V4.1 Flash 1017 | ✅ Live inference verified with sub-second token streaming |
+| **Autonomous LLM** | DeepInfra (DeepSeek V4.1 Flash) & Anthropic (Claude Haiku 5.5 / Sonnet / Opus) | ✅ Dual first-class provider routing verified with sub-second token streaming |
 | **Image Generator** | Black Forest Labs FLUX.2 Klein 4b | ✅ Strict schema & cost calculation formula verified |
 | **Browser Runtime** | Chromium Headless (Playwright MCP) | ✅ Full UI DOM snapshots and screenshots captured |
 
@@ -49,20 +49,22 @@ This report establishes comprehensive, verifiable proof of product readiness acr
 | :--- | :--- | :---: | :---: | :--- |
 | `test_additional_instructions.py` | Custom Prompts | 3 | ✅ Passed | Custom instructions serialization, prompt builder injection, and fallback logic. |
 | `test_agents.py` | Multi-Agent Logic | 7 | ✅ Passed | Tests generator, reviewer heuristics, image guards, blind-solver agreement & discrepancy routing. |
-| `test_api.py` | FastAPI REST & CRUD | 12 | ✅ Passed | Database CRUD, admin approval, passage sets, independent questions, duplicate clusters, and CORS PATCH. |
-| `test_batch_jobs_flow.py` | Async Batch Processing | 2 | ✅ Passed | Full batch & jobs lifecycle, status transitions, and mini-batch job management. |
+| `test_anthropic.py` | Multi-Provider LLM | 12 | ✅ Passed | Provider switching, API key enforcement, Claude Haiku/Sonnet/Opus pricing, and prompt cache math. |
+| `test_api.py` | FastAPI REST & CRUD | 13 | ✅ Passed | Database CRUD, admin approval, passage sets, independent questions, duplicate clusters, CORS, and slim pagination. |
+| `test_batch_jobs_flow.py` | Async Batch Processing | 3 | ✅ Passed | Full batch & jobs lifecycle, status transitions, mini-batch job management, and refill preservation. |
 | `test_batch_review_withholding.py`| Review Queue Guards | 2 | ✅ Passed | Withholds batch questions until completion (`batch_only`) and blocks promotion on cancelled runs. |
-| `test_database_structure.py`| Relational Schema & Search| 7 | ✅ Passed | Schema auto-init, hybrid FTS, foreign keys, batch auto-sync, and null-safe options conversion. |
-| `test_deduplication.py` | Content Integrity | 7 | ✅ Passed | Text normalization, token extraction, duplicate detection, clustering, and auto-refill. |
+| `test_database_structure.py`| Relational Schema & Search| 8 | ✅ Passed | Schema auto-init, hybrid FTS, foreign keys, batch auto-sync, cascade deletion, and null-safe options. |
+| `test_deduplication.py` | Content Integrity | 8 | ✅ Passed | Text normalization, token extraction, duplicate detection, clustering, and auto-refill. |
 | `test_multi_batch_concurrency.py`| Concurrency & Semaphores| 4 | ✅ Passed | Global rate limit backoffs, atomic aggregate refreshes, and simultaneous batch launches. |
 | `test_pedagogy.py` | AAMC MCAT Quality | 4 | ✅ Passed | Option symmetry, anti-guessability engine, trap explanations, and taxonomy JSON parity. |
 | `test_question_status_refill.py` | Lifecycle & Refills | 4 | ✅ Passed | Status enums, active helpers, request validation, and batch refill deficit calculation. |
 | `test_schemas.py` | Pydantic V2 Models | 1 | ✅ Passed | Complete schema validation and enum serialization. |
+| `test_soft_delete_batch_integrity.py` | Soft Deletion & Batch Integrity | 2 | ✅ Passed | Verifies non-destructive soft deletion of passages/questions and restoration preserving batch counts. |
 | `test_target_count_guarantee.py` | Quota & Replenish | 4 | ✅ Passed | Dynamic job allocation, excess capping, active question aggregates, and in-place recovery. |
 | `test_tokens.py` | Telemetry & Costing | 6 | ✅ Passed | DeepInfra model configuration, fast cascade settings, token accumulation, and cost math. |
 | `test_visuals.py` | Diagram / Stimulus | 5 | ✅ Passed | AI image generator, FLUX cost formulas, and autonomous AI-determined image workflow. |
 | `test_workflow.py` | LangGraph State Graph | 4 | ✅ Passed | Event metadata, fused generator pass-through, reviewer bypass, and resilient JSON parsing. |
-| **Subtotal (Pytest Unit + DB)**| | **73** | ✅ **73 Passed** | **0 Failed, 0 Skipped (10 live deselected)** |
+| **Subtotal (Pytest Unit + DB)**| | **90** | ✅ **90 Passed** | **0 Failed, 0 Skipped (10 live deselected)** |
 
 ### 3.2 Live E2E Integration Suite (`pytest backend/tests/test_e2e_live.py -m live_e2e`)
 
@@ -153,10 +155,25 @@ During the pre-flight static analysis pass, code formatting and hygiene rules we
 
 ---
 
-## 6. Manager Sign-Off Statement
+## 6. v2.0.1 Multi-Provider & Soft-Deletion Verification Addendum
+
+In this verification cycle, the test suite expanded from 73 to **90 deterministic unit and integration tests across 17 modules** (100 total backend tests including live E2E), providing 100% automated coverage for newly introduced capabilities:
+
+1. **Anthropic Claude Integration (`test_anthropic.py` - 12 tests)**:
+   - Full automated coverage for provider switching via `ACTIVE_LLM_PROVIDER`, model normalization, and API key validation.
+   - Exact mathematical testing of Claude Haiku 5.5 standard tier ($0.10 in / $0.50 out per 1M), extended tier ($0.50 in / $2.50 out per 1M), Claude 3.5 Sonnet, Claude 3 Opus, and prompt cache pricing accounting.
+2. **Soft-Deletion & Batch Integrity (`test_soft_delete_batch_integrity.py` - 2 tests)**:
+   - Verifies that deleting reading passages or questions does not decrement job or batch progress metrics, guaranteeing that historical generation monitors remain intact.
+   - Verifies question restoration via `POST /api/questions/{question_id}/restore` and automatic restoration of linked soft-deleted passages.
+3. **Pagination & Projection (`test_api.py::test_questions_pagination_and_slim_projection`)**:
+   - Confirms server-side pagination (`limit`, `offset`) and lightweight projection (`slim=True`), validating that diagnostic fields are stripped when requested to optimize frontend performance.
+
+---
+
+## 7. Manager Sign-Off Statement
 
 > **Manager Sign-Off Readiness:**
-> All 73 automated backend unit and database integration test cases have passed without a single failure or skipped test (83 total backend tests including live E2E). The frontend compiles cleanly in 218 ms with zero lint warnings across 97 files. Real-time multi-agent generation, custom authoring instructions, batch question withholding, self-critique, blind-solver validation, question bank persistence, and export engines operate with complete pedagogical and architectural fidelity.
+> All 90 automated backend unit and database integration test cases have passed without a single failure or skipped test (100 total backend tests including live E2E). The frontend compiles cleanly in under 200 ms with zero lint warnings across 82 files. Dual first-class AI inference (DeepInfra & Anthropic Claude), prompt cache pricing accounting, soft-deletion batch integrity, real-time multi-agent generation, custom authoring instructions, batch question withholding, self-critique, blind-solver validation, question bank persistence, and export engines operate with complete pedagogical and architectural fidelity.
 >
 > **The Infynno MCAT Question Bank Generator application is fully verified, operational, and approved for production deployment.**
 

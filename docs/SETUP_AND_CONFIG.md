@@ -151,13 +151,13 @@ The repository maintains an uncompromising **Zero-Defect Quality Policy** enforc
 
 ### 5.1 Backend Verification Suite
 
-Run the complete 73-test deterministic unit & integration suite across 15 modules using `pytest` (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full test specifications):
+Run the complete 90-test deterministic unit & integration suite across 17 modules using `pytest` (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full test specifications):
 
 ```bash
 source .venv/bin/activate
 
-# 1. Run all 73 deterministic unit and integration tests across 15 modules
-# Smart auto-skip: If PostgreSQL is offline on localhost:5432, 42 pure unit tests pass and 31 DB tests skip cleanly
+# 1. Run all 90 deterministic unit and integration tests across 17 modules
+# Smart auto-skip: If PostgreSQL is offline on localhost:5432, 54 pure unit tests pass and 36 DB tests skip cleanly
 PYTHONPATH=backend pytest backend/tests -v -m "not live_e2e"
 
 # 2. Run Python linting and code quality checks (enforces SIM, RET, B, C4, E, W, F, I, UP)
@@ -166,6 +166,9 @@ ruff format --check backend/
 ```
 
 This verifies:
+- Multi-provider configuration switching (`ACTIVE_LLM_PROVIDER`), Anthropic Claude models, and prompt cache pricing.
+- Soft-deletion and restoration mechanics (`POST /api/questions/{id}/restore`) preserving batch review counts and integrity.
+- Server-side question pagination (`limit`, `offset`) and lightweight projection (`slim=True`).
 - Pydantic schema validation across all 4 official AAMC MCAT sections and custom authoring instructions.
 - Reviewer 100-point rubric evaluation and remediation routing logic.
 - Blind-Solver dual-validation agent agreement and discrepancy re-routing.

@@ -141,11 +141,11 @@ Every approved question presents a comprehensive **3-Card Mentor Explanation**:
 
 ## 6. Financial Transparency, Concurrency & Batch Resiliency
 
-Every generated item tracks real-time inference telemetry:
+Every generated item tracks real-time inference telemetry and costs across dual first-class inference providers (DeepInfra DeepSeek V4.1 Flash or Anthropic Claude Haiku 5.5 / Sonnet / Opus with prompt caching):
 
-$$\text{Total Cost} = \left(\frac{\text{Input Tokens}}{1{,}000{,}000} \times \$0.098\right) + \left(\frac{\text{Output Tokens}}{1{,}000{,}000} \times \$0.294\right)$$
+$$\text{Total Cost (DeepInfra)} = \left(\frac{\text{Input Tokens}}{1{,}000{,}000} \times \$0.098\right) + \left(\frac{\text{Output Tokens}}{1{,}000{,}000} \times \$0.294\right)$$
 
-- **Predictable Micro-Costs**: An audited 5-question batch typically costs **between $0.006 and $0.012 USD** in total inference.
+- **Predictable Micro-Costs**: An audited 5-question batch typically costs **between $0.006 and $0.012 USD** in total inference under DeepInfra, or competitive prompt-cached rates under Anthropic Claude.
 - **Repository Observability**: The Question Bank header displays accumulated input tokens, output tokens, total execution time, and cumulative investment across the entire repository.
 - **Enterprise Multi-Batch Concurrency & Resiliency**:
   - The background batch runner operates under global worker semaphores (`4 concurrent jobs`, `10 concurrent LLM calls`) ensuring safe execution without API rate limit bottlenecks.
@@ -158,7 +158,7 @@ $$\text{Total Cost} = \left(\frac{\text{Input Tokens}}{1{,}000{,}000} \times \$0
   2. **Batch Progress (`BatchActivityView.jsx`)**: Real-time monitor tracking running batch jobs, per-job question counts, status indicators, and background worker progress.
   3. **Review Queue (`AiValidatedQuestionsView.jsx`)**: High-quality items (>90 points) awaiting one-click educator publishing into the Question Bank.
   4. **Question Bank (`QuestionBankView.jsx`)**: Primary verified repository strictly presented in high-density **Editorial Cards** (with search, multi-factor filtering, in-place inline editing, bulk deletion, and PDF/CSV/JSON export; legacy table grid mode removed).
-  5. **Passage Bank (`PassageBankView.jsx`)**: Comprehensive repository of reading passages and research narratives. Features the interactive **Passage Editorial Desk** for live editing of passage content, attaching and previewing figures/diagrams (`PassageVisualStimulusEditor.jsx`), reviewing all linked practice questions (`PassageLinkedQuestionCard.jsx`), and dedicated cascade passage deletion with linked question removal via `DeletePassageModal`.
+  5. **Passage Bank (`PassageBankView.jsx`)**: Comprehensive repository of reading passages and research narratives. Features the interactive **Passage Editorial Desk** for live editing of passage content, attaching and previewing figures/diagrams (`PassageVisualStimulusEditor.jsx`), reviewing all linked practice questions (`PassageLinkedQuestionCard.jsx`), and dedicated passage deletion with linked question soft-removal via `DeletePassageModal`, preserving historical batch execution progress intact.
 
 ---
 

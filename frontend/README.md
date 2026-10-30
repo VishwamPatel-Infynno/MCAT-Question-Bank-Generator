@@ -63,6 +63,8 @@ frontend/src/
 │   │   └── Navbar.jsx            # Header with branding, navigation tabs, status, and theme toggle
 │   ├── modals/
 │   │   ├── index.js              # Modals barrel export
+│   │   ├── ConfirmationModal.jsx # Accessible WCAG AA confirmation modal replacing native window.confirm
+│   │   ├── DeletePassageModal.jsx# Dedicated passage deletion and cascade warning dialog
 │   │   ├── DuplicateComparisonModal.jsx # Side-by-side duplicate candidate vs bank comparison & override modal
 │   │   ├── ExportPaperPreview.jsx# Live print layout previewer
 │   │   └── ExportPrintModal.jsx  # Exam Paper (PDF), Study Pack, CSV and JSON export modal (Focus Trapped)
@@ -114,7 +116,7 @@ frontend/src/
 │   └── useTheme.js               # Dark/light mode persistence
 ├── services/
 │   ├── index.js                  # Services barrel export
-│   └── api.js                    # FastAPI client & SSE stream reader (26 methods including duplicate check & override)
+│   └── api.js                    # FastAPI client & SSE stream reader (28 methods including question restoration, pagination & duplicate override)
 ├── utils/
 │   ├── index.js                  # Utilities barrel export
 │   ├── explanationHelpers.js     # Pure JS distractor line & trap parser

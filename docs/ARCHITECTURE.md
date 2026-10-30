@@ -42,6 +42,24 @@ graph TD
     SSEStream -->|Real-Time SSE JSON Updates| User
 ```
 
+### 1.2 Dual First-Class AI Inference Architecture
+
+The multi-agent workflow is architected with a decoupled, provider-agnostic inference layer orchestrated by **LiteLLM**. The active inference engine is switchable on demand via the `ACTIVE_LLM_PROVIDER` environment variable without code modifications:
+
+1. **DeepInfra Provider (`ACTIVE_LLM_PROVIDER=deepinfra`)**:
+   - **Primary Model**: `deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017`
+   - **Characteristics**: Extreme throughput (~110-140 tok/s), 1,024,000-token context window, sub-second TTFT (Time-To-First-Token).
+   - **Official Rate Card**: $0.098 input / $0.294 output per 1M tokens.
+   - **Visual Stimuli**: Integrated with `black-forest-labs/FLUX-2-klein-4b` ($0.014/unit base rate).
+
+2. **Anthropic Provider (`ACTIVE_LLM_PROVIDER=anthropic`)**:
+   - **Primary Model**: `claude-haiku-5-5` (or aliases `claude-3-5-haiku-20241022`, `claude-3-5-sonnet-20241022`, `claude-3-opus-20240229`).
+   - **Characteristics**: High nuance and instruction obedience, 200,000-token context window.
+   - **Official Rate Card (Claude Haiku 5.5)**: $0.10 input / $0.50 output per 1M tokens ($\le$ 100K prompt); $0.50 input / $2.50 output (> 100K prompt).
+   - **Prompt Caching Accounting**: First-class tracking for Anthropic ephemeral cache read ($0.01 / 1M tokens) and cache creation ($0.125 / 1M tokens) with automatic mathematical price calculations.
+
+Both engines strictly enforce model parameter constraints (`DEFAULT_TEMPERATURE = 0.2`, `REVIEWER_TEMPERATURE = 0.1`, `BLIND_SOLVER_TEMPERATURE = 0.1`) and feed identical Pydantic transfer schemas into the LangGraph state machine.
+
 ---
 
 ## 2. Multi-Agent StateGraph Workflow
@@ -441,6 +459,8 @@ erDiagram
         TEXT visual_stimulus_url "External diagram URL"
         TEXT visual_description "Alt text description"
         INTEGER question_count "Number of questions sharing this passage"
+        BOOLEAN is_deleted "Soft-delete flag preserving batch integrity"
+        VARCHAR(64) deleted_at "ISO-8601 UTC deletion timestamp"
         VARCHAR(64) created_at "ISO-8601 UTC timestamp"
     }
 
@@ -448,7 +468,7 @@ erDiagram
         VARCHAR(64) id PK "Unique UUID4 batch identifier"
         VARCHAR(64) section "MCAT section enum"
         VARCHAR(128) subtopic "Categorized syllabus topic"
-        VARCHAR(32) difficulty "easy | medium | hard"
+        VARCHAR(32) difficulty "low | medium | high"
         INTEGER total_questions "Total items requested in batch (e.g. 50)"
         INTEGER staged_questions "Items verified and staged"
         VARCHAR(32) status "in_progress | completed | failed"
@@ -473,8 +493,10 @@ erDiagram
         VARCHAR(64) section "MCAT section enum"
         VARCHAR(128) section_label "Human-readable subtest name"
         VARCHAR(128) subtopic "Categorized syllabus topic"
-        VARCHAR(32) difficulty "easy | medium | hard"
+        VARCHAR(32) difficulty "low | medium | high"
         VARCHAR(32) status "in_bank | ai_validated | below_threshold | discarded"
+        BOOLEAN is_deleted "Soft-delete flag preserving batch progress"
+        VARCHAR(64) deleted_at "ISO-8601 UTC deletion timestamp"
         INTEGER mcat_scaled_score "Calibrated scaled score (118-132)"
         VARCHAR(128) aamc_skill "AAMC SIRS (Skill 1-4) or CARS Skill"
         TEXT stimulus_text "Clinical passage or context scenario"
@@ -492,7 +514,7 @@ erDiagram
         INTEGER total_tokens "Cumulative tokens consumed"
         INTEGER prompt_tokens "Cumulative prompt tokens"
         INTEGER completion_tokens "Cumulative completion tokens"
-        DOUBLE_PRECISION cost_usd "Total cost in USD ($0.098 in / $0.294 out)"
+        DOUBLE_PRECISION cost_usd "Total cost in USD (rate per active provider)"
         JSONB token_usage_details "Per-agent itemized token breakdown"
         VARCHAR(64) combination_id "Matrix combination code (CMB00001)"
         VARCHAR(64) run_id "Execution run UUID4"
@@ -512,10 +534,20 @@ erDiagram
     }
 ```
 
-### 6.3 Passage Entity Lifecycle & Atomic Cascade Deletion
+### 6.3 Passage Entity Lifecycle, Soft-Deletion & Batch Integrity
 When multiple questions are generated as a passage set, they share a foreign key reference (`passage_id`) pointing to the parent `PASSAGES` record:
 - **Passage Association**: Educators can browse shared passages in the Passage Bank and inspect all linked questions simultaneously.
-- **Atomic Cascade Deletion (`DELETE /api/passages/{passage_id}`)**: When an administrator deletes a reading passage via `delete_passage`, the database repository permanently deletes the passage and all associated questions across all lifecycle statuses (`in_bank`, `ai_validated`, `batch_only`) in a single atomic SQL transaction. It also recalculates question progress metrics (`actual_count`) on any affected batch jobs and batches, ensuring consistent database state. In the UI, a dedicated `DeletePassageModal` prompts educators with the exact count of linked questions being permanently removed.
+- **Non-Destructive Soft-Deletion (`DELETE /api/passages/{passage_id}`)**: When an administrator deletes a reading passage via `delete_passage`, the repository soft-deletes both the passage and all associated questions (`is_deleted = true`, `deleted_at = now()`) in a single atomic SQL transaction.
+- **Batch History Preservation**: Crucially, soft-deletion does **not** clear `job.passage_id` and does **not** decrement job or batch `actual_count` metrics. This guarantees that Batch Progress monitors and audit historical execution records remain 100% intact even if an educator deletes questions from the Question Bank.
+- **Restoration Architecture**: Soft-deleted questions can be restored at any time via `POST /api/questions/{question_id}/restore` (`restore_question`). If the restored question references a soft-deleted passage, the parent passage is automatically restored (`is_deleted = false`, `deleted_at = null`) alongside it.
+- **Composite Index Optimization**: To maintain high-velocity querying across thousands of questions, the `questions` table maintains 7 composite indexes:
+  - `ix_questions_status_created` (`status`, `created_at`)
+  - `ix_questions_section_created` (`section`, `created_at`)
+  - `ix_questions_batch_job` (`batch_id`, `job_id`)
+  - `ix_questions_section_subtopic` (`section`, `subtopic`)
+  - `ix_questions_is_duplicate_override` (`is_duplicate_override`)
+  - `ix_questions_section_difficulty` (`section`, `difficulty`)
+  - `ix_questions_status_final_score` (`status`, `final_score`)
 
 ### 6.4 Deduplication & Override Schema Architecture
 The deduplication subsystem extends the PostgreSQL schema with two persistent fields:

@@ -11,32 +11,33 @@ This document provides a comprehensive technical reference for all REST endpoint
 - **Base URL**: `http://localhost:8000` (or configured deployment host)
 - **Content Type**: `application/json` (REST endpoints), `text/event-stream` (Live generation SSE stream)
 - **CORS Policy & Security Headers**: Restricted to trusted origins (`http://localhost:5173`, etc.) with OWASP security headers (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`).
-- **Autonomous Inference Gateway**: Backed by high-throughput enterprise reasoning models (~110-140 tok/s) with deterministic sub-micro-cent token billing ($0.098 input / $0.294 output per 1M tokens).
+- **Autonomous Inference Gateway**: Multi-provider inference engine supporting dual first-class providers: **DeepInfra** (DeepSeek V4.1 Flash at $0.098 in / $0.294 out per 1M tokens) and **Anthropic** (Claude Haiku 5.5 / Sonnet / Opus with prompt cache read/write rates), dynamically switchable via `ACTIVE_LLM_PROVIDER`.
 - **MCAT 4-Choice Purity**: All question endpoints enforce strictly 4 options ($A, B, C, D$) with length symmetry and zero multi-choice artifacts.
 
 ---
 
-## 2. API Endpoints Summary (33 Operations / 26 Endpoint Paths)
+## 2. API Endpoints Summary (34 Operations / 28 Endpoint Paths)
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `POST` | `/api/generate` | Triggers multi-agent workflow and streams real-time SSE events (Candidate Staged) |
 | `POST` | `/api/questions` | **Admin Review Gate**: Persists an approved candidate question into the Question Bank |
 | `POST` | `/api/questions/batch` | **Admin Review Gate**: Bulk-persists an array of approved candidates atomically |
-| `GET` | `/api/questions` | Lists saved questions with filtering, search, and repository token metrics |
-| `GET` | `/api/questions/counts` | Returns question counts grouped by lifecycle status (`in_bank`, `ai_validated`, etc.) |
+| `GET` | `/api/questions` | Lists saved questions with filtering, pagination (`limit`/`offset`), `slim` projection, and repository token metrics |
+| `GET` | `/api/questions/counts` | Returns question counts grouped by lifecycle status (`in_bank`, `ai_validated`, `batch_only`, `below_threshold`, `discarded`, `deleted`, `total`) |
 | `GET` | `/api/questions/{question_id}` | Retrieves a single question by UUID4 primary key |
 | `POST` | `/api/questions/{question_id}/override-duplicate` | **Admin Review Gate**: Explicitly overrides duplicate collision alert and approves into bank |
+| `POST` | `/api/questions/{question_id}/restore` | **Admin Action**: Restores a soft-deleted question and its linked passage back to active status |
 | `POST` | `/api/questions/check-duplicate` | Evaluates a candidate question draft against the bank for similarity & collisions |
-| `DELETE` | `/api/questions/{question_id}` | Deletes a single question by UUID4 primary key |
-| `POST` | `/api/questions/delete-batch` | **Admin Action**: Bulk-deletes multiple questions atomically |
+| `DELETE` | `/api/questions/{question_id}` | **Admin Action**: Soft-deletes a question by UUID4, preserving it for batch progress history |
+| `POST` | `/api/questions/delete-batch` | **Admin Action**: Bulk soft-deletes multiple questions atomically, preserving batch progress |
 | `POST` | `/api/questions/update-status` | **Admin Action**: Bulk-updates question lifecycle status (`in_bank`, `ai_validated`, `discarded`) |
 | `PATCH` | `/api/questions/{question_id}/status` | Updates lifecycle status for an individual question |
 | `GET` | `/api/questions/{question_id}/image` | Serves visual stimulus (FLUX AI image or Vector SVG diagram) with content negotiation |
-| `GET` | `/api/passages` | Lists shared reading passages with query filtering and question counts |
-| `GET` | `/api/passages/{passage_id}` | Retrieves a single reading passage along with all its linked questions |
+| `GET` | `/api/passages` | Lists shared reading passages with query filtering, search, and active question counts |
+| `GET` | `/api/passages/{passage_id}` | Retrieves a single reading passage along with all its linked active questions |
 | `POST` | `/api/passages` | Admin endpoint to create or update a shared reading passage record |
-| `DELETE` | `/api/passages/{passage_id}` | Admin endpoint to delete a reading passage record and cascade-remove all associated questions |
+| `DELETE` | `/api/passages/{passage_id}` | Admin endpoint to soft-delete a passage and its linked questions, preserving batch progress history |
 | `GET` | `/api/batches` | Lists generation batches with active running counts and global concurrency metrics |
 | `GET` | `/api/batches/{batch_id}` | Retrieves a generation batch with all jobs and grouped questions |
 | `POST` | `/api/batches/start` | Launches an asynchronous background batch generation (dynamically allocated, e.g., 50 Qs = 10 jobs) |
@@ -49,8 +50,8 @@ This document provides a comprehensive technical reference for all REST endpoint
 | `POST` | `/api/batches/{batch_id}/resolve-duplicates` | Resolves duplicate clusters by keeping designated leaders and archiving/deleting duplicates |
 | `POST` | `/api/batches/{batch_id}/refill` | Replenishes batch question deficit up to target count using pedagogical thematic variations |
 | `GET` | `/api/export` | Exports repository in standardized JSON or CSV format |
-| `GET` | `/api/health` | Service health, database connectivity, active models, and pricing |
-| `GET` | `/api/config` | Retrieves active model configuration, runtime parameters (24 fields), and pricing constants |
+| `GET` | `/api/health` | Service health, database connectivity, active provider, models, and pricing |
+| `GET` | `/api/config` | Retrieves active model configuration, runtime parameters (28 fields), and pricing constants |
 | `GET` | `/api/sections` | Returns official AAMC MCAT sections, syllabus hierarchy, skills, and pacing |
 | `GET` | `/api/taxonomy` | Returns the complete official AAMC Dependent Taxonomy JSON tree |
 
@@ -195,7 +196,7 @@ Lists saved questions from the Question Bank repository with optional filtering,
 ### 3.3 Get Question Status Counts
 `GET /api/questions/counts`
 
-Returns real-time question counts grouped by lifecycle status for dashboard tabs and metrics strips.
+Returns real-time question counts grouped by lifecycle status for dashboard tabs, metrics strips, and deletion monitors. Note that soft-deleted questions are tracked under `"deleted"` and excluded from `"total"` active items.
 
 #### Response (`200 OK`)
 ```json
@@ -204,7 +205,9 @@ Returns real-time question counts grouped by lifecycle status for dashboard tabs
   "ai_validated": 15,
   "below_threshold": 3,
   "discarded": 5,
-  "total": 65
+  "batch_only": 10,
+  "deleted": 2,
+  "total": 75
 }
 ```
 
@@ -458,7 +461,7 @@ Evaluates a candidate question draft against the existing Question Bank reposito
 ### 3.12 Delete Question
 `DELETE /api/questions/{question_id}`
 
-Deletes a question by UUID4 primary key.
+Soft-deletes a question by UUID4 primary key (`is_deleted = true`, `deleted_at = ISO UTC timestamp`). This removes the item from active Question Bank and Review Queue views while preserving batch progress counts and foreign key relations.
 
 #### Response (`200 OK`)
 ```json
@@ -472,7 +475,7 @@ Deletes a question by UUID4 primary key.
 ### 3.13 Bulk Delete Questions
 `POST /api/questions/delete-batch`
 
-Deletes multiple questions in a single atomic transaction.
+Soft-deletes multiple questions atomically in a single SQL transaction (`is_deleted = true`, `deleted_at = ISO UTC timestamp`), preserving batch progress and integrity.
 
 #### Request Body
 ```json
@@ -491,7 +494,59 @@ Deletes multiple questions in a single atomic transaction.
 
 ---
 
-### 3.14 Start Background Batch Generation (50 Qs)
+### 3.14 Restore Soft-Deleted Question
+`POST /api/questions/{question_id}/restore`
+
+Restores a soft-deleted question back to active status (`is_deleted = false`, `deleted_at = null`). If the question is linked to a shared reading passage that was also soft-deleted, the linked passage is automatically restored to active status as well.
+
+#### Parameters
+| Parameter | Type | In | Required | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `question_id` | `string` | path | Yes | UUID4 primary key of the question to restore |
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "question": {
+    "id": "e2a39281-b51c-4b6b-88a2-11e2f389a9c1",
+    "section": "chem_phys",
+    "section_label": "Chemical and Physical Foundations of Biological Systems",
+    "subtopic": "Thermodynamics & Reaction Kinetics",
+    "difficulty": "medium",
+    "status": "in_bank",
+    "is_deleted": false,
+    "deleted_at": null,
+    "mcat_scaled_score": 130,
+    "aamc_skill": "Skill 2: Scientific Reasoning and Problem-solving",
+    "question_stem": "Under physiological conditions, which thermodynamic parameter governs the spontaneous folding of a globular protein?",
+    "options": [
+      {"id": "A", "text": "A negative enthalpy change from peptide bonds"},
+      {"id": "B", "text": "A favorable conformational entropy of the backbone"},
+      {"id": "C", "text": "A large positive entropy change of the solvent"},
+      {"id": "D", "text": "A zero net free energy change at equilibrium"}
+    ],
+    "correct_answer_id": "C",
+    "explanation": "Why Option C is Correct: The hydrophobic effect drives protein folding...",
+    "final_score": 94,
+    "total_tokens": 1200,
+    "cost_usd": 0.0002117,
+    "primary_trap": "Calculation_Formula_Trap",
+    "created_at": "2026-10-26T12:00:00Z"
+  }
+}
+```
+
+#### Error Response (`404 Not Found`)
+```json
+{
+  "detail": "Question not found"
+}
+```
+
+---
+
+### 3.15 Start Background Batch Generation (50 Qs)
 `POST /api/batches/start`
 
 Launches an asynchronous background batch generation. Creates 1 batch record and 10 parallel job records (each job producing 5 questions for 50 total items). Returns `202 Accepted` immediately while generation runs in the background.
@@ -525,7 +580,7 @@ Accepts a `GenerationRequest` payload (same schema as `POST /api/generate`).
 
 ---
 
-### 3.15 List Batches & Concurrency Metrics
+### 3.16 List Batches & Concurrency Metrics
 `GET /api/batches`
 
 Lists generation batches with job progress counts, active running batch numbers, and real-time global concurrency metrics.
@@ -564,7 +619,7 @@ Lists generation batches with job progress counts, active running batch numbers,
 
 ---
 
-### 3.16 Get Single Batch with Grouped Jobs & Questions
+### 3.17 Get Single Batch with Grouped Jobs & Questions
 `GET /api/batches/{batch_id}`
 
 Retrieves a generation batch along with all 10 jobs (augmented with their generated questions) and flat question records.
@@ -596,7 +651,7 @@ Retrieves a generation batch along with all 10 jobs (augmented with their genera
 
 ---
 
-### 3.17 Stop Single Batch
+### 3.18 Stop Single Batch
 `POST /api/batches/{batch_id}/stop`
 
 Gracefully halts active background jobs for a specific batch. Cancels running asyncio sub-tasks and updates remaining pending jobs to `"cancelled"` status without deleting questions already generated and saved to PostgreSQL.
@@ -615,7 +670,7 @@ Gracefully halts active background jobs for a specific batch. Cancels running as
 
 ---
 
-### 3.18 Retry Incomplete Batch Jobs
+### 3.19 Retry Incomplete Batch Jobs
 `POST /api/batches/{batch_id}/retry`
 
 Re-launches failed, cancelled, or pending jobs for an incomplete batch into the global worker pool. Re-engages the global semaphore without duplicating completed questions.
@@ -644,7 +699,7 @@ Optionally accepts an updated `GenerationRequest` payload to override parameters
 
 ---
 
-### 3.19 Cancel All Active Batches
+### 3.20 Cancel All Active Batches
 `POST /api/batches/cancel-all`
 
 System-wide administrative action that gracefully halts all currently executing background batches. Cancels active worker tasks, sets status to `"cancelled"` or `"partially_completed"`, and safely flushes aggregate metrics to the database.
@@ -660,7 +715,7 @@ System-wide administrative action that gracefully halts all currently executing 
 
 ---
 
-### 3.20 Delete Batch
+### 3.21 Delete Batch
 `DELETE /api/batches/{batch_id}`
 
 Cancels any active runner task for the batch, then permanently deletes the generation batch record and cascades deletion to all associated jobs and question items.
@@ -675,7 +730,7 @@ Cancels any active runner task for the batch, then permanently deletes the gener
 
 ---
 
-### 3.21 Create or Update Batch Record
+### 3.22 Create or Update Batch Record
 `POST /api/batches`
 
 Admin endpoint to create or update a generation batch entity directly in PostgreSQL.
@@ -694,7 +749,7 @@ Admin endpoint to create or update a generation batch entity directly in Postgre
 
 ---
 
-### 3.22 Get Batch Duplicate Clusters
+### 3.23 Get Batch Duplicate Clusters
 `GET /api/batches/{batch_id}/duplicate-clusters`
 
 Performs pairwise similarity clustering on questions within a batch to identify redundant items and designate primary leader questions. Automatically excludes previously discarded questions.
@@ -740,7 +795,7 @@ Performs pairwise similarity clustering on questions within a batch to identify 
 
 ---
 
-### 3.23 Resolve Batch Duplicates
+### 3.24 Resolve Batch Duplicates
 `POST /api/batches/{batch_id}/resolve-duplicates`
 
 Resolves duplicate clusters in a batch by preserving the designated leader question and archiving (`status='discarded'`) or deleting redundant duplicate questions. Refreshes batch aggregates and computes any remaining question deficit.
@@ -776,7 +831,7 @@ Resolves duplicate clusters in a batch by preserving the designated leader quest
 
 ---
 
-### 3.24 Refill Batch Question Deficit
+### 3.25 Refill Batch Question Deficit
 `POST /api/batches/{batch_id}/refill`
 
 Replenishes a batch up to its target question count by launching targeted background jobs for archived or missing questions with diverse pedagogical thematic angles to avoid re-generating similar concepts.
@@ -806,13 +861,13 @@ Replenishes a batch up to its target question count by launching targeted backgr
 
 ---
 
-### 3.25 Passages Management Endpoints
+### 3.26 Passages Management Endpoints
 `GET /api/passages` | `GET /api/passages/{passage_id}` | `POST /api/passages` | `DELETE /api/passages/{passage_id}`
 
-- **List Passages (`GET /api/passages`)**: Lists reading passages with optional `section`, `subtopic`, and `search` query parameters.
-- **Get Single Passage (`GET /api/passages/{passage_id}`)**: Retrieves a reading passage along with its complete array of linked questions.
+- **List Passages (`GET /api/passages`)**: Lists reading passages with optional `section`, `subtopic`, and `search` query parameters. Soft-deleted passages are excluded by default.
+- **Get Single Passage (`GET /api/passages/{passage_id}`)**: Retrieves a reading passage along with its complete array of linked active questions.
 - **Create/Update Passage (`POST /api/passages`)**: Admin endpoint to persist or modify a shared stimulus passage.
-- **Delete Passage (`DELETE /api/passages/{passage_id}`)**: Admin endpoint to delete a reading passage record and permanently cascade-remove all associated questions across all statuses (`in_bank`, `ai_validated`, `batch_only`), updating affected job and batch metrics.
+- **Delete Passage (`DELETE /api/passages/{passage_id}`)**: Admin endpoint to soft-delete a reading passage record and its associated questions (`is_deleted = true`, `deleted_at = ISO UTC timestamp`). This hides them from active catalog and review views while preserving linked batch job histories, passages IDs, and execution metrics (`actual_count`) 100% intact.
 
 #### Query Parameters for Listing Passages (`GET /api/passages`)
 | Parameter | Type | Required | Description |
@@ -930,7 +985,7 @@ curl -X DELETE "http://localhost:8000/api/passages/550e8400-e29b-41d4-a716-44665
 
 ---
 
-### 3.26 Export Repository
+### 3.27 Export Repository
 `GET /api/export`
 
 Exports the entire Question Bank (or filtered subsets) in standardized JSON or CSV format.
@@ -948,42 +1003,53 @@ curl -X GET "http://localhost:8000/api/export?format=csv" -o mcat_question_bank.
 
 ---
 
-### 3.27 Service Health Check
+### 3.28 Service Health Check
 `GET /api/health`
 
-Evaluates system status, database connectivity, active text reasoning model, neural image model, and official token pricing.
+Evaluates system status, database connectivity, active text reasoning model, neural image model, provider configuration, and active token pricing.
 
 #### Response (`200 OK`)
 ```json
 {
   "status": "healthy",
+  "exam": "AAMC MCAT",
   "database": "connected",
-  "default_model": "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
-  "image_model": "deepinfra/black-forest-labs/FLUX-2-klein-4b",
-  "pricing": {
-    "cost_per_million_input": 0.098,
-    "cost_per_million_output": 0.294,
-    "image_base_cost_usd": 0.014
-  }
+  "database_connected": true,
+  "database_status": "ready",
+  "default_text_model": "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "default_image_model": "black-forest-labs/FLUX-2-klein-4b",
+  "active_provider": "deepinfra",
+  "has_anthropic_key": false,
+  "has_deepinfra_key": true,
+  "max_regenerations": 3,
+  "passing_threshold": 90,
+  "cost_per_million_input": 0.098,
+  "cost_per_million_output": 0.294,
+  "image_width": 1024,
+  "image_height": 1024,
+  "image_iters": 0,
+  "current_image_cost_usd": 0.014
 }
 ```
 
 ---
 
-### 3.28 Runtime Configuration & Settings
+### 3.29 Runtime Configuration & Settings
 `GET /api/config`
 
-Retrieves active runtime engine configuration, cascade fallbacks, worker concurrency limits, gateway secrets status (masked booleans), and pricing parameters across all 24 runtime fields.
+Retrieves active runtime engine configuration, active provider (`deepinfra` or `anthropic`), cascade fallbacks, worker concurrency limits, gateway secrets status (masked booleans), and pricing parameters across all 28 runtime fields.
 
 #### Response (`200 OK`)
 ```json
 {
   "default_text_model": "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
-  "default_image_model": "deepinfra/black-forest-labs/FLUX-2-klein-4b",
+  "default_image_model": "black-forest-labs/FLUX-2-klein-4b",
+  "active_provider": "deepinfra",
+  "has_anthropic_key": false,
+  "has_deepinfra_key": true,
   "fast_model_cascade": [
     "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017"
   ],
-  "has_deepinfra_key": true,
   "max_regenerations": 3,
   "passing_threshold": 90,
   "batch_passing_threshold": 85,
@@ -1011,7 +1077,7 @@ Retrieves active runtime engine configuration, cascade fallbacks, worker concurr
 
 ---
 
-### 3.29 Official AAMC Sections & Syllabus Hierarchy
+### 3.30 Official AAMC Sections & Syllabus Hierarchy
 `GET /api/sections`
 
 Returns the complete cached syllabus hierarchy across all 4 official AAMC MCAT sections, including subjects, units, topics, subtopics, reasoning skills, and target pacing.
@@ -1058,7 +1124,7 @@ Returns the complete cached syllabus hierarchy across all 4 official AAMC MCAT s
 
 ---
 
-### 3.30 Official AAMC Dependent Taxonomy Tree
+### 3.31 Official AAMC Dependent Taxonomy Tree
 `GET /api/taxonomy`
 
 Returns the comprehensive hierarchical AAMC Dependent Taxonomy tree powering the multi-level Guided Wizard selection flow.
@@ -1115,3 +1181,9 @@ stateDiagram-v2
 - **In-Progress Guard**: `GET /api/questions` and `GET /api/questions/counts` strictly filter out questions belonging to batches where `status == 'in_progress'`.
 - **Atomic Promotion**: When a batch completes, `promote_completed_batch_questions(batch_id)` executes an atomic SQL update promoting questions with `final_score > 90` to `ai_validated`.
 - **Failure Safety**: If a batch is stopped or cancelled, questions remain in `batch_only` status and never transition to `ai_validated`, ensuring educators only review batches that finished completely.
+
+### Soft-Deletion & Batch Integrity Safeguards
+- **Non-Destructive Deletion**: Calling `DELETE /api/questions/{question_id}` or `POST /api/questions/delete-batch` sets `is_deleted = true` and `deleted_at = now()`. The question is excluded from normal queries (`include_deleted=false` by default) but remains in PostgreSQL.
+- **Batch History Preservation**: Because soft-deleted questions retain their records in the database, the parent batch's progress counter (`actual_count`), linked jobs, and historical review percentages remain 100% intact without breaking relational integrity.
+- **Restoration**: Soft-deleted questions can be restored at any time via `POST /api/questions/{question_id}/restore`. If the item belongs to a shared passage that was also soft-deleted, the passage is automatically revived alongside the question.
+- **Status Counts**: The `GET /api/questions/counts` endpoint provides real-time visibility into active status distributions and includes the total count of soft-deleted items under `"deleted"`.

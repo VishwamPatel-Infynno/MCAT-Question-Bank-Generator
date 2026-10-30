@@ -45,17 +45,17 @@ pnpm dev
 Before submitting any code changes, ensure all verification suites pass with zero defects (see [`docs/TESTING_AND_QA.md`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/docs/TESTING_AND_QA.md) for full test specifications):
 
 ```bash
-# 1. Backend pytest suite (73 deterministic unit & integration tests across 15 modules; 42 pass offline, 31 DB tests skip cleanly)
+# 1. Backend pytest suite (90 deterministic unit & integration tests across 17 modules; 54 pass offline, 36 DB tests skip cleanly)
 PYTHONPATH=backend pytest backend/tests -v -m "not live_e2e"
 
 # 2. Backend Python linter and formatting checks (enforcing SIM, RET, B, C4, E, W, F, I, UP)
 ruff check backend/
 ruff format --check backend/
 
-# 3. Frontend Oxlint linter (0 errors, 0 warnings policy across 97 files)
+# 3. Frontend Oxlint linter (0 errors, 0 warnings policy across 82 files)
 pnpm --dir frontend lint
 
-# 4. Frontend production build (compiles in ~218ms via Vite 8)
+# 4. Frontend production build (compiles in ~197ms via Vite 8)
 pnpm --dir frontend build
 ```
 
@@ -66,20 +66,22 @@ pnpm --dir frontend build
 1. **Strict Quality Threshold**: Questions scoring $\le 90$ must be regenerated up to 3 times by the Re-Generator agent. If still below 90, the workflow must halt and reject the question from the Question Bank.
 2. **Blind-Solver Dual Validation**: Every candidate question is solved blindly without knowing the author's key or explanation. Any key discrepancy or confidence $< 88\%$ triggers automatic remediation to ensure question keys are incontrovertible.
 3. **Review Queue Withholding Guarantee**: Questions produced during background batches are held safely in `batch_only` status while the batch is in progress to prevent partial/draft questions from leaking into the reviewer queue. High-scoring items (>90) are atomically promoted to `ai_validated` upon batch completion.
-4. **Custom Authoring Instructions Enforcement**: Educator directives (`additional_instructions`) supplied via Step 3 must be injected into prompt builders with high-priority pedagogical mandate across passage drafting, question drafting, and remediation critique cycles.
-5. **Deterministic Token & Cost Math**: All costs must be computed via official DeepInfra rates:
-   - Text: $0.098 input / $0.294 output per 1M tokens.
+4. **Soft-Deletion & Batch Integrity**: Calling delete on questions or reading passages sets `is_deleted = true` without decrementing batch progress metrics (`actual_count`), ensuring generation monitoring history remains intact. Questions and linked passages can be restored via `POST /api/questions/{id}/restore`.
+5. **Custom Authoring Instructions Enforcement**: Educator directives (`additional_instructions`) supplied via Step 3 must be injected into prompt builders with high-priority pedagogical mandate across passage drafting, question drafting, and remediation critique cycles.
+6. **Deterministic Token & Cost Math**: All costs must be computed accurately across dual first-class providers:
+   - DeepInfra: $0.098 input / $0.294 output per 1M tokens.
+   - Anthropic: Claude Haiku 5.5 ($0.10 in / $0.50 out per 1M), Claude 3.5 Sonnet, Claude 3 Opus, and prompt cache read/write rates.
    - Image: Flat baseline rate of $0.014 USD per image (scaled by $(\text{width}/1024) \times (\text{height}/1024)$).
-6. **Modular Layer Separation**:
-   - Routing: `backend/app/api/v1/` (28 operations across 22 endpoint paths)
+7. **Modular Layer Separation**:
+   - Routing: `backend/app/api/v1/` (34 operations across 28 endpoint paths)
    - Business/Agent Logic: `backend/app/agents/` (Generator, Blind Solver, Reviewer, Regenerator, Visuals)
    - Data Access Layer: `backend/app/repositories/`
    - Database Entities: `backend/app/models/`
    - Background Services: `backend/app/services/` (`batch_runner.py` with global job semaphores)
    - Frontend: Top-level views (`views/`) with feature-based component directories (`wizard/`, `pipeline/`, `question/`, `passage/`, `staged/`, `bank/`, `batch/`, `validated/`, `layout/`, `modals/`, `common/`) and centralized hooks/constants.
-5. **Multi-Agent Pipeline & Cognitive Fusion**: Step 01 fuses item authoring and 100-point rubric self-critique (`Drafting & Review`) into a single pass. Step 02 executes independent dual validation (`Answer Check`). Step 03 executes remediation (`Question Polish`) for drafts scoring $\le 90$ or failing verification, while Step 04 renders visual stimuli (`Figures & Diagrams`).
-6. **AAMC Dual Split-Pane Reading Mode**: Ensures dense scientific research passages and CARS essays are presented side-by-side with sticky scrolling and synchronized candidate review.
-7. **Option Symmetry & Anti-AI Standard**: Enforce $\pm 15\%$ option length parity across strictly 4 options ($A, B, C, D$) and single hyphens (`-`) only; em dashes (`—`) and en dashes (`–`) are strictly forbidden across prompts and generation output.
+8. **Multi-Agent Pipeline & Cognitive Fusion**: Step 01 fuses item authoring and 100-point rubric self-critique (`Drafting & Review`) into a single pass. Step 02 executes independent dual validation (`Answer Check`). Step 03 executes remediation (`Question Polish`) for drafts scoring $\le 90$ or failing verification, while Step 04 renders visual stimuli (`Figures & Diagrams`).
+9. **AAMC Dual Split-Pane Reading Mode**: Ensures dense scientific research passages and CARS essays are presented side-by-side with sticky scrolling and synchronized candidate review.
+10. **Option Symmetry & Anti-AI Standard**: Enforce $\pm 15\%$ option length parity across strictly 4 options ($A, B, C, D$) and single hyphens (`-`) only; em dashes (`—`) and en dashes (`–`) are strictly forbidden across prompts and generation output.
 
 ---
 

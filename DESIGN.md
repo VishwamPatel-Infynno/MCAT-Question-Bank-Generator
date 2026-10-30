@@ -262,6 +262,13 @@ Renders pedagogical rationales across three distinct, beautifully styled visual 
   - **Semantic Action Variants**: Supports `danger` (`--status-danger`), `warning` (`--status-warning`), and `info` (`--brand-primary`) accents with contextual warning banners.
   - **Contextual Telemetry**: Renders live target count badges and button loading spinners during async mutations.
 
+### 4.15 Passage Deletion & Cascade Warning Modal (`DeletePassageModal.jsx`)
+- **Component**: [`frontend/src/components/modals/DeletePassageModal.jsx`](file:///Users/infynnosolutions/Desktop/Code/Question%20Bank%20Generator/frontend/src/components/modals/DeletePassageModal.jsx) provides a dedicated deletion dialog when removing shared reading passages from the Passage Bank.
+- **Features & Architecture**:
+  - **Linked Questions Audit Counter**: Queries and itemizes the exact number of linked questions across all lifecycle statuses (`in_bank`, `ai_validated`, `batch_only`) that will be soft-deleted.
+  - **Batch Preservation Notice**: Clearly communicates to educators that soft-deleting the passage removes it from active catalogs while preserving batch progress history intact.
+  - **Accessible Focus Management**: Implements `useFocusTrap` to contain keyboard focus, with `Escape` key cancellation and autofocus on the cancel action for safety.
+
 ---
 
 ## 5. Micro-Animations & Dynamic Feedback

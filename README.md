@@ -19,10 +19,10 @@ For deep-dive technical specifications, architecture diagrams, API schemas, and 
 | **[Client System & Workflow Guide (docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)](docs/CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md)** | **Primary Client Deliverable**: End-to-end operational walkthrough, 3-step wizard, 2 calibrated generation scopes (Practice Set [5 Qs] and Full Exam [50 Qs]), Low/Medium/High difficulty tiers, Blind-Solver safeguard, Deduplication & Editorial Override workflow, AAMC Split-Pane reading mode, canonical Editorial Cards Question Bank, mentor explanations, and token transparency. |
 | **[UI/UX Design System (DESIGN.md)](DESIGN.md)** | Authoritative design tokens, dual obsidian/alabaster themes, streamlined 3-step wizard specs, canonical Question Bank Editorial Cards view, Duplicate Comparison Modal, AAMC Dual Split-Pane reading mode, accessible modal focus-trapping contracts, typography scale, component contracts, accessibility criteria (WCAG AA), and micro-animations. |
 | **[Architecture & Multi-Agent Workflow](docs/ARCHITECTURE.md)** | Complete LangGraph StateGraph diagrams, 3-step pipeline specifications, Blind-Solver Dual Validation, Deduplication & Anti-Collision Subsystem, Strict Quality Gate, Two-Tier quality threshold model, global worker semaphores, background batch runner, SSE pipeline, and PostgreSQL 16 ERD. |
-| **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation (33 operations across 26 endpoint paths), deduplication, duplicate clustering, auto-resolve & refill endpoints, batch generation schemas, batch controls (`/stop`, `/retry`, `/cancel-all`), SSE event stream contracts, filter parameters, and cURL examples. |
-| **[Testing & Quality Assurance Guide](docs/TESTING_AND_QA.md)** | Complete test specifications for the 73 passing deterministic unit/integration tests across 15 modules (83 total backend tests), 15 TestSprite Playwright automated E2E browser tests (100% pass rate), Ruff & Oxlint code hygiene standards, and CI pipeline. |
-| **[Token Usage & Cost Tracking](docs/TOKEN_TRACKING.md)** | High-throughput rate card ($0.098 in / $0.294 out per 1M tokens), exact mathematical cost formulas, multi-agent accumulation, and UI observability. |
-| **[Installation, Setup & Deployment](docs/SETUP_AND_CONFIG.md)** | Step-by-step setup, Docker PostgreSQL 16 guide, environment variables reference (34 parameters), production deployment, linters, and troubleshooting. |
+| **[REST & SSE API Reference](docs/API.md)** | Complete FastAPI endpoint documentation (34 operations across 28 endpoint paths), deduplication, duplicate clustering, auto-resolve & refill endpoints, question restoration (`/restore`), batch generation schemas, batch controls (`/stop`, `/retry`, `/cancel-all`), SSE event stream contracts, filter parameters, and cURL examples. |
+| **[Testing & Quality Assurance Guide](docs/TESTING_AND_QA.md)** | Complete test specifications for the 90 passing deterministic unit/integration tests across 17 modules (100 total backend tests), 15 TestSprite Playwright automated E2E browser tests (100% pass rate), Ruff & Oxlint code hygiene standards, and CI pipeline. |
+| **[Token Usage & Cost Tracking](docs/TOKEN_TRACKING.md)** | Dual first-class inference rate cards: DeepInfra ($0.098 in / $0.294 out per 1M tokens) and Anthropic Claude ($0.10 in / $0.50 out per 1M with prompt cache write/read rates), exact mathematical cost formulas, multi-agent accumulation, and UI observability. |
+| **[Installation, Setup & Deployment](docs/SETUP_AND_CONFIG.md)** | Step-by-step setup, Docker PostgreSQL 16 guide, environment variables reference (34 parameters / 39 Settings fields), production deployment, linters, and troubleshooting. |
 | **[MCAT Psychometric Rubric & Standards](docs/MCAT_RUBRIC.md)** | Official 4 AAMC sections pacing (~96s to ~101s), 100-point 4-pillar evaluation rubric, Blind-Solver algorithmic verification, $> 90$ quality benchmark, calibrated scaled score (118-132), and cognitive distractor trap engineering. |
 | **[Backend Developer Guide](backend/README.md)** | Layer separation, modular workflow engine (`engine.py`, `nodes.py`, `routes.py`), Blind-Solver agent, services, repositories, testing, and seeding scripts. |
 | **[Frontend Workstation Guide](frontend/README.md)** | Modern React 19 architecture, component directory, top-level views, hooks, scripts, and local development instructions. |
@@ -59,13 +59,12 @@ graph LR
 - **Strict Quality Gate**: If a question fails to score $> 90$ after reaching maximum attempts (`MAX_REGENERATION_ATTEMPTS = 3`), the workflow halts immediately. Bypasses image generation and discards the candidate to protect repository integrity.
 - **Stimulus & Diagram Agent (`image_generator.py`)**: Renders clean programmatic SVG vector diagrams for metabolic pathways, reaction mechanisms, optics, and experimental charts, with fallback support for AI visual generators (strictly disabled for CARS).
 
-### 2. High-Throughput Autonomous Inference & Precision Cost Accounting
-- **Inference Engine**: DeepSeek-V4.1-Flash-1017 High-Throughput Reasoning Engine (via DeepInfra)
-- **Official Rate Card**:
-  - **Input (Prompt) Tokens**: **$0.098** per 1,000,000 tokens
-  - **Output (Completion) Tokens**: **$0.294** per 1,000,000 tokens
-- **Micro-Dollar Tracking**: Every request computes exact USD costs:
-  $$\text{Cost (USD)} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times 0.098\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times 0.294\right)$$
+### 2. Dual First-Class AI Inference & Precision Cost Accounting
+- **Inference Engines**: Multi-provider support switchable via `ACTIVE_LLM_PROVIDER`:
+  - **DeepInfra**: DeepSeek-V4.1-Flash-1017 High-Throughput Reasoning Engine ($0.098 input / $0.294 output per 1M tokens) + FLUX-2-klein-4b visual stimuli ($0.014/unit).
+  - **Anthropic**: Claude Haiku 5.5 ($0.10 input / $0.50 output per 1M tokens), Claude 3.5 Sonnet, and Claude 3 Opus with native prompt cache read/write rates.
+- **Micro-Dollar Tracking**: Every request computes exact USD costs rounded to 7 decimal places:
+  $$\text{Cost (USD)} = \left(\frac{\text{Prompt Tokens}}{1,000,000} \times R_{\text{in}}\right) + \left(\frac{\text{Completion Tokens}}{1,000,000} \times R_{\text{out}}\right) + \text{Cache Costs}$$
 - **Granular Observability**:
   - Live 4-milestone pipeline visualizer with active stopwatch, everyday status indicators (*Passed quality check*, *No figure needed*), and collapsible event log tray.
   - QuestionCard badges displaying total tokens and cost.
@@ -140,8 +139,8 @@ pnpm dev
 Run the full backend test suite covering schemas, routing logic, strict quality gates, SVG & FLUX synthesis, database operations, and token calculations:
 
 ```bash
-# Run backend deterministic test suite (73 deterministic tests across 15 modules)
-# Smart auto-skip: If PostgreSQL is offline, 42 pure unit tests pass and 31 DB tests skip cleanly
+# Run backend deterministic test suite (90 deterministic tests across 17 modules)
+# Smart auto-skip: If PostgreSQL is offline, 54 pure unit tests pass and 36 DB tests skip cleanly
 source .venv/bin/activate
 pytest backend/tests -v -m "not live_e2e"
 
@@ -153,14 +152,14 @@ ruff format --check backend/
 Verify frontend code hygiene and production bundle:
 
 ```bash
-# Run frontend linter (oxlint: 0 warnings, 0 errors across 97 files)
+# Run frontend linter (oxlint: 0 warnings, 0 errors across 82 files)
 pnpm --dir frontend lint
 
-# Verify optimized production build (compiles in ~218ms via Vite 8)
+# Verify optimized production build (compiles in ~197ms via Vite 8)
 pnpm --dir frontend build
 pnpm lint
 
-# Build production bundle (vite build: ~218ms)
+# Build production bundle (vite build: ~197ms)
 pnpm build
 ```
 
@@ -185,11 +184,11 @@ Question Bank Generator/
 ├── docs/                        # Comprehensive Documentation Suite
 │   ├── README.md                # Master Documentation Index & role-based sitemap
 │   ├── ARCHITECTURE.md          # Multi-agent architecture, Blind-Solver & LangGraph StateGraph
-│   ├── API.md                   # Complete REST & SSE API specification (33 operations / 26 paths)
+│   ├── API.md                   # Complete REST & SSE API specification (34 operations / 28 paths)
 │   ├── CLIENT_SYSTEM_AND_WORKFLOW_GUIDE.md # Client system & operational workflow guide
-│   ├── TESTING_AND_QA.md        # Pytest test suite & TestSprite Playwright E2E specifications
-│   ├── TOKEN_TRACKING.md        # Inference pricing & mathematical cost engine
-│   ├── SETUP_AND_CONFIG.md      # Installation, deployment & troubleshooting
+│   ├── TESTING_AND_QA.md        # Pytest test suite (90 tests across 17 modules) & TestSprite E2E specs
+│   ├── TOKEN_TRACKING.md        # Dual-provider inference pricing & mathematical cost engine
+│   ├── SETUP_AND_CONFIG.md      # Installation, deployment (34 env params / 39 Settings fields) & FAQs
 │   └── MCAT_RUBRIC.md           # 100-point psychometric rubric & authoring standards
 ├── testsprite_tests/            # TestSprite Playwright E2E Test Suite
 │   ├── TC001_*.py ... TC015_*.py# 15 automated test scenario scripts
@@ -204,16 +203,22 @@ Question Bank Generator/
 │   │   └── seed_questions.py    # CLI database seeding script with authentic AAMC rubrics
 │   ├── tests/
 │   │   ├── conftest.py          # Async fixtures, offline DB socket probe & test DB engine
+│   │   ├── test_additional_instructions.py # Educator custom instructions and prompt builder integration
 │   │   ├── test_agents.py       # Heuristics, agent mocking, blind solver & quality gates
-│   │   ├── test_api.py          # CRUD endpoints, batch staging, lifecycle & duplicate override tests
+│   │   ├── test_anthropic.py    # Multi-provider switching, Anthropic models & prompt cache rates
+│   │   ├── test_api.py          # CRUD endpoints, batch staging, pagination, slim projection & overrides
 │   │   ├── test_batch_jobs_flow.py # Background jobs & batch execution flow
-│   │   ├── test_database_structure.py # Relational schema, passage & batch sync tests
+│   │   ├── test_batch_review_withholding.py # Review queue withholding and atomic promotion
+│   │   ├── test_database_structure.py # Relational schema, cascade deletion, and constraint tests
 │   │   ├── test_deduplication.py# Multi-metric similarity, token containment & options overlap
 │   │   ├── test_e2e_live.py     # Live end-to-end integration test suite (10 tests marked live_e2e)
 │   │   ├── test_multi_batch_concurrency.py # Global semaphores, rate limiting & metrics
 │   │   ├── test_pedagogy.py     # Option symmetry, AAMC traps & taxonomy parity
+│   │   ├── test_question_status_refill.py # Status enums, active question helpers & deficit calculations
 │   │   ├── test_schemas.py      # Pydantic V2 schema validation & constraints
-│   │   ├── test_tokens.py       # Token counting, accumulation & DeepInfra limits
+│   │   ├── test_soft_delete_batch_integrity.py # Soft deletion & restoration preserving batch integrity
+│   │   ├── test_target_count_guarantee.py # Dynamic job allocation, slot replenishment & target guarantees
+│   │   ├── test_tokens.py       # Token counting, accumulation & DeepInfra/Anthropic rates
 │   │   ├── test_visuals.py      # SVG & FLUX image generation and pricing
 │   │   └── test_workflow.py     # StateGraph multi-agent flow & bypass routing
 │   └── app/

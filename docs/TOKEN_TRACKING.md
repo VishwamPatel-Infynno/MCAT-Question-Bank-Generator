@@ -43,10 +43,31 @@ $$\text{Cost}_{\text{USD}} = \left(\frac{\text{Base In}}{1,000,000} \times R_{\t
 To preserve numerical accuracy and avoid IEEE 754 floating-point drift, calculations are rounded to **7 decimal places** (sub-micro-cent precision):
 
 ```python
-def calculate_token_cost(prompt_tokens: int, completion_tokens: int) -> float:
-    """Calculates exact USD cost based on official DeepInfra pricing ($0.098 in / $0.294 out / 1M)."""
-    in_cost = (prompt_tokens / 1_000_000.0) * config.COST_PER_MILLION_INPUT_TOKENS
-    out_cost = (completion_tokens / 1_000_000.0) * config.COST_PER_MILLION_OUTPUT_TOKENS
+def calculate_token_cost(
+    prompt_tokens: int,
+    completion_tokens: int,
+    model: str | None = None,
+    cache_read_tokens: int = 0,
+    cache_creation_tokens: int = 0,
+) -> float:
+    """Calculates exact USD cost across DeepInfra or Anthropic with prompt caching."""
+    target_model = model or config.DEFAULT_TEXT_MODEL
+    if config.is_anthropic_model(target_model):
+        in_rate, out_rate = config.get_default_pricing_rates(target_model)
+        cache_read_rate = in_rate * 0.10
+        cache_creation_rate = in_rate * 1.25
+
+        base_prompt_tokens = max(0, prompt_tokens - cache_read_tokens - cache_creation_tokens)
+        in_cost = (base_prompt_tokens / 1_000_000.0) * in_rate
+        out_cost = (completion_tokens / 1_000_000.0) * out_rate
+        cache_read_cost = (cache_read_tokens / 1_000_000.0) * cache_read_rate
+        cache_creation_cost = (cache_creation_tokens / 1_000_000.0) * cache_creation_rate
+        return round(in_cost + out_cost + cache_read_cost + cache_creation_cost, 7)
+
+    in_rate = config.COST_PER_MILLION_INPUT_TOKENS
+    out_rate = config.COST_PER_MILLION_OUTPUT_TOKENS
+    in_cost = (prompt_tokens / 1_000_000.0) * in_rate
+    out_cost = (completion_tokens / 1_000_000.0) * out_rate
     return round(in_cost + out_cost, 7)
 ```
 
