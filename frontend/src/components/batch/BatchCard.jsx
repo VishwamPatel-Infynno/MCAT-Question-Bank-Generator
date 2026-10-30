@@ -11,6 +11,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { MCAT_SECTION_LABELS, formatDifficulty, getSectionColor } from '../../constants/mcat';
+import { formatCostUsd, formatTokenCount } from '../../utils';
 import BatchJobCard from './BatchJobCard';
 
 function getStatusBadge(status) {
@@ -287,9 +288,9 @@ function BatchCard({
               marginTop: '4px'
             }}
           >
-            <span>Tokens: {(batch.total_tokens || 0).toLocaleString()}</span>
+            <span>Tokens: {formatTokenCount(batch.total_tokens)}</span>
             <span>•</span>
-            <span>Cost: ${(batch.cost_usd || 0).toFixed(4)}</span>
+            <span>Cost: {formatCostUsd(batch.cost_usd)}</span>
           </div>
         </div>
 

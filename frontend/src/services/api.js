@@ -128,16 +128,6 @@ export async function approveQuestion(question) {
   return res.json();
 }
 
-export async function batchApproveQuestions(questions) {
-  const res = await fetch(`${API_BASE}/questions/batch`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(questions)
-  });
-  await assertOk(res, 'Bulk-save approved questions');
-  return res.json();
-}
-
 /**
  * Manually overrides a duplicate warning on a question and approves it to Question Bank.
  * @param {string} id - Question ID.
@@ -165,73 +155,6 @@ export async function checkQuestionDuplicate(payload) {
   });
   await assertOk(res, 'Check question duplicate');
   return res.json();
-}
-
-/**
- * Streams SSE events from the multi-agent generation API in real time.
- *
- * Opens an HTTP POST to `/api/generate`, reads the response body as a
- * Server-Sent Events stream, parses each `data:` line, and dispatches
- * events to the caller via callbacks.
- *
- * @param {Object} payload - GenerationRequest payload (section, difficulty, etc.)
- * @param {Function} onEvent - Called for each parsed SSE event object.
- * @param {Function} [onError] - Called on stream error or AbortError; receives
- *   `{ isAborted: true }` on manual cancellation.
- * @param {Function} onComplete - Called when a `workflow_complete` event is received.
- * @param {AbortSignal|null} signal - Optional AbortController signal for cancellation.
- * @returns {Promise<void>}
- */
-export async function generateQuestionStream(payload, onEvent, onError, onComplete, signal = null) {
-  try {
-    const response = await fetch(`${API_BASE}/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal
-    });
-
-    if (!response.ok) {
-      throw new Error(`Server returned HTTP ${response.status}`);
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder('utf-8');
-    let buffer = '';
-
-    while (true) {
-      // eslint-disable-next-line no-await-in-loop
-      const { value, done } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n\n');
-      buffer = lines.pop(); // keep last incomplete chunk
-
-      for (const block of lines) {
-        const trimmed = block.trim();
-        if (trimmed.startsWith('data: ')) {
-          const jsonStr = trimmed.slice(6);
-          try {
-            const eventData = JSON.parse(jsonStr);
-            onEvent(eventData);
-            if (eventData.event_type === 'workflow_complete') {
-              onComplete(eventData.data);
-            }
-          } catch (err) {
-            console.error('Failed to parse SSE JSON block:', err, jsonStr);
-          }
-        }
-      }
-    }
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      if (onError) onError({ isAborted: true, message: 'Generation cancelled' });
-      return;
-    }
-    console.error('SSE Stream error:', err);
-    if (onError) onError(err);
-  }
 }
 
 export async function startBackgroundBatch(payload) {

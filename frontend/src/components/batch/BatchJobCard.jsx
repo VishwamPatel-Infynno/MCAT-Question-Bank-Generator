@@ -1,5 +1,6 @@
 import React from 'react';
 import { FileText, ChevronDown, ChevronRight, Layers, BookOpen, Image as ImageIcon } from 'lucide-react';
+import { formatCostUsd, formatTokenCount } from '../../utils';
 import BatchQuestionItem from './BatchQuestionItem';
 
 export default function BatchJobCard({
@@ -132,8 +133,8 @@ export default function BatchJobCard({
           color: 'var(--text-muted)'
         }}
       >
-        <span>Tokens: {(job.total_tokens || 0).toLocaleString()}</span>
-        <span>${(job.cost_usd || 0).toFixed(4)}</span>
+        <span>Tokens: {formatTokenCount(job.total_tokens)}</span>
+        <span>{formatCostUsd(job.cost_usd)}</span>
         {job.completed_at && (
           <span>
             Finished{' '}

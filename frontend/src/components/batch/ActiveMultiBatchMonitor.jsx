@@ -7,6 +7,7 @@ import {
   Cpu
 } from 'lucide-react';
 import { MCAT_SECTION_LABELS } from '../../constants/mcat';
+import { formatCostUsd, formatTokenCount } from '../../utils';
 
 const EMPTY_ARRAY = Object.freeze([]);
 
@@ -261,7 +262,7 @@ export default function ActiveMultiBatchMonitor({
           <div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Usage &amp; Cost</div>
             <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-              {totalTokens.toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--status-success)' }}>(${totalCost.toFixed(4)})</span>
+              {formatTokenCount(totalTokens)} <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--status-success)' }}>({formatCostUsd(totalCost)})</span>
             </div>
           </div>
         </div>

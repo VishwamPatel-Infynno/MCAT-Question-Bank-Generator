@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, CheckCircle, AlertTriangle, ShieldCheck, Sparkles, Target, Zap, Image as ImageIcon } from 'lucide-react';
 import { useFocusTrap } from '../../hooks';
-import { getEffectiveTrapInfo } from '../../utils';
+import { getEffectiveTrapInfo, formatTokenCount } from '../../utils';
 
 export default function ReviewAuditView({ question, onClose }) {
   const modalRef = useFocusTrap({ isActive: Boolean(question), onClose });
@@ -133,15 +133,15 @@ export default function ReviewAuditView({ question, onClose }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
             <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>INPUT TOKENS</div>
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--brand-primary)' }}>{(question.prompt_tokens || 0).toLocaleString()}</div>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--brand-primary)' }}>{formatTokenCount(question.prompt_tokens)}</div>
             </div>
             <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>OUTPUT TOKENS</div>
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--brand-indigo)' }}>{(question.completion_tokens || 0).toLocaleString()}</div>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--brand-indigo)' }}>{formatTokenCount(question.completion_tokens)}</div>
             </div>
             <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>TOTAL TOKENS</div>
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--status-success)' }}>{(question.total_tokens || 0).toLocaleString()}</div>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--status-success)' }}>{formatTokenCount(question.total_tokens)}</div>
             </div>
             <div style={{ background: 'var(--bg-canvas)', padding: '10px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-light)', textAlign: 'center' }}>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>QUALITY STATUS</div>
