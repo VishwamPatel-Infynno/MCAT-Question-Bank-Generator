@@ -7,7 +7,6 @@ import {
   Footer,
   ErrorBoundary
 } from './components';
-import GeneratorWorkspaceView from './views/GeneratorWorkspaceView';
 import { useAppState } from './hooks';
 
 // Dynamic code-split chunk imports for optimal bundle size
@@ -59,33 +58,9 @@ export default function App() {
     toasts,
     showToast,
     dismissToast,
-    // Generator
-    isGenerating,
-    activeAgent,
-    iterationCount,
-    events,
-    activeQuestion,
-    stagedQuestions,
-    batchProgress,
-    perQuestionState,
-    rejectedData,
-    latestReview,
-    // Save state
-    isQuestionSaved,
-    savedQuestionIds,
     // Handlers
     handleGenerate,
-    handleCancelGeneration,
-    handleApproveQuestion,
-    handleBatchApprove,
-    handleDiscardQuestion,
-    handleDiscardBatch,
-    handleDiscardUnsaved,
-    handleFinishBatch,
-    handleDiscardQuestionInBatch,
     handleApplyPreset,
-    handleUpdateQuestionInBatch,
-    handleUpdateSingleQuestion,
     isLaunchingBatch
   } = useAppState();
 
@@ -129,40 +104,6 @@ export default function App() {
                 isLaunchingBatch={isLaunchingBatch}
                 step={wizardStep}
                 setStep={setWizardStep}
-              />
-            )}
-
-            {viewMode === 'workspace' && (
-              <GeneratorWorkspaceView
-                isGenerating={isGenerating}
-                activeAgent={activeAgent}
-                iterationCount={iterationCount}
-                events={events}
-                latestReview={latestReview}
-                batchProgress={batchProgress}
-                perQuestionState={perQuestionState}
-                rejectedData={rejectedData}
-                activeQuestion={activeQuestion}
-                stagedQuestions={stagedQuestions}
-                savedQuestionIds={savedQuestionIds}
-                isQuestionSaved={isQuestionSaved}
-                generatorForm={generatorForm}
-                sectionsData={sectionsData}
-                handleGenerate={handleGenerate}
-                handleCancelGeneration={handleCancelGeneration}
-                handleBatchApprove={handleBatchApprove}
-                handleDiscardQuestionInBatch={handleDiscardQuestionInBatch}
-                handleDiscardBatch={handleDiscardBatch}
-                handleDiscardUnsaved={handleDiscardUnsaved}
-                handleFinishBatch={handleFinishBatch}
-                handleUpdateQuestionInBatch={handleUpdateQuestionInBatch}
-                handleApproveQuestion={handleApproveQuestion}
-                handleDiscardQuestion={handleDiscardQuestion}
-                handleUpdateSingleQuestion={handleUpdateSingleQuestion}
-                setAuditQuestion={setAuditQuestion}
-                setActiveTab={setActiveTab}
-                setViewMode={setViewMode}
-                onNavigateToWizard={handleNavigateToWizard}
               />
             )}
           </>

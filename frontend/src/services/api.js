@@ -294,7 +294,7 @@ export async function fetchBatchDuplicateClusters(batchId, threshold = 0.75, sig
   return res.json();
 }
 
-export async function resolveBatchDuplicates(batchId, payload = { action: 'archive' }) {
+export async function resolveBatchDuplicates(batchId, payload = { action: 'delete' }) {
   const res = await fetch(`${API_BASE}/batches/${batchId}/resolve-duplicates`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

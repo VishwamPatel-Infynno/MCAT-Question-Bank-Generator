@@ -134,3 +134,96 @@ async def test_mini_batch_lifecycle(monkeypatch):
         # 4. Clean up batch
         del_resp = await ac.delete(f"/api/batches/{batch_id}")
         assert del_resp.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_refill_preserves_job_count_without_adding_sets(monkeypatch):
+    """
+    Verifies that when a batch has a deficit (e.g. from duplicate resolution),
+    refill_batch_deficit replenishes the existing jobs in-place and NEVER creates
+    new jobs (e.g. Set #11).
+    """
+    from app.repositories.batch_repository import save_batch
+    from app.repositories.job_repository import get_jobs_by_batch_id, save_jobs_bulk
+    from app.repositories.question_repository import save_question
+    from app.schemas import GenerationBatch, GenerationJob, Question
+    from app.services.batch_runner import refill_batch_deficit
+
+    batch_id = "test-preserve-10-sets"
+    now_iso = "2026-10-30T10:00:00Z"
+
+    # Create 50-question batch with 10 jobs
+    batch = GenerationBatch(
+        id=batch_id,
+        section="chem_phys",
+        subtopic="Kinetics",
+        difficulty="medium",
+        passage_mode="single_passage",
+        target_count=50,
+        actual_count=49,
+        total_jobs=10,
+        completed_jobs=9,
+        failed_jobs=0,
+        status="in_progress",
+        created_at=now_iso,
+    )
+    await save_batch(batch)
+
+    jobs = [
+        GenerationJob(
+            id=f"job-{idx}",
+            batch_id=batch_id,
+            job_number=idx,
+            target_count=5,
+            actual_count=5 if idx != 3 else 4,  # Job 3 lost 1 duplicate question
+            status="completed" if idx != 3 else "running",
+            created_at=now_iso,
+        )
+        for idx in range(1, 11)
+    ]
+    await save_jobs_bulk(jobs)
+
+    # Save 4 questions in Job 3, 5 questions in other jobs
+    common_q_kwargs = {
+        "section": "chem_phys",
+        "section_label": "Chemical and Physical Foundations",
+        "subtopic": "Kinetics",
+        "difficulty": "medium",
+        "options": [{"id": "A", "text": "Opt A"}],
+        "correct_answer_id": "A",
+        "explanation": "Valid test explanation",
+        "status": "ai_validated",
+    }
+    for job_idx in range(1, 11):
+        count_for_job = 4 if job_idx == 3 else 5
+        for q_idx in range(count_for_job):
+            q = Question(
+                id=f"q-job{job_idx}-{q_idx}",
+                batch_id=batch_id,
+                job_id=f"job-{job_idx}",
+                question_stem=f"Question stem {q_idx} for Job {job_idx}",
+                **common_q_kwargs,
+            )
+            await save_question(q)
+
+    # Mock in-set execution so we don't invoke live LLMs
+    async def mock_execute_in_set(b_id, req, jobs_to_refill, current_cycle=2, max_cycles=5):
+        pass
+
+    monkeypatch.setattr("app.services.batch_runner._execute_in_set_refill", mock_execute_in_set)
+
+    # Refill the deficit of 1
+    updated_b, refilled_jobs = await refill_batch_deficit(batch_id, deficit=1)
+
+    assert updated_b is not None
+    assert updated_b.total_jobs == 10  # Must strictly remain 10 sets!
+    assert len(refilled_jobs) == 1
+    assert refilled_jobs[0].id == "job-3"  # Job 3 is targeted in-place!
+    assert refilled_jobs[0].job_number == 3
+
+    # Verify database state has strictly 10 jobs and NO Job #11
+    db_jobs = await get_jobs_by_batch_id(batch_id)
+    assert len(db_jobs) == 10
+    job_nums = [j.job_number for j in db_jobs]
+    assert job_nums == list(range(1, 11))
+    assert 11 not in job_nums

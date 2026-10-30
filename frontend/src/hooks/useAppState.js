@@ -71,7 +71,6 @@ export function useAppState() {
     perQuestionState,
     rejectedData,
     latestReview,
-    startGeneration,
     cancelGeneration
   } = useQuestionGenerator();
 
@@ -258,51 +257,35 @@ export function useAppState() {
       require_passage_image: isVisualsPermitted && passageMode === 'single_passage'
     };
 
-    // Full Exam (50 questions across 10 jobs) runs in background worker pool
-    if (totalQuestions === 50) {
-      if (isLaunchingBatch) return;
-      setIsLaunchingBatch(true);
-      startBackgroundBatch(payload)
-        .then(() => {
-          showToast({
-            type: 'success',
-            title: '50-Question Exam Batch Launched',
-            message: 'Generating 50 questions across 10 jobs in the background.'
-          });
-          setActiveTab('batches');
-          refreshActiveBatches();
-        })
-        .catch((err) => {
-          showToast({
-            type: 'error',
-            title: 'Batch Launch Failed',
-            message: err.message || 'Could not launch background batch.'
-          });
-        })
-        .finally(() => {
-          setIsLaunchingBatch(false);
+    // Launch background batch generation for both 5 (Quick Set) and 50 (Full Exam) questions
+    if (isLaunchingBatch) return;
+    setIsLaunchingBatch(true);
+    const isQuickSet = totalQuestions === 5;
+    startBackgroundBatch(payload)
+      .then(() => {
+        showToast({
+          type: 'success',
+          title: isQuickSet ? '5-Question Quick Set Launched' : '50-Question Exam Batch Launched',
+          message: isQuickSet
+            ? 'Generating 5 practice questions in the background.'
+            : 'Generating 50 questions across 10 jobs in the background.'
         });
-      return;
-    }
-
-    // Practice Set (5 questions) streams live into Generator Workspace via SSE
-    setViewMode('workspace');
-    setIsQuestionSaved(false);
-    setSavedQuestionIds(new Set());
-    startGeneration(payload);
-    refreshActiveBatches();
-    const isPassageBatch = passageMode === 'single_passage' || selectedSection === 'cars';
-    showToast({
-      type: 'info',
-      title: 'Practice Set Started',
-      message: isPassageBatch
-        ? 'Creating 5-question passage set...'
-        : 'Creating 5 independent practice questions...'
-    });
+        setActiveTab('batches');
+        refreshActiveBatches();
+      })
+      .catch((err) => {
+        showToast({
+          type: 'error',
+          title: 'Batch Launch Failed',
+          message: err.message || 'Could not launch background batch.'
+        });
+      })
+      .finally(() => {
+        setIsLaunchingBatch(false);
+      });
   }, [
     isGenerating,
     generatorForm.formData,
-    startGeneration,
     showToast,
     refreshActiveBatches,
     isLaunchingBatch

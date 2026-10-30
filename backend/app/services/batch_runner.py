@@ -19,6 +19,7 @@ from app.repositories.job_repository import (
 )
 from app.repositories.question_repository import (
     batch_update_question_status,
+    delete_questions_batch,
     get_questions,
     save_question,
 )
@@ -246,6 +247,174 @@ async def _run_single_job(
             await refresh_batch_aggregates(batch_id)
 
 
+async def _run_single_job_refill(
+    batch_id: str,
+    job: GenerationJob,
+    job_deficit: int,
+    base_req: GenerationRequest,
+    semaphore: asyncio.Semaphore,
+) -> None:
+    """Replenishes missing questions directly inside an existing job without creating a new job."""
+    if job_deficit <= 0:
+        return
+
+    async with semaphore:
+        now_iso = datetime.now(UTC).isoformat()
+        logger.info(
+            f"Replenishing Set #{job.job_number} (Job ID: {job.id}) in Batch {batch_id} "
+            f"with {job_deficit} replacement question(s)..."
+        )
+        await update_job_progress(job.id, status="running", started_at=now_iso)
+
+        # Determine passage and stimulus from existing questions in this job
+        job_existing_qs = [
+            q
+            for q in (await get_questions(batch_id=batch_id, job_id=job.id))
+            if is_question_active(q.status)
+        ]
+
+        is_cars = (
+            base_req.section.value if hasattr(base_req.section, "value") else str(base_req.section)
+        ) in ("cars", "CARS")
+        is_passage_mode = (
+            is_cars
+            or base_req.passage_mode == "single_passage"
+            or str(base_req.passage_required).lower() in ("yes", "true", "1")
+        )
+
+        passage_id_for_job = job.passage_id or (
+            job_existing_qs[0].passage_id if job_existing_qs else None
+        )
+        existing_stimulus = (
+            job_existing_qs[0].stimulus_text
+            if (job_existing_qs and job_existing_qs[0].stimulus_text)
+            else None
+        )
+
+        if is_passage_mode and not passage_id_for_job:
+            passage_id_for_job = str(uuid.uuid4())
+
+        thematic_angle = BATCH_THEMATIC_ANGLES[(job.job_number - 1) % len(BATCH_THEMATIC_ANGLES)]
+
+        refill_req = base_req.model_copy(
+            update={
+                "run_id": job.id,
+                "batch_id": batch_id,
+                "job_id": job.id,
+                "passing_threshold": config.BATCH_PASSING_SCORE_THRESHOLD,
+                "questions_to_generate": job_deficit,
+                "passage_mode": "single_passage" if is_passage_mode else "independent",
+                "passage_required": "Yes" if is_passage_mode else "No",
+                "passage_id": passage_id_for_job,
+                "thematic_angle": thematic_angle,
+                "shared_stimulus": existing_stimulus,  # Ground replacement question in set's existing passage
+            }
+        )
+
+        refill_qs: list[Question] = []
+        try:
+            async for raw_chunk in run_workflow_stream(refill_req):
+                line = raw_chunk.strip()
+                if not line.startswith("data: "):
+                    continue
+                try:
+                    evt_data = json.loads(line[6:])
+                    etype = evt_data.get("event_type")
+                    data = evt_data.get("data") or {}
+
+                    if etype == "question_generated" and data.get("question"):
+                        saved_q, should_abort = await _persist_job_question(
+                            batch_id, job.id, passage_id_for_job, data["question"], refill_qs
+                        )
+                        if should_abort:
+                            return
+                        if saved_q:
+                            total_active = len(job_existing_qs) + len(refill_qs)
+                            await update_job_progress(job.id, actual_count=total_active)
+
+                    elif etype == "workflow_complete":
+                        completed_qs = data.get("questions") or []
+                        for raw_q in completed_qs:
+                            _, should_abort = await _persist_job_question(
+                                batch_id, job.id, passage_id_for_job, raw_q, refill_qs
+                            )
+                            if should_abort:
+                                return
+
+                except json.JSONDecodeError:
+                    continue
+
+            total_active = len(job_existing_qs) + len(refill_qs)
+            completed_now = datetime.now(UTC).isoformat()
+            await update_job_progress(
+                job.id,
+                status="completed" if total_active > 0 else "failed",
+                actual_count=total_active,
+                passage_id=passage_id_for_job,
+                completed_at=completed_now,
+            )
+            await refresh_batch_aggregates(batch_id)
+            logger.info(
+                f"Set #{job.job_number} (Job ID: {job.id}) replenished successfully: "
+                f"total count is now {total_active}/{job.target_count}."
+            )
+        except Exception as exc:
+            logger.error(
+                f"Error replenishing Set #{job.job_number} (Job ID: {job.id}): {exc}",
+                exc_info=True,
+            )
+            await update_job_progress(job.id, status="failed", error_message=str(exc))
+
+
+async def _execute_in_set_refill(
+    batch_id: str,
+    req: GenerationRequest,
+    jobs_to_refill: list[tuple[GenerationJob, int]],
+    current_cycle: int = 2,
+    max_cycles: int = 5,
+) -> None:
+    """Coordinates execution of in-set replenishment without creating new jobs."""
+    tasks: list[asyncio.Task[Any]] = []
+    try:
+        semaphore = get_global_job_semaphore()
+        tasks = [
+            asyncio.create_task(_run_single_job_refill(batch_id, job, job_deficit, req, semaphore))
+            for job, job_deficit in jobs_to_refill
+        ]
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+        await refresh_batch_aggregates(batch_id)
+
+        # Autonomous duplicate resolution and refill on next cycle if needed
+        refill_result = await auto_resolve_batch_and_refill(
+            batch_id, current_cycle=current_cycle, max_cycles=max_cycles
+        )
+        if not refill_result.get("refill_launched"):
+            final_b = await refresh_batch_aggregates(batch_id)
+            if final_b and final_b.status == "completed":
+                from app.repositories.batch_repository import promote_completed_batch_questions
+
+                await promote_completed_batch_questions(batch_id)
+    except asyncio.CancelledError:
+        logger.info(f"In-set refill for batch {batch_id} was cancelled.")
+        for t in tasks:
+            if not t.done():
+                t.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        await refresh_batch_aggregates(batch_id)
+        raise
+    except Exception as e:
+        logger.error(f"Error during in-set refill for batch {batch_id}: {e}", exc_info=True)
+        b = await get_batch_by_id(batch_id)
+        if b:
+            b.status = "failed"
+            b.error_message = str(e)
+            await save_batch(b)
+    finally:
+        if _active_batch_tasks.get(batch_id) is asyncio.current_task():
+            _active_batch_tasks.pop(batch_id, None)
+
+
 async def _execute_batch_workflow(
     batch_id: str,
     req: GenerationRequest,
@@ -326,10 +495,10 @@ async def auto_resolve_batch_and_refill(
     threshold: float = 0.75,
 ) -> dict[str, Any]:
     """
-    Evaluates active questions in a batch for duplicate clusters, automatically archives
+    Evaluates active questions in a batch for duplicate clusters, permanently deletes
     redundant duplicates in favor of the highest-scoring question in each cluster,
-    and automatically triggers a resilient refill generation with buffer if a deficit exists,
-    capped at max_cycles (up to 5 cycles). Also trims excess buffer questions to exact target.
+    and automatically triggers in-set replenishment within affected sets if a deficit exists,
+    capped at max_cycles (up to 5 cycles). Also trims excess questions within sets to exact target.
     """
     b = await get_batch_by_id(batch_id)
     if not b:
@@ -351,11 +520,37 @@ async def auto_resolve_batch_and_refill(
                     duplicate_ids_to_purge.append(dup_id)
 
         if duplicate_ids_to_purge:
+            await delete_questions_batch(duplicate_ids_to_purge)
             await batch_update_question_status(duplicate_ids_to_purge, status="discarded")
             logger.info(
                 f"Auto-resolved {len(clusters)} duplicate cluster(s) in batch {batch_id}; "
-                f"archived {len(duplicate_ids_to_purge)} duplicate question(s)."
+                f"permanently deleted {len(duplicate_ids_to_purge)} duplicate question(s)."
             )
+
+    # Enforce exact target count per existing job (trim excess questions within each set)
+    existing_jobs = await get_jobs_by_batch_id(batch_id)
+    existing_jobs.sort(key=lambda j: j.job_number)
+    all_refreshed_qs = await get_questions(batch_id=batch_id)
+    active_refreshed_qs = [q for q in all_refreshed_qs if is_question_active(q.status)]
+
+    qs_by_job: dict[str, list[Question]] = {}
+    for q in active_refreshed_qs:
+        j_key = q.job_id or q.run_id
+        if j_key:
+            qs_by_job.setdefault(j_key, []).append(q)
+
+    for job in existing_jobs:
+        job_qs = qs_by_job.get(job.id, [])
+        if len(job_qs) > job.target_count:
+            job_qs.sort(key=lambda q: q.final_score or 0, reverse=True)
+            excess_to_delete = [q.id for q in job_qs[job.target_count :]]
+            if excess_to_delete:
+                await delete_questions_batch(excess_to_delete)
+                logger.info(
+                    f"Trimmed Set #{job.job_number} (Job {job.id}) to target count {job.target_count}: "
+                    f"deleted {len(excess_to_delete)} excess question(s)."
+                )
+            await update_job_progress(job.id, actual_count=job.target_count)
 
     await refresh_batch_aggregates(batch_id)
     refreshed_b = await get_batch_by_id(batch_id)
@@ -367,7 +562,6 @@ async def auto_resolve_batch_and_refill(
 
     refill_launched = False
     if deficit > 0 and current_cycle < max_cycles:
-        # Generate with safety buffer to ensure deficit is reliably closed
         buffer = 1 if deficit < 5 else 2
         refill_target = min(target, deficit + buffer)
         logger.info(
@@ -380,18 +574,16 @@ async def auto_resolve_batch_and_refill(
         )
         refill_launched = True
     elif remaining_active > target:
-        # Cap to exact target count: retain the top highest-scoring questions, archive excess
         valid_active.sort(key=lambda q: q.final_score or 0, reverse=True)
-        excess_questions = valid_active[target:]
-        excess_ids = [q.id for q in excess_questions]
-        if excess_ids:
-            await batch_update_question_status(excess_ids, status="discarded")
+        excess_to_delete = [q.id for q in valid_active[target:]]
+        if excess_to_delete:
+            await batch_update_question_status(excess_to_delete, status="discarded")
             logger.info(
-                f"Capped batch {batch_id} to exact target {target}: archived {len(excess_ids)} excess buffer question(s)."
+                f"Capped batch {batch_id} to exact target {target}: archived {len(excess_to_delete)} excess buffer question(s)."
             )
-            await refresh_batch_aggregates(batch_id)
-            remaining_active = target
-            deficit = 0
+        await refresh_batch_aggregates(batch_id)
+        remaining_active = target
+        deficit = 0
 
     return {
         "resolved": True,
@@ -500,42 +692,46 @@ async def refill_batch_deficit(
     max_cycles: int = 5,
 ) -> tuple[GenerationBatch | None, list[GenerationJob]]:
     """
-    Creates and launches targeted background jobs to generate replacement questions
-    for archived duplicates, replenishing the batch to its target capacity.
+    Replenishes questions in-place for existing jobs that have deficits,
+    preserving exact job/set counts (e.g. exactly 10 sets for 50 questions,
+    1 set for 5 questions) without creating extra sets.
     """
     b = await get_batch_by_id(batch_id)
     if not b or deficit <= 0:
         return b, []
 
     existing_jobs = await get_jobs_by_batch_id(batch_id)
-    start_job_num = len(existing_jobs) + 1
+    if not existing_jobs:
+        return b, []
 
-    # Chunk deficit into jobs of up to 5 questions
-    job_chunks: list[int] = []
-    remaining = deficit
-    while remaining > 0:
-        take = min(5, remaining)
-        job_chunks.append(take)
-        remaining -= take
+    existing_jobs.sort(key=lambda j: j.job_number)
+    linked_questions = await get_questions(batch_id=batch_id)
+    active_questions = [q for q in linked_questions if is_question_active(q.status)]
 
-    now_iso = datetime.now(UTC).isoformat()
-    new_jobs: list[GenerationJob] = []
-    for idx, count in enumerate(job_chunks):
-        j_id = str(uuid.uuid4())
-        job = GenerationJob(
-            id=j_id,
-            batch_id=batch_id,
-            job_number=start_job_num + idx,
-            target_count=count,
-            actual_count=0,
-            status="pending",
-            created_at=now_iso,
-        )
-        new_jobs.append(job)
+    qs_by_job: dict[str, list[Question]] = {}
+    for q in active_questions:
+        j_key = q.job_id or q.run_id
+        if j_key:
+            qs_by_job.setdefault(j_key, []).append(q)
 
-    await save_jobs_bulk(new_jobs)
+    jobs_to_refill: list[tuple[GenerationJob, int]] = []
+    for job in existing_jobs:
+        job_active_count = len(qs_by_job.get(job.id, []))
+        job_deficit = max(0, job.target_count - job_active_count)
+        if job_deficit > 0:
+            jobs_to_refill.append((job, job_deficit))
 
-    b.total_jobs = len(existing_jobs) + len(new_jobs)
+    # If no job specifically had a shortfall below target_count, allocate to any incomplete jobs
+    if not jobs_to_refill and deficit > 0:
+        for job in existing_jobs:
+            if job.status != "completed":
+                jobs_to_refill.append((job, min(deficit, job.target_count)))
+                break
+
+    if not jobs_to_refill:
+        logger.info(f"No existing jobs in batch {batch_id} have deficits to refill.")
+        return b, []
+
     b.status = "in_progress"
     b.error_message = None
     await save_batch(b)
@@ -551,10 +747,10 @@ async def refill_batch_deficit(
         )
 
     task = asyncio.create_task(
-        _execute_batch_workflow(
+        _execute_in_set_refill(
             batch_id,
             effective_req,
-            new_jobs,
+            jobs_to_refill,
             current_cycle=cycle,
             max_cycles=max_cycles,
         )
@@ -562,7 +758,7 @@ async def refill_batch_deficit(
     _active_batch_tasks[batch_id] = task
 
     refreshed_batch = await get_batch_by_id(batch_id)
-    return refreshed_batch, new_jobs
+    return refreshed_batch, [j for j, _ in jobs_to_refill]
 
 
 def get_active_batch_metrics() -> dict[str, Any]:

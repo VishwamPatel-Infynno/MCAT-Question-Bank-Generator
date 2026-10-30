@@ -68,11 +68,11 @@ export default function BatchDuplicateAuditSection({
     if (isResolving || !batchId) return;
     setIsResolving(true);
     try {
-      const res = await resolveBatchDuplicates(batchId, { action: 'archive' });
+      const res = await resolveBatchDuplicates(batchId, { action: 'delete' });
       if (onShowToast) {
         onShowToast({
           type: 'success',
-          message: res.message || 'Duplicate questions archived successfully.'
+          message: res.message || 'Duplicate questions deleted successfully.'
         });
       }
       await loadClusters();
@@ -82,7 +82,7 @@ export default function BatchDuplicateAuditSection({
       if (onShowToast) {
         onShowToast({
           type: 'error',
-          message: err.message || 'Failed to archive duplicate questions.'
+          message: err.message || 'Failed to remove duplicate questions.'
         });
       }
     } finally {
@@ -95,7 +95,7 @@ export default function BatchDuplicateAuditSection({
     setResolvingClusterId(clusterId);
     try {
       const res = await resolveBatchDuplicates(batchId, {
-        action: 'archive',
+        action: 'delete',
         cluster_ids: [clusterId]
       });
       if (onShowToast) {
@@ -121,7 +121,7 @@ export default function BatchDuplicateAuditSection({
       if (onShowToast) {
         onShowToast({
           type: 'success',
-          message: res.message || 'Targeted refill jobs launched.'
+          message: res.message || 'In-set replenishment launched.'
         });
       }
       await loadClusters();
@@ -131,7 +131,7 @@ export default function BatchDuplicateAuditSection({
       if (onShowToast) {
         onShowToast({
           type: 'error',
-          message: err.message || 'Failed to launch refill jobs.'
+          message: err.message || 'Failed to replenish sets.'
         });
       }
     } finally {
@@ -327,7 +327,7 @@ export default function BatchDuplicateAuditSection({
             }}
           >
             <Archive size={13} />
-            <span>{isResolving ? 'Archiving...' : `Resolve All (${totalDuplicates} Duplicates)`}</span>
+            <span>{isResolving ? 'Resolving...' : `Resolve & Purge (${totalDuplicates} Duplicates)`}</span>
           </button>
 
           {deficit > 0 && (
@@ -337,10 +337,10 @@ export default function BatchDuplicateAuditSection({
               disabled={isRefilling}
               className="btn-primary"
               style={{ padding: '6px 12px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              title={`Generate ${deficit} fresh non-colliding questions to bring batch to ${batchTargetCount}`}
+              title={`Generate ${deficit} replacement questions within affected sets to restore each set to 5 questions`}
             >
               <Sparkles size={13} />
-              <span>{isRefilling ? 'Refilling...' : `Refill Batch (${deficit} Needed)`}</span>
+              <span>{isRefilling ? 'Replenishing...' : `Replenish Sets (${deficit} Needed)`}</span>
             </button>
           )}
         </div>

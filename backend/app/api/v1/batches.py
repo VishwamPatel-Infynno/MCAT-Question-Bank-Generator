@@ -167,7 +167,7 @@ async def create_or_update_batch(batch: GenerationBatch):
 
 
 class ResolveDuplicatesRequest(BaseModel):
-    action: str = "archive"  # "archive" (mark status='rejected') or "delete"
+    action: str = "delete"  # "delete" (permanently remove) or "archive" (mark status='discarded')
     cluster_ids: list[str] | None = None  # Specific cluster IDs, or None for all
     custom_leader_ids: list[str] | None = None  # Optional custom leader question IDs
 
