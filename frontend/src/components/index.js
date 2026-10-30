@@ -4,14 +4,8 @@ export * from './layout';
 // Common Brand & Primitives
 export * from './common';
 
-// AI Multi-Agent Pipeline & Review Workspace
-export * from './pipeline';
-
 // Question & Review Components
 export * from './question';
-
-// Staged Batch Review Components
-export * from './staged';
 
 // Wizard & Guided Onboarding
 export * from './wizard';

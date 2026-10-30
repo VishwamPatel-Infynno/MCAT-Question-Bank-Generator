@@ -547,100 +547,6 @@ input:focus, select:focus, textarea:focus {
 }
 
 
-/* Inline Agent Pipeline Stepper */
-.pipeline-stepper-container {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.pipeline-stepper {
-  display: flex;
-  align-items: center;
-  gap: 0;
-}
-
-.conduit-connector {
-  height: 2px;
-  width: 18px;
-  background: var(--border-light);
-  flex-shrink: 0;
-  transition: all var(--transition-normal);
-  position: relative;
-  margin: 0 4px;
-}
-
-.conduit-connector.completed {
-  background: var(--status-success);
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.3);
-}
-
-.conduit-connector.active,
-.conduit-flow-active {
-  background: var(--infynno-gradient);
-  background-size: 200% 200%;
-  animation: conduitFlowPulse 1.8s linear infinite;
-  box-shadow: 0 0 10px rgba(51, 90, 207, 0.5);
-}
-
-@keyframes conduitFlowPulse {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@media (max-width: 900px) {
-  .pipeline-stepper {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px !important;
-  }
-  .conduit-connector {
-    display: none !important;
-  }
-}
-
-@media (max-width: 600px) {
-  .pipeline-stepper {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-  }
-}
-
-.pipeline-step-node {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: var(--radius-xs);
-  background: var(--bg-surface-subtle);
-  border: 1px solid var(--border-light);
-  font-size: 0.75rem;
-  transition: all var(--transition-fast);
-}
-
-.pipeline-step-node.active {
-  border-color: var(--brand-primary);
-  background: var(--brand-light);
-  color: var(--text-primary);
-}
-
-.pipeline-step-node.completed {
-  border-color: var(--status-success-border);
-  background: var(--status-success-bg);
-  color: var(--text-primary);
-}
-
-.spin-slow {
-  animation: spin 1.2s linear infinite;
-}
-
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -648,14 +554,6 @@ input:focus, select:focus, textarea:focus {
   to {
     transform: rotate(360deg);
   }
-}
-
-.agent-pulse-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--brand-primary);
-  display: inline-block;
 }
 
 /* Brand Title Refresh Link */
@@ -1332,23 +1230,6 @@ input:focus, select:focus, textarea:focus {
 
 
 /* ==========================================================================
-   AAMC Dual Split-Pane Reading Mode Layout
-   ========================================================================== */
-.aamc-split-layout-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 20px;
-  align-items: start;
-  transition: all 0.25s ease;
-}
-
-@media (max-width: 1024px) {
-  .aamc-split-layout-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* ==========================================================================
    Print & PDF Export Utility Styles
    ========================================================================== */
 @media print {
@@ -1416,55 +1297,6 @@ input:focus, select:focus, textarea:focus {
   font-size: 0.85rem;
   font-weight: 500;
   letter-spacing: 0.02em;
-}
-
-/* ==========================================================================
-   Generator Workspace - Empty State
-   Shown in GeneratorWorkspaceView when no question is active and generation is idle.
-   ========================================================================== */
-.workspace-empty-state {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  padding: 48px 24px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-.workspace-empty-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: rgba(79, 48, 185, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--brand-primary);
-}
-
-.workspace-empty-badge-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.workspace-empty-heading {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 6px;
-}
-
-.workspace-empty-subtext {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  max-width: 420px;
-  margin: 0 auto;
 }
 
 /* ==========================================================================

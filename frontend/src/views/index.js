@@ -1,8 +1,6 @@
-// Direct export for lightweight synchronous view
-export { default as GeneratorWorkspaceView } from './GeneratorWorkspaceView';
-
-// Heavy views are loaded via React.lazy in App.jsx for optimal bundle chunk splitting:
+// Application views loaded via React.lazy in App.jsx for optimal bundle chunk splitting:
 // - QuestionBankView from './views/QuestionBankView'
+// - PassageBankView from './views/PassageBankView'
 // - BatchActivityView from './views/BatchActivityView'
 // - AiValidatedQuestionsView from './views/AiValidatedQuestionsView'
 export { default as QuestionBankView } from './QuestionBankView';

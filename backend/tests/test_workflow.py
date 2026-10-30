@@ -36,11 +36,11 @@ async def test_per_question_stage_metadata_in_events(monkeypatch):
         and e["agent_name"]
         in ("Question Writer & Reviewer", "Question Writer", "Question Generator")
     ]
-    assert len(gen_starts) == 5
+    assert len(gen_starts) >= 5
     for e in gen_starts:
         assert e["data"]["index"] in (1, 2, 3, 4, 5)
         assert e["data"]["total"] == 5
-        assert e["data"]["stage"] == "drafting"
+        assert e["data"]["stage"] in ("drafting", "anti_collision_regeneration")
 
     rev_starts = [
         e

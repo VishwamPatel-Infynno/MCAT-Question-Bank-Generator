@@ -298,7 +298,6 @@ Question Bank Generator/
         │   ├── index.js         # Centralized views index
         │   ├── AiValidatedQuestionsView.jsx # Dedicated AI Validated (>90) quality bank
         │   ├── BatchActivityView.jsx      # Batch job lifecycle monitor
-        │   ├── GeneratorWorkspaceView.jsx # Multi-agent active generation & review desk
         │   ├── PassageBankView.jsx        # Passage stimuli repository & editorial desk
         │   └── QuestionBankView.jsx       # Question Bank search, filter, and export
         ├── constants/           # Centralized application constants
@@ -363,21 +362,12 @@ Question Bank Generator/
         │   ├── question/        # Single Question Review Desk
         │   │   ├── MentorExplanationView.jsx # 3-card mentor explanation view
         │   │   ├── QuestionCard.jsx     # Interactive student practice & review card
-        │   │   ├── QuestionDraftingSkeleton.jsx # Live drafting skeleton placeholder
         │   │   ├── QuestionInlineEditor.jsx # In-place authoring & remediation editor
         │   │   ├── QuestionScorecardTab.jsx # 100-point rubric breakdown accordion
         │   │   ├── ReviewAuditView.jsx  # 100-point rubric breakdown & token cost modal
         │   │   ├── SharedPassageCard.jsx# Shared reading passage stimulus display card
+        │   │   ├── StageJsonInspector.jsx# Deep stage outcome JSON inspector accordion
         │   │   ├── VisualStimulusViewer.jsx # SVG & neural visual diagram renderer
-        │   │   └── index.js
-        │   ├── staged/          # Staged batch review
-        │   │   ├── BatchProgressHeader.jsx # Batch progress and count header
-        │   │   ├── StageJsonInspector.jsx  # Raw JSON inspection panel
-        │   │   ├── StagedBatchGrid.jsx     # Multi-card staged questions grid
-        │   │   ├── StagedBatchReview.jsx   # Split-pane batch review deck
-        │   │   ├── StagedDetailedView.jsx  # Expanded single question review panel
-        │   │   ├── StagedQuestionSlotCard.jsx # Individual question slot reviewer card
-        │   │   ├── StagedSlotSkeleton.jsx  # Slot loading pulse skeleton
         │   │   └── index.js
         │   ├── validated/       # Dedicated AI Validated quality cards & filters
         │   │   ├── AiValidatedFiltersBar.jsx   # Filters for AI-validated questions

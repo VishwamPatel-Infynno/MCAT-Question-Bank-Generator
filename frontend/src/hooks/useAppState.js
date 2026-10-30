@@ -1,17 +1,22 @@
 /**
  * useAppState - Central application state and handler hook.
  *
- * Extracted from App.jsx to enforce single-responsibility: App.jsx now
- * purely assembles the layout while this hook owns all stateful logic,
- * side-effects, and event handlers.
+ * Extracted from App.jsx to enforce single-responsibility: App.jsx purely
+ * assembles the layout while this hook owns all stateful logic, side-effects,
+ * and event handlers.
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTheme } from './useTheme';
 import { useGeneratorForm } from './useGeneratorForm';
-import { useQuestionGenerator } from './useQuestionGenerator';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { MCAT_SECTIONS_FALLBACK } from '../constants';
-import { fetchSections, fetchHealth, approveQuestion, batchApproveQuestions, startBackgroundBatch, fetchBatches, fetchQuestionCounts } from '../services';
+import {
+  fetchSections,
+  fetchHealth,
+  startBackgroundBatch,
+  fetchBatches,
+  fetchQuestionCounts
+} from '../services';
 
 /**
  * Central application state hook.
@@ -28,7 +33,7 @@ export function useAppState() {
 
   // ─── Navigation ──────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState('generator');
-  const [viewMode, setViewMode] = useState('hero'); // 'hero' | 'wizard' | 'workspace'
+  const [viewMode, setViewMode] = useState('hero'); // 'hero' | 'wizard'
   const [wizardStep, setWizardStep] = useState(1);
 
   // ─── Sections / Backend Status ────────────────────────────────────────────
@@ -57,44 +62,12 @@ export function useAppState() {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
-  // ─── Multi-Agent Generation Hook ──────────────────────────────────────────
-  const {
-    isGenerating,
-    activeAgent,
-    iterationCount,
-    events,
-    activeQuestion,
-    setActiveQuestion,
-    stagedQuestions,
-    setStagedQuestions,
-    batchProgress,
-    perQuestionState,
-    rejectedData,
-    latestReview,
-    cancelGeneration
-  } = useQuestionGenerator();
-
-  const handleCancelGeneration = useCallback(() => {
-    cancelGeneration();
-    showToast({
-      type: 'info',
-      title: 'Generation Cancelled',
-      message: 'Generation cancelled. Workflow execution stopped and returned to idle.'
-    });
-  }, [cancelGeneration, showToast]);
-
+  // ─── Navigation Helpers ───────────────────────────────────────────────────
   const handleNavigateToGenerator = useCallback(() => {
-    if (isGenerating) {
-      const confirmCancel = window.confirm(
-        'Question generation is currently in progress. Returning to Step 1 will cancel current generation. Do you want to proceed?'
-      );
-      if (!confirmCancel) return;
-      handleCancelGeneration();
-    }
     setActiveTab('generator');
     setViewMode('wizard');
     setWizardStep(1);
-  }, [isGenerating, handleCancelGeneration]);
+  }, []);
 
   const handleNavigateToWizard = useCallback((step = 1) => {
     setActiveTab('generator');
@@ -118,35 +91,25 @@ export function useAppState() {
 
     fetchSections()
       .then((data) => {
-        if (data.sections && data.sections.length > 0) {
-          setSectionsData(data.sections);
-          updateFields({
-            selectedSection: data.sections[0].id,
-            selectedSubtopic: data.sections[0].subtopics?.[0] || ''
-          });
+        if (data && data.length > 0) {
+          setSectionsData(data);
+        } else {
+          setSectionsData(MCAT_SECTIONS_FALLBACK);
         }
       })
-      .catch((err) => {
-        console.error('Failed to fetch sections:', err);
+      .catch(() => {
         setSectionsData(MCAT_SECTIONS_FALLBACK);
-        updateFields({
-          selectedSection: MCAT_SECTIONS_FALLBACK[0].id,
-          selectedSubtopic: MCAT_SECTIONS_FALLBACK[0].subtopics?.[0] || ''
-        });
       });
-  }, [updateFields]);
+  }, []);
 
-  // ─── Batch & Counts Polling ───────────────────────────────────────────────
-  const activeBatchCountRef = useRef(0);
+  // ─── Polling: Active Batch Count + Validated Questions ─────────────────────
+  const activeBatchCountRef = useRef(activeBatchCount);
   useEffect(() => {
     activeBatchCountRef.current = activeBatchCount;
   }, [activeBatchCount]);
 
   const refreshGlobalCounts = useCallback(() => {
-    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
-      return;
-    }
-    fetchBatches()
+    fetchBatches(1, 1)
       .then((data) => {
         setActiveBatchCount(data.active_running_batches || 0);
       })
@@ -158,8 +121,6 @@ export function useAppState() {
       })
       .catch(() => {});
   }, []);
-
-  const refreshActiveBatches = refreshGlobalCounts;
 
   useEffect(() => {
     refreshGlobalCounts();
@@ -193,13 +154,8 @@ export function useAppState() {
     };
   }, [refreshGlobalCounts]);
 
-  // ─── Save State ───────────────────────────────────────────────────────────
-  const [isQuestionSaved, setIsQuestionSaved] = useState(false);
-  const [savedQuestionIds, setSavedQuestionIds] = useState(() => new Set());
-
   // ─── Generate Handler ─────────────────────────────────────────────────────
   const handleGenerate = useCallback(() => {
-    if (isGenerating) return;
     const {
       selectedSection,
       selectedSubject,
@@ -271,7 +227,7 @@ export function useAppState() {
             : 'Generating 50 questions across 10 jobs in the background.'
         });
         setActiveTab('batches');
-        refreshActiveBatches();
+        refreshGlobalCounts();
       })
       .catch((err) => {
         showToast({
@@ -284,126 +240,13 @@ export function useAppState() {
         setIsLaunchingBatch(false);
       });
   }, [
-    isGenerating,
     generatorForm.formData,
     showToast,
-    refreshActiveBatches,
+    refreshGlobalCounts,
     isLaunchingBatch
   ]);
 
-  // ─── Approve / Discard Handlers ────────────────────────────────────────────
-  const handleApproveQuestion = useCallback(async (q) => {
-    try {
-      await approveQuestion(q);
-      setIsQuestionSaved(true);
-      setSavedQuestionIds(prev => new Set([...prev, q.id]));
-      showToast({
-        type: 'success',
-        title: 'Question Saved',
-        message: 'Question has been saved into your Question Bank.'
-      });
-    } catch (err) {
-      console.error('Failed to approve and save question:', err);
-      showToast({
-        type: 'error',
-        title: 'Save Failed',
-        message: 'Could not connect to database to save question.'
-      });
-    }
-  }, [showToast]);
-
-  const handleBatchApprove = useCallback(async (questionsToSave) => {
-    try {
-      await batchApproveQuestions(questionsToSave);
-      setSavedQuestionIds(prev => new Set([...prev, ...questionsToSave.map(item => item.id)]));
-      showToast({
-        type: 'success',
-        title: 'Success - Questions Saved',
-        message: `Successfully saved ${questionsToSave.length} question(s) to your Question Bank.`
-      });
-    } catch (err) {
-      console.error('Failed to batch save questions:', err);
-      showToast({
-        type: 'error',
-        title: 'Save Failed',
-        message: 'Could not connect to database to save questions.'
-      });
-      throw err;
-    }
-  }, [showToast]);
-
-  const handleDiscardQuestion = useCallback(() => {
-    if (isQuestionSaved) {
-      showToast({
-        type: 'info',
-        title: 'Question Protected',
-        message: 'This question has already been accepted and saved in your Question Bank.'
-      });
-      return;
-    }
-    setActiveQuestion(null);
-    setIsQuestionSaved(false);
-    showToast({ type: 'info', title: 'Question Discarded', message: 'Question was removed.' });
-  }, [isQuestionSaved, setActiveQuestion, showToast]);
-
-  const handleDiscardBatch = useCallback(() => {
-    setStagedQuestions([]);
-    setActiveQuestion(null);
-    setIsQuestionSaved(false);
-    setSavedQuestionIds(new Set());
-    showToast({ type: 'info', title: 'Questions Discarded', message: 'All unaccepted generated questions were removed.' });
-  }, [setStagedQuestions, setActiveQuestion, showToast]);
-
-  const handleDiscardUnsaved = useCallback((unsavedIds) => {
-    const idSet = unsavedIds instanceof Set ? unsavedIds : new Set(unsavedIds);
-    setStagedQuestions(prev => prev.filter(q => !idSet.has(q.id)));
-    showToast({
-      type: 'info',
-      title: 'Unsaved Questions Discarded',
-      message: `${idSet.size} unaccepted question(s) removed. Accepted questions remain safely in your Question Bank.`
-    });
-  }, [setStagedQuestions, showToast]);
-
-  const handleFinishBatch = useCallback(() => {
-    const hasSavedItems = (savedQuestionIds && savedQuestionIds.size > 0) || isQuestionSaved;
-    setStagedQuestions([]);
-    setActiveQuestion(null);
-    setIsQuestionSaved(false);
-    setSavedQuestionIds(new Set());
-
-    if (hasSavedItems) {
-      setActiveTab('bank');
-      showToast({
-        type: 'success',
-        title: 'Batch Completed',
-        message: 'Batch finished. Newly saved questions are ready in your Question Bank.'
-      });
-    } else {
-      setViewMode('wizard');
-      setWizardStep(1);
-      showToast({
-        type: 'info',
-        title: 'Batch Finished',
-        message: 'Batch review closed. Returned to Guided Wizard to configure a new set.'
-      });
-    }
-  }, [
-    savedQuestionIds,
-    isQuestionSaved,
-    setStagedQuestions,
-    setActiveQuestion,
-    setActiveTab,
-    setViewMode,
-    setWizardStep,
-    showToast
-  ]);
-
-  const handleDiscardQuestionInBatch = useCallback((qId) => {
-    setStagedQuestions(prev => prev.filter(q => q.id !== qId));
-    showToast({ type: 'info', title: 'Question Removed', message: 'Question removed from batch.' });
-  }, [setStagedQuestions, showToast]);
-
-  // ─── Preset & Bank Selection Handlers ─────────────────────────────────────
+  // ─── Preset Handler ───────────────────────────────────────────────────────
   const handleApplyPreset = useCallback((cfg) => {
     updateFields({
       ...(cfg.section && { selectedSection: cfg.section }),
@@ -432,55 +275,11 @@ export function useAppState() {
     });
   }, [updateFields, showToast]);
 
-  const handleSelectFromBank = useCallback((q) => {
-    setActiveQuestion(q);
-    setIsQuestionSaved(true);
-    updateFields({
-      ...(q.section && { selectedSection: q.section }),
-      ...(q.subtopic && { selectedSubtopic: q.subtopic }),
-      ...(q.difficulty && { difficulty: q.difficulty }),
-      ...(q.primary_trap && { primaryTrap: q.primary_trap }),
-      ...(q.passage_required && { passageRequired: q.passage_required })
-    });
-    setActiveTab('generator');
-    setViewMode('workspace');
-    showToast({ type: 'info', title: 'Loaded into Review', message: 'Question loaded into Review Workspace.' });
-  }, [updateFields, setActiveQuestion, showToast]);
-
-  // ─── Question Update Handlers ──────────────────────────────────────────────
-  const handleUpdateQuestionInBatch = useCallback((updated) => {
-    setStagedQuestions(prev => prev.map(item => item.id === updated.id ? updated : item));
-    if (activeQuestion?.id === updated.id) setActiveQuestion(updated);
-    showToast({ type: 'success', title: 'Changes Applied', message: 'Question text updated.' });
-  }, [setStagedQuestions, activeQuestion, setActiveQuestion, showToast]);
-
-  const handleUpdateSingleQuestion = useCallback((updated) => {
-    setActiveQuestion(updated);
-    setStagedQuestions(prev => prev.map(item => item.id === updated.id ? updated : item));
-    showToast({ type: 'success', title: 'Changes Applied', message: 'Question text updated.' });
-  }, [setActiveQuestion, setStagedQuestions, showToast]);
-
   // ─── Keyboard Shortcuts ────────────────────────────────────────────────────
   useKeyboardShortcuts({
     onGenerate: activeTab === 'generator' ? handleGenerate : undefined,
-    onApprove: activeQuestion && !isQuestionSaved ? () => handleApproveQuestion(activeQuestion) : undefined,
-    onDiscard: activeQuestion && !isQuestionSaved ? handleDiscardQuestion : undefined,
     onToggleTheme: toggleTheme,
-    onEscape: () => { if (auditQuestion) setAuditQuestion(null); },
-    onNextQuestion: () => {
-      if (stagedQuestions.length > 1) {
-        const currIdx = stagedQuestions.findIndex(q => q.id === activeQuestion?.id);
-        const nextIdx = currIdx >= 0 ? (currIdx + 1) % stagedQuestions.length : 0;
-        setActiveQuestion(stagedQuestions[nextIdx]);
-      }
-    },
-    onPrevQuestion: () => {
-      if (stagedQuestions.length > 1) {
-        const currIdx = stagedQuestions.findIndex(q => q.id === activeQuestion?.id);
-        const prevIdx = currIdx >= 0 ? (currIdx - 1 + stagedQuestions.length) % stagedQuestions.length : stagedQuestions.length - 1;
-        setActiveQuestion(stagedQuestions[prevIdx]);
-      }
-    }
+    onEscape: () => { if (auditQuestion) setAuditQuestion(null); }
   });
 
   return {
@@ -511,37 +310,12 @@ export function useAppState() {
     toasts,
     showToast,
     dismissToast,
-    // Generator
-    isGenerating,
-    activeAgent,
-    iterationCount,
-    events,
-    activeQuestion,
-    stagedQuestions,
-    batchProgress,
-    perQuestionState,
-    rejectedData,
-    latestReview,
-    // Save state
-    isQuestionSaved,
-    savedQuestionIds,
     // Handlers
     handleGenerate,
-    handleCancelGeneration,
-    handleApproveQuestion,
-    handleBatchApprove,
-    handleDiscardQuestion,
-    handleDiscardBatch,
-    handleDiscardUnsaved,
-    handleFinishBatch,
-    handleDiscardQuestionInBatch,
     handleApplyPreset,
-    handleSelectFromBank,
-    handleUpdateQuestionInBatch,
-    handleUpdateSingleQuestion,
-    // AI Validated state
+    // Counts
     validatedCount,
-    refreshCounts: refreshActiveBatches,
+    refreshCounts: refreshGlobalCounts,
     isLaunchingBatch
   };
 }

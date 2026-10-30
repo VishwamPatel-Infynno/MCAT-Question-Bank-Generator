@@ -131,35 +131,23 @@ Streamlined 3-step authoring workflow:
   - **Custom Instructions Active Badge**: An animated indicator pill badge (`border: 1px solid var(--border-brand)`, `background: var(--brand-light)`, `color: var(--brand-primary)`) rendered dynamically in the Advanced Settings drawer header when custom instructions are present.
   - **Expandable Advanced Configuration Accordion**: Collapsible drawer controlling cognitive distractor traps, reasoning skills, and targeted student misconception patterns.
 
-### 4.2 Multi-Agent Conduit Telemetry (`MultiAgentPipelineVisualizer.jsx`)
-- Four connected functional milestones presented in natural editorial language:
-  1. **Drafting & Review (01)**: Drafts question stem, 4 symmetric options, verified key, and initial quality score.
-  2. **Answer Check (02)**: Double-checks question independently without key access, verifying a single unambiguous correct answer.
-  3. **Question Polish (03)**: Automatically refines distractor choices and pedagogical explanations if score $\le 90$ or answer ambiguity is detected. Displays *"Passed quality check"* when first-pass draft meets the standard.
-  4. **Figures & Diagrams (04)**: Renders scientific reaction mechanisms, optics, or metabolic charts. Displays *"No figure needed"* for text-only questions.
-- **Grid Layout**: Structured via `.pipeline-stepper` with fluid responsive column wrapping (`gap: 10px;`) and single-column responsive stacking on mobile viewports ($\le 768\text{px}$).
-- Conduits between nodes feature an animated electric gradient pulse (`conduit-flow-active`) during active generation.
-- Collapsible event logs drawer displaying live step timestamps, milestones, token metrics, and per-step costs.
+### 4.2 Live Batch Activity & Concurrency Monitor (`BatchActivityView.jsx`, `ActiveMultiBatchMonitor.jsx`)
+- **Global Concurrency & Worker Pool**: Live telemetry bar showing running background batches, active worker job slots (governed by the 10-worker pool), and real-time execution timers.
+- **Batch Card Telemetry (`BatchCard.jsx`)**:
+  - Displays batch scope badge (Practice Set 5 Qs vs Full Exam 50 Qs), section accent, target question count, completed slots, and overall completion percentage.
+  - Expandable accordion displaying individual job status items with their assigned thematic angles, cognitive traps, and generated question items.
+- **Set-Preserving Duplicate Resolution Section (`BatchDuplicateAuditSection.jsx`)**:
+  - Interactive clustering panel analyzing pairwise question similarity (>75% threshold).
+  - Permanent purge of duplicate drafts with in-place slot replenishment preserving the original set's reading passage and thematic angle.
+  - Manual or automatic one-click "Purge & Refill" action ensuring exact target count delivery (e.g. exactly 50 questions across 10 jobs).
 
-### 4.3 Editorial Review Desk & AAMC Dual Split-Pane Mode (`QuestionCard.jsx`, `StagedBatchReview.jsx`)
+### 4.3 Editorial Review Desk & AI-Validated Triage (`AiValidatedQuestionsView.jsx`, `QuestionCard.jsx`)
 - **Top Metadata Strip**: Displays section badge, difficulty chip, dual score pills (AAMC Scaled Score `118-132` + 100-pt Audit Score), AAMC Skill badge (SIRS 1-4 / CARS 1-3), cumulative token/cost telemetry, and a dedicated **Primary Cognitive Trap Badge Chip** (`rgba(139, 92, 246, 0.12)` background, purple border, `Tag` icon).
-- **AAMC Dual Split-Pane Reading Mode Layout**:
-  - Implemented in `StagedBatchReview.jsx` using the `.aamc-split-layout-grid` CSS class:
-    ```css
-    .aamc-split-layout-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-      gap: 20px;
-      align-items: start;
-    }
-    ```
-  - **Left Reading Pane (`SharedPassageCard.jsx`)**: Displays the shared experimental stimulus or CARS essay formatted in warm Newsreader serif type (`font-size: 1.05rem`, `line-height: 1.68`). Features sticky positioning (`position: sticky; top: 88px; max-height: calc(100vh - 120px); overflow-y: auto;`) allowing educators to consult passage evidence without losing their vertical reading position.
-  - **Right Candidate Pane (`QuestionCard.jsx` / `StagedDetailedView.jsx`)**: Hosts the active question stem, option badges, inline editor, and distractor rationales with independent vertical scrolling.
-  - **Layout Mode Toggle (`BatchProgressHeader.jsx`)**: An interactive switcher (`#btn-toggle-split-layout`) allows educators to seamlessly toggle between **Split View** (side-by-side reading desk) and **Stacked View** (vertical single-column layout).
-  - **Responsive Collapse**: Automatically collapses to a clean single column on mobile and tablet screens ($\le 1024\text{px}$).
+- **Withholding Queue Flow**: Batches hold incomplete or in-flight questions in `batch_only` status. Once a batch completes, questions passing the $\ge 90$ rubric standard atomically advance to `ai_validated` and appear in the review queue.
 - **Option Badges**: Standard 4 circular `A`, `B`, `C`, `D` pills that highlight emerald on correct answers and crimson on incorrect distractors with clear checkmark/cross indicators.
 - **Distractor Rationalization Drawers**: Collapsible cards detailing the exact psychometric reason why each wrong option constitutes a realistic cognitive trap.
-- **Inline Editor (`QuestionInlineEditor.jsx`)**: Live editable fields allowing educators to adjust stem text, key letters, or explanation proofs before committing to the question bank.
+- **Inline Editor (`QuestionInlineEditor.jsx`)**: Live editable fields allowing educators to adjust stem text, key letters, or explanation proofs before committing to the canonical question bank.
+- **Deep Stage Outcome JSON Inspector (`StageJsonInspector.jsx`)**: Collapsible 5-stage accordion inspector allowing educators and developers to inspect raw agent payloads across Drafting, Quality Review, Polish & Refine, Figures, and Final Question records.
 
 ### 4.4 Psychometric Audit Modal & Accessible Focus Trapping (`ReviewAuditView.jsx`)
 - **Modal Architecture**: Accessible dialog overlay implementing strict WCAG AA focus trapping and escape dismissal:

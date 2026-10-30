@@ -15,8 +15,8 @@ The frontend provides an intuitive, real-time command canvas for AAMC MCAT quest
   - **Practice Set (5 Qs)**: 1 Single Job background worker drafting on a shared passage or discrete set (~35-50s) streamed into the AI Validated Bank and Batch Activity Desk with live telemetry.
   - **Full Exam (50 Qs)**: Enterprise background multi-job batch (10 concurrent jobs x 5 questions) with automatic AI validation and in-place slot replenishment.
 - **Review Queue Withholding Guarantee**: Questions generated during background batches are held in `batch_only` status while the batch is running to keep the "Ready for Review" queue clean of incomplete drafts. Upon clean batch completion, high-scoring questions (>90) are atomically promoted to `ai_validated`.
-- **Live Pipeline with 4 Editorial Milestones**: Animated live tracker displaying the review milestones (**Drafting & Review**, **Answer Check**, **Question Polish**, and **Figures & Diagrams**) with electric conduit telemetry.
-- **Staged Batch Review & Approval**: Interactive batch staging deck allowing educators to inspect, edit, discard, or approve multiple generated items before saving to the database.
+- **Live Background Batch Activity & Telemetry**: Real-time batch and worker job monitoring dashboard displaying live progress, per-job question cards, duplicate audit clusters, and manual or automated in-place refills.
+- **AI-Validated Editorial Review Desk**: High-speed triage desk where educators inspect, inline-edit, discard, or approve validated questions into the canonical Question Bank.
 - **Question Quality & Cost Breakdown**: Comprehensive 100-point 4-pillar quality check with itemized token tracking and micro-dollar cost calculations.
 - **Export & Print Studio**: Professional modal for exporting PDF Exam Papers (with candidate headers and page breaks), Study Packs, CSV, and JSON bundles.
 - **Enterprise Question Bank**: High-speed searchable, filterable repository with multi-format export, lifecycle status management, and copy-to-clipboard actions.
@@ -31,7 +31,6 @@ frontend/src/
 │   ├── index.js                  # Views barrel export
 │   ├── AiValidatedQuestionsView.jsx # Dedicated review deck for AI-validated items (Review Queue)
 │   ├── BatchActivityView.jsx     # Live & historical batch monitoring dashboard (Batch Progress)
-│   ├── GeneratorWorkspaceView.jsx# Interactive exam generation & pipeline workspace (Create Questions)
 │   ├── PassageBankView.jsx       # Reading passages repository & editorial desk (Passage Bank)
 │   └── QuestionBankView.jsx      # Verified Question Bank view & editorial cards (Question Bank)
 ├── components/
@@ -44,6 +43,7 @@ frontend/src/
 │   │   ├── index.js              # Batch barrel export
 │   │   ├── ActiveMultiBatchMonitor.jsx # Global concurrency metrics & live multi-batch controller
 │   │   ├── BatchCard.jsx         # Summary status card for generation batches
+│   │   ├── BatchDuplicateAuditSection.jsx # Set-preserving duplicate resolution & in-place refill
 │   │   ├── BatchFiltersBar.jsx   # Section, status, and search filters
 │   │   ├── BatchJobCard.jsx      # Per-question job card with lifecycle status
 │   │   ├── BatchQuestionItem.jsx # Staged question item with review modal
@@ -73,30 +73,16 @@ frontend/src/
 │   │   ├── PassageEditorialDesk.jsx # Reading passage editor & preview desk
 │   │   ├── PassageLinkedQuestionCard.jsx # Linked question card within passage editorial desk
 │   │   └── PassageVisualStimulusEditor.jsx # Passage diagram & figure attachment editor
-│   ├── pipeline/
-│   │   ├── index.js              # Pipeline barrel export
-│   │   ├── AgentVisualizer.jsx   # Live generating telemetry & compact stepper
-│   │   ├── MultiAgentPipelineVisualizer.jsx # 4-Milestone pipeline visualizer with electric conduits
-│   │   └── RejectionCard.jsx     # Diagnostic display when score fails threshold
 │   ├── question/
 │   │   ├── index.js              # Question review desk barrel export
 │   │   ├── MentorExplanationView.jsx # 3-card mentor explanation view (Intuition, Distractors, Trap)
 │   │   ├── QuestionCard.jsx      # Interactive student practice & review card
-│   │   ├── QuestionDraftingSkeleton.jsx # Pulse skeleton for question creation
 │   │   ├── QuestionInlineEditor.jsx # In-place authoring & remediation editor
 │   │   ├── QuestionScorecardTab.jsx # 100-point rubric breakdown accordion
 │   │   ├── ReviewAuditView.jsx   # 100-point rubric breakdown & token cost modal (Focus Trapped)
-│   │   ├── SharedPassageCard.jsx # Shared reading passage stimulus display card (Split-Pane Sticky)
+│   │   ├── SharedPassageCard.jsx # Shared reading passage stimulus display card
+│   │   ├── StageJsonInspector.jsx# Deep stage outcome JSON inspector accordion
 │   │   └── VisualStimulusViewer.jsx # SVG & neural visual diagram renderer
-│   ├── staged/
-│   │   ├── index.js              # Barrel export for batch review deck
-│   │   ├── BatchProgressHeader.jsx # Staged batch progress telemetry header & Split/Stacked toggle
-│   │   ├── StageJsonInspector.jsx# Deep stage outcome JSON inspector modal (Focus Trapped)
-│   │   ├── StagedBatchGrid.jsx   # Grid of staged batch question slots
-│   │   ├── StagedBatchReview.jsx # Multi-question batch confirmation deck (AAMC Split-Pane Layout)
-│   │   ├── StagedDetailedView.jsx# Expanded single question review panel
-│   │   ├── StagedQuestionSlotCard.jsx # Individual question slot reviewer card
-│   │   └── StagedSlotSkeleton.jsx# Slot loading pulse skeleton
 │   ├── validated/
 │   │   ├── index.js              # AI Validated barrel export
 │   │   ├── AiValidatedFiltersBar.jsx # Filters for AI-validated questions
