@@ -12,6 +12,7 @@ import { usePagination } from '../hooks';
 import PassageBankFilters from '../components/passage/PassageBankFilters';
 import PassageBankTable from '../components/passage/PassageBankTable';
 import PassageEditorialDesk from '../components/passage/PassageEditorialDesk';
+import { DeletePassageModal } from '../components/modals';
 
 /**
  * PassageBankView
@@ -20,10 +21,11 @@ import PassageEditorialDesk from '../components/passage/PassageEditorialDesk';
  * Provides a master catalog list with filters and an in-depth
  * side-by-side MCAT editorial desk with full linked question support.
  */
-export default function PassageBankView({ onShowToast, onNavigateToWizard, resetSignal }) {
+export default function PassageBankView({ onShowToast, onNavigateToWizard, resetSignal, onRefreshCounts }) {
   const [passages, setPassages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [questionCounts, setQuestionCounts] = useState({});
+  const [passageToDelete, setPassageToDelete] = useState(null);
 
   // Filter & Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -246,29 +248,46 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard, reset
     }
   };
 
-  // Delete Passage Handler
-  const handleDeletePassage = async (passage) => {
-    const titleOrId = passage.title || passage.id;
-    if (!window.confirm(`Delete passage "${titleOrId}"? Associated questions will remain in the Question Bank as independent items.`)) {
-      return;
-    }
+  // Delete Passage Request (Opens Cascade Delete Modal)
+  const handleRequestDeletePassage = (passage) => {
+    if (!passage) return;
+    const qCount = (selectedPassage && selectedPassage.id === passage.id)
+      ? selectedPassageQuestions.length
+      : (typeof passage.question_count === 'number' ? passage.question_count : 0);
+    setPassageToDelete({
+      ...passage,
+      question_count: qCount
+    });
+  };
 
+  // Confirm Cascade Delete Handler
+  const handleConfirmCascadeDelete = async (passage) => {
     try {
-      await deletePassage(passage.id);
+      const res = await deletePassage(passage.id);
+      const deletedQuestionsCount = res?.deleted_questions_count ?? passage.question_count ?? 0;
+
       if (selectedPassage?.id === passage.id) {
         setSelectedPassage(null);
         setSelectedPassageQuestions([]);
       }
+
       await loadPassages();
+
+      if (onRefreshCounts) {
+        onRefreshCounts();
+      }
+
       if (onShowToast) {
         onShowToast({
           type: 'success',
           title: 'Passage Deleted',
-          message: `Passage removed. Linked questions preserved in Question Bank.`
+          message: deletedQuestionsCount > 0
+            ? `Passage and ${deletedQuestionsCount} associated question${deletedQuestionsCount === 1 ? '' : 's'} permanently removed.`
+            : 'Passage removed successfully.'
         });
       }
     } catch (err) {
-      console.error('Failed to delete passage:', err);
+      console.error('Failed to cascade delete passage:', err);
       if (onShowToast) {
         onShowToast({
           type: 'error',
@@ -276,6 +295,7 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard, reset
           message: err.message || 'Could not remove passage from database.'
         });
       }
+      throw err;
     }
   };
 
@@ -317,18 +337,26 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard, reset
     }
 
     return (
-      <PassageEditorialDesk
-        key={selectedPassage.id}
-        passage={selectedPassage}
-        questions={selectedPassageQuestions}
-        onBack={() => {
-          setSelectedPassage(null);
-          setSelectedPassageQuestions([]);
-        }}
-        onSavePassage={handleSavePassage}
-        onDeletePassage={handleDeletePassage}
-        onUpdateQuestion={handleUpdateQuestion}
-      />
+      <>
+        <PassageEditorialDesk
+          key={selectedPassage.id}
+          passage={selectedPassage}
+          questions={selectedPassageQuestions}
+          onBack={() => {
+            setSelectedPassage(null);
+            setSelectedPassageQuestions([]);
+          }}
+          onSavePassage={handleSavePassage}
+          onDeletePassage={handleRequestDeletePassage}
+          onUpdateQuestion={handleUpdateQuestion}
+        />
+        <DeletePassageModal
+          isOpen={Boolean(passageToDelete)}
+          onClose={() => setPassageToDelete(null)}
+          passage={passageToDelete}
+          onConfirmDelete={handleConfirmCascadeDelete}
+        />
+      </>
     );
   }
 
@@ -454,7 +482,7 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard, reset
           passages={paginatedPassages}
           questionCounts={questionCounts}
           onSelectPassage={handleSelectPassage}
-          onDeletePassage={handleDeletePassage}
+          onDeletePassage={handleRequestDeletePassage}
           onCopyPassageId={(id) => {
             if (onShowToast) {
               onShowToast({
@@ -486,6 +514,14 @@ export default function PassageBankView({ onShowToast, onNavigateToWizard, reset
           ]}
         />
       )}
+
+      {/* ── Cascade Delete Passage Modal ──────────────────────────────────── */}
+      <DeletePassageModal
+        isOpen={Boolean(passageToDelete)}
+        onClose={() => setPassageToDelete(null)}
+        passage={passageToDelete}
+        onConfirmDelete={handleConfirmCascadeDelete}
+      />
     </div>
   );
 }

@@ -51,8 +51,12 @@ async def create_or_update_passage(passage: Passage):
 
 @router.delete("/passages/{passage_id}")
 async def remove_passage(passage_id: str):
-    """Admin endpoint to delete a passage record and unlink its associated questions."""
-    success = await delete_passage(passage_id)
+    """Admin endpoint to delete a passage record and permanently remove all associated questions."""
+    success, deleted_q_count = await delete_passage(passage_id)
     if not success:
         raise HTTPException(status_code=404, detail="Passage not found")
-    return {"success": True, "deleted_id": passage_id}
+    return {
+        "success": True,
+        "deleted_id": passage_id,
+        "deleted_questions_count": deleted_q_count,
+    }

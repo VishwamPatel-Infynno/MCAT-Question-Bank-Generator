@@ -36,7 +36,7 @@ This document provides a comprehensive technical reference for all REST endpoint
 | `GET` | `/api/passages` | Lists shared reading passages with query filtering and question counts |
 | `GET` | `/api/passages/{passage_id}` | Retrieves a single reading passage along with all its linked questions |
 | `POST` | `/api/passages` | Admin endpoint to create or update a shared reading passage record |
-| `DELETE` | `/api/passages/{passage_id}` | Admin endpoint to delete a reading passage record and unlink associated questions |
+| `DELETE` | `/api/passages/{passage_id}` | Admin endpoint to delete a reading passage record and cascade-remove all associated questions |
 | `GET` | `/api/batches` | Lists generation batches with active running counts and global concurrency metrics |
 | `GET` | `/api/batches/{batch_id}` | Retrieves a generation batch with all jobs and grouped questions |
 | `POST` | `/api/batches/start` | Launches an asynchronous background batch generation (dynamically allocated, e.g., 50 Qs = 10 jobs) |
@@ -809,7 +809,7 @@ Replenishes a batch up to its target question count by launching targeted backgr
 - **List Passages (`GET /api/passages`)**: Lists reading passages with optional `section`, `subtopic`, and `search` query parameters.
 - **Get Single Passage (`GET /api/passages/{passage_id}`)**: Retrieves a reading passage along with its complete array of linked questions.
 - **Create/Update Passage (`POST /api/passages`)**: Admin endpoint to persist or modify a shared stimulus passage.
-- **Delete Passage (`DELETE /api/passages/{passage_id}`)**: Admin endpoint to delete a reading passage record and unlink its associated questions in the Question Bank without deleting the questions themselves.
+- **Delete Passage (`DELETE /api/passages/{passage_id}`)**: Admin endpoint to delete a reading passage record and permanently cascade-remove all associated questions across all statuses (`in_bank`, `ai_validated`, `batch_only`), updating affected job and batch metrics.
 
 #### Query Parameters for Listing Passages (`GET /api/passages`)
 | Parameter | Type | Required | Description |
@@ -908,7 +908,8 @@ curl -X POST "http://localhost:8000/api/passages" \
 ```json
 {
   "success": true,
-  "deleted_id": "550e8400-e29b-41d4-a716-446655440000"
+  "deleted_id": "550e8400-e29b-41d4-a716-446655440000",
+  "deleted_questions_count": 5
 }
 ```
 

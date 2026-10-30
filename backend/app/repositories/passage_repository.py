@@ -5,6 +5,7 @@ from sqlalchemy import delete, func, or_, select, update
 
 from app.db.base import to_datetime, to_iso_str
 from app.db.session import async_session_factory
+from app.models.job import GenerationJobModel
 from app.models.passage import PassageModel
 from app.models.question import QuestionModel
 from app.schemas import Passage
@@ -129,16 +130,62 @@ async def save_passage(passage: Passage) -> Passage:
         return passage
 
 
-async def delete_passage(passage_id: str) -> bool:
-    """Deletes a passage record and safely unlinks any associated questions."""
+async def delete_passage(passage_id: str) -> tuple[bool, int]:
+    """Deletes a passage record and permanently removes all associated questions, updating affected job and batch metrics."""
     async with async_session_factory() as session:
-        # 1. Unlink questions from this passage (retaining them as standalone questions)
+        # Check if passage exists
+        passage = await session.get(PassageModel, passage_id)
+        if not passage:
+            return False, 0
+
+        # Find affected batch_ids and job_ids to update their counts
+        q_info_stmt = select(QuestionModel.batch_id, QuestionModel.job_id).where(
+            QuestionModel.passage_id == passage_id
+        )
+        res_info = await session.execute(q_info_stmt)
+        affected_pairs = res_info.all()
+        affected_batch_ids = {b_id for b_id, _ in affected_pairs if b_id}
+        affected_job_ids = {j_id for _, j_id in affected_pairs if j_id}
+
+        # 1. Permanently delete all linked questions
+        del_q_res = await session.execute(
+            delete(QuestionModel).where(QuestionModel.passage_id == passage_id)
+        )
+        deleted_q_count = del_q_res.rowcount or 0
+
+        # 2. Delete the passage row
+        await session.execute(delete(PassageModel).where(PassageModel.id == passage_id))
+
+        # 3. Recalculate job actual_count for affected jobs and clear dangling passage_id
         await session.execute(
-            update(QuestionModel)
-            .where(QuestionModel.passage_id == passage_id)
+            update(GenerationJobModel)
+            .where(GenerationJobModel.passage_id == passage_id)
             .values(passage_id=None)
         )
-        # 2. Delete the passage row
-        res = await session.execute(delete(PassageModel).where(PassageModel.id == passage_id))
+
+        for job_id in affected_job_ids:
+            j_count_stmt = select(func.count(QuestionModel.id)).where(
+                QuestionModel.job_id == job_id
+            )
+            j_count = (await session.execute(j_count_stmt)).scalar() or 0
+            await session.execute(
+                update(GenerationJobModel)
+                .where(GenerationJobModel.id == job_id)
+                .values(actual_count=j_count)
+            )
+
         await session.commit()
-        return bool((res.rowcount or 0) > 0)
+
+    # 4. Recalculate batch metrics for affected batches
+    from app.repositories.batch_repository import refresh_batch_aggregates
+
+    for batch_id in affected_batch_ids:
+        try:
+            await refresh_batch_aggregates(batch_id)
+        except Exception as e:
+            logger.warning(f"Failed to refresh batch aggregates for batch {batch_id}: {e}")
+
+    logger.info(
+        f"Permanently deleted passage {passage_id} and {deleted_q_count} associated question(s)."
+    )
+    return True, deleted_q_count

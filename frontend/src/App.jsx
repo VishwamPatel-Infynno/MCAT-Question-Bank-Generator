@@ -156,6 +156,7 @@ export default function App() {
                 resetSignal={passagesResetSignal}
                 onShowToast={showToast}
                 onNavigateToWizard={() => handleNavigateToWizard(1)}
+                onRefreshCounts={refreshCounts}
               />
             </Suspense>
           </ErrorBoundary>

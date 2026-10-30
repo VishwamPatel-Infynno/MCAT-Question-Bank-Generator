@@ -102,7 +102,7 @@ class QuestionModel(Base):
     passage_mode: Mapped[str | None] = mapped_column(String(32), nullable=True)
     passage_id: Mapped[str | None] = mapped_column(
         String(64),
-        ForeignKey("passages.id", ondelete="SET NULL"),
+        ForeignKey("passages.id", ondelete="CASCADE"),
         nullable=True,
         index=True,
     )

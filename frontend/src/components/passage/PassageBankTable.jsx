@@ -213,7 +213,7 @@ export default function PassageBankTable({
                     fontSize: '0.72rem',
                     color: 'var(--status-danger)'
                   }}
-                  title="Delete passage (unlinks questions)"
+                  title="Delete passage and linked questions"
                   aria-label="Delete passage"
                 >
                   <Trash2 size={13} />

@@ -217,7 +217,7 @@ export default function PassageEditorialDesk({
               onClick={() => onDeletePassage(passage)}
               className="btn-ghost"
               style={{ padding: '6px 10px', fontSize: '0.78rem', color: 'var(--status-danger)', gap: '5px' }}
-              title="Delete this passage and unlink its questions"
+              title="Delete this passage and all linked questions"
             >
               <Trash2 size={13} />
               <span>Delete Passage</span>

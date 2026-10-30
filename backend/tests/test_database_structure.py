@@ -239,22 +239,19 @@ async def test_api_passages_and_batches():
             == "Medical triage protocols require rapid and systematic categorization."
         )
 
-        # 6. Test DELETE /api/passages/{passage_id} and verify question is unlinked (retained in bank)
+        # 6. Test DELETE /api/passages/{passage_id} and verify question is permanently deleted
         resp_del_p = await client.delete(f"/api/passages/{passage_id}")
         assert resp_del_p.status_code == 200
         assert resp_del_p.json()["success"] is True
+        assert resp_del_p.json()["deleted_questions_count"] == 1
 
         # Passage should now be gone (404)
         resp_gone = await client.get(f"/api/passages/{passage_id}")
         assert resp_gone.status_code == 404
 
-        # Question should still exist in bank with passage_id == None
-        resp_q_unlinked = await client.get(f"/api/questions/{q.id}")
-        assert resp_q_unlinked.status_code == 200
-        assert resp_q_unlinked.json()["passage_id"] is None
-
-    # Clean up
-    await delete_question(q.id)
+        # Question should also be permanently deleted (404)
+        resp_q_deleted = await client.get(f"/api/questions/{q.id}")
+        assert resp_q_deleted.status_code == 404
 
 
 @pytest.mark.asyncio
@@ -312,3 +309,167 @@ async def test_model_to_schema_none_options_safety():
     schema_item = _model_to_schema(dummy_model)
     assert schema_item.id == dummy_model.id
     assert schema_item.options == []
+
+
+@pytest.mark.asyncio
+async def test_cascade_passage_deletion_multi_status_and_metrics():
+    """Verify that deleting a passage cascade-deletes all linked questions across all statuses and recalculates job/batch actual counts."""
+    from app.repositories.batch_repository import get_batch_by_id, refresh_batch_aggregates, save_batch
+    from app.repositories.job_repository import get_job_by_id, save_job, update_job_progress
+    from app.repositories.passage_repository import delete_passage, get_passage_by_id, save_passage
+    from app.repositories.question_repository import get_question_by_id, save_question
+    from app.schemas import GenerationBatch, GenerationJob, Passage
+
+    passage_id = f"cascade-p-{uuid.uuid4()}"
+    batch_id = f"cascade-b-{uuid.uuid4()}"
+    job1_id = f"cascade-j1-{uuid.uuid4()}"
+    job2_id = f"cascade-j2-{uuid.uuid4()}"
+
+    p = Passage(
+        id=passage_id,
+        title="Enzyme Kinetics Study",
+        text="A detailed study on Michaelis-Menten kinetics and competitive inhibition curves.",
+        section="bb",
+        subtopic="Enzymes",
+    )
+    await save_passage(p)
+
+    batch = GenerationBatch(
+        id=batch_id,
+        section="bb",
+        subtopic="Enzymes",
+        target_count=4,
+        actual_count=0,
+        status="in_progress",
+    )
+    await save_batch(batch)
+
+    job1 = GenerationJob(
+        id=job1_id,
+        batch_id=batch_id,
+        job_number=1,
+        target_count=2,
+        actual_count=0,
+        status="completed",
+    )
+    job2 = GenerationJob(
+        id=job2_id,
+        batch_id=batch_id,
+        job_number=2,
+        target_count=2,
+        actual_count=0,
+        status="completed",
+    )
+    await save_job(job1)
+    await save_job(job2)
+
+    # 3 Questions linked to the passage across different statuses
+    q1 = Question(
+        id=f"q1-{uuid.uuid4()}",
+        batch_id=batch_id,
+        job_id=job1_id,
+        passage_id=passage_id,
+        section="bb",
+        section_label="Biological & Biochemical Foundations",
+        subtopic="Enzymes",
+        difficulty="Medium",
+        question_stem="What is Km in enzyme kinetics?",
+        options=[OptionChoice(id="A", text="Substrate concentration at half Vmax")],
+        correct_answer_id="A",
+        explanation="Km measures substrate affinity.",
+        status="in_bank",
+        final_score=95,
+    )
+    q2 = Question(
+        id=f"q2-{uuid.uuid4()}",
+        batch_id=batch_id,
+        job_id=job1_id,
+        passage_id=passage_id,
+        section="bb",
+        section_label="Biological & Biochemical Foundations",
+        subtopic="Enzymes",
+        difficulty="Hard",
+        question_stem="How does competitive inhibition affect Vmax?",
+        options=[OptionChoice(id="A", text="Vmax is unchanged")],
+        correct_answer_id="A",
+        explanation="Competitive inhibitors do not alter Vmax.",
+        status="ai_validated",
+        final_score=91,
+    )
+    q3 = Question(
+        id=f"q3-{uuid.uuid4()}",
+        batch_id=batch_id,
+        job_id=job2_id,
+        passage_id=passage_id,
+        section="bb",
+        section_label="Biological & Biochemical Foundations",
+        subtopic="Enzymes",
+        difficulty="Easy",
+        question_stem="What does the Lineweaver-Burk plot represent?",
+        options=[OptionChoice(id="A", text="Double reciprocal plot")],
+        correct_answer_id="A",
+        explanation="A Lineweaver-Burk plot plots 1/v vs 1/[S].",
+        status="batch_only",
+        final_score=85,
+    )
+
+    # 1 Standalone question NOT linked to the passage
+    q_standalone = Question(
+        id=f"q-ind-{uuid.uuid4()}",
+        batch_id=batch_id,
+        job_id=job2_id,
+        passage_id=None,
+        section="bb",
+        section_label="Biological & Biochemical Foundations",
+        subtopic="Enzymes",
+        difficulty="Easy",
+        question_stem="Which amino acid acts as a catalytic triad base?",
+        options=[OptionChoice(id="A", text="Histidine")],
+        correct_answer_id="A",
+        explanation="Histidine acts as a general acid/base catalyst.",
+        status="in_bank",
+        final_score=94,
+    )
+
+    await save_question(q1)
+    await save_question(q2)
+    await save_question(q3)
+    await save_question(q_standalone)
+
+    await update_job_progress(job1_id, actual_count=2)
+    await update_job_progress(job2_id, actual_count=2)
+    await refresh_batch_aggregates(batch_id)
+
+    # Verify initial state
+    b_before = await get_batch_by_id(batch_id)
+    assert b_before.actual_count == 4
+
+    # Execute cascade delete of the passage
+    success, deleted_count = await delete_passage(passage_id)
+    assert success is True
+    assert deleted_count == 3
+
+    # Passage should be gone
+    assert await get_passage_by_id(passage_id) is None
+
+    # Linked questions across all statuses must be permanently gone
+    assert await get_question_by_id(q1.id) is None
+    assert await get_question_by_id(q2.id) is None
+    assert await get_question_by_id(q3.id) is None
+
+    # Standalone question must still exist
+    assert await get_question_by_id(q_standalone.id) is not None
+
+    # Job metrics must be updated
+    j1_after = await get_job_by_id(job1_id)
+    assert j1_after.actual_count == 0
+
+    j2_after = await get_job_by_id(job2_id)
+    assert j2_after.actual_count == 1
+
+    # Batch metrics must reflect remaining active question count
+    b_after = await get_batch_by_id(batch_id)
+    assert b_after.actual_count == 1
+
+    # Clean up remaining standalone question
+    await delete_question(q_standalone.id)

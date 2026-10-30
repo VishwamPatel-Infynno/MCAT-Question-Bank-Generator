@@ -512,10 +512,10 @@ erDiagram
     }
 ```
 
-### 6.3 Passage Entity Lifecycle & Non-Destructive Unlinking
+### 6.3 Passage Entity Lifecycle & Atomic Cascade Deletion
 When multiple questions are generated as a passage set, they share a foreign key reference (`passage_id`) pointing to the parent `PASSAGES` record:
 - **Passage Association**: Educators can browse shared passages in the Passage Bank and inspect all linked questions simultaneously.
-- **Non-Destructive Deletion (`DELETE /api/passages/{passage_id}`)**: When an administrator deletes a reading passage via `delete_passage`, the database repository explicitly unlinks the associated questions by setting their `passage_id = None`. The questions remain fully intact and accessible in the Question Bank as independent practice items, preventing accidental content loss.
+- **Atomic Cascade Deletion (`DELETE /api/passages/{passage_id}`)**: When an administrator deletes a reading passage via `delete_passage`, the database repository permanently deletes the passage and all associated questions across all lifecycle statuses (`in_bank`, `ai_validated`, `batch_only`) in a single atomic SQL transaction. It also recalculates question progress metrics (`actual_count`) on any affected batch jobs and batches, ensuring consistent database state. In the UI, a dedicated `DeletePassageModal` prompts educators with the exact count of linked questions being permanently removed.
 
 ### 6.4 Deduplication & Override Schema Architecture
 The deduplication subsystem extends the PostgreSQL schema with two persistent fields:

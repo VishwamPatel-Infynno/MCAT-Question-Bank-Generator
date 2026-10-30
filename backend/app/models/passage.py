@@ -31,5 +31,9 @@ class PassageModel(Base):
 
     # Bidirectional relationships
     questions: Mapped[list["QuestionModel"]] = relationship(
-        "QuestionModel", back_populates="passage", lazy="selectin"
+        "QuestionModel",
+        back_populates="passage",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        lazy="selectin",
     )
